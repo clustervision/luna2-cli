@@ -68,8 +68,20 @@ class Network(object):
         cmd.add_argument('--prefix', '-P', metavar='PP', required=True, type=int, help='Prefix')
         cmd.add_argument('--nshostname', help='Name server for zone file')
         cmd.add_argument('--nsipaddress', metavar='N.N.N.N', help='Name server\'s IP for zone file')
-        ## >>>>>>> Network Command >>>>>>> change
+        ## >>>>>>> Network Command >>>>>>> update
         cmd = network_args.add_parser('update', help='Update Network')
+        cmd.add_argument('name', help='Name of the Network')
+        cmd.add_argument('--network', '-N', metavar='N.N.N.N', help='Network')
+        cmd.add_argument('--prefix', '-P', metavar='PP', type=int, help='Prefix')
+        cmd.add_argument('--reserve', '-R', metavar='X.X.X.X', help='Reserve IP')
+        cmd.add_argument('--release', metavar='X.X.X.X', help='Release IP')
+        cmd.add_argument('--nshostname', help='Name server for zone file')
+        cmd.add_argument('--nsipaddress', metavar='N.N.N.N', help='Name server\'s IP for zone file')
+        cmd.add_argument('--include', action='store_true', help='Include data for zone file')
+        cmd.add_argument('--rev_include', action='store_true', help='Include data for reverse zone file')
+        cmd.add_argument('--comment', '-C', action='store_true', help='Add comment')
+        ## >>>>>>> Network Command >>>>>>> clone
+        cmd = network_args.add_parser('clone', help='Clone Network')
         cmd.add_argument('name', help='Name of the Network')
         cmd.add_argument('--network', '-N', metavar='N.N.N.N', help='Network')
         cmd.add_argument('--prefix', '-P', metavar='PP', type=int, help='Prefix')
@@ -128,6 +140,13 @@ class Network(object):
 
 
     def rename_network(self, args=None):
+        """
+        Method to rename a network in Luna Configuration.
+        """
+        return True
+
+
+    def clone_network(self, args=None):
         """
         Method to rename a network in Luna Configuration.
         """
