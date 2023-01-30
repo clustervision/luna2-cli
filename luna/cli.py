@@ -26,12 +26,16 @@ class Cli(object):
 
     def __init__(self):
         pass
-    
+
     def main(self):
+        """
+        Main method to fetch and provide the arguments
+        for each class.
+        """
         parser = ArgumentParser(prog='luna', description='Manage Luna Cluster')
         parser.add_argument('--debug', '-d', action='store_true', help='Show debug information')
         subparsers = parser.add_subparsers(dest="command", help='See Details by --help')
-        Networkparser = Network.getarguments(self, parser, subparsers)
+        Network.getarguments(self, parser, subparsers)
 
         args = vars(parser.parse_args())
         self.callclass(args)
@@ -39,9 +43,11 @@ class Cli(object):
 
 
     def callclass(self, args):
+        """
+        Method to call the class for further
+        operations.
+        """
         if args:
-            # print(args)
-            # sys.exit(0)
             if args["command"] == "network":
                 Network(args)
         else:
