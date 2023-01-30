@@ -26,7 +26,7 @@ class Cli(object):
 
     def __init__(self):
         pass
-
+    
     def main(self):
         parser = ArgumentParser(prog='luna', description='Manage Luna Cluster')
         parser.add_argument('--debug', '-d', action='store_true', help='Show debug information')
@@ -46,3 +46,11 @@ class Cli(object):
                 Network(args)
         else:
             print("Please pass -h to see help menu.")
+
+
+def run_tool():
+    """
+    This method initiate the main method of
+    CLI class.
+    """
+    Cli().main()

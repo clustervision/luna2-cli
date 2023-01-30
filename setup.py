@@ -23,7 +23,7 @@ install_requires=[
 	],
 entry_points ={
 	'console_scripts': [
-	'luna = luna.cli:main'
+	'luna = luna.cli:run_tool'
 	]
 },
 dependency_links = [],
