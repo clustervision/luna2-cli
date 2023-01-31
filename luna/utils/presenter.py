@@ -12,7 +12,9 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-from prettytable import PrettyTable
+from prettytable import PrettyTable, FRAME, HEADER, NONE
+import json
+from pygments import highlight, lexers, formatters
 
 class Presenter(object):
     """
@@ -31,8 +33,13 @@ class Presenter(object):
         This method will fetch all records from
         the Luna 2 Daemon Database
         """
-        response = False
-        return response
+        formatted_json = json.dumps(jsondata, sort_keys=True, indent=4)
+        colorful = highlight(
+            formatted_json,
+            lexers.JsonLexer(),
+            formatters.Terminal256Formatter())
+        print(colorful)
+        return True
 
 
     def show_table(self, fields=None, rows=None):
@@ -42,17 +49,6 @@ class Presenter(object):
         """
         self.table.field_names = fields
         self.table.add_rows(rows)
-        print(self.table)
-        return True
-
-
-    def show_table_as_column(self, data=None):
-        """
-        This method will fetch a records from
-        the Luna 2 Daemon Database
-        """
-        print(data)
-        for key in data:
-            self.table.add_column(key, data[key])
-        print(self.table)
+        print(self.table.get_string(fields=["name", "dhcp"]))
+        # print(self.table)
         return True

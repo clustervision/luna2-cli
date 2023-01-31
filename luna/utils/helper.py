@@ -117,24 +117,11 @@ class Helper(object):
         return fields, rows
 
 
-    def colwise(self, data=None):
+    def filter_columns(self, rows=None):
         """
-        This method will generate the data as for
-        column format
+        This method remove the unnessasry fields from
+        the dataset.
         """
-        response = {}
-        for ele in data:
-            keys = list(data[ele].keys())
-            for key in keys:
-                if key not in list(response.keys()):
-                    response[key] = []
-        for fieldkey in response:
-            valrow = []
-            for ele in data:
-                if fieldkey in list((data[ele].keys())):
-                    valrow.append(data[ele][fieldkey])
-                else:
-                    valrow.append("")
-            response[fieldkey] = valrow
-            valrow = []
-        return response
+        static = ['comment', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end', 'gateway', 'name', 'network', 'ns_hostname', 'ns_ip', 'ntps_server']
+        pass
+        return rows
