@@ -14,8 +14,9 @@ __status__      = "Production"
 
 
 # import sys
-from argparse import ArgumentParser
 
+from argparse import ArgumentParser
+import pyfiglet
 from luna.network import Network
 
 
@@ -25,7 +26,8 @@ class Cli(object):
     """
 
     def __init__(self):
-        pass
+        banner = pyfiglet.figlet_format("Luna 2 CLI", font = "digital")
+        print(banner)
 
     def main(self):
         """

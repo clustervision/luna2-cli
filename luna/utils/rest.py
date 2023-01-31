@@ -30,12 +30,13 @@ class Rest(object):
         This method will fetch all records from
         the Luna 2 Daemon Database
         """
-        daemonip, daemonport = '', ''
+        response = False
+        daemonip, daemonport = '192.168.164.90', '7050'
         daemon_url = f'http://{daemonip}:{daemonport}/config/{table}'
         call = requests.get(url=daemon_url, params=data)
-        data = call.json()
-        print(data)
-        return True
+        if call:
+            response = call.json()
+        return response
 
 
     def post_data(self, table=None, data=None):

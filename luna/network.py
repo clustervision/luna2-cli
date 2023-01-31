@@ -13,7 +13,8 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
 
-# import luna
+from luna.utils.helper import Helper
+from luna.utils.presenter import Presenter
 
 class Network(object):
     """
@@ -26,7 +27,6 @@ class Network(object):
         self.table = "network"
         self.version = None
         self.clusterid = None
-        print(self.args)
         if self.args:
             if self.args["action"] == "list":
                 self.list_network(self.args)
@@ -55,6 +55,10 @@ class Network(object):
         network_args = network_menu.add_subparsers(dest='action')
         ## >>>>>>> Network Command >>>>>>> list
         cmd = network_args.add_parser('list', help='List Networks')
+        cmd.add_argument('--row', '-r', action='store_true', help='Table Output in Row Format')
+        cmd.add_argument('--col', '-c', action='store_true', help='Table Output in Column Format')
+        cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        cmd.add_argument('--json', '-j', action='store_true', help='JSON output')
         ## >>>>>>> Network Command >>>>>>> show
         cmd = network_args.add_parser('show', help='Show Network')
         cmd.add_argument('name', help='Name of the Network')
@@ -107,8 +111,17 @@ class Network(object):
         """
         Method to list all networks from Luna Configuration.
         """
-        print(args)
-        return True
+        response = False
+        fields, rows = [], []
+        get_list = dict(Helper().get_list(self.table))
+        data = get_list['config']['network']
+        if args['row']:
+            fields, rows = Helper().rowwise(data)
+            response = Presenter().show_table(fields, rows)
+        if args['col']:
+            data = Helper().colwise(data)
+            response = Presenter().show_table_as_column(data)
+        return response
 
 
     def show_network(self, args=None):

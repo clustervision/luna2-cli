@@ -12,6 +12,10 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
+from luna.utils.rest import Rest
+import numpy as np
+import pandas as pd
+
 class Helper(object):
     """
     All kind of helper methods.
@@ -28,8 +32,11 @@ class Helper(object):
         This method will fetch all records from
         the Luna 2 Daemon Database
         """
-        ## Call Rest API Class method
-        return True
+        response = False
+        data_list = Rest().get_data(table, None)
+        if data_list:
+            response = data_list
+        return response
 
 
     def get_record(self, table=None, name=None):
@@ -84,3 +91,50 @@ class Helper(object):
         """
         ## Call Rest API Class method
         return True
+
+
+    def rowwise(self, data=None):
+        """
+        This method will generate the data as for
+        row format
+        """
+        fields, rows = [], []
+        for ele in data:
+            keys = list(data[ele].keys())
+            for key in keys:
+                if key not in fields:
+                    fields.append(key)
+        for fieldkey in fields:
+            valrow = []
+            for ele in data:
+                if fieldkey in list((data[ele].keys())):
+                    valrow.append(data[ele][fieldkey])
+                else:
+                    valrow.append("")
+            rows.append(valrow)
+            valrow = []
+        rows = np.array(rows).T.tolist()
+        return fields, rows
+
+
+    def colwise(self, data=None):
+        """
+        This method will generate the data as for
+        column format
+        """
+        response = {}
+        for ele in data:
+            keys = list(data[ele].keys())
+            for key in keys:
+                if key not in list(response.keys()):
+                    response[key] = []
+        for fieldkey in response:
+            valrow = []
+            for ele in data:
+                if fieldkey in list((data[ele].keys())):
+                    valrow.append(data[ele][fieldkey])
+                else:
+                    valrow.append("")
+            response[fieldkey] = valrow
+            valrow = []
+        return response
