@@ -112,11 +112,16 @@ class Network(object):
         fields, rows = [], []
         get_list = dict(Helper().get_list(self.table))
         data = get_list['config']['network']
-        if args['raw']:
-            response = Presenter().show_json(data)
-        else:
-            fields, rows = Helper().rowwise(data)
-            response = Presenter().show_table(fields, rows)
+        print(data)
+        fields, rows  = Helper().filter_data(self.table, data)
+        response = Presenter().show_table(fields, rows, None)
+        # print(filterlist)
+        # if args['raw']:
+        #     response = Presenter().show_json(data)
+        # else:
+        #     fields, rows = Helper().rowwise(data)
+        #     filterlist  = Helper().filter_columns(self.table)
+        #     response = Presenter().show_table(fields, rows, filterlist)
         return response
 
 

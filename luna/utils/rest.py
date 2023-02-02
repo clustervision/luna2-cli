@@ -31,7 +31,7 @@ class Rest(object):
         the Luna 2 Daemon Database
         """
         response = False
-        daemonip, daemonport = '127.0.0.1', '7050'
+        daemonip, daemonport = '192.168.164.90', '7050'
         daemon_url = f'http://{daemonip}:{daemonport}/config/{table}'
         call = requests.get(url=daemon_url, params=data)
         if call:

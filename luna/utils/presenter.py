@@ -42,13 +42,15 @@ class Presenter(object):
         return True
 
 
-    def show_table(self, fields=None, rows=None):
+    def show_table(self, fields=None, rows=None, filter=None):
         """
         This method will fetch a records from
         the Luna 2 Daemon Database
         """
         self.table.field_names = fields
         self.table.add_rows(rows)
-        print(self.table.get_string(fields=["name", "dhcp"]))
-        # print(self.table)
+        if filter:
+            print(self.table.get_string(fields=filter))
+        else:
+            print(self.table)
         return True
