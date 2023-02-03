@@ -109,7 +109,9 @@ class Helper(object):
                         newlist = []
                         for internal in data[ele][fieldkey]:
                             for internal_val in internal:
-                                newlist.append(f'{internal_val} = {internal[internal_val]} ')
+                                inkey = colored(internal_val, 'cyan')
+                                inval = colored(internal[internal_val], 'magenta')
+                                newlist.append(f'{inkey} = {inval} ')
                         newlist = '\n'.join(newlist)
                         valrow.append(colored(newlist, 'blue'))
                         newlist = []
