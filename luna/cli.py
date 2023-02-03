@@ -17,7 +17,16 @@ from luna.utils.presenter import Presenter
 from luna.network import Network
 from luna.group import Group
 from luna.osimage import OSImage
-
+from luna.cluster import Cluster
+from luna.bmcsetup import BMCSetup
+from luna.node import Node
+from luna.switch import Switch
+from luna.otherdevices import OtherDevices
+# from luna.service import Service
+# from luna.monitor import Monitor
+# from luna.control import Control
+# from luna.tracker import Tracker
+# from luna.secret import Secret
 
 class Cli(object):
     """
@@ -38,6 +47,11 @@ class Cli(object):
         Network.getarguments(self, parser, subparsers)
         Group.getarguments(self, parser, subparsers)
         OSImage.getarguments(self, parser, subparsers)
+        Cluster.getarguments(self, parser, subparsers)
+        BMCSetup.getarguments(self, parser, subparsers)
+        Node.getarguments(self, parser, subparsers)
+        Switch.getarguments(self, parser, subparsers)
+        OtherDevices.getarguments(self, parser, subparsers)
 
         args = vars(parser.parse_args())
         self.callclass(args)
@@ -56,6 +70,16 @@ class Cli(object):
                 Group(args)
             elif args["command"] == "osimage":
                 OSImage(args)
+            elif args["command"] == "cluster":
+                Cluster(args)
+            elif args["command"] == "bmcsetup":
+                BMCSetup(args)
+            elif args["command"] == "node":
+                Node(args)
+            elif args["command"] == "switch":
+                Switch(args)
+            elif args["command"] == "otherdevices":
+                OtherDevices(args)
         else:
             print("Please pass -h to see help menu.")
 

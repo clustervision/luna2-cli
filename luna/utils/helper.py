@@ -179,22 +179,22 @@ class Helper(object):
             }
         else:
             static = {
-                'bmcsetup': ['id', 'name', 'userid', 'username', 'password', 'netchannel', 'mgmtchannel', 'comment', 'unmanaged_bmc_users'],
-                'cluster': ['id', 'name', 'user', 'ns_ip', 'ntp_server', 'technical_contacts', 'provision_method', 'provision_fallback', 'security', 'debug'],
+                'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
+                'cluster': ['name', 'ntp_server', 'technical_contacts', 'provision_method', 'security'],
                 'controller': ['id', 'clusterid', 'hostname', 'status', 'ipaddr', 'serverport'],
-                'group': ['name', 'bmcsetup', 'domain', 'netboot', 'localinstall', 'bootmenu', 'provisioninterface', 'provisionfallback', 'provisionmethod', 'interfaces'],
+                'group': ['name', 'bmcsetup', 'domain', 'provisionfallback', 'interfaces'],
                 'groupinterface': ['id', 'groupid', 'interfacename', 'networkid'],
                 'groupsecrets': ['id', 'groupid', 'name', 'content', 'path'],
                 'ipaddress': ['id', 'ipaddress', 'subnet', 'network'],
                 'monitor': ['id', 'nodeid', 'status', 'state'],
-                'network': ['name', 'network', 'ns_ip', 'ns_hostname', 'ntp_server', 'dhcp'],
-                'node': ['id', 'name', 'hostname', 'groupid', 'localboot', 'macaddr', 'osimageid', 'switchport', 'service', 'bmcsetupid', 'setupbmc', 'status', 'switchid', 'comment', 'prescript', 'partscript', 'postscript', 'netboot', 'localinstall', 'bootmenu', 'provisioninterface', 'provisionfallback', 'provisionmethod', 'tpmuuid', 'tpmpubkey', 'tpmsha256', 'unmanaged_bmc_users'],
+                'network': ['name', 'network', 'ns_ip', 'ns_hostname', 'dhcp'],
+                'node': ['name', 'hostname', 'setupbmc', 'status', 'tpmuuid'],
                 'nodeinterface': ['id', 'nodeid', 'networkid', 'ipaddress', 'macaddress', 'interface'],
                 'nodesecrets': ['id', 'nodeid', 'name', 'content', 'path'],
-                'osimage': ['name', 'dracutmodules', 'grab_filesystems', 'kernelfile', 'path', 'tarball', 'torrent', 'distribution'],
-                'otherdevices': ['id', 'name', 'network', 'ipaddress', 'macaddr', 'comment'],
+                'osimage': ['name', 'kernelfile', 'path', 'tarball', 'distribution'],
+                'otherdevices': ['name', 'network', 'ipaddress', 'macaddr', 'comment'],
                 'roles': ['id', 'name', 'modules'],
-                'switch': ['id', 'name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'comment'],
+                'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],
                 'tracker': ['id', 'infohash', 'peer', 'ipaddress', 'port', 'download', 'upload', 'left', 'updated', 'status'],
                 'user': ['id', 'username', 'password', 'roleid', 'createdby', 'lastlogin', 'created']
             }
