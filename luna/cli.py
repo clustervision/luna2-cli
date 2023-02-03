@@ -12,11 +12,8 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-
-# import sys
-
 from argparse import ArgumentParser
-import pyfiglet
+from luna.utils.presenter import Presenter
 from luna.network import Network
 
 
@@ -26,8 +23,7 @@ class Cli(object):
     """
 
     def __init__(self):
-        banner = pyfiglet.figlet_format("Luna 2 CLI", font = "digital")
-        print(banner)
+        Presenter().show_banner()
 
     def main(self):
         """

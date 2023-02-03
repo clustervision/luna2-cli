@@ -14,7 +14,9 @@ __status__      = "Production"
 
 from prettytable import PrettyTable, FRAME, HEADER, NONE
 import json
-from pygments import highlight, lexers, formatters
+from rich import print_json
+import pyfiglet
+from termcolor import colored
 
 class Presenter(object):
     """
@@ -28,29 +30,33 @@ class Presenter(object):
         self.table = PrettyTable()
 
 
+    def show_banner(self):
+        """
+        This method will show the banner
+        """
+        banner = pyfiglet.figlet_format('Luna 2 CLI', font = "digital")
+        banner= colored(banner, 'green', attrs=['bold'])
+        print(banner)
+        return True
+
+
     def show_json(self, jsondata=None):
         """
         This method will fetch all records from
         the Luna 2 Daemon Database
         """
-        formatted_json = json.dumps(jsondata, sort_keys=True, indent=4)
-        colorful = highlight(
-            formatted_json,
-            lexers.JsonLexer(),
-            formatters.Terminal256Formatter())
-        print(colorful)
+        pretty = json.dumps(jsondata, indent=4)
+        print_json(pretty)
         return True
 
 
-    def show_table(self, fields=None, rows=None, filter=None):
+
+    def show_table(self, fields=None, rows=None):
         """
         This method will fetch a records from
         the Luna 2 Daemon Database
         """
         self.table.field_names = fields
         self.table.add_rows(rows)
-        if filter:
-            print(self.table.get_string(fields=filter))
-        else:
-            print(self.table)
+        print(self.table)
         return True

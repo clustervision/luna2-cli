@@ -56,6 +56,7 @@ class Network(object):
         ## >>>>>>> Network Command >>>>>>> list
         cmd = network_args.add_parser('list', help='List Networks')
         cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        cmd.add_argument('--all', '-A', action='store_true', help='All Data output')
         ## >>>>>>> Network Command >>>>>>> show
         cmd = network_args.add_parser('show', help='Show Network')
         cmd.add_argument('name', help='Name of the Network')
@@ -112,16 +113,14 @@ class Network(object):
         fields, rows = [], []
         get_list = dict(Helper().get_list(self.table))
         data = get_list['config']['network']
-        print(data)
-        fields, rows  = Helper().filter_data(self.table, data)
-        response = Presenter().show_table(fields, rows, None)
-        # print(filterlist)
-        # if args['raw']:
-        #     response = Presenter().show_json(data)
-        # else:
-        #     fields, rows = Helper().rowwise(data)
-        #     filterlist  = Helper().filter_columns(self.table)
-        #     response = Presenter().show_table(fields, rows, filterlist)
+        if args['raw']:
+            response = Presenter().show_json(data)
+        elif args['all']:
+            fields, rows  = Helper().filter_data(self.table, data, args['all'])
+            response = Presenter().show_table(fields, rows)
+        else:
+            fields, rows  = Helper().filter_data(self.table, data, None)
+            response = Presenter().show_table(fields, rows)
         return response
 
 
