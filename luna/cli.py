@@ -15,6 +15,7 @@ __status__      = "Production"
 from argparse import ArgumentParser
 from luna.utils.presenter import Presenter
 from luna.network import Network
+from luna.group import Group
 
 
 class Cli(object):
@@ -34,6 +35,7 @@ class Cli(object):
         parser.add_argument('--debug', '-d', action='store_true', help='Show debug information')
         subparsers = parser.add_subparsers(dest="command", help='See Details by --help')
         Network.getarguments(self, parser, subparsers)
+        Group.getarguments(self, parser, subparsers)
 
         args = vars(parser.parse_args())
         self.callclass(args)
@@ -48,6 +50,8 @@ class Cli(object):
         if args:
             if args["command"] == "network":
                 Network(args)
+            elif args["command"] == "group":
+                Group(args)
         else:
             print("Please pass -h to see help menu.")
 

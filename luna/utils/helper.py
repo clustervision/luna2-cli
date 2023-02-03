@@ -105,12 +105,21 @@ class Helper(object):
             valrow = []
             for ele in data:
                 if fieldkey in list((data[ele].keys())):
-                    if data[ele][fieldkey] == True:
-                        valrow.append(colored(data[ele][fieldkey], 'green'))
-                    elif data[ele][fieldkey] == False:
-                        valrow.append(colored(data[ele][fieldkey], 'red'))
+                    if isinstance(data[ele][fieldkey], list):
+                        newlist = []
+                        for internal in data[ele][fieldkey]:
+                            for internal_val in internal:
+                                newlist.append(f'{internal_val} = {internal[internal_val]} ')
+                        newlist = '\n'.join(newlist)
+                        valrow.append(colored(newlist, 'blue'))
+                        newlist = []
                     else:
-                        valrow.append(colored(data[ele][fieldkey], 'blue'))
+                        if data[ele][fieldkey] == True:
+                            valrow.append(colored(data[ele][fieldkey], 'green'))
+                        elif data[ele][fieldkey] == False:
+                            valrow.append(colored(data[ele][fieldkey], 'red'))
+                        else:
+                            valrow.append(colored(data[ele][fieldkey], 'blue'))
                 else:
                     valrow.append(colored("--NA--", 'red'))
             rows.append(valrow)
@@ -160,7 +169,7 @@ class Helper(object):
                 'bmcsetup': ['id', 'name', 'userid', 'username', 'password', 'netchannel', 'mgmtchannel', 'comment', 'unmanaged_bmc_users'],
                 'cluster': ['id', 'name', 'user', 'ns_ip', 'ntp_server', 'technical_contacts', 'provision_method', 'provision_fallback', 'security', 'debug'],
                 'controller': ['id', 'clusterid', 'hostname', 'status', 'ipaddr', 'serverport'],
-                'group': ['id', 'name', 'bmcsetupid', 'bmcsetup', 'osimageid', 'domain', 'prescript', 'partscript', 'postscript', 'netboot', 'localinstall', 'bootmenu', 'comment', 'provisioninterface', 'provisionfallback', 'provisionmethod', 'unmanaged_bmc_users'],
+                'group': ['name', 'bmcsetup', 'domain', 'netboot', 'localinstall', 'bootmenu', 'provisioninterface', 'provisionfallback', 'provisionmethod', 'interfaces'],
                 'groupinterface': ['id', 'groupid', 'interfacename', 'networkid'],
                 'groupsecrets': ['id', 'groupid', 'name', 'content', 'path'],
                 'ipaddress': ['id', 'ipaddress', 'subnet', 'network'],

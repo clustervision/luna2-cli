@@ -57,6 +57,8 @@ class Presenter(object):
         the Luna 2 Daemon Database
         """
         self.table.field_names = fields
+        if '\\n' in str(rows):
+            self.table.align = "l"
         self.table.add_rows(rows)
         print(self.table)
         return True
