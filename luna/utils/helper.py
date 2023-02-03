@@ -139,6 +139,17 @@ class Helper(object):
         return fields, rows
 
 
+    def filter_data_col(self, table=None, data=None):
+        """
+        This method will generate the data as for
+        row format
+        """
+        fields, rows  = self.filter_data(table, data)
+        rows.insert(0, fields)
+        rows = np.array(rows).T.tolist()
+        return rows
+
+
     def filter_columns(self, table=None, filter=None):
         """
         This method remove the unnessasry fields from
@@ -180,7 +191,7 @@ class Helper(object):
                 'node': ['id', 'name', 'hostname', 'groupid', 'localboot', 'macaddr', 'osimageid', 'switchport', 'service', 'bmcsetupid', 'setupbmc', 'status', 'switchid', 'comment', 'prescript', 'partscript', 'postscript', 'netboot', 'localinstall', 'bootmenu', 'provisioninterface', 'provisionfallback', 'provisionmethod', 'tpmuuid', 'tpmpubkey', 'tpmsha256', 'unmanaged_bmc_users'],
                 'nodeinterface': ['id', 'nodeid', 'networkid', 'ipaddress', 'macaddress', 'interface'],
                 'nodesecrets': ['id', 'nodeid', 'name', 'content', 'path'],
-                'osimage': ['id', 'name', 'dracutmodules', 'grab_filesystems', 'grab_exclude', 'initrdfile', 'kernelfile', 'kernelmodules', 'kerneloptions', 'kernelversion', 'path', 'tarball', 'torrent', 'distribution', 'comment'],
+                'osimage': ['name', 'dracutmodules', 'grab_filesystems', 'kernelfile', 'path', 'tarball', 'torrent', 'distribution'],
                 'otherdevices': ['id', 'name', 'network', 'ipaddress', 'macaddr', 'comment'],
                 'roles': ['id', 'name', 'modules'],
                 'switch': ['id', 'name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'comment'],

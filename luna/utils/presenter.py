@@ -62,3 +62,15 @@ class Presenter(object):
         self.table.add_rows(rows)
         print(self.table)
         return True
+
+
+    def show_table_col(self, rows=None):
+        """
+        This method will fetch a records from
+        the Luna 2 Daemon Database
+        """
+        self.table.header = False
+        self.table.align = "l"
+        self.table.add_rows(rows)
+        print(self.table)
+        return True

@@ -16,6 +16,7 @@ from argparse import ArgumentParser
 from luna.utils.presenter import Presenter
 from luna.network import Network
 from luna.group import Group
+from luna.osimage import OSImage
 
 
 class Cli(object):
@@ -36,6 +37,7 @@ class Cli(object):
         subparsers = parser.add_subparsers(dest="command", help='See Details by --help')
         Network.getarguments(self, parser, subparsers)
         Group.getarguments(self, parser, subparsers)
+        OSImage.getarguments(self, parser, subparsers)
 
         args = vars(parser.parse_args())
         self.callclass(args)
@@ -52,6 +54,8 @@ class Cli(object):
                 Network(args)
             elif args["command"] == "group":
                 Group(args)
+            elif args["command"] == "osimage":
+                OSImage(args)
         else:
             print("Please pass -h to see help menu.")
 
