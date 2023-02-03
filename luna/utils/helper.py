@@ -104,26 +104,33 @@ class Helper(object):
         for fieldkey in fields:
             valrow = []
             for ele in data:
-                if fieldkey in list((data[ele].keys())):
-                    if isinstance(data[ele][fieldkey], list):
-                        newlist = []
-                        for internal in data[ele][fieldkey]:
-                            for internal_val in internal:
-                                inkey = colored(internal_val, 'cyan')
-                                inval = colored(internal[internal_val], 'magenta')
-                                newlist.append(f'{inkey} = {inval} ')
-                        newlist = '\n'.join(newlist)
-                        valrow.append(colored(newlist, 'blue'))
-                        newlist = []
-                    else:
-                        if data[ele][fieldkey] == True:
-                            valrow.append(colored(data[ele][fieldkey], 'green'))
-                        elif data[ele][fieldkey] == False:
-                            valrow.append(colored(data[ele][fieldkey], 'red'))
+                # print(type(data[ele]))
+                # print((data[ele]))
+                if isinstance(data[ele], (list,dict)):
+                    if fieldkey in list((data[ele].keys())):
+                        if isinstance(data[ele][fieldkey], list):
+                            newlist = []
+                            for internal in data[ele][fieldkey]:
+                                for internal_val in internal:
+                                    inkey = colored(internal_val, 'cyan')
+                                    inval = colored(internal[internal_val], 'magenta')
+                                    newlist.append(f'{inkey} = {inval} ')
+                            newlist = '\n'.join(newlist)
+                            valrow.append(colored(newlist, 'blue'))
+                            newlist = []
                         else:
-                            valrow.append(colored(data[ele][fieldkey], 'blue'))
+                            if data[ele][fieldkey] == True:
+                                valrow.append(colored(data[ele][fieldkey], 'green'))
+                            elif data[ele][fieldkey] == False:
+                                valrow.append(colored(data[ele][fieldkey], 'red'))
+                            else:
+                                valrow.append(colored(data[ele][fieldkey], 'blue'))
+                    else:
+                        valrow.append(colored("--NA--", 'red'))
                 else:
-                    valrow.append(colored("--NA--", 'red'))
+                    # fields.append(data)
+                    print(data[ele].keys())
+                    valrow.append(colored(data[ele], 'blue'))
             rows.append(valrow)
             valrow = []
             coloredfields.append(colored(fieldkey, 'yellow', attrs=['bold']))
