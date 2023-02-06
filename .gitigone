@@ -1,4 +1,5 @@
-__pycache__
+__pycache__/
+
 
 log/luna2-cli.log
 build
