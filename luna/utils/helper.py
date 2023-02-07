@@ -34,7 +34,7 @@ class Helper(object):
         the Luna 2 Daemon Database
         """
         response = False
-        data_list = Rest().get_data(table, None)
+        data_list = Rest().get_data(table, None, None)
         if data_list:
             response = data_list
         return response
@@ -45,8 +45,11 @@ class Helper(object):
         This method will fetch a records from
         the Luna 2 Daemon Database
         """
-        ## Call Rest API Class method
-        return True
+        response = False
+        data_list = Rest().get_data(table, name, None)
+        if data_list:
+            response = data_list
+        return response
 
 
     def add_record(self, table=None, data=None):
@@ -91,6 +94,15 @@ class Helper(object):
         the Luna 2 Daemon Database
         """
         ## Call Rest API Class method
+        return True
+
+
+    def show_error(self, message=None):
+        """
+        This method will add a new records into
+        the Luna 2 Daemon Database
+        """
+        print(colored(message, 'red', attrs=['bold']))
         return True
 
 
@@ -179,15 +191,34 @@ class Helper(object):
 
 
 
-    # def filter_data_col(self, table=None, data=None):
-    #     """
-    #     This method will generate the data as for
-    #     row format
-    #     """
-    #     fields, rows  = self.filter_data(table, data)
-    #     rows.insert(0, fields)
-    #     rows = np.array(rows).T.tolist()
-    #     return rows
+    def filter_data_col(self, table=None, data=None):
+        """
+        This method will generate the data as for
+        row format
+        """
+        index_map = {v: i for i, v in enumerate(self.sortby(table))}
+        data = sorted(data.items(), key=lambda pair: index_map[pair[0]])
+        fields, rows = [], []
+        for key in data:
+            fields.append(colored(key[0], 'yellow', attrs=['bold']))
+            if isinstance(key[1], list):
+                newlist = []
+                for internal in key[1]:
+                    for internal_val in internal:
+                        inkey = colored(internal_val, 'cyan')
+                        inval = colored(internal[internal_val], 'magenta')
+                        newlist.append(f'{inkey} = {inval} ')
+                newlist = '\n'.join(newlist)
+                rows.append(colored(newlist, 'blue'))
+                newlist = []
+            else:
+                if key[1] == True:
+                    rows.append(colored(key[1], 'green'))
+                elif key[1] == False:
+                    rows.append(colored(key[1], 'red'))
+                else:
+                    rows.append(colored(key[1], 'blue'))
+        return fields, rows
 
 
     # def filter_keys(self, dictionary=None):
@@ -233,6 +264,27 @@ class Helper(object):
             'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],
             'tracker': ['id', 'infohash', 'peer', 'ipaddress', 'port', 'download', 'upload', 'left', 'updated', 'status'],
             'user': ['id', 'username', 'password', 'roleid', 'createdby', 'lastlogin', 'created']
+        }
+        response = list(static[table])
+        return response
+
+
+    def sortby(self, table=None):
+        """
+        This method remove the unnessasry fields from
+        the dataset.
+        """
+        response = False
+        static = {
+            'node': ['name', 'hostname', 'group', 'osimage', 'interfaces', 'localboot', 'macaddr', 'switch', 'switchport', 'setupbmc', 'status', 'service',
+                       'prescript', 'partscript', 'postscript', 'netboot', 'localinstall', 'bootmenu', 'provisionmethod', 'provisioninterface', 'provisionfallback', 'tpmuuid'
+                       , 'tpmpubkey', 'tpmsha256',  'unmanaged_bmc_users', 'comment'],
+            'group': ['name', 'bmcsetup', 'bmcsetupname', 'domain', 'interfaces', 'osimage', 'prescript', 'partscript', 'postscript', 'netboot', 'localinstall',
+                    'bootmenu', 'provisionmethod', 'provisioninterface', 'provisionfallback', 'unmanaged_bmc_users','comment'],
+            'bmcsetup': ['name', 'userid', 'username', 'password', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users', 'comment'],
+            'osimage': ['name', 'dracutmodules', 'grab_filesystems', 'grab_exclude', 'initrdfile', 'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions',
+                        'path', 'tarball', 'torrent', 'distribution', 'comment'],
+            'network': ['name', 'network', 'ns_hostname', 'ns_ip', 'ntp_server', 'gateway','dhcp','dhcp_range_begin','dhcp_range_end','comment']
         }
         response = list(static[table])
         return response

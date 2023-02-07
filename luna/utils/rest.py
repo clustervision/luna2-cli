@@ -25,7 +25,7 @@ class Rest(object):
         """
 
 
-    def get_data(self, table=None, data=None):
+    def get_data(self, table=None, name=None, data=None):
         """
         This method will fetch all records from
         the Luna 2 Daemon Database
@@ -33,6 +33,8 @@ class Rest(object):
         response = False
         daemonip, daemonport = '192.168.164.90', '7050'
         daemon_url = f'http://{daemonip}:{daemonport}/config/{table}'
+        if name:
+            daemon_url = f'{daemon_url}/{name}'
         call = requests.get(url=daemon_url, params=data)
         if call:
             response = call.json()

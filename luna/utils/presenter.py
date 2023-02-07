@@ -63,3 +63,17 @@ class Presenter(object):
         print(self.table)
         return True
 
+
+    def show_table_col(self, title=None, field=None, rows=None):
+        """
+        This method will fetch a records from
+        the Luna 2 Daemon Database
+        """
+        self.table.title = colored(title, 'cyan', attrs=['bold'])
+        self.table.add_column("Field", field)
+        self.table.add_column("Values", rows)
+        self.table.header = False
+        self.table.align = "l"
+        print(self.table)
+        return True
+
