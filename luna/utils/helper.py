@@ -94,43 +94,36 @@ class Helper(object):
         return True
 
 
-    def filter_data(self, table=None, data=None, filter=None):
+    def filter_data(self, table=None, data=None):
         """
         This method will generate the data as for
         row format
         """
         fields, rows, coloredfields = [], [], []
-        fields = self.filter_columns(table, filter)
+        fields = self.filter_columns(table)
         for fieldkey in fields:
             valrow = []
             for ele in data:
-                # print(type(data[ele]))
-                # print((data[ele]))
-                if isinstance(data[ele], (list,dict)):
-                    if fieldkey in list((data[ele].keys())):
-                        if isinstance(data[ele][fieldkey], list):
-                            newlist = []
-                            for internal in data[ele][fieldkey]:
-                                for internal_val in internal:
-                                    inkey = colored(internal_val, 'cyan')
-                                    inval = colored(internal[internal_val], 'magenta')
-                                    newlist.append(f'{inkey} = {inval} ')
-                            newlist = '\n'.join(newlist)
-                            valrow.append(colored(newlist, 'blue'))
-                            newlist = []
-                        else:
-                            if data[ele][fieldkey] == True:
-                                valrow.append(colored(data[ele][fieldkey], 'green'))
-                            elif data[ele][fieldkey] == False:
-                                valrow.append(colored(data[ele][fieldkey], 'red'))
-                            else:
-                                valrow.append(colored(data[ele][fieldkey], 'blue'))
+                if fieldkey in list((data[ele].keys())):
+                    if isinstance(data[ele][fieldkey], list):
+                        newlist = []
+                        for internal in data[ele][fieldkey]:
+                            for internal_val in internal:
+                                inkey = colored(internal_val, 'cyan')
+                                inval = colored(internal[internal_val], 'magenta')
+                                newlist.append(f'{inkey} = {inval} ')
+                        newlist = '\n'.join(newlist)
+                        valrow.append(colored(newlist, 'blue'))
+                        newlist = []
                     else:
-                        valrow.append(colored("--NA--", 'red'))
+                        if data[ele][fieldkey] == True:
+                            valrow.append(colored(data[ele][fieldkey], 'green'))
+                        elif data[ele][fieldkey] == False:
+                            valrow.append(colored(data[ele][fieldkey], 'red'))
+                        else:
+                            valrow.append(colored(data[ele][fieldkey], 'blue'))
                 else:
-                    # fields.append(data)
-                    print(data[ele].keys())
-                    valrow.append(colored(data[ele], 'blue'))
+                    valrow.append(colored("--NA--", 'red'))
             rows.append(valrow)
             valrow = []
             coloredfields.append(colored(fieldkey, 'yellow', attrs=['bold']))
@@ -146,64 +139,100 @@ class Helper(object):
         return fields, rows
 
 
-    def filter_data_col(self, table=None, data=None):
+    def get_cluster(self, table=None, data=None):
         """
-        This method will generate the data as for
-        row format
+        This method will filter data for cluster
         """
-        fields, rows  = self.filter_data(table, data)
-        rows.insert(0, fields)
-        rows = np.array(rows).T.tolist()
-        return rows
+        fields, rows, coloredfields = [], [], []
+        fields = self.filter_columns(table)
+        for key in data:
+            if type(data[key]) is dict:
+                newrow = []
+                for fieldkey in fields:
+                    if fieldkey in data[key]:
+                        if data[key][fieldkey] == True:
+                            newrow.append(colored(data[key][fieldkey], 'green'))
+                        elif data[key][fieldkey] == False:
+                            newrow.append(colored(data[key][fieldkey], 'red'))
+                        else:
+                            newrow.append(colored(data[key][fieldkey], 'blue'))
+                    elif fieldkey in data:
+                        if data[fieldkey] == True:
+                            newrow.append(colored(data[fieldkey], 'green'))
+                        elif data[fieldkey] == False:
+                            newrow.append(colored(data[fieldkey], 'red'))
+                        else:
+                            newrow.append(colored(data[fieldkey], 'blue'))
+                rows.append(newrow)
+                newrow = []
+        for newfield in fields:
+            coloredfields.append(colored(newfield, 'yellow', attrs=['bold']))
+        fields = coloredfields
+        # # Adding Serial Numbers to the dataset
+        fields.insert(0, colored('S. No.', 'yellow', attrs=['bold']))
+        num = 1
+        for outer in rows:
+            outer.insert(0, colored(num, 'blue'))
+            num = num + 1
+        # Adding Serial Numbers to the dataset
+        return fields, rows
 
 
-    def filter_columns(self, table=None, filter=None):
+
+    # def filter_data_col(self, table=None, data=None):
+    #     """
+    #     This method will generate the data as for
+    #     row format
+    #     """
+    #     fields, rows  = self.filter_data(table, data)
+    #     rows.insert(0, fields)
+    #     rows = np.array(rows).T.tolist()
+    #     return rows
+
+
+    # def filter_keys(self, dictionary=None):
+    #     """
+    #     This method will arrange all key value into a
+    #     single dictionary with a recursive call.
+    #     """
+    #     response = {}
+    #     if dictionary:
+    #         def recursive_items(dictionary):
+    #             for key, value in dictionary.items():
+    #                 if type(value) is dict:
+    #                     yield from recursive_items(value)
+    #                 else:
+    #                     yield (key, value)
+    #         for key, value in recursive_items(dictionary):
+    #             response[key] = value
+    #     return response
+
+
+    def filter_columns(self, table=None):
         """
         This method remove the unnessasry fields from
         the dataset.
         """
         response = False
-        if filter:
-            static = {
-                'bmcsetup': ['id', 'name', 'userid', 'username', 'password', 'netchannel', 'mgmtchannel', 'comment', 'unmanaged_bmc_users'],
-                'cluster': ['id', 'name', 'user', 'ns_ip', 'ntp_server', 'technical_contacts', 'provision_method', 'provision_fallback', 'security', 'debug'],
-                'controller': ['id', 'clusterid', 'hostname', 'status', 'ipaddr', 'serverport'],
-                'group': ['id', 'name', 'bmcsetupid', 'bmcsetup', 'osimageid', 'domain', 'prescript', 'partscript', 'postscript', 'netboot', 'localinstall', 'bootmenu', 'comment', 'provisioninterface', 'provisionfallback', 'provisionmethod', 'unmanaged_bmc_users'],
-                'groupinterface': ['id', 'groupid', 'interfacename', 'networkid'],
-                'groupsecrets': ['id', 'groupid', 'name', 'content', 'path'],
-                'ipaddress': ['id', 'ipaddress', 'subnet', 'network'],
-                'monitor': ['id', 'nodeid', 'status', 'state'],
-                'network': ['name', 'network', 'subnet', 'gateway', 'ns_ip', 'ns_hostname', 'ntp_server', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end', 'comment'],
-                'node': ['id', 'name', 'hostname', 'groupid', 'localboot', 'macaddr', 'osimageid', 'switchport', 'service', 'bmcsetupid', 'setupbmc', 'status', 'switchid', 'comment', 'prescript', 'partscript', 'postscript', 'netboot', 'localinstall', 'bootmenu', 'provisioninterface', 'provisionfallback', 'provisionmethod', 'tpmuuid', 'tpmpubkey', 'tpmsha256', 'unmanaged_bmc_users'],
-                'nodeinterface': ['id', 'nodeid', 'networkid', 'ipaddress', 'macaddress', 'interface'],
-                'nodesecrets': ['id', 'nodeid', 'name', 'content', 'path'],
-                'osimage': ['id', 'name', 'dracutmodules', 'grab_filesystems', 'grab_exclude', 'initrdfile', 'kernelfile', 'kernelmodules', 'kerneloptions', 'kernelversion', 'path', 'tarball', 'torrent', 'distribution', 'comment'],
-                'otherdevices': ['id', 'name', 'network', 'ipaddress', 'macaddr', 'comment'],
-                'roles': ['id', 'name', 'modules'],
-                'switch': ['id', 'name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'comment'],
-                'tracker': ['id', 'infohash', 'peer', 'ipaddress', 'port', 'download', 'upload', 'left', 'updated', 'status'],
-                'user': ['id', 'username', 'password', 'roleid', 'createdby', 'lastlogin', 'created']
-            }
-        else:
-            static = {
-                'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
-                'cluster': ['name', 'ntp_server', 'technical_contacts', 'provision_method', 'security'],
-                'controller': ['id', 'clusterid', 'hostname', 'status', 'ipaddr', 'serverport'],
-                'group': ['name', 'bmcsetup', 'domain', 'provisionfallback', 'interfaces'],
-                'groupinterface': ['id', 'groupid', 'interfacename', 'networkid'],
-                'groupsecrets': ['id', 'groupid', 'name', 'content', 'path'],
-                'ipaddress': ['id', 'ipaddress', 'subnet', 'network'],
-                'monitor': ['id', 'nodeid', 'status', 'state'],
-                'network': ['name', 'network', 'ns_ip', 'ns_hostname', 'dhcp'],
-                'node': ['name', 'hostname', 'setupbmc', 'status', 'tpmuuid'],
-                'nodeinterface': ['id', 'nodeid', 'networkid', 'ipaddress', 'macaddress', 'interface'],
-                'nodesecrets': ['id', 'nodeid', 'name', 'content', 'path'],
-                'osimage': ['name', 'kernelfile', 'path', 'tarball', 'distribution'],
-                'otherdevices': ['name', 'network', 'ipaddress', 'macaddr', 'comment'],
-                'roles': ['id', 'name', 'modules'],
-                'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],
-                'tracker': ['id', 'infohash', 'peer', 'ipaddress', 'port', 'download', 'upload', 'left', 'updated', 'status'],
-                'user': ['id', 'username', 'password', 'roleid', 'createdby', 'lastlogin', 'created']
-            }
+        static = {
+            'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
+            'cluster': ['name', 'hostname','ipaddr', 'technical_contacts', 'provision_method', 'security'],
+            'controller': ['id', 'clusterid', 'hostname', 'status', 'ipaddr', 'serverport'],
+            'group': ['name', 'bmcsetup', 'domain', 'provisionfallback', 'interfaces'],
+            'groupinterface': ['id', 'groupid', 'interfacename', 'networkid'],
+            'groupsecrets': ['id', 'groupid', 'name', 'content', 'path'],
+            'ipaddress': ['id', 'ipaddress', 'subnet', 'network'],
+            'monitor': ['id', 'nodeid', 'status', 'state'],
+            'network': ['name', 'network', 'ns_ip', 'ns_hostname', 'dhcp'],
+            'node': ['name', 'hostname', 'setupbmc', 'status', 'tpmuuid'],
+            'nodeinterface': ['id', 'nodeid', 'networkid', 'ipaddress', 'macaddress', 'interface'],
+            'nodesecrets': ['id', 'nodeid', 'name', 'content', 'path'],
+            'osimage': ['name', 'kernelfile', 'path', 'tarball', 'distribution'],
+            'otherdev': ['name', 'network', 'ipaddress', 'macaddr', 'comment'],
+            'roles': ['id', 'name', 'modules'],
+            'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],
+            'tracker': ['id', 'infohash', 'peer', 'ipaddress', 'port', 'download', 'upload', 'left', 'updated', 'status'],
+            'user': ['id', 'username', 'password', 'roleid', 'createdby', 'lastlogin', 'created']
+        }
         response = list(static[table])
         return response

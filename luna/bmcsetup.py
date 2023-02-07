@@ -56,7 +56,6 @@ class BMCSetup(object):
         ## >>>>>>> Network Command >>>>>>> list
         cmd = bmcsetup_args.add_parser('list', help='List BMC Setups')
         cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
-        cmd.add_argument('--all', '-A', action='store_true', help='All Data output')
         ## >>>>>>> Network Command >>>>>>> show
         cmd = bmcsetup_args.add_parser('show', help='Show BMC Setup')
         cmd.add_argument('name', help='Name of the BMC Setup')
@@ -115,11 +114,8 @@ class BMCSetup(object):
         data = get_list['config']['bmcsetup']
         if args['raw']:
             response = Presenter().show_json(data)
-        elif args['all']:
-            fields, rows  = Helper().filter_data(self.table, data, args['all'])
-            response = Presenter().show_table(fields, rows)
         else:
-            fields, rows  = Helper().filter_data(self.table, data, None)
+            fields, rows  = Helper().filter_data(self.table, data)
             response = Presenter().show_table(fields, rows)
         return response
 

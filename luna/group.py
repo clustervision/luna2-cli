@@ -56,7 +56,6 @@ class Group(object):
         ## >>>>>>> Group Command >>>>>>> list
         cmd = group_args.add_parser('list', help='List Groups')
         cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
-        cmd.add_argument('--all', '-A', action='store_true', help='All Data output')
         ## >>>>>>> Group Command >>>>>>> show
         cmd = group_args.add_parser('show', help='Show Group')
         cmd.add_argument('name', help='Name of the Group')
@@ -120,11 +119,8 @@ class Group(object):
         data = get_list['config']['group']
         if args['raw']:
             response = Presenter().show_json(data)
-        elif args['all']:
-            fields, rows  = Helper().filter_data(self.table, data, args['all'])
-            response = Presenter().show_table(fields, rows)
         else:
-            fields, rows  = Helper().filter_data(self.table, data, None)
+            fields, rows  = Helper().filter_data(self.table, data)
             response = Presenter().show_table(fields, rows)
         return response
 
