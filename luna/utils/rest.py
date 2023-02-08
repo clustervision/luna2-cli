@@ -12,11 +12,10 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-import requests
-# from luna.utils.helper import Helper
-import os
-import json
 from configparser import RawConfigParser
+import json
+import os
+import requests
 
 class Rest(object):
     """
@@ -25,22 +24,23 @@ class Rest(object):
 
     def __init__(self):
         """
-        Constructor - As of now, nothing have to initialize.
+        Constructor - Before calling any REST API
+        it will fetch the credentials and endpoint url
+        from luna.ini from Luna 2 Daemon.
         """
-        # token = False
         self.username, self.password, self.daemon = '', '', ''
         ini_file = '/trinity/local/luna/config/luna.ini'
         file_check = os.path.isfile(ini_file)
         read_check = os.access(ini_file, os.R_OK)
         if file_check and read_check:
-            configParser = RawConfigParser()
-            configParser.read(ini_file)
-            if configParser.has_option('API', 'USERNAME'):
-                self.username = configParser.get('API', 'USERNAME')
-            if configParser.has_option('API', 'PASSWORD'):
-                self.password = configParser.get('API', 'PASSWORD')
-            if configParser.has_option('API', 'ENDPOINT'):
-                self.daemon = configParser.get('API', 'ENDPOINT')
+            configparser = RawConfigParser()
+            configparser.read(ini_file)
+            if configparser.has_option('API', 'USERNAME'):
+                self.username = configparser.get('API', 'USERNAME')
+            if configparser.has_option('API', 'PASSWORD'):
+                self.password = configparser.get('API', 'PASSWORD')
+            if configparser.has_option('API', 'ENDPOINT'):
+                self.daemon = configparser.get('API', 'ENDPOINT')
 
 
     def get_token(self):
@@ -53,7 +53,7 @@ class Rest(object):
         data['username'] = self.username
         data['password'] = self.password
         daemon_url = f'http://{self.daemon}/token'
-        call = requests.post(url = daemon_url, json=data)
+        call = requests.post(url = daemon_url, json=data, timeout=5)
         data = call.json()
         if 'token' in data:
             response = data['token']
@@ -61,15 +61,15 @@ class Rest(object):
 
     def get_data(self, table=None, name=None, data=None):
         """
-        This method will fetch all records from
-        the Luna 2 Daemon Database
+        This method is based on REST API's GET method.
+        It will fetch the records from Luna 2 Daemon
+        via REST API's.
         """
         response = False
-        daemonip, daemonport = '192.168.164.90', '7050'
-        daemon_url = f'http://{daemonip}:{daemonport}/config/{table}'
+        daemon_url = f'http://{self.daemon}/config/{table}'
         if name:
             daemon_url = f'{daemon_url}/{name}'
-        call = requests.get(url=daemon_url, params=data)
+        call = requests.get(url=daemon_url, params=data, timeout=5)
         if call:
             response = call.json()
         return response
@@ -77,14 +77,15 @@ class Rest(object):
 
     def post_data(self, table=None, name=None, data=None):
         """
-        This method will fetch a records from
-        the Luna 2 Daemon Database
+        This method is based on REST API's POST method.
+        It will post data to Luna 2 Daemonvia REST API's.
+        And use for creating and updating records.
         """
         response = False
         headers = {'x-access-tokens': self.get_token()}
         daemon_url = f'http://{self.daemon}/config/{table}'
         if name:
             daemon_url = f'{daemon_url}/{name}'
-        call = requests.post(url=daemon_url, data=json.dumps(data), headers=headers)
+        call = requests.post(url=daemon_url, data=json.dumps(data), headers=headers, timeout=5)
         response = call.status_code
         return response

@@ -12,11 +12,9 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-from luna.utils.rest import Rest
 import numpy as np
 from termcolor import colored
-import os
-from configparser import RawConfigParser
+from luna.utils.rest import Rest
 
 class Helper(object):
     """
@@ -27,7 +25,7 @@ class Helper(object):
         """
         Constructor - As of now, nothing have to initialize.
         """
-        pass
+
 
 
     def get_list(self, table=None):
@@ -60,6 +58,8 @@ class Helper(object):
         the Luna 2 Daemon Database
         """
         ## Call Rest API Class method
+        print(table)
+        print(data)
         return True
 
 
@@ -69,6 +69,8 @@ class Helper(object):
         the Luna 2 Daemon Database
         """
         ## Call Rest API Class method
+        print(table)
+        print(data)
         return True
 
 
@@ -78,6 +80,9 @@ class Helper(object):
         the Luna 2 Daemon Database
         """
         ## Call Rest API Class method
+        print(table)
+        print(data)
+        print(where)
         return True
 
 
@@ -87,6 +92,8 @@ class Helper(object):
         the Luna 2 Daemon Database
         """
         ## Call Rest API Class method
+        print(table)
+        print(name)
         return True
 
 
@@ -96,6 +103,10 @@ class Helper(object):
         the Luna 2 Daemon Database
         """
         ## Call Rest API Class method
+        print(table)
+        print(source)
+        print(destination)
+        print(data)
         return True
 
 
@@ -148,9 +159,9 @@ class Helper(object):
                         valrow.append(colored(newlist, 'blue'))
                         newlist = []
                     else:
-                        if data[ele][fieldkey] == True:
+                        if data[ele][fieldkey] is True:
                             valrow.append(colored(data[ele][fieldkey], 'green'))
-                        elif data[ele][fieldkey] == False:
+                        elif data[ele][fieldkey] is False:
                             valrow.append(colored(data[ele][fieldkey], 'red'))
                         else:
                             valrow.append(colored(data[ele][fieldkey], 'blue'))
@@ -178,20 +189,20 @@ class Helper(object):
         fields, rows, coloredfields = [], [], []
         fields = self.filter_columns(table)
         for key in data:
-            if type(data[key]) is dict:
+            if isinstance(data[key], dict):
                 newrow = []
                 for fieldkey in fields:
                     if fieldkey in data[key]:
-                        if data[key][fieldkey] == True:
+                        if data[key][fieldkey] is True:
                             newrow.append(colored(data[key][fieldkey], 'green'))
-                        elif data[key][fieldkey] == False:
+                        elif data[key][fieldkey] is False:
                             newrow.append(colored(data[key][fieldkey], 'red'))
                         else:
                             newrow.append(colored(data[key][fieldkey], 'blue'))
                     elif fieldkey in data:
-                        if data[fieldkey] == True:
+                        if data[fieldkey] is True:
                             newrow.append(colored(data[fieldkey], 'green'))
-                        elif data[fieldkey] == False:
+                        elif data[fieldkey] is False:
                             newrow.append(colored(data[fieldkey], 'red'))
                         else:
                             newrow.append(colored(data[fieldkey], 'blue'))
@@ -244,9 +255,9 @@ class Helper(object):
                 rows.append(colored(newlist, 'blue'))
                 newlist = []
             else:
-                if key[1] == True:
+                if key[1] is True:
                     rows.append(colored(key[1], 'green'))
-                elif key[1] == False:
+                elif key[1] is False:
                     rows.append(colored(key[1], 'red'))
                 else:
                     rows.append(colored(key[1], 'blue'))

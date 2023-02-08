@@ -12,8 +12,8 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-from prettytable import PrettyTable, FRAME, HEADER, NONE
 import json
+from prettytable import PrettyTable
 from rich import print_json
 import pyfiglet
 from termcolor import colored
@@ -76,4 +76,3 @@ class Presenter(object):
         self.table.align = "l"
         print(self.table)
         return True
-

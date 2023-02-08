@@ -12,10 +12,10 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-from InquirerPy import prompt, inquirer, get_style
+import sys
+from InquirerPy import inquirer, get_style
 from InquirerPy.validator import NumberValidator
 from termcolor import colored
-import sys
 
 class Inquiry(object):
     """
@@ -43,7 +43,8 @@ class Inquiry(object):
         """
         def ask(count, message):
             if count == 3:
-                print(colored("You have lost all 3 attempts, Please try again.", 'red', attrs=['bold']))
+                error_message = "You have lost all 3 attempts, Please try again."
+                print(colored(error_message, 'red', attrs=['bold']))
                 sys.exit(0)
             else:
                 try:
@@ -57,7 +58,6 @@ class Inquiry(object):
                 except KeyboardInterrupt:
                     print(colored("Exited! Try Again, with new Inputs.", 'red', attrs=['bold']))
                     sys.exit(0)
-               
         response = ask(0, message)
         return response
 
@@ -69,11 +69,16 @@ class Inquiry(object):
         """
         def ask(count, message):
             if count == 3:
-                print(colored("You have lost all 3 attempts, Please try again.", 'red', attrs=['bold']))
+                error_message = "You have lost all 3 attempts, Please try again."
+                print(colored(error_message, 'red', attrs=['bold']))
                 sys.exit(0)
             else:
                 try:
-                    name = inquirer.text(message=message, style= self.style, validate=NumberValidator()).execute()
+                    name = inquirer.text(
+                        message = message,
+                        style = self.style,
+                        validate = NumberValidator()
+                    ).execute()
                     if not name:
                         print(colored("Try Again!", 'yellow', attrs=['bold']))
                         count = count +1
@@ -83,7 +88,6 @@ class Inquiry(object):
                 except KeyboardInterrupt:
                     print(colored("Exited! Try Again, with new Inputs.", 'red', attrs=['bold']))
                     sys.exit(0)
-               
         response = ask(0, message)
         return response
 

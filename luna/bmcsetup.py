@@ -52,20 +52,18 @@ class BMCSetup(object):
     def getarguments(self, parser, subparsers):
         """
         Method will provide all the arguments
-        related to the Network class.
+        related to the BMC Setup class.
         """
         bmcsetup_menu = subparsers.add_parser('bmcsetup', help='BMC Setup operations.')
         bmcsetup_args = bmcsetup_menu.add_subparsers(dest='action')
-        ## >>>>>>> Network Command >>>>>>> list
+        ## >>>>>>> BMC Setup Command >>>>>>> list
         cmd = bmcsetup_args.add_parser('list', help='List BMC Setups')
         cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Network Command >>>>>>> show
+        ## >>>>>>> BMC Setup Command >>>>>>> show
         cmd = bmcsetup_args.add_parser('show', help='Show BMC Setup')
         cmd.add_argument('name', help='Name of the BMC Setup')
         cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
-        # cmd.add_argument('--reservedips', '-r', action='store_true', help='List reserved IPs')
-        # cmd.add_argument('--comment', '-C', action='store_true', help='Print comment')
-        ## >>>>>>> Network Command >>>>>>> add
+        ## >>>>>>> BMC Setup Command >>>>>>> add
         cmd = bmcsetup_args.add_parser('add', help='Add BMC Setup')
         cmd.add_argument('--init', '-i', action='store_true', help='BMC Setup values one-by-one')
         cmd.add_argument('--name', '-n', help='Name of the BMC Setup')
@@ -76,7 +74,7 @@ class BMCSetup(object):
         cmd.add_argument('--mgmtchannel', '-mc', type=int, help='MGMT Channel for BMC Setup')
         cmd.add_argument('--unmanaged_bmc_users', '-ubu', help='Unmanaged BMC Users')
         cmd.add_argument('--comment', '-c', help='Comment for BMC Setup')
-        ## >>>>>>> Network Command >>>>>>> update
+        ## >>>>>>> BMC Setup Command >>>>>>> update
         cmd = bmcsetup_args.add_parser('update', help='Update BMC Setup')
         cmd.add_argument('name', help='Name of the BMC Setup')
         cmd.add_argument('--network', '-N', metavar='N.N.N.N', help='BMC Setup')
@@ -86,9 +84,9 @@ class BMCSetup(object):
         cmd.add_argument('--nshostname', help='Name server for zone file')
         cmd.add_argument('--nsipaddress', metavar='N.N.N.N', help='Name server\'s IP for zone file')
         cmd.add_argument('--include', action='store_true', help='Include data for zone file')
-        cmd.add_argument('--rev_include', action='store_true', help='Include data for reverse zone file')
+        cmd.add_argument('--rev_include', action='store_true', help='Include data for reverse zone')
         cmd.add_argument('--comment', '-C', action='store_true', help='Add comment')
-        ## >>>>>>> Network Command >>>>>>> clone
+        ## >>>>>>> BMC Setup Command >>>>>>> clone
         cmd = bmcsetup_args.add_parser('clone', help='Clone BMC Setup')
         cmd.add_argument('name', help='Name of the BMC Setup')
         cmd.add_argument('--network', '-N', metavar='N.N.N.N', help='BMC Setup')
@@ -98,22 +96,23 @@ class BMCSetup(object):
         cmd.add_argument('--nshostname', help='Name server for zone file')
         cmd.add_argument('--nsipaddress', metavar='N.N.N.N', help='Name server\'s IP for zone file')
         cmd.add_argument('--include', action='store_true', help='Include data for zone file')
-        cmd.add_argument('--rev_include', action='store_true', help='Include data for reverse zone file')
+        cmd.add_argument('--rev_include', action='store_true', help='Include data for reverse zone')
         cmd.add_argument('--comment', '-C', action='store_true', help='Add comment')
-        ## >>>>>>> Network Command >>>>>>> rename
+        ## >>>>>>> BMC Setup Command >>>>>>> rename
         cmd = bmcsetup_args.add_parser('rename', help='Rename BMC Setup')
         cmd.add_argument('name', help='Name of the BMC Setup')
         cmd.add_argument('--newname', '--nn', required=True, help='New name of the BMC Setup')
-        ## >>>>>>> Network Command >>>>>>> delete
+        ## >>>>>>> BMC Setup Command >>>>>>> delete
         cmd = bmcsetup_args.add_parser('delete', help='Delete BMC Setup')
         cmd.add_argument('name', help='Name of the BMC Setup')
-        ## >>>>>>> Network Commands Ends
+        ## >>>>>>> BMC Setup Commands Ends
         return parser
 
 
     def list_bmcsetup(self, args=None):
         """
-        Method to list all networks from Luna Configuration.
+        Method to list all bmc setups from
+        Luna 2 Daemon.
         """
         response = False
         fields, rows = [], []
@@ -132,7 +131,8 @@ class BMCSetup(object):
 
     def show_bmcsetup(self, args=None):
         """
-        Method to show a network in Luna Configuration.
+        Method to show a bmc setup from
+        Luna 2 Daemon.
         """
         response = False
         fields, rows = [], []
@@ -152,7 +152,7 @@ class BMCSetup(object):
 
     def add_bmcsetup(self, args=None):
         """
-        Method to add new network in Luna Configuration.
+        Method to add new bmc setup in Luna Configuration.
         """
         payload = {}
         if args['init']:
@@ -162,14 +162,14 @@ class BMCSetup(object):
             payload['password'] = Inquiry().ask_text("Kindly provide BMC Password")
             payload['netchannel'] = Inquiry().ask_number("Kindly provide NET Channel")
             payload['mgmtchannel'] = Inquiry().ask_number("Kindly provide MGMT Channel")
-            payload['unmanaged_bmc_users'] = Inquiry().ask_text("Kindly provide Unmanaged BMC Users")
+            payload['unmanaged_bmc_users'] = Inquiry().ask_text("Provide Unmanaged BMC Users")
             comment = Inquiry().ask_confirm("Do you want to provide a comment?")
             if comment:
                 payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)")
             fields, rows  = Helper().filter_data_col(self.table, payload)
             title = f'{self.table.capitalize()} Adding => {payload["name"]}'
             Presenter().show_table_col(title, fields, rows)
-            confirm = Inquiry().ask_confirm(f'Do you want to Add {payload["name"]} into {self.table.capitalize()}?')
+            confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
             if not confirm:
                 Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
         else:
@@ -183,7 +183,7 @@ class BMCSetup(object):
                 if payload[key] is None:
                     error = Helper().show_error(f'Kindly provide {key}.')
             if error:
-                Helper().show_error(f'Adding {payload["name"]} into {self.table.capitalize()} Aborted')
+                Helper().show_error(f'Adding {payload["name"]} in {self.table.capitalize()} Abort.')
         if payload:
             request_data = {}
             request_data['config'] = {}
@@ -191,9 +191,9 @@ class BMCSetup(object):
             request_data['config'][self.table][payload['name']] = payload
             response = Rest().post_data(self.table, payload['name'], request_data)
             if response == 201:
-                Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} is created.')
+                Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
             elif response == 204:
-                Helper().show_warning(f'New {self.table.capitalize()}, {payload["name"]} is already created.')
+                Helper().show_warning(f'{payload["name"]} present already.')
             else:
                 Helper().show_error(f'{self.table.capitalize()}, {payload["name"]} is not created.')
         return True
@@ -201,27 +201,31 @@ class BMCSetup(object):
 
     def delete_bmcsetup(self, args=None):
         """
-        Method to delete a network in Luna Configuration.
+        Method to delete a bmc setup in Luna Configuration.
         """
+        print(args)
         return True
 
 
     def update_bmcsetup(self, args=None):
         """
-        Method to update a network in Luna Configuration.
+        Method to update a bmc setup in Luna Configuration.
         """
+        print(args)
         return True
 
 
     def rename_bmcsetup(self, args=None):
         """
-        Method to rename a network in Luna Configuration.
+        Method to rename a bmc setup in Luna Configuration.
         """
+        print(args)
         return True
 
 
     def clone_bmcsetup(self, args=None):
         """
-        Method to rename a network in Luna Configuration.
+        Method to rename a bmc setup in Luna Configuration.
         """
+        print(args)
         return True
