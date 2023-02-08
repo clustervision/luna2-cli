@@ -284,6 +284,8 @@ class Helper(object):
             'bmcsetup': ['name', 'userid', 'username', 'password', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users', 'comment'],
             'osimage': ['name', 'dracutmodules', 'grab_filesystems', 'grab_exclude', 'initrdfile', 'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions',
                         'path', 'tarball', 'torrent', 'distribution', 'comment'],
+            'switch': ['name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'comment'],
+            'otherdev': ['name', 'network', 'ipaddress', 'macaddr', 'comment'],
             'network': ['name', 'network', 'ns_hostname', 'ns_ip', 'ntp_server', 'gateway','dhcp','dhcp_range_begin','dhcp_range_end','comment']
         }
         response = list(static[table])

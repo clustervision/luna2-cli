@@ -60,8 +60,8 @@ class OtherDevices(object):
         cmd = otherdevice_args.add_parser('show', help='Show Other Devices')
         cmd.add_argument('name', help='Name of the Other Devices')
         cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
-        cmd.add_argument('--reservedips', '-r', action='store_true', help='List reserved IPs')
-        cmd.add_argument('--comment', '-C', action='store_true', help='Print comment')
+        # cmd.add_argument('--reservedips', '-r', action='store_true', help='List reserved IPs')
+        # cmd.add_argument('--comment', '-C', action='store_true', help='Print comment')
         ## >>>>>>> Network Command >>>>>>> add
         cmd = otherdevice_args.add_parser('add', help='Add Other Devices')
         cmd.add_argument('--name', '-n', required=True, help='Name of the Other Devices')
@@ -110,13 +110,16 @@ class OtherDevices(object):
         """
         response = False
         fields, rows = [], []
-        get_list = dict(Helper().get_list(self.table))
-        data = get_list['config'][self.table]
-        if args['raw']:
-            response = Presenter().show_json(data)
+        get_list = Helper().get_list(self.table)
+        if get_list:
+            data = get_list['config'][self.table]
+            if args['raw']:
+                response = Presenter().show_json(data)
+            else:
+                fields, rows  = Helper().filter_data(self.table, data)
+                response = Presenter().show_table(fields, rows)
         else:
-            fields, rows  = Helper().filter_data(self.table, data)
-            response = Presenter().show_table(fields, rows)
+            response = Helper().show_error(f'{self.table} is not found.')
         return response
 
 
@@ -124,7 +127,20 @@ class OtherDevices(object):
         """
         Method to show a network in Luna Configuration.
         """
-        return True
+        response = False
+        fields, rows = [], []
+        get_list = Helper().get_record(self.table, args['name'])
+        if get_list:
+            data = get_list['config'][self.table][args["name"]]
+            if args['raw']:
+                response = Presenter().show_json(data)
+            else:
+                fields, rows  = Helper().filter_data_col(self.table, data)
+                title = f'{self.table.capitalize()} => {args["name"]}'
+                response = Presenter().show_table_col(title, fields, rows)
+        else:
+            response = Helper().show_error(f'{args["name"]} is not found in {self.table}.')
+        return response
 
 
     def add_otherdevices(self, args=None):
