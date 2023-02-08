@@ -17,6 +17,8 @@ from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.inquiry import Inquiry
 
+from luna.utils.rest import Rest
+
 class BMCSetup(object):
     """
     BMC Setup Class responsible to show, list,
@@ -152,17 +154,48 @@ class BMCSetup(object):
         """
         Method to add new network in Luna Configuration.
         """
-        # print(args)
         payload = {}
         if args['init']:
-            payload['name'] = Inquiry().ask_text("BMC Name?")
+            payload['name'] = Inquiry().ask_text("Kindly provide BMC Name")
+            payload['userid'] = Inquiry().ask_number("Kindly provide BMC User ID")
+            payload['username'] = Inquiry().ask_text("Kindly provide BMC Username")
+            payload['password'] = Inquiry().ask_text("Kindly provide BMC Password")
+            payload['netchannel'] = Inquiry().ask_number("Kindly provide NET Channel")
+            payload['mgmtchannel'] = Inquiry().ask_number("Kindly provide MGMT Channel")
+            payload['unmanaged_bmc_users'] = Inquiry().ask_text("Kindly provide Unmanaged BMC Users")
+            comment = Inquiry().ask_confirm("Do you want to provide a comment?")
+            if comment:
+                payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)")
+            fields, rows  = Helper().filter_data_col(self.table, payload)
+            title = f'{self.table.capitalize()} Adding => {payload["name"]}'
+            Presenter().show_table_col(title, fields, rows)
+            confirm = Inquiry().ask_confirm(f'Do you want to Add {payload["name"]} into {self.table.capitalize()}?')
+            if not confirm:
+                Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
         else:
-            if args['name']:
-                payload['name'] = args['name']
+            error = False
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            payload = args
+            for key in payload:
+                if payload[key] is None:
+                    error = Helper().show_error(f'Kindly provide {key}.')
+            if error:
+                Helper().show_error(f'Adding {payload["name"]} into {self.table.capitalize()} Aborted')
+        if payload:
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = {}
+            request_data['config'][self.table][payload['name']] = payload
+            response = Rest().post_data(self.table, payload['name'], request_data)
+            if response == 201:
+                Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} is created.')
+            elif response == 204:
+                Helper().show_warning(f'New {self.table.capitalize()}, {payload["name"]} is already created.')
             else:
-                Helper().show_error('Kindly provide name.')
-            # response = Helper().show_error('Kindly select init or all values.')
-        print(payload)
+                Helper().show_error(f'{self.table.capitalize()}, {payload["name"]} is not created.')
         return True
 
 

@@ -14,8 +14,9 @@ __status__      = "Production"
 
 from luna.utils.rest import Rest
 import numpy as np
-import pandas as pd
 from termcolor import colored
+import os
+from configparser import RawConfigParser
 
 class Helper(object):
     """
@@ -26,6 +27,7 @@ class Helper(object):
         """
         Constructor - As of now, nothing have to initialize.
         """
+        pass
 
 
     def get_list(self, table=None):
@@ -103,6 +105,24 @@ class Helper(object):
         the Luna 2 Daemon Database
         """
         print(colored(message, 'red', attrs=['bold']))
+        return True
+
+
+    def show_success(self, message=None):
+        """
+        This method will add a new records into
+        the Luna 2 Daemon Database
+        """
+        print(colored(message, 'green', attrs=['bold']))
+        return True
+
+
+    def show_warning(self, message=None):
+        """
+        This method will add a new records into
+        the Luna 2 Daemon Database
+        """
+        print(colored(message, 'yellow', attrs=['bold']))
         return True
 
 
