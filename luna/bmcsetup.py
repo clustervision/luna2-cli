@@ -15,6 +15,7 @@ __status__      = "Production"
 
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
+from luna.utils.inquiry import Inquiry
 
 class BMCSetup(object):
     """
@@ -64,11 +65,15 @@ class BMCSetup(object):
         # cmd.add_argument('--comment', '-C', action='store_true', help='Print comment')
         ## >>>>>>> Network Command >>>>>>> add
         cmd = bmcsetup_args.add_parser('add', help='Add BMC Setup')
-        cmd.add_argument('--name', '-n', required=True, help='Name of the BMC Setup')
-        cmd.add_argument('--network', '-N', metavar='N.N.N.N', required=True, help='BMC Setup')
-        cmd.add_argument('--prefix', '-P', metavar='PP', required=True, type=int, help='Prefix')
-        cmd.add_argument('--nshostname', help='Name server for zone file')
-        cmd.add_argument('--nsipaddress', metavar='N.N.N.N', help='Name server\'s IP for zone file')
+        cmd.add_argument('--init', '-i', action='store_true', help='BMC Setup values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the BMC Setup')
+        cmd.add_argument('--userid', '-uid', type=int, help='UserID for BMC Setup')
+        cmd.add_argument('--username', '-u', help='Username for BMC Setup')
+        cmd.add_argument('--password', '-p', help='Password for BMC Setup')
+        cmd.add_argument('--netchannel', '-nc', type=int, help='Net Channel for BMC Setup')
+        cmd.add_argument('--mgmtchannel', '-mc', type=int, help='MGMT Channel for BMC Setup')
+        cmd.add_argument('--unmanaged_bmc_users', '-ubu', help='Unmanaged BMC Users')
+        cmd.add_argument('--comment', '-c', help='Comment for BMC Setup')
         ## >>>>>>> Network Command >>>>>>> update
         cmd = bmcsetup_args.add_parser('update', help='Update BMC Setup')
         cmd.add_argument('name', help='Name of the BMC Setup')
@@ -147,6 +152,17 @@ class BMCSetup(object):
         """
         Method to add new network in Luna Configuration.
         """
+        # print(args)
+        payload = {}
+        if args['init']:
+            payload['name'] = Inquiry().ask_text("BMC Name?")
+        else:
+            if args['name']:
+                payload['name'] = args['name']
+            else:
+                Helper().show_error('Kindly provide name.')
+            # response = Helper().show_error('Kindly select init or all values.')
+        print(payload)
         return True
 
 
