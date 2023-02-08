@@ -190,13 +190,16 @@ class Helper(object):
         return fields, rows
 
 
-
     def filter_data_col(self, table=None, data=None):
         """
         This method will generate the data as for
         row format
         """
-        index_map = {v: i for i, v in enumerate(self.sortby(table))}
+        definedkeys = self.sortby(table)
+        for newkey in list(data.keys()):
+            if newkey not in definedkeys:
+                definedkeys.append(newkey)
+        index_map = {v: i for i, v in enumerate(definedkeys)}
         data = sorted(data.items(), key=lambda pair: index_map[pair[0]])
         fields, rows = [], []
         for key in data:
@@ -208,6 +211,15 @@ class Helper(object):
                         inkey = colored(internal_val, 'cyan')
                         inval = colored(internal[internal_val], 'magenta')
                         newlist.append(f'{inkey} = {inval} ')
+                newlist = '\n'.join(newlist)
+                rows.append(colored(newlist, 'blue'))
+                newlist = []
+            elif isinstance(key[1], dict):
+                newlist = []
+                for internal in key[1]:
+                    inkey = colored(internal, 'cyan')
+                    inval = colored(key[1][internal], 'magenta')
+                    newlist.append(f'{inkey} = {inval} ')
                 newlist = '\n'.join(newlist)
                 rows.append(colored(newlist, 'blue'))
                 newlist = []
@@ -276,6 +288,8 @@ class Helper(object):
         """
         response = False
         static = {
+            'cluster': ['name', 'ns_ip','ntp_server', 'provision_fallback', 'provision_method', 'security', 'technical_contacts', 'user', 'debug'],
+            'controller': ['hostname', 'ipaddr','luna_config', 'srverport', 'status'],
             'node': ['name', 'hostname', 'group', 'osimage', 'interfaces', 'localboot', 'macaddr', 'switch', 'switchport', 'setupbmc', 'status', 'service',
                        'prescript', 'partscript', 'postscript', 'netboot', 'localinstall', 'bootmenu', 'provisionmethod', 'provisioninterface', 'provisionfallback', 'tpmuuid'
                        , 'tpmpubkey', 'tpmsha256',  'unmanaged_bmc_users', 'comment'],
