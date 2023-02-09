@@ -94,11 +94,25 @@ class Rest(object):
     def get_delete(self, table=None, name=None):
         """
         This method is based on REST API's GET method.
-        It will fetch the records from Luna 2 Daemon
+        It will delete the records from Luna 2 Daemon
         via REST API's.
         """
         response = False
         daemon_url = f'http://{self.daemon}/config/{table}/{name}/_delete'
         call = requests.get(url=daemon_url, timeout=5)
+        response = call.status_code
+        return response
+
+
+    def post_clone(self, table=None, name=None, data=None):
+        """
+        This method is based on REST API's POST method.
+        It will post data to Luna 2 Daemonvia REST API's.
+        And use for cloning the records.
+        """
+        response = False
+        headers = {'x-access-tokens': self.get_token()}
+        daemon_url = f'http://{self.daemon}/config/{table}/{name}/_clone'
+        call = requests.post(url=daemon_url, data=json.dumps(data), headers=headers, timeout=5)
         response = call.status_code
         return response

@@ -43,6 +43,8 @@ class BMCSetup(object):
                 self.rename_bmcsetup(self.args)
             elif self.args["action"] == "delete":
                 self.delete_bmcsetup(self.args)
+            elif self.args["action"] == "clone":
+                self.clone_bmcsetup(self.args)
             else:
                 print("Not a valid option.")
         else:
@@ -89,6 +91,7 @@ class BMCSetup(object):
         cmd = bmcsetup_args.add_parser('clone', help='Clone BMC Setup')
         cmd.add_argument('--init', '-i', action='store_true', help='BMC Setup values one-by-one')
         cmd.add_argument('--name', '-n', help='Name of the BMC Setup')
+        cmd.add_argument('--newbmcname', '-nn', help='New name of the BMC Setup')
         cmd.add_argument('--userid', '-uid', type=int, help='UserID for BMC Setup')
         cmd.add_argument('--username', '-u', help='Username for BMC Setup')
         cmd.add_argument('--password', '-p', help='Password for BMC Setup')
@@ -355,5 +358,78 @@ class BMCSetup(object):
         """
         Method to rename a bmc setup in Luna Configuration.
         """
-        print(args)
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config']['bmcsetup'].keys())
+                payload['name'] = Inquiry().ask_select("Select BMC Setup to update", names)
+                payload['newbmcname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
+                payload['userid'] = Inquiry().ask_number("Update BMC User ID", True)
+                payload['username'] = Inquiry().ask_text("Update BMC Username", True)
+                payload['password'] = Inquiry().ask_secret("Update BMC Password", True)
+                payload['netchannel'] = Inquiry().ask_number("Update NET Channel", True)
+                payload['mgmtchannel'] = Inquiry().ask_number("Update MGMT Channel", True)
+                payload['unmanaged_bmc_users'] = Inquiry().ask_text("Update Unmanaged BMC Users", True)
+                comment = Inquiry().ask_confirm("Do you want to provide a comment?")
+                if comment:
+                    payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
+
+                get_record = Helper().get_record(self.table, payload['name'])
+                if get_record:
+                    data = get_record['config'][self.table][payload["name"]]
+                    for key, value in payload.items():
+                        if value == '' and key in data:
+                            payload[key] = data[key]
+                    filtered = {k: v for k, v in payload.items() if v is not None}
+                    payload.clear()
+                    payload.update(filtered)
+
+                if len(payload) != 1:
+                    fields, rows  = Helper().filter_data_col(self.table, payload)
+                    title = f'{self.table.capitalize()} Cloning : {payload["name"]} => {payload["newbmcname"]}'
+                    Presenter().show_table_col(title, fields, rows)
+                    confirm = Inquiry().ask_confirm(f'Clone {payload["name"]} as {payload["newbmcname"]}?')
+                    if not confirm:
+                        Helper().show_error(f'Cloning of {payload["newbmcname"]} is Aborted')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            payload = args
+            get_record = Helper().get_record(self.table, payload['name'])
+            if get_record:
+                data = get_record['config'][self.table][payload["name"]]
+                for key, value in payload.items():
+                    if (value == '' or value is None) and key in data:
+                        payload[key] = data[key]
+                filtered = {k: v for k, v in payload.items() if v is not None}
+                payload.clear()
+                payload.update(filtered)
+        if len(payload) != 1:
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = {}
+            request_data['config'][self.table][payload['name']] = payload
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                if payload["name"] in names:
+                    if payload["newbmcname"] in names:
+                        Helper().show_error(f'{payload["newbmcname"]} is already present in {self.table.capitalize()}.')
+                    else:
+                        response = Rest().post_clone(self.table, payload['name'], request_data)
+                        if response == 201:
+                            Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newbmcname"]}.')
+                        else:
+                            Helper().show_error(f'HTTP Error {response}.')
+                else:
+                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            else:
+                Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            Helper().show_error(f'Nothing to update in {payload["name"]}.')
         return True
