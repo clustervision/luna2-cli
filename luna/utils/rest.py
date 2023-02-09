@@ -89,3 +89,16 @@ class Rest(object):
         call = requests.post(url=daemon_url, data=json.dumps(data), headers=headers, timeout=5)
         response = call.status_code
         return response
+
+
+    def get_delete(self, table=None, name=None):
+        """
+        This method is based on REST API's GET method.
+        It will fetch the records from Luna 2 Daemon
+        via REST API's.
+        """
+        response = False
+        daemon_url = f'http://{self.daemon}/config/{table}/{name}/_delete'
+        call = requests.get(url=daemon_url, timeout=5)
+        response = call.status_code
+        return response

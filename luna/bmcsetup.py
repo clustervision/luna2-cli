@@ -223,7 +223,7 @@ class BMCSetup(object):
                 payload.update(filtered)
                 if len(payload) != 1:
                     fields, rows  = Helper().filter_data_col(self.table, payload)
-                    title = f'{self.table.capitalize()} Adding => {payload["name"]}'
+                    title = f'{self.table.capitalize()} Updating => {payload["name"]}'
                     Presenter().show_table_col(title, fields, rows)
                     confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
                     if not confirm:
@@ -269,7 +269,7 @@ class BMCSetup(object):
                 payload['name'] = Inquiry().ask_select("Select BMC Setup to update", names)
                 payload['newbmcname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
                 fields, rows  = Helper().filter_data_col(self.table, payload)
-                title = f'{self.table.capitalize()} Adding => {payload["name"]}'
+                title = f'{self.table.capitalize()} Renaming => {payload["name"]}'
                 Presenter().show_table_col(title, fields, rows)
                 confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
                 if not confirm:
@@ -313,11 +313,42 @@ class BMCSetup(object):
         """
         Method to delete a bmc setup in Luna Configuration.
         """
-        print(args)
+        abort = False
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config']['bmcsetup'].keys())
+                payload['name'] = Inquiry().ask_select("Select BMC Setup to update", names)
+                fields, rows  = Helper().filter_data_col(self.table, payload)
+                title = f'{self.table.capitalize()} Deleting => {payload["name"]}'
+                Presenter().show_table_col(title, fields, rows)
+                confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
+                if not confirm:
+                    abort = Helper().show_error(f'Deletion of {payload["name"]}, {self.table.capitalize()} is Aborted')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            payload = args
+            if payload['name'] is None:
+                abort = Helper().show_error('Kindly provide BMC Name.')
+        if abort is False:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config']['bmcsetup'].keys())
+                if payload["name"] in names:
+                    response = Rest().get_delete(self.table, payload['name'])
+                    if response == 204:
+                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
+                else:
+                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         return True
-
-
-
 
 
     def clone_bmcsetup(self, args=None):
