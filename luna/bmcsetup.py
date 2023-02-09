@@ -87,23 +87,24 @@ class BMCSetup(object):
         cmd.add_argument('--comment', '-c', help='Comment for BMC Setup')
         ## >>>>>>> BMC Setup Command >>>>>>> clone
         cmd = bmcsetup_args.add_parser('clone', help='Clone BMC Setup')
-        cmd.add_argument('name', help='Name of the BMC Setup')
-        cmd.add_argument('--network', '-N', metavar='N.N.N.N', help='BMC Setup')
-        cmd.add_argument('--prefix', '-P', metavar='PP', type=int, help='Prefix')
-        cmd.add_argument('--reserve', '-R', metavar='X.X.X.X', help='Reserve IP')
-        cmd.add_argument('--release', metavar='X.X.X.X', help='Release IP')
-        cmd.add_argument('--nshostname', help='Name server for zone file')
-        cmd.add_argument('--nsipaddress', metavar='N.N.N.N', help='Name server\'s IP for zone file')
-        cmd.add_argument('--include', action='store_true', help='Include data for zone file')
-        cmd.add_argument('--rev_include', action='store_true', help='Include data for reverse zone')
-        cmd.add_argument('--comment', '-C', action='store_true', help='Add comment')
+        cmd.add_argument('--init', '-i', action='store_true', help='BMC Setup values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the BMC Setup')
+        cmd.add_argument('--userid', '-uid', type=int, help='UserID for BMC Setup')
+        cmd.add_argument('--username', '-u', help='Username for BMC Setup')
+        cmd.add_argument('--password', '-p', help='Password for BMC Setup')
+        cmd.add_argument('--netchannel', '-nc', type=int, help='Net Channel for BMC Setup')
+        cmd.add_argument('--mgmtchannel', '-mc', type=int, help='MGMT Channel for BMC Setup')
+        cmd.add_argument('--unmanaged_bmc_users', '-ubu', help='Unmanaged BMC Users')
+        cmd.add_argument('--comment', '-c', help='Comment for BMC Setup')
         ## >>>>>>> BMC Setup Command >>>>>>> rename
         cmd = bmcsetup_args.add_parser('rename', help='Rename BMC Setup')
-        cmd.add_argument('name', help='Name of the BMC Setup')
-        cmd.add_argument('--newname', '--nn', required=True, help='New name of the BMC Setup')
+        cmd.add_argument('--init', '-i', action='store_true', help='BMC Setup values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the BMC Setup')
+        cmd.add_argument('--newbmcname', '-nn', help='New name of the BMC Setup')
         ## >>>>>>> BMC Setup Command >>>>>>> delete
         cmd = bmcsetup_args.add_parser('delete', help='Delete BMC Setup')
-        cmd.add_argument('name', help='Name of the BMC Setup')
+        cmd.add_argument('--init', '-i', action='store_true', help='BMC Setup values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the BMC Setup')
         ## >>>>>>> BMC Setup Commands Ends
         return parser
 
@@ -255,6 +256,59 @@ class BMCSetup(object):
             Helper().show_error(f'Nothing to update in {payload["name"]}.')
         return True
 
+
+    def rename_bmcsetup(self, args=None):
+        """
+        Method to rename a bmc setup in Luna Configuration.
+        """
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config']['bmcsetup'].keys())
+                payload['name'] = Inquiry().ask_select("Select BMC Setup to update", names)
+                payload['newbmcname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
+                fields, rows  = Helper().filter_data_col(self.table, payload)
+                title = f'{self.table.capitalize()} Adding => {payload["name"]}'
+                Presenter().show_table_col(title, fields, rows)
+                confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
+                if not confirm:
+                    Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+                    payload['newbmcname'] = None
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            error = False
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            payload = args
+            if payload['name'] is None:
+                error = Helper().show_error('Kindly provide BMC Name.')
+            if payload['newbmcname'] is None:
+                error = Helper().show_error('Kindly provide New BMC Name.')
+            if error:
+                Helper().show_error(f'Renaming {payload["name"]} in {self.table.capitalize()} Abort.')
+        if payload['newbmcname'] and payload['name']:
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = {}
+            request_data['config'][self.table][payload['name']] = payload
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config']['bmcsetup'].keys())
+                if payload["name"] in names:
+                    response = Rest().post_data(self.table, payload['name'], request_data)
+                    if response == 204:
+                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newbmcname"]}.')
+                else:
+                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        return True
+
+
     def delete_bmcsetup(self, args=None):
         """
         Method to delete a bmc setup in Luna Configuration.
@@ -263,12 +317,7 @@ class BMCSetup(object):
         return True
 
 
-    def rename_bmcsetup(self, args=None):
-        """
-        Method to rename a bmc setup in Luna Configuration.
-        """
-        print(args)
-        return True
+
 
 
     def clone_bmcsetup(self, args=None):
