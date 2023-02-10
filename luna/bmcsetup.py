@@ -107,7 +107,6 @@ class BMCSetup(object):
         cmd = bmcsetup_args.add_parser('delete', help='Delete BMC Setup')
         cmd.add_argument('--init', '-i', action='store_true', help='BMC Setup values one-by-one')
         cmd.add_argument('--name', '-n', help='Name of the BMC Setup')
-        ## >>>>>>> BMC Setup Commands Ends
         return parser
 
 
@@ -238,7 +237,10 @@ class BMCSetup(object):
             del args['action']
             del args['init']
             payload = args
-        if len(payload) != 1:
+            filtered = {k: v for k, v in payload.items() if v is not None}
+            payload.clear()
+            payload.update(filtered)
+        if (len(payload) != 1) and ('name' in payload):
             request_data = {}
             request_data['config'] = {}
             request_data['config'][self.table] = {}

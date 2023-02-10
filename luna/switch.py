@@ -42,6 +42,8 @@ class Switch(object):
                 self.rename_switch(self.args)
             elif self.args["action"] == "delete":
                 self.delete_switch(self.args)
+            elif self.args["action"] == "clone":
+                self.clone_switch(self.args)
             else:
                 print("Not a valid option.")
         else:
@@ -55,14 +57,14 @@ class Switch(object):
         """
         switch_menu = subparsers.add_parser('switch', help='Switch operations.')
         switch_args = switch_menu.add_subparsers(dest='action')
-        ## >>>>>>> Network Command >>>>>>> list
+        ## >>>>>>> Switch Command >>>>>>> list
         cmd = switch_args.add_parser('list', help='List Switch')
         cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Network Command >>>>>>> show
+        ## >>>>>>> Switch Command >>>>>>> show
         cmd = switch_args.add_parser('show', help='Show Switch')
         cmd.add_argument('name', help='Name of the Switch')
         cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Network Command >>>>>>> add
+        ## >>>>>>> Switch Command >>>>>>> add
         cmd = switch_args.add_parser('add', help='Add Switch')
         cmd.add_argument('--init', '-i', action='store_true', help='Switch values one-by-one')
         cmd.add_argument('--name', '-n', help='Name of the Switch')
@@ -72,38 +74,36 @@ class Switch(object):
         cmd.add_argument('--rw', '-w', default='private', help='Write community')
         cmd.add_argument('--oid', '-o', default='.1.3.6.1.2.1.17.7.1.2.2.1.2', help='OID of the Switch')
         cmd.add_argument('--comment', '-c', help='Comment for Switch')
-        ## >>>>>>> Network Command >>>>>>> update
+        ## >>>>>>> Switch Command >>>>>>> update
         cmd = switch_args.add_parser('update', help='Update Switch')
-        cmd.add_argument('name', help='Name of the Switch')
-        cmd.add_argument('--network', '-N', metavar='N.N.N.N', help='Switch')
-        cmd.add_argument('--prefix', '-P', metavar='PP', type=int, help='Prefix')
-        cmd.add_argument('--reserve', '-R', metavar='X.X.X.X', help='Reserve IP')
-        cmd.add_argument('--release', metavar='X.X.X.X', help='Release IP')
-        cmd.add_argument('--nshostname', help='Name server for zone file')
-        cmd.add_argument('--nsipaddress', metavar='N.N.N.N', help='Name server\'s IP for zone file')
-        cmd.add_argument('--include', action='store_true', help='Include data for zone file')
-        cmd.add_argument('--rev_include', action='store_true', help='Include data for reverse zone file')
-        cmd.add_argument('--comment', '-C', action='store_true', help='Add comment')
-        ## >>>>>>> Network Command >>>>>>> clone
+        cmd.add_argument('--init', '-i', action='store_true', help='Switch values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the Switch')
+        cmd.add_argument('--network', '-N', help='Network Switch belongs to')
+        cmd.add_argument('--ipaddress', '-ip', help='IP of the Switch')
+        cmd.add_argument('--read', '-r', help='Read community')
+        cmd.add_argument('--rw', '-w', help='Write community')
+        cmd.add_argument('--oid', '-o', help='OID of the Switch')
+        cmd.add_argument('--comment', '-c', help='Comment for Switch')
+        ## >>>>>>> Switch Command >>>>>>> clone
         cmd = switch_args.add_parser('clone', help='Clone Switch')
-        cmd.add_argument('name', help='Name of the Switch')
-        cmd.add_argument('--network', '-N', metavar='N.N.N.N', help='Switchs')
-        cmd.add_argument('--prefix', '-P', metavar='PP', type=int, help='Prefix')
-        cmd.add_argument('--reserve', '-R', metavar='X.X.X.X', help='Reserve IP')
-        cmd.add_argument('--release', metavar='X.X.X.X', help='Release IP')
-        cmd.add_argument('--nshostname', help='Name server for zone file')
-        cmd.add_argument('--nsipaddress', metavar='N.N.N.N', help='Name server\'s IP for zone file')
-        cmd.add_argument('--include', action='store_true', help='Include data for zone file')
-        cmd.add_argument('--rev_include', action='store_true', help='Include data for reverse zone file')
-        cmd.add_argument('--comment', '-C', action='store_true', help='Add comment')
-        ## >>>>>>> Network Command >>>>>>> rename
+        cmd.add_argument('--init', '-i', action='store_true', help='Switch values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the Switch')
+        cmd.add_argument('--newswitchname', '-nn', help='New name of the Switch')
+        cmd.add_argument('--network', '-N', help='Network Switch belongs to')
+        cmd.add_argument('--ipaddress', '-ip', help='IP of the Switch')
+        cmd.add_argument('--read', '-r', help='Read community')
+        cmd.add_argument('--rw', '-w', help='Write community')
+        cmd.add_argument('--oid', '-o', help='OID of the Switch')
+        cmd.add_argument('--comment', '-c', help='Comment for Switch')
+        ## >>>>>>> Switch Command >>>>>>> rename
         cmd = switch_args.add_parser('rename', help='Rename Switch')
-        cmd.add_argument('name', help='Name of the Switch')
-        cmd.add_argument('--newname', '--nn', required=True, help='New name of the Switch')
-        ## >>>>>>> Network Command >>>>>>> delete
+        cmd.add_argument('--init', '-i', action='store_true', help='Switch values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the Switch')
+        cmd.add_argument('--newswitchname', '-nn', help='New name of the Switch')
+        ## >>>>>>> Switch Command >>>>>>> delete
         cmd = switch_args.add_parser('delete', help='Delete Switch')
-        cmd.add_argument('name', help='Name of the Switch')
-        ## >>>>>>> Network Commands Ends
+        cmd.add_argument('--init', '-i', action='store_true', help='Switch values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the Switch')
         return parser
 
 
@@ -194,29 +194,129 @@ class Switch(object):
         return True
 
 
-    def delete_switch(self, args=None):
-        """
-        Method to delete a network in Luna Configuration.
-        """
-        return True
-
-
     def update_switch(self, args=None):
         """
-        Method to update a network in Luna Configuration.
+        Method to update a switch in Luna Configuration.
         """
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                payload['name'] = Inquiry().ask_select("Select Switch to update", names)
+                payload['network'] = Inquiry().ask_text("Kindly provide Switch Network", True)
+                payload['ipaddress'] = Inquiry().ask_text("Kindly provide Switch IP Address", True)
+                payload['oid'] = Inquiry().ask_text("Kindly provide Switch OID", True)
+                payload['read'] = Inquiry().ask_text("Kindly provide Read community", True)
+                payload['rw'] = Inquiry().ask_text("Kindly provide Write community", True)
+                comment = Inquiry().ask_confirm("Do you want to provide a comment?")
+                if comment:
+                    payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
+                filtered = {k: v for k, v in payload.items() if v != ''}
+                payload.clear()
+                payload.update(filtered)
+                if len(payload) != 1:
+                    fields, rows  = Helper().filter_data_col(self.table, payload)
+                    title = f'{self.table.capitalize()} Updating => {payload["name"]}'
+                    Presenter().show_table_col(title, fields, rows)
+                    confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
+                    if not confirm:
+                        Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            payload = args
+            filtered = {k: v for k, v in payload.items() if v is not None}
+            payload.clear()
+            payload.update(filtered)
+        if (len(payload) != 1) and ('name' in payload):
+            print(payload)
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = {}
+            request_data['config'][self.table][payload['name']] = payload
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                if payload["name"] in names:
+                    response = Rest().post_data(self.table, payload['name'], request_data)
+                    if response == 204:
+                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
+                else:
+                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            Helper().show_error('Nothing to update.')
         return True
 
 
     def rename_switch(self, args=None):
         """
-        Method to rename a network in Luna Configuration.
+        Method to rename a switch in Luna Configuration.
         """
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                payload['name'] = Inquiry().ask_select("Select Switch to rename", names)
+                payload['newswitchname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
+                fields, rows  = Helper().filter_data_col(self.table, payload)
+                title = f'{self.table.capitalize()} Renaming => {payload["name"]}'
+                Presenter().show_table_col(title, fields, rows)
+                confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
+                if not confirm:
+                    Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+                    payload['newswitchname'] = None
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            error = False
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            payload = args
+            if payload['name'] is None:
+                error = Helper().show_error('Kindly provide Switch Name.')
+            if payload['newswitchname'] is None:
+                error = Helper().show_error('Kindly provide New Switch Name.')
+            if error:
+                Helper().show_error(f'Renaming {payload["name"]} in {self.table.capitalize()} Abort.')
+        if payload['newswitchname'] and payload['name']:
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = {}
+            request_data['config'][self.table][payload['name']] = payload
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                if payload["name"] in names:
+                    response = Rest().post_data(self.table, payload['name'], request_data)
+                    if response == 204:
+                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newswitchname"]}.')
+                else:
+                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         return True
 
 
     def clone_switch(self, args=None):
         """
         Method to rename a network in Luna Configuration.
+        """
+        return True
+
+
+
+    def delete_switch(self, args=None):
+        """
+        Method to delete a network in Luna Configuration.
         """
         return True
