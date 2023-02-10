@@ -16,7 +16,6 @@ __status__      = "Production"
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.inquiry import Inquiry
-
 from luna.utils.rest import Rest
 
 class BMCSetup(object):
