@@ -322,12 +322,12 @@ class BMCSetup(object):
         if args['init']:
             get_list = Helper().get_list(self.table)
             if get_list:
-                names = list(get_list['config']['bmcsetup'].keys())
-                payload['name'] = Inquiry().ask_select("Select BMC Setup to update", names)
+                names = list(get_list['config'][self.table].keys())
+                payload['name'] = Inquiry().ask_select("Select BMC Setup to delete", names)
                 fields, rows  = Helper().filter_data_col(self.table, payload)
                 title = f'{self.table.capitalize()} Deleting => {payload["name"]}'
                 Presenter().show_table_col(title, fields, rows)
-                confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
+                confirm = Inquiry().ask_confirm(f'Delete {payload["name"]} in {self.table.capitalize()}?')
                 if not confirm:
                     abort = Helper().show_error(f'Deletion of {payload["name"]}, {self.table.capitalize()} is Aborted')
             else:
@@ -343,7 +343,7 @@ class BMCSetup(object):
         if abort is False:
             get_list = Helper().get_list(self.table)
             if get_list:
-                names = list(get_list['config']['bmcsetup'].keys())
+                names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     response = Rest().get_delete(self.table, payload['name'])
                     if response == 204:

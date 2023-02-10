@@ -234,7 +234,6 @@ class Switch(object):
             payload.clear()
             payload.update(filtered)
         if (len(payload) != 1) and ('name' in payload):
-            print(payload)
             request_data = {}
             request_data['config'] = {}
             request_data['config'][self.table] = {}
@@ -307,16 +306,122 @@ class Switch(object):
         return True
 
 
-    def clone_switch(self, args=None):
+    def delete_switch(self, args=None):
         """
-        Method to rename a network in Luna Configuration.
+        Method to delete a switch in Luna Configuration.
         """
+        abort = False
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                payload['name'] = Inquiry().ask_select("Select Switch to delete", names)
+                fields, rows  = Helper().filter_data_col(self.table, payload)
+                title = f'{self.table.capitalize()} Deleting => {payload["name"]}'
+                Presenter().show_table_col(title, fields, rows)
+                confirm = Inquiry().ask_confirm(f'Delete {payload["name"]} from {self.table.capitalize()}?')
+                if not confirm:
+                    abort = Helper().show_error(f'Deletion of {payload["name"]}, {self.table.capitalize()} is Aborted')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            payload = args
+            if payload['name'] is None:
+                abort = Helper().show_error('Kindly provide Switch Name.')
+        if abort is False:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                if payload["name"] in names:
+                    response = Rest().get_delete(self.table, payload['name'])
+                    if response == 204:
+                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
+                else:
+                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         return True
 
 
+    def clone_switch(self, args=None):
+        """
+        Method to rename a switch in Luna Configuration.
+        """
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                payload['name'] = Inquiry().ask_select("Select Switch to update", names)
+                payload['newswitchname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
+                payload['network'] = Inquiry().ask_text("Kindly provide Switch Network", True)
+                payload['ipaddress'] = Inquiry().ask_text("Kindly provide Switch IP Address", True)
+                payload['oid'] = Inquiry().ask_text("Kindly provide Switch OID", True)
+                payload['read'] = Inquiry().ask_text("Kindly provide Read community", True)
+                payload['rw'] = Inquiry().ask_text("Kindly provide Write community", True)
+                comment = Inquiry().ask_confirm("Do you want to provide a comment?")
+                if comment:
+                    payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
+                get_record = Helper().get_record(self.table, payload['name'])
+                if get_record:
+                    data = get_record['config'][self.table][payload["name"]]
+                    for key, value in payload.items():
+                        if value == '' and key in data:
+                            payload[key] = data[key]
+                    filtered = {k: v for k, v in payload.items() if v is not None}
+                    payload.clear()
+                    payload.update(filtered)
 
-    def delete_switch(self, args=None):
-        """
-        Method to delete a network in Luna Configuration.
-        """
+                if len(payload) != 1:
+                    fields, rows  = Helper().filter_data_col(self.table, payload)
+                    title = f'{self.table.capitalize()} Cloning : {payload["name"]} => {payload["newswitchname"]}'
+                    Presenter().show_table_col(title, fields, rows)
+                    confirm = Inquiry().ask_confirm(f'Clone {payload["name"]} as {payload["newswitchname"]}?')
+                    if not confirm:
+                        Helper().show_error(f'Cloning of {payload["newswitchname"]} is Aborted')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            payload = args
+            get_record = Helper().get_record(self.table, payload['name'])
+            if get_record:
+                data = get_record['config'][self.table][payload["name"]]
+                for key, value in payload.items():
+                    if (value == '' or value is None) and key in data:
+                        payload[key] = data[key]
+                filtered = {k: v for k, v in payload.items() if v is not None}
+                payload.clear()
+                payload.update(filtered)
+        if len(payload) != 1:
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = {}
+            request_data['config'][self.table][payload['name']] = payload
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                if payload["name"] in names:
+                    if payload["newswitchname"] in names:
+                        Helper().show_error(f'{payload["newswitchname"]} is already present in {self.table.capitalize()}.')
+                    else:
+                        response = Rest().post_clone(self.table, payload['name'], request_data)
+                        if response == 201:
+                            Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newswitchname"]}.')
+                        else:
+                            Helper().show_error(f'HTTP Error {response}.')
+                else:
+                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            else:
+                Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            Helper().show_error(f'Nothing to update in {payload["name"]}.')
         return True
