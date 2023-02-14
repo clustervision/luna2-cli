@@ -57,14 +57,14 @@ class OSImage(object):
         """
         osimage_menu = subparsers.add_parser('osimage', help='OSImage operations.')
         osimage_args = osimage_menu.add_subparsers(dest='action')
-        ## >>>>>>> Network Command >>>>>>> list
+        ## >>>>>>> OSImage Command >>>>>>> list
         cmd = osimage_args.add_parser('list', help='List OSImages')
         cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Network Command >>>>>>> show
+        ## >>>>>>> OSImage Command >>>>>>> show
         cmd = osimage_args.add_parser('show', help='Show a OSImage')
         cmd.add_argument('name', help='Name of the OSImage')
         cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Network Command >>>>>>> add
+        ## >>>>>>> OSImage Command >>>>>>> add
         cmd = osimage_args.add_parser('add', help='Add OSImage')
         cmd.add_argument('--init', '-i', action='store_true', help='OSImage values one-by-one')
         cmd.add_argument('--name', '-n', help='Name of the OSImage')
@@ -81,7 +81,7 @@ class OSImage(object):
         cmd.add_argument('--torrent', '-t', help='Torrent UUID')
         cmd.add_argument('--distribution', '-d', help='Distribution From')
         cmd.add_argument('--comment', '-c', help='Comment for OSImage')
-        ## >>>>>>> Network Command >>>>>>> update
+        ## >>>>>>> OSImage Command >>>>>>> update
         cmd = osimage_args.add_parser('update', help='Update OSImage')
         cmd.add_argument('--init', '-i', action='store_true', help='OSImage values one-by-one')
         cmd.add_argument('--name', '-n', help='Name of the OSImage')
@@ -98,7 +98,7 @@ class OSImage(object):
         cmd.add_argument('--torrent', '-t', help='Torrent UUID')
         cmd.add_argument('--distribution', '-d', help='Distribution From')
         cmd.add_argument('--comment', '-c', help='Comment for OSImage')
-        ## >>>>>>> Network Command >>>>>>> clone
+        ## >>>>>>> OSImage Command >>>>>>> clone
         cmd = osimage_args.add_parser('clone', help='Clone OSImage')
         cmd.add_argument('--init', '-i', action='store_true', help='OSImage values one-by-one')
         cmd.add_argument('--name', '-n', help='Name of the OSImage')
@@ -116,16 +116,16 @@ class OSImage(object):
         cmd.add_argument('--torrent', '-t', help='Torrent UUID')
         cmd.add_argument('--distribution', '-d', help='Distribution From')
         cmd.add_argument('--comment', '-c', help='Comment for OSImage')
-        ## >>>>>>> Network Command >>>>>>> rename
+        ## >>>>>>> OSImage Command >>>>>>> rename
         cmd = osimage_args.add_parser('rename', help='Rename OSImage')
         cmd.add_argument('--init', '-i', action='store_true', help='OSImage values one-by-one')
         cmd.add_argument('--name', '-n', help='Name of the OSImage')
         cmd.add_argument('--newosimage', '-nn', help='New Name of the OSImage')
-        ## >>>>>>> Network Command >>>>>>> delete
+        ## >>>>>>> OSImage Command >>>>>>> delete
         cmd = osimage_args.add_parser('delete', help='Delete OSImage')
         cmd.add_argument('--init', '-i', action='store_true', help='OSImage values one-by-one')
         cmd.add_argument('--name', '-n', help='Name of the OSImage')
-        ## >>>>>>> Network Commands Ends
+        ## >>>>>>> OSImage Commands Ends
         return parser
 
 

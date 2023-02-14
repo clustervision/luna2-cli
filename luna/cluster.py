@@ -15,11 +15,12 @@ __status__      = "Production"
 
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
+from luna.utils.rest import Rest
 
 class Cluster(object):
     """
     Cluster Class responsible to show, list,
-    add, remove information for the Cluster
+    and update information for the Cluster
     """
 
     def __init__(self, args=None):
@@ -32,14 +33,8 @@ class Cluster(object):
                 self.list_cluster(self.args)
             elif self.args["action"] == "show":
                 self.show_cluster(self.args)
-            elif self.args["action"] == "add":
-                self.add_cluster(self.args)
             elif self.args["action"] == "update":
                 self.update_cluster(self.args)
-            elif self.args["action"] == "rename":
-                self.rename_cluster(self.args)
-            elif self.args["action"] == "delete":
-                self.delete_cluster(self.args)
             else:
                 print("Not a valid option.")
         else:
@@ -53,54 +48,23 @@ class Cluster(object):
         """
         cluster_menu = subparsers.add_parser('cluster', help='Cluster operations.')
         cluster_args = cluster_menu.add_subparsers(dest='action')
-        ## >>>>>>> Network Command >>>>>>> list
+        ## >>>>>>> Cluster Command >>>>>>> list
         cmd = cluster_args.add_parser('list', help='List Cluster')
         cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Network Command >>>>>>> show
+        ## >>>>>>> Cluster Command >>>>>>> show
         cmd = cluster_args.add_parser('show', help='Show Cluster')
         cmd.add_argument('name', help='Name of the Cluster')
         cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
-        # cmd.add_argument('--reservedips', '-r', action='store_true', help='List reserved IPs')
-        # cmd.add_argument('--comment', '-C', action='store_true', help='Print comment')
-        ## >>>>>>> Network Command >>>>>>> add
-        cmd = cluster_args.add_parser('add', help='Add Cluster')
-        cmd.add_argument('--name', '-n', required=True, help='Name of the Cluster')
-        cmd.add_argument('--network', '-N', metavar='N.N.N.N', required=True, help='Cluster')
-        cmd.add_argument('--prefix', '-P', metavar='PP', required=True, type=int, help='Prefix')
-        cmd.add_argument('--nshostname', help='Name server for zone file')
-        cmd.add_argument('--nsipaddress', metavar='N.N.N.N', help='Name server\'s IP for zone file')
-        ## >>>>>>> Network Command >>>>>>> update
+        ## >>>>>>> Cluster Command >>>>>>> add
         cmd = cluster_args.add_parser('update', help='Update Cluster')
         cmd.add_argument('name', help='Name of the Cluster')
-        cmd.add_argument('--network', '-N', metavar='N.N.N.N', help='Cluster')
-        cmd.add_argument('--prefix', '-P', metavar='PP', type=int, help='Prefix')
-        cmd.add_argument('--reserve', '-R', metavar='X.X.X.X', help='Reserve IP')
-        cmd.add_argument('--release', metavar='X.X.X.X', help='Release IP')
-        cmd.add_argument('--nshostname', help='Name server for zone file')
-        cmd.add_argument('--nsipaddress', metavar='N.N.N.N', help='Name server\'s IP for zone file')
-        cmd.add_argument('--include', action='store_true', help='Include data for zone file')
-        cmd.add_argument('--rev_include', action='store_true', help='Include data for reverse zone file')
-        cmd.add_argument('--comment', '-C', action='store_true', help='Add comment')
-        ## >>>>>>> Network Command >>>>>>> clone
-        cmd = cluster_args.add_parser('clone', help='Clone Cluster')
-        cmd.add_argument('name', help='Name of the Cluster')
-        cmd.add_argument('--network', '-N', metavar='N.N.N.N', help='Cluster')
-        cmd.add_argument('--prefix', '-P', metavar='PP', type=int, help='Prefix')
-        cmd.add_argument('--reserve', '-R', metavar='X.X.X.X', help='Reserve IP')
-        cmd.add_argument('--release', metavar='X.X.X.X', help='Release IP')
-        cmd.add_argument('--nshostname', help='Name server for zone file')
-        cmd.add_argument('--nsipaddress', metavar='N.N.N.N', help='Name server\'s IP for zone file')
-        cmd.add_argument('--include', action='store_true', help='Include data for zone file')
-        cmd.add_argument('--rev_include', action='store_true', help='Include data for reverse zone file')
-        cmd.add_argument('--comment', '-C', action='store_true', help='Add comment')
-        ## >>>>>>> Network Command >>>>>>> rename
-        cmd = cluster_args.add_parser('rename', help='Rename Cluster')
-        cmd.add_argument('name', help='Name of the Cluster')
-        cmd.add_argument('--newname', '--nn', required=True, help='New name of the Cluster')
-        ## >>>>>>> Network Command >>>>>>> delete
-        cmd = cluster_args.add_parser('delete', help='Delete Cluster')
-        cmd.add_argument('name', help='Name of the Cluster')
-        ## >>>>>>> Network Commands Ends
+        cmd.add_argument('--name', '-n', help='New Cluster Name')
+        cmd.add_argument('--user', '-u', help='Cluster User')
+        cmd.add_argument('--ntp_server', '-ntp', metavar='N.N.N.N', help='Cluster NTP Server')
+        cmd.add_argument('--clusterdebug', '-d', help='Debug Mode')
+        cmd.add_argument('--technical_contacts', '-c', help='Technical Contact')
+        cmd.add_argument('--provision_method', '-pm', help='Provision Method')
+        cmd.add_argument('--provision_fallback', '-fb', help='Provision Fallback')
         return parser
 
 
@@ -125,7 +89,7 @@ class Cluster(object):
 
     def show_cluster(self, args=None):
         """
-        Method to show a network in Luna Configuration.
+        Method to show a cluster in Luna Configuration.
         """
         response = False
         fields, rows = [], []
@@ -143,36 +107,28 @@ class Cluster(object):
         return response
 
 
-    def add_cluster(self, args=None):
-        """
-        Method to add new network in Luna Configuration.
-        """
-        return True
-
-
-    def delete_cluster(self, args=None):
-        """
-        Method to delete a network in Luna Configuration.
-        """
-        return True
-
-
     def update_cluster(self, args=None):
         """
-        Method to update a network in Luna Configuration.
+        Method to update cluster in Luna Configuration.
         """
-        return True
-
-
-    def rename_cluster(self, args=None):
-        """
-        Method to rename a network in Luna Configuration.
-        """
-        return True
-
-
-    def clone_cluster(self, args=None):
-        """
-        Method to rename a network in Luna Configuration.
-        """
+        payload = {}
+        del args['debug']
+        del args['command']
+        del args['action']
+        payload = args
+        filtered = {k: v for k, v in args.items() if v is not None}
+        payload.clear()
+        payload.update(filtered)
+        if payload['clusterdebug']:
+            payload['debug'] = True
+        del payload['clusterdebug']
+        if payload:
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = payload
+            response = Rest().post_data(self.table, None, request_data)
+            if response == 204:
+                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
+            else:
+                Helper().show_error(f'HTTP error code is: {response} ')
         return True
