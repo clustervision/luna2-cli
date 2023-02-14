@@ -15,6 +15,8 @@ __status__      = "Production"
 
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
+from luna.utils.inquiry import Inquiry
+from luna.utils.rest import Rest
 
 class Group(object):
     """
@@ -49,7 +51,7 @@ class Group(object):
     def getarguments(self, parser, subparsers):
         """
         Method will provide all the arguments
-        related to the Network class.
+        related to the Group class.
         """
         group_menu = subparsers.add_parser('group', help='Group operations')
         group_args = group_menu.add_subparsers(dest='action')
@@ -59,51 +61,74 @@ class Group(object):
         ## >>>>>>> Group Command >>>>>>> show
         cmd = group_args.add_parser('show', help='Show Group')
         cmd.add_argument('name', help='Name of the Group')
-        cmd_group = cmd.add_mutually_exclusive_group()
-        cmd_group.add_argument('--raw', '-R', action='store_true', help='JSON output')
-        cmd_group.add_argument('--osimage', '-o', action='store_true', help='Show osimage assigned to Group.')
-        cmd_group.add_argument('--prescript', '--pre', action='store_true', help='Show prescript')
-        cmd_group.add_argument('--postscript', '--post', action='store_true', help='Show postscript.')
-        cmd_group.add_argument('--partscript', '--part', action='store_true', help='Show partition script.')
-        cmd_group.add_argument('--bmcsetup', '-b', action='store_true', help='BMCSetup assigned to Group.')
-        cmd_group.add_argument('--interface', '-i', help='Interface')
-        cmd_group.add_argument('--comment', '-C', action='store_true', help='Print comment')
+        cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
         ## >>>>>>> Group Command >>>>>>> add
         cmd = group_args.add_parser('add', help='Add Group')
-        cmd.add_argument('--name', '-n', required=True, help='Name of the Group')
-        cmd.add_argument('--osimage', '-o', required=True, help='Osimage assigned to Group')
-        cmd.add_argument('--bmcsetup', '-b', help='BMCSetup assigned to Group')
-        cmd.add_argument('--bmcnetwork', '-bn', help='Network for BMC interface')
-        cmd.add_argument('--network', '-N', required=True, help='Network for boot interface')
-        ## >>>>>>> Group Command >>>>>>> change
-        cmd = group_args.add_parser('change', help='Change Group')
-        cmd.add_argument('name', help='Name of the Group')
-        cmd.add_argument('--osimage', '-o', help='Osimage assigned to Group')
-        cmd.add_argument('--domain', '-d', help='Domain')
-        cmd.add_argument('--prescript', '--pre', action='store_true', help='Set prescript')
-        cmd.add_argument('--postscript', '--post', action='store_true', help='Set postscript.')
-        cmd.add_argument('--partscript', '--part', action='store_true', help='Set partition script. Localdisk should be mounted under /sysimage')
-        cmd.add_argument('--bmcsetup', '-b', help='BMCSetup assigned to Group')
-        cmd.add_argument('--torrent_if', '--ti', help='High-speed interface')
-        cmd.add_argument('--interface', '-i', help='Interface')
-        cmd.add_argument('--add', '-A', action='store_true', help='Add interface')
-        cmd.add_argument('--delete', '-D', action='store_true', help='Delete interface')
-        cmd.add_argument('--setnet', '--sn', metavar='NETWORK', help='Set Network for interface or for BMC')
-        cmd.add_argument('--delnet', '--dn', action='store', nargs='?', default=False, const=True, help='Delete Network for interface or for BMC')
-        cmd.add_argument('--edit', '-e', action='store_true', help='Edit interface parameters or edit scripts')
-        cmd.add_argument('--rename', '--nn', metavar='NEW_NAME', help='Rename interface')
-        cmd.add_argument('--comment', '-C', action='store_true', help='Add comment')
+        cmd.add_argument('--init', '-i', action='store_true', help='Group values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the Group')
+        cmd.add_argument('--bmcsetup', '-b', action='store_true', help='BMC Setup')
+        cmd.add_argument('--bmcsetupname', '-bmc', help='BMC Setup Name')
+        cmd.add_argument('--domain', '-d', help='Domain Name')
+        cmd.add_argument('--osimage', '-o', help='OS Image Name')
+        cmd.add_argument('--prescript', '-pre', help='Pre Script')
+        cmd.add_argument('--partscript', '-part', help='Part Script')
+        cmd.add_argument('--postscript', '-post', help='Post Script')
+        cmd.add_argument('--netboot', '-nb', help='Network Boot')
+        cmd.add_argument('--localinstall', '-li', help='Local Install')
+        cmd.add_argument('--bootmenu', '-bm', help='Boot Menu')
+        cmd.add_argument('--provision_method', '-pm', help='Provision Method')
+        cmd.add_argument('--provision_fallback', '-fb', help='Provision Fallback')
+        cmd.add_argument('--unmanaged_bmc_users', '-ubu', help='Unmanaged BMC Users')
+        cmd.add_argument('--interfaces', '-if', action='append', help='Group Interfaces interfacename:networkname')
+        cmd.add_argument('--comment', '-c', help='Comment for Group')
+        ## >>>>>>> Group Command >>>>>>> udpate
+        cmd = group_args.add_parser('udpate', help='Update Group')
+        cmd.add_argument('--init', '-i', action='store_true', help='Group values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the Group')
+        cmd.add_argument('--bmcsetup', '-b', action='store_true', help='BMC Setup True/False')
+        cmd.add_argument('--bmcsetupname', '-bmc', help='BMC Setup Name')
+        cmd.add_argument('--domain', '-d', help='Domain Name')
+        cmd.add_argument('--osimage', '-o', help='OS Image Name')
+        cmd.add_argument('--prescript', '-pre', help='Pre Script')
+        cmd.add_argument('--partscript', '-part', help='Part Script')
+        cmd.add_argument('--postscript', '-post', help='Post Script')
+        cmd.add_argument('--netboot', '-nb', help='Network Boot')
+        cmd.add_argument('--localinstall', '-li', help='Local Install')
+        cmd.add_argument('--bootmenu', '-bm', help='Boot Menu')
+        cmd.add_argument('--provision_method', '-pm', help='Provision Method')
+        cmd.add_argument('--provision_fallback', '-fb', help='Provision Fallback')
+        cmd.add_argument('--unmanaged_bmc_users', '-ubu', help='Unmanaged BMC Users')
+        cmd.add_argument('--interfaces', '-if', action='append', help='Group Interfaces interfacename:networkname')
+        cmd.add_argument('--comment', '-c', help='Comment for Group')
         ## >>>>>>> Group Command >>>>>>> clone
         cmd = group_args.add_parser('clone', help='Clone Group.')
-        cmd.add_argument('name', help='Name of the Group')
-        cmd.add_argument('--to', '-t', required=True, help='Name of the clone group')
+        cmd.add_argument('--init', '-i', action='store_true', help='Group values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the Group')
+        cmd.add_argument('--newgroupname', '-nn', help='New Name for the Group')
+        cmd.add_argument('--bmcsetup', '-b', action='store_true', help='BMC Setup True/False')
+        cmd.add_argument('--bmcsetupname', '-bmc', help='BMC Setup Name')
+        cmd.add_argument('--domain', '-d', help='Domain Name')
+        cmd.add_argument('--osimage', '-o', help='OS Image Name')
+        cmd.add_argument('--prescript', '-pre', help='Pre Script')
+        cmd.add_argument('--partscript', '-part', help='Part Script')
+        cmd.add_argument('--postscript', '-post', help='Post Script')
+        cmd.add_argument('--netboot', '-nb', help='Network Boot')
+        cmd.add_argument('--localinstall', '-li', help='Local Install')
+        cmd.add_argument('--bootmenu', '-bm', help='Boot Menu')
+        cmd.add_argument('--provision_method', '-pm', help='Provision Method')
+        cmd.add_argument('--provision_fallback', '-fb', help='Provision Fallback')
+        cmd.add_argument('--unmanaged_bmc_users', '-ubu', help='Unmanaged BMC Users')
+        cmd.add_argument('--interfaces', '-if', action='append', help='Group Interfaces interfacename:networkname')
+        cmd.add_argument('--comment', '-c', help='Comment for Group')
         ## >>>>>>> Group Command >>>>>>> rename
         cmd = group_args.add_parser('rename', help='Rename Group.')
-        cmd.add_argument('name', help='Name of the Group')
-        cmd.add_argument('--newname', '--nn', required=True, help='New name')
+        cmd.add_argument('--init', '-i', action='store_true', help='Group values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the Group')
+        cmd.add_argument('--newgroupname', '-nn', help='New Name for the Group')
         ## >>>>>>> Group Command >>>>>>> delete
         cmd = group_args.add_parser('delete', help='Delete Group')
-        cmd.add_argument('name', help='Name of the Group')
+        cmd.add_argument('--init', '-i', action='store_true', help='Group values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the Group')
         ## >>>>>>> Group Commands Ends
         return parser
 
@@ -117,7 +142,7 @@ class Group(object):
         fields, rows = [], []
         get_list = Helper().get_list(self.table)
         if get_list:
-            data = get_list['config']['group']
+            data = get_list['config'][self.table]
             if args['raw']:
                 response = Presenter().show_json(data)
             else:
@@ -136,7 +161,7 @@ class Group(object):
         fields, rows = [], []
         get_list = Helper().get_record(self.table, args['name'])
         if get_list:
-            data = get_list['config']['group'][args["name"]]
+            data = get_list['config'][self.table][args["name"]]
             if args['raw']:
                 response = Presenter().show_json(data)
             else:
@@ -150,34 +175,357 @@ class Group(object):
 
     def add_group(self, args=None):
         """
-        Method to add new network in Luna Configuration.
+        Method to add new group in Luna Configuration.
         """
-        return True
-
-
-    def delete_group(self, args=None):
-        """
-        Method to delete a network in Luna Configuration.
-        """
+        payload = {}
+        if args['init']:
+            payload['name'] = Inquiry().ask_text("Write Name Of Group")
+            payload['bmcsetup'] = Inquiry().ask_text("BMC Setup True or False")
+            payload['bmcsetupname'] = Inquiry().ask_text("Write BMC Setup Name")
+            payload['domain'] = Inquiry().ask_text("Write Domain Name")
+            payload['osimage'] = Inquiry().ask_text("Write OSImage Name")
+            payload['prescript'] = Inquiry().ask_text("Write Pre-Script")
+            payload['partscript'] = Inquiry().ask_text("Write Part-Script")
+            payload['postscript'] = Inquiry().ask_text("Write Post-Script")
+            payload['netboot'] = Inquiry().ask_text("Network Boot")
+            payload['localinstall'] = Inquiry().ask_file("Local Install")
+            payload['bootmenu'] = Inquiry().ask_text("Boot Menu")
+            payload['provision_method'] = Inquiry().ask_text("Provision Method")
+            payload['provision_fallback'] = Inquiry().ask_text("Provision Fallback")
+            payload['unmanaged_bmc_users'] = Inquiry().ask_text("Unmanaged BMC Users")
+            def interfaces(interfc):
+                if len(interfc):
+                    confirm_text = "Add one more Interface?"
+                else:
+                    confirm_text = "Add Interface?"
+                ifc = Inquiry().ask_confirm(confirm_text)
+                if ifc:
+                    interface_name = Inquiry().ask_text("Write Interface Name")
+                    networkn_name = Inquiry().ask_text("Write Interface Network Name")
+                    if interface_name and networkn_name:
+                        interfc.append({'interface': interface_name, 'network': networkn_name})
+                    return interfaces(interfc)
+                else:
+                    return interfc
+            interfc = []
+            payload['interfaces'] = interfaces(interfc)
+            comment = Inquiry().ask_confirm("Do you want to provide a comment?")
+            if comment:
+                payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)")
+            fields, rows  = Helper().filter_data_col(self.table, payload)
+            title = f'{self.table.capitalize()} Adding => {payload["name"]}'
+            Presenter().show_table_col(title, fields, rows)
+            confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
+            if not confirm:
+                Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+        else:
+            error = False
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            if args['interfaces']:
+                args['interfaces'] = Helper().list_to_dict(args['interfaces'])
+            payload = args
+            for key in payload:
+                if payload[key] is None:
+                    error = Helper().show_error(f'Kindly provide {key}.')
+            if error:
+                Helper().show_error(f'Adding {payload["name"]} in {self.table.capitalize()} Abort.')
+        if payload:
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = {}
+            request_data['config'][self.table][payload['name']] = payload
+            response = Rest().post_data(self.table, payload['name'], request_data)
+            if response == 201:
+                Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
+            elif response == 204:
+                Helper().show_warning(f'{payload["name"]} present already.')
+            else:
+                Helper().show_error(f'{self.table.capitalize()}, {payload["name"]} is not created.')
         return True
 
 
     def update_group(self, args=None):
         """
-        Method to update a network in Luna Configuration.
+        Method to update a group in Luna Configuration.
         """
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                payload['name'] = Inquiry().ask_select("Select Group", names)
+                payload['bmcsetup'] = Inquiry().ask_text("BMC Setup True or False", True)
+                payload['bmcsetupname'] = Inquiry().ask_text("Write BMC Setup Name", True)
+                payload['domain'] = Inquiry().ask_text("Write Domain Name", True)
+                payload['osimage'] = Inquiry().ask_text("Write OSImage Name", True)
+                payload['prescript'] = Inquiry().ask_text("Write Pre-Script", True)
+                payload['partscript'] = Inquiry().ask_text("Write Part-Script", True)
+                payload['postscript'] = Inquiry().ask_text("Write Post-Script", True)
+                payload['netboot'] = Inquiry().ask_text("Network Boot", True)
+                payload['localinstall'] = Inquiry().ask_file("Local Install", True)
+                payload['bootmenu'] = Inquiry().ask_text("Boot Menu", True)
+                payload['provision_method'] = Inquiry().ask_text("Provision Method", True)
+                payload['provision_fallback'] = Inquiry().ask_text("Provision Fallback", True)
+                payload['unmanaged_bmc_users'] = Inquiry().ask_text("Unmanaged BMC Users", True)
+                def interfaces(interfc):
+                    if len(interfc):
+                        confirm_text = "Add one more Interface?"
+                    else:
+                        confirm_text = "Add Interface?"
+                    ifc = Inquiry().ask_confirm(confirm_text)
+                    if ifc:
+                        interface_name = Inquiry().ask_text("Write Interface Name")
+                        networkn_name = Inquiry().ask_text("Write Interface Network Name")
+                        if interface_name and networkn_name:
+                            interfc.append({'interface': interface_name, 'network': networkn_name})
+                        return interfaces(interfc)
+                    else:
+                        return interfc
+                interfc = []
+                payload['interfaces'] = interfaces(interfc)
+                comment = Inquiry().ask_confirm("Do you want to provide a comment?")
+                if comment:
+                    payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
+                filtered = {k: v for k, v in payload.items() if v != ''}
+                payload.clear()
+                payload.update(filtered)
+                if len(payload) != 1:
+                    fields, rows  = Helper().filter_data_col(self.table, payload)
+                    title = f'{self.table.capitalize()} Updating => {payload["name"]}'
+                    Presenter().show_table_col(title, fields, rows)
+                    confirm = Inquiry().ask_confirm(f'update {payload["name"]} in {self.table.capitalize()}?')
+                    if not confirm:
+                        Helper().show_error(f'update {payload["name"]} into {self.table.capitalize()} Aborted')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            if args['interfaces']:
+                args['interfaces'] = Helper().list_to_dict(args['interfaces'])
+            payload = args
+            payload = args
+            filtered = {k: v for k, v in payload.items() if v is not None}
+            payload.clear()
+            payload.update(filtered)
+        if (len(payload) != 1) and ('name' in payload):
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = {}
+            request_data['config'][self.table][payload['name']] = payload
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                if payload["name"] in names:
+                    response = Rest().post_data(self.table, payload['name'], request_data)
+                    if response == 204:
+                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
+                else:
+                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            Helper().show_error('Nothing to update.')
         return True
 
 
     def rename_group(self, args=None):
         """
-        Method to rename a network in Luna Configuration.
+        Method to rename a group in Luna Configuration.
         """
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                payload['name'] = Inquiry().ask_select("Select Group to rename", names)
+                payload['newgroupname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
+                fields, rows  = Helper().filter_data_col(self.table, payload)
+                title = f'{self.table.capitalize()} Renaming => {payload["name"]}'
+                Presenter().show_table_col(title, fields, rows)
+                confirm = Inquiry().ask_confirm(f'Rename {payload["name"]} in {self.table.capitalize()}?')
+                if not confirm:
+                    Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+                    payload['newgroupname'] = None
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            error = False
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            payload = args
+            if payload['name'] is None:
+                error = Helper().show_error('Kindly provide Group Name.')
+            if payload['newgroupname'] is None:
+                error = Helper().show_error('Kindly provide New Group Name.')
+            if error:
+                Helper().show_error(f'Renaming {payload["name"]} in {self.table.capitalize()} Abort.')
+        if payload['newgroupname'] and payload['name']:
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = {}
+            request_data['config'][self.table][payload['name']] = payload
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                if payload["name"] in names:
+                    response = Rest().post_data(self.table, payload['name'], request_data)
+                    if response == 204:
+                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newgroupname"]}.')
+                else:
+                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        return True
+
+
+    def delete_group(self, args=None):
+        """
+        Method to delete a group in Luna Configuration.
+        """
+        abort = False
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                payload['name'] = Inquiry().ask_select("Select Group to delete", names)
+                fields, rows  = Helper().filter_data_col(self.table, payload)
+                title = f'{self.table.capitalize()} Deleting => {payload["name"]}'
+                Presenter().show_table_col(title, fields, rows)
+                confirm = Inquiry().ask_confirm(f'Delete {payload["name"]} from {self.table.capitalize()}?')
+                if not confirm:
+                    abort = Helper().show_error(f'Deletion of {payload["name"]}, {self.table.capitalize()} is Aborted')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            payload = args
+            if payload['name'] is None:
+                abort = Helper().show_error('Kindly provide Group Name.')
+        if abort is False:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                if payload["name"] in names:
+                    response = Rest().get_delete(self.table, payload['name'])
+                    if response == 204:
+                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
+                else:
+                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         return True
 
 
     def clone_group(self, args=None):
         """
-        Method to rename a network in Luna Configuration.
+        Method to rename a group in Luna Configuration.
         """
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                payload['name'] = Inquiry().ask_select("Select Group", names)
+                payload['newgroupname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
+                payload['bmcsetup'] = Inquiry().ask_text("BMC Setup True or False", True)
+                payload['bmcsetupname'] = Inquiry().ask_text("Write BMC Setup Name", True)
+                payload['domain'] = Inquiry().ask_text("Write Domain Name", True)
+                payload['osimage'] = Inquiry().ask_text("Write OSImage Name", True)
+                payload['prescript'] = Inquiry().ask_text("Write Pre-Script", True)
+                payload['partscript'] = Inquiry().ask_text("Write Part-Script", True)
+                payload['postscript'] = Inquiry().ask_text("Write Post-Script", True)
+                payload['netboot'] = Inquiry().ask_text("Network Boot", True)
+                payload['localinstall'] = Inquiry().ask_file("Local Install", True)
+                payload['bootmenu'] = Inquiry().ask_text("Boot Menu", True)
+                payload['provision_method'] = Inquiry().ask_text("Provision Method", True)
+                payload['provision_fallback'] = Inquiry().ask_text("Provision Fallback", True)
+                payload['unmanaged_bmc_users'] = Inquiry().ask_text("Unmanaged BMC Users", True)
+                def interfaces(interfc):
+                    if len(interfc):
+                        confirm_text = "Add one more Interface?"
+                    else:
+                        confirm_text = "Add Interface?"
+                    ifc = Inquiry().ask_confirm(confirm_text)
+                    if ifc:
+                        interface_name = Inquiry().ask_text("Write Interface Name")
+                        networkn_name = Inquiry().ask_text("Write Interface Network Name")
+                        if interface_name and networkn_name:
+                            interfc.append({'interface': interface_name, 'network': networkn_name})
+                        return interfaces(interfc)
+                    else:
+                        return interfc
+                interfc = []
+                payload['interfaces'] = interfaces(interfc)
+                comment = Inquiry().ask_confirm("Do you want to provide a comment?")
+                if comment:
+                    payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
+                get_record = Helper().get_record(self.table, payload['name'])
+                if get_record:
+                    data = get_record['config'][self.table][payload["name"]]
+                    for key, value in payload.items():
+                        if value == '' and key in data:
+                            payload[key] = data[key]
+                    filtered = {k: v for k, v in payload.items() if v is not None}
+                    payload.clear()
+                    payload.update(filtered)
+
+                if len(payload) != 1:
+                    fields, rows  = Helper().filter_data_col(self.table, payload)
+                    title = f'{self.table.capitalize()} Cloning : {payload["name"]} => {payload["newgroupname"]}'
+                    Presenter().show_table_col(title, fields, rows)
+                    confirm = Inquiry().ask_confirm(f'Clone {payload["name"]} as {payload["newgroupname"]}?')
+                    if not confirm:
+                        Helper().show_error(f'Cloning of {payload["newgroupname"]} is Aborted')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            payload = args
+            get_record = Helper().get_record(self.table, payload['name'])
+            if get_record:
+                data = get_record['config'][self.table][payload["name"]]
+                for key, value in payload.items():
+                    if (value == '' or value is None) and key in data:
+                        payload[key] = data[key]
+                filtered = {k: v for k, v in payload.items() if v is not None}
+                payload.clear()
+                payload.update(filtered)
+        if len(payload) != 1:
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = {}
+            request_data['config'][self.table][payload['name']] = payload
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                if payload["name"] in names:
+                    if payload["newgroupname"] in names:
+                        Helper().show_error(f'{payload["newgroupname"]} is already present in {self.table.capitalize()}.')
+                    else:
+                        response = Rest().post_clone(self.table, payload['name'], request_data)
+                        if response == 201:
+                            Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newgroupname"]}.')
+                        else:
+                            Helper().show_error(f'HTTP Error {response}.')
+                else:
+                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            else:
+                Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            Helper().show_error(f'Nothing to update in {payload["name"]}.')
         return True

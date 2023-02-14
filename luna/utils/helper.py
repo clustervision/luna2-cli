@@ -137,6 +137,25 @@ class Helper(object):
         return True
 
 
+    def list_to_dict(self, lst):
+        """
+        This method will iterate the list of strings
+        which have colon(:) for split purpose.
+        """
+        response = []
+        dictionary = {}
+        for keyval in lst:
+            if ':' in keyval:
+                keyvalspl = keyval.split(':')
+                if keyvalspl[0] != '' and keyvalspl[1] != '':
+                    dictionary['interface'] = keyvalspl[0]
+                    dictionary['network'] = keyvalspl[1]
+            if dictionary:
+                response.append(dictionary)
+                dictionary = {}
+        return response
+
+
     def filter_data(self, table=None, data=None):
         """
         This method will generate the data as for
