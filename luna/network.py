@@ -73,41 +73,44 @@ class Network(object):
         cmd.add_argument('--ns_ip', '-ni', metavar='N.N.N.N', help='Name server IP Address of the Network')
         cmd.add_argument('--ns_hostname', '-nh', help='Name server Hostname of the Network')
         cmd.add_argument('--ntp_server', '-ntp', help='NTP Server of the Network')
-        # cmd.add_argument('--dhcp', '-d', help='DHCP of the Network')
         cmd.add_argument('--dhcp_range_begin', '-ds', metavar='N.N.N.N', help='DHCP Range Start for the Network')
         cmd.add_argument('--dhcp_range_end', '-de', metavar='N.N.N.N', help='DHCP Range End for the Network')
         cmd.add_argument('--comment', '-c', help='Comment for Network')
         ## >>>>>>> Network Command >>>>>>> update
         cmd = network_args.add_parser('update', help='Update Network')
-        cmd.add_argument('name', help='Name of the Network')
-        cmd.add_argument('--network', '-N', metavar='N.N.N.N', help='Network')
-        cmd.add_argument('--prefix', '-P', metavar='PP', type=int, help='Prefix')
-        cmd.add_argument('--reserve', '-R', metavar='X.X.X.X', help='Reserve IP')
-        cmd.add_argument('--release', metavar='X.X.X.X', help='Release IP')
-        cmd.add_argument('--nshostname', help='Name server for zone file')
-        cmd.add_argument('--nsipaddress', metavar='N.N.N.N', help='Name server\'s IP for zone file')
-        cmd.add_argument('--include', action='store_true', help='Include data for zone file')
-        cmd.add_argument('--rev_include', action='store_true', help='Include data for reverse zone file')
-        cmd.add_argument('--comment', '-C', action='store_true', help='Add comment')
+        cmd.add_argument('--init', '-i', action='store_true', help='Network values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the Network')
+        cmd.add_argument('--network', '-N', help='Network')
+        cmd.add_argument('--gateway', '-g', help='Gateway of the Network')
+        cmd.add_argument('--ns_ip', '-ni', metavar='N.N.N.N', help='Name server IP Address of the Network')
+        cmd.add_argument('--ns_hostname', '-nh', help='Name server Hostname of the Network')
+        cmd.add_argument('--ntp_server', '-ntp', help='NTP Server of the Network')
+        cmd.add_argument('--dhcp', '-d', help='DHCP of the Network')
+        cmd.add_argument('--dhcp_range_begin', '-ds', metavar='N.N.N.N', help='DHCP Range Start for the Network')
+        cmd.add_argument('--dhcp_range_end', '-de', metavar='N.N.N.N', help='DHCP Range End for the Network')
+        cmd.add_argument('--comment', '-c', help='Comment for Network')
         ## >>>>>>> Network Command >>>>>>> clone
         cmd = network_args.add_parser('clone', help='Clone Network')
-        cmd.add_argument('name', help='Name of the Network')
-        cmd.add_argument('--network', '-N', metavar='N.N.N.N', help='Network')
-        cmd.add_argument('--prefix', '-P', metavar='PP', type=int, help='Prefix')
-        cmd.add_argument('--reserve', '-R', metavar='X.X.X.X', help='Reserve IP')
-        cmd.add_argument('--release', metavar='X.X.X.X', help='Release IP')
-        cmd.add_argument('--nshostname', help='Name server for zone file')
-        cmd.add_argument('--nsipaddress', metavar='N.N.N.N', help='Name server\'s IP for zone file')
-        cmd.add_argument('--include', action='store_true', help='Include data for zone file')
-        cmd.add_argument('--rev_include', action='store_true', help='Include data for reverse zone file')
-        cmd.add_argument('--comment', '-C', action='store_true', help='Add comment')
+        cmd.add_argument('--init', '-i', action='store_true', help='Network values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the Network')
+        cmd.add_argument('--network', '-N', help='Network')
+        cmd.add_argument('--gateway', '-g', help='Gateway of the Network')
+        cmd.add_argument('--ns_ip', '-ni', metavar='N.N.N.N', help='Name server IP Address of the Network')
+        cmd.add_argument('--ns_hostname', '-nh', help='Name server Hostname of the Network')
+        cmd.add_argument('--ntp_server', '-ntp', help='NTP Server of the Network')
+        cmd.add_argument('--dhcp', '-d', help='DHCP of the Network')
+        cmd.add_argument('--dhcp_range_begin', '-ds', metavar='N.N.N.N', help='DHCP Range Start for the Network')
+        cmd.add_argument('--dhcp_range_end', '-de', metavar='N.N.N.N', help='DHCP Range End for the Network')
+        cmd.add_argument('--comment', '-c', help='Comment for Network')
         ## >>>>>>> Network Command >>>>>>> rename
         cmd = network_args.add_parser('rename', help='Rename Network')
-        cmd.add_argument('name', help='Name of the Network')
-        cmd.add_argument('--newname', '--nn', required=True, help='New name of the Network')
+        cmd.add_argument('--init', '-i', action='store_true', help='Network values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the Network')
+        cmd.add_argument('--newnetname', '-nn', help='New name of the Network')
         ## >>>>>>> Network Command >>>>>>> delete
         cmd = network_args.add_parser('delete', help='Delete Network')
-        cmd.add_argument('name', help='Name of the Network')
+        cmd.add_argument('--init', '-i', action='store_true', help='Network values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the Network')
         ## >>>>>>> Network Commands Ends
         return parser
 
@@ -210,17 +213,74 @@ class Network(object):
         return True
 
 
-    def delete_network(self, args=None):
-        """
-        Method to delete a network in Luna Configuration.
-        """
-        return True
-
-
     def update_network(self, args=None):
         """
         Method to update a network in Luna Configuration.
         """
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                payload['name'] = Inquiry().ask_select("Select Network to update", names)
+                payload['network'] = Inquiry().ask_text("Kindly provide Network", True)
+                payload['gateway'] = Inquiry().ask_text("Kindly provide Gateway for the Network", True)
+                payload['ns_ip'] = Inquiry().ask_text("Kindly provide Name Server IP Address", True)
+                payload['ns_hostname'] = Inquiry().ask_text("Kindly provide Name Server Hostname", True)
+                payload['ntp_server'] = Inquiry().ask_text("Kindly provide NTP Server", True)
+                payload['dhcp'] = Inquiry().ask_confirm("DHCP is Enabled?")
+                if payload['dhcp']:
+                    payload['dhcp_range_begin'] = Inquiry().ask_text("DHCP Range Starts From", True)
+                    payload['dhcp_range_end'] = Inquiry().ask_text("DHCP Range Ends To:", True)
+                else:
+                    del payload['dhcp']
+                comment = Inquiry().ask_confirm("Do you want to provide a comment?")
+                if comment:
+                    payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
+                filtered = {k: v for k, v in payload.items() if v != ''}
+                payload.clear()
+                payload.update(filtered)
+                if len(payload) != 1:
+                    fields, rows  = Helper().filter_data_col(self.table, payload)
+                    title = f'{self.table.capitalize()} Updating => {payload["name"]}'
+                    Presenter().show_table_col(title, fields, rows)
+                    confirm = Inquiry().ask_confirm(f'update {payload["name"]} in {self.table.capitalize()}?')
+                    if not confirm:
+                        Helper().show_error(f'update {payload["name"]} into {self.table.capitalize()} Aborted')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            if args['dhcp_range_begin'] and args['dhcp_range_end']:
+                args['dhcp'] = True
+            else:
+                del args['dhcp_range_begin']
+                del args['dhcp_range_end']
+            payload = args
+            filtered = {k: v for k, v in payload.items() if v is not None}
+            payload.clear()
+            payload.update(filtered)
+        if (len(payload) != 1) and ('name' in payload):
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = {}
+            request_data['config'][self.table][payload['name']] = payload
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                if payload["name"] in names:
+                    response = Rest().post_data(self.table, payload['name'], request_data)
+                    if response == 204:
+                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
+                else:
+                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            Helper().show_error('Nothing to update.')
         return True
 
 
@@ -228,6 +288,93 @@ class Network(object):
         """
         Method to rename a network in Luna Configuration.
         """
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                payload['name'] = Inquiry().ask_select("Select Network to rename", names)
+                payload['newnetname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
+                fields, rows  = Helper().filter_data_col(self.table, payload)
+                title = f'{self.table.capitalize()} Renaming => {payload["name"]}'
+                Presenter().show_table_col(title, fields, rows)
+                confirm = Inquiry().ask_confirm(f'Rename {payload["name"]} in {self.table.capitalize()}?')
+                if not confirm:
+                    Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+                    payload['newnetname'] = None
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            error = False
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            payload = args
+            if payload['name'] is None:
+                error = Helper().show_error('Kindly provide Network Name.')
+            if payload['newnetname'] is None:
+                error = Helper().show_error('Kindly provide New Network Name.')
+            if error:
+                Helper().show_error(f'Renaming {payload["name"]} in {self.table.capitalize()} Abort.')
+        if payload['newnetname'] and payload['name']:
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = {}
+            request_data['config'][self.table][payload['name']] = payload
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                if payload["name"] in names:
+                    response = Rest().post_data(self.table, payload['name'], request_data)
+                    if response == 204:
+                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newnetname"]}.')
+                else:
+                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        return True
+
+
+    def delete_network(self, args=None):
+        """
+        Method to delete a network in Luna Configuration.
+        """
+        abort = False
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                payload['name'] = Inquiry().ask_select("Select Network to delete", names)
+                fields, rows  = Helper().filter_data_col(self.table, payload)
+                title = f'{self.table.capitalize()} Deleting => {payload["name"]}'
+                Presenter().show_table_col(title, fields, rows)
+                confirm = Inquiry().ask_confirm(f'Delete {payload["name"]} from {self.table.capitalize()}?')
+                if not confirm:
+                    abort = Helper().show_error(f'Deletion of {payload["name"]}, {self.table.capitalize()} is Aborted')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            payload = args
+            if payload['name'] is None:
+                abort = Helper().show_error('Kindly provide Network Name.')
+        if abort is False:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                if payload["name"] in names:
+                    response = Rest().get_delete(self.table, payload['name'])
+                    if response == 204:
+                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
+                else:
+                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         return True
 
 
@@ -235,4 +382,87 @@ class Network(object):
         """
         Method to rename a network in Luna Configuration.
         """
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                payload['name'] = Inquiry().ask_select("Select Network to clone", names)
+                payload['newnetname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
+                payload['network'] = Inquiry().ask_text("Kindly provide Network", True)
+                payload['gateway'] = Inquiry().ask_text("Kindly provide Gateway for the Network", True)
+                payload['ns_ip'] = Inquiry().ask_text("Kindly provide Name Server IP Address", True)
+                payload['ns_hostname'] = Inquiry().ask_text("Kindly provide Name Server Hostname", True)
+                payload['ntp_server'] = Inquiry().ask_text("Kindly provide NTP Server", True)
+                payload['dhcp'] = Inquiry().ask_confirm("DHCP is Enabled?")
+                if payload['dhcp']:
+                    payload['dhcp_range_begin'] = Inquiry().ask_text("DHCP Range Starts From", True)
+                    payload['dhcp_range_end'] = Inquiry().ask_text("DHCP Range Ends To:", True)
+                else:
+                    del payload['dhcp']
+                comment = Inquiry().ask_confirm("Do you want to provide a comment?")
+                if comment:
+                    payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
+                get_record = Helper().get_record(self.table, payload['name'])
+                if get_record:
+                    data = get_record['config'][self.table][payload["name"]]
+                    for key, value in payload.items():
+                        if value == '' and key in data:
+                            payload[key] = data[key]
+                    filtered = {k: v for k, v in payload.items() if v is not None}
+                    payload.clear()
+                    payload.update(filtered)
+
+                if len(payload) != 1:
+                    fields, rows  = Helper().filter_data_col(self.table, payload)
+                    title = f'{self.table.capitalize()} Cloning : {payload["name"]} => {payload["newnetname"]}'
+                    Presenter().show_table_col(title, fields, rows)
+                    confirm = Inquiry().ask_confirm(f'Clone {payload["name"]} as {payload["newnetname"]}?')
+                    if not confirm:
+                        Helper().show_error(f'Cloning of {payload["newnetname"]} is Aborted')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            if args['dhcp_range_begin'] and args['dhcp_range_end']:
+                args['dhcp'] = True
+            else:
+                del args['dhcp_range_begin']
+                del args['dhcp_range_end']
+            payload = args
+            get_record = Helper().get_record(self.table, payload['name'])
+            if get_record:
+                data = get_record['config'][self.table][payload["name"]]
+                for key, value in payload.items():
+                    if (value == '' or value is None) and key in data:
+                        payload[key] = data[key]
+                filtered = {k: v for k, v in payload.items() if v is not None}
+                payload.clear()
+                payload.update(filtered)
+        if len(payload) != 1:
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = {}
+            request_data['config'][self.table][payload['name']] = payload
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                if payload["name"] in names:
+                    if payload["newnetname"] in names:
+                        Helper().show_error(f'{payload["newnetname"]} is already present in {self.table.capitalize()}.')
+                    else:
+                        response = Rest().post_clone(self.table, payload['name'], request_data)
+                        if response == 201:
+                            Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newnetname"]}.')
+                        else:
+                            Helper().show_error(f'HTTP Error {response}.')
+                else:
+                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            else:
+                Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            Helper().show_error(f'Nothing to update in {payload["name"]}.')
         return True
