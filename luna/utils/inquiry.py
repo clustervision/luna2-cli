@@ -12,6 +12,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
+import os
 import sys
 from InquirerPy import inquirer, get_style
 from termcolor import colored
@@ -158,4 +159,33 @@ class Inquiry(object):
         except KeyboardInterrupt:
             print(colored("Exited! Try Again, with new Inputs.", 'red', attrs=['bold']))
             sys.exit(0)
+        return response
+
+
+    def ask_file(self, message=None, update=None):
+        """
+        This method will ask a text based question
+        and revert with key value based answer.
+        """
+        def ask(count, message, update):
+            if count == 3:
+                error_message = "You have lost all 3 attempts, Please try again."
+                print(colored(error_message, 'red', attrs=['bold']))
+                sys.exit(0)
+            else:
+                try:
+                    home_path = "/" if os.name == "posix" else "C:\\"
+                    name = inquirer.filepath(message=message, style= self.style, default=home_path).execute()
+                    if update:
+                        return name
+                    if not name:
+                        print(colored("Try Again!", 'yellow', attrs=['bold']))
+                        count = count +1
+                        return ask(count, message, update)
+                    else:
+                        return name
+                except KeyboardInterrupt:
+                    print(colored("Exited! Try Again, with new Inputs.", 'red', attrs=['bold']))
+                    sys.exit(0)
+        response = ask(0, message, update)
         return response
