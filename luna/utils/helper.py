@@ -147,9 +147,15 @@ class Helper(object):
         for keyval in lst:
             if ':' in keyval:
                 keyvalspl = keyval.split(':')
-                if keyvalspl[0] != '' and keyvalspl[1] != '':
-                    dictionary['interface'] = keyvalspl[0]
-                    dictionary['network'] = keyvalspl[1]
+                if len(keyvalspl) == 3:
+                    if keyvalspl[0] != '' and keyvalspl[1] != '' and keyvalspl[2] != '':
+                        dictionary['interface'] = keyvalspl[0]
+                        dictionary['network'] = keyvalspl[1]
+                        dictionary['ipaddress'] = keyvalspl[2]
+                elif len(keyvalspl) == 2:
+                    if keyvalspl[0] != '' and keyvalspl[1] != '':
+                        dictionary['interface'] = keyvalspl[0]
+                        dictionary['network'] = keyvalspl[1]
             if dictionary:
                 response.append(dictionary)
                 dictionary = {}
