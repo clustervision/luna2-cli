@@ -15,6 +15,8 @@ __status__      = "Production"
 
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
+from luna.utils.inquiry import Inquiry
+from luna.utils.rest import Rest
 
 class Network(object):
     """
@@ -40,6 +42,8 @@ class Network(object):
                 self.rename_network(self.args)
             elif self.args["action"] == "delete":
                 self.delete_network(self.args)
+            elif self.args["action"] == "clone":
+                self.clone_network(self.args)
             else:
                 print("Not a valid option.")
         else:
@@ -60,15 +64,19 @@ class Network(object):
         cmd = network_args.add_parser('show', help='Show Network')
         cmd.add_argument('name', help='Name of the Network')
         cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
-        # cmd.add_argument('--reservedips', '-r', action='store_true', help='List reserved IPs')
-        # cmd.add_argument('--comment', '-C', action='store_true', help='Print comment')
         ## >>>>>>> Network Command >>>>>>> add
         cmd = network_args.add_parser('add', help='Add Network')
-        cmd.add_argument('--name', '-n', required=True, help='Name of the Network')
-        cmd.add_argument('--network', '-N', metavar='N.N.N.N', required=True, help='Network')
-        cmd.add_argument('--prefix', '-P', metavar='PP', required=True, type=int, help='Prefix')
-        cmd.add_argument('--nshostname', help='Name server for zone file')
-        cmd.add_argument('--nsipaddress', metavar='N.N.N.N', help='Name server\'s IP for zone file')
+        cmd.add_argument('--init', '-i', action='store_true', help='Network values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the Network')
+        cmd.add_argument('--network', '-N', help='Network')
+        cmd.add_argument('--gateway', '-g', help='Gateway of the Network')
+        cmd.add_argument('--ns_ip', '-ni', metavar='N.N.N.N', help='Name server IP Address of the Network')
+        cmd.add_argument('--ns_hostname', '-nh', help='Name server Hostname of the Network')
+        cmd.add_argument('--ntp_server', '-ntp', help='NTP Server of the Network')
+        # cmd.add_argument('--dhcp', '-d', help='DHCP of the Network')
+        cmd.add_argument('--dhcp_range_begin', '-ds', metavar='N.N.N.N', help='DHCP Range Start for the Network')
+        cmd.add_argument('--dhcp_range_end', '-de', metavar='N.N.N.N', help='DHCP Range End for the Network')
+        cmd.add_argument('--comment', '-c', help='Comment for Network')
         ## >>>>>>> Network Command >>>>>>> update
         cmd = network_args.add_parser('update', help='Update Network')
         cmd.add_argument('name', help='Name of the Network')
@@ -112,7 +120,7 @@ class Network(object):
         fields, rows = [], []
         get_list = Helper().get_list(self.table)
         if get_list:
-            data = get_list['config']['network']
+            data = get_list['config'][self.table]
             if args['raw']:
                 response = Presenter().show_json(data)
             else:
@@ -131,7 +139,7 @@ class Network(object):
         fields, rows = [], []
         get_list = Helper().get_record(self.table, args['name'])
         if get_list:
-            data = get_list['config']['network'][args["name"]]
+            data = get_list['config'][self.table][args["name"]]
             if args['raw']:
                 response = Presenter().show_json(data)
             else:
@@ -147,6 +155,58 @@ class Network(object):
         """
         Method to add new network in Luna Configuration.
         """
+        payload = {}
+        if args['init']:
+            payload['name'] = Inquiry().ask_text("Kindly provide Network Name")
+            payload['network'] = Inquiry().ask_text("Kindly provide Network")
+            payload['gateway'] = Inquiry().ask_text("Kindly provide Gateway for the Network")
+            payload['ns_ip'] = Inquiry().ask_text("Kindly provide Name Server IP Address")
+            payload['ns_hostname'] = Inquiry().ask_text("Kindly provide Name Server Hostname")
+            payload['ntp_server'] = Inquiry().ask_text("Kindly provide NTP Server")
+            payload['dhcp'] = Inquiry().ask_confirm("DHCP is Enabled?")
+            if payload['dhcp']:
+                payload['dhcp_range_begin'] = Inquiry().ask_text("DHCP Range Starts From")
+                payload['dhcp_range_end'] = Inquiry().ask_text("DHCP Range Ends To:")
+            else:
+                del payload['dhcp']
+            comment = Inquiry().ask_confirm("Do you want to provide a comment?")
+            if comment:
+                payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)")
+            fields, rows  = Helper().filter_data_col(self.table, payload)
+            title = f'{self.table.capitalize()} Adding => {payload["name"]}'
+            Presenter().show_table_col(title, fields, rows)
+            confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
+            if not confirm:
+                Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+        else:
+            error = False
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            if args['dhcp_range_begin'] and args['dhcp_range_end']:
+                args['dhcp'] = True
+            else:
+                del args['dhcp_range_begin']
+                del args['dhcp_range_end']
+            payload = args
+            for key in payload:
+                if payload[key] is None:
+                    error = Helper().show_error(f'Kindly provide {key}.')
+            if error:
+                Helper().show_error(f'Adding {payload["name"]} in {self.table.capitalize()} Abort.')
+        if payload:
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = {}
+            request_data['config'][self.table][payload['name']] = payload
+            response = Rest().post_data(self.table, payload['name'], request_data)
+            if response == 201:
+                Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
+            elif response == 204:
+                Helper().show_warning(f'{payload["name"]} present already.')
+            else:
+                Helper().show_error(f'{self.table.capitalize()}, {payload["name"]} is not created.')
         return True
 
 
