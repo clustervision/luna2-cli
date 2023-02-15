@@ -27,6 +27,7 @@ class Group(object):
     def __init__(self, args=None):
         self.args = args
         self.table = "group"
+        self.interface = "groupinterface"
         self.version = None
         self.clusterid = None
         if self.args:
@@ -42,6 +43,15 @@ class Group(object):
                 self.rename_group(self.args)
             elif self.args["action"] == "delete":
                 self.delete_group(self.args)
+            
+            elif self.args["action"] == "interfaces":
+                self.list_interfaces(self.args)
+            elif self.args["action"] == "interface":
+                self.show_interface(self.args)
+            elif self.args["action"] == "updateinterface":
+                self.update_interface(self.args)
+            elif self.args["action"] == "deleteinterface":
+                self.delete_interface(self.args)
             else:
                 print("Not a valid option.")
         else:
@@ -130,8 +140,27 @@ class Group(object):
         cmd.add_argument('--init', '-i', action='store_true', help='Group values one-by-one')
         cmd.add_argument('--name', '-n', help='Name of the Group')
         ## >>>>>>> Group Commands Ends
+        ## >>>>>>> Group Interface Command >>>>>>> interfaces
+        cmd = group_args.add_parser('interfaces', help='List Group Interfaces')
+        cmd.add_argument('name', help='Name of the Group')
+        cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        ## >>>>>>> Group Interface Command >>>>>>> interfaces
+        cmd = group_args.add_parser('interface', help='Show Group Interface')
+        cmd.add_argument('name', help='Name of the Group')
+        cmd.add_argument('interface', help='Name of the Group Interface')
+        cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        ## >>>>>>> Group Interface Command >>>>>>> delete
+        cmd = group_args.add_parser('updateinterface', help='Update Group Interface')
+        cmd.add_argument('--init', '-i', action='store_true', help='Group values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the Group')
+        cmd.add_argument('--interface', '-if', action='append', help='Group Interface')
+        cmd.add_argument('--network', '-N', action='append', help='Network Name')
+        ## >>>>>>> Group Interface Command >>>>>>> delete
+        cmd = group_args.add_parser('deleteinterface', help='Delete Group Interface')
+        cmd.add_argument('--init', '-i', action='store_true', help='Group values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the Group')
+        cmd.add_argument('--interface', '-if', help='Name of the Group Interface')
         return parser
-
 
 
     def list_group(self, args=None):
@@ -529,3 +558,162 @@ class Group(object):
         else:
             Helper().show_error(f'Nothing to update in {payload["name"]}.')
         return True
+
+
+    def list_interfaces(self, args=None):
+        """
+        Method to list a Group interfaces in Luna Configuration.
+        """
+        response = False
+        fields, rows = [], []
+        get_list = Helper().get_record(self.table, args['name']+'/interfaces')
+        if get_list:
+            data = get_list['config'][self.table][args["name"]]['interfaces']
+            if args['raw']:
+                response = Presenter().show_json(data)
+            else:
+                fields, rows  = Helper().filter_interface(self.interface, data)
+                response = Presenter().show_table(fields, rows)
+        else:
+            response = Helper().show_error(f'{args["name"]} is not found in {self.table}.')
+        return response
+
+
+    def show_interface(self, args=None):
+        """
+        Method to list a Group interfaces in Luna Configuration.
+        """
+        response = False
+        fields, rows = [], []
+        get_list = Helper().get_record(self.table, args['name']+'/interfaces/'+args['interface'])
+        if get_list:
+            data = get_list['config'][self.table][args["name"]]['interfaces'][0]
+            if args['raw']:
+                response = Presenter().show_json(data)
+            else:
+                fields, rows  = Helper().filter_data_col(self.interface, data)
+                title = f'{self.table.capitalize()} [{args["name"]}] => Interface {args["interface"]}'
+                response = Presenter().show_table_col(title, fields, rows)
+        else:
+            response = Helper().show_error(f'Interface {args["interface"]} not found in {self.table} {args["name"]} OR {args["name"]} is unavailable.')
+        return response
+
+
+    def update_interface(self, args=None):
+        """
+        Method to list a Group interfaces in Luna Configuration.
+        """
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                payload['name'] = Inquiry().ask_select("Select Group", names)
+                def interfaces(interfc):
+                    if len(interfc):
+                        confirm_text = "Add one more Interface?"
+                    else:
+                        confirm_text = "Add Interface?"
+                    ifc = Inquiry().ask_confirm(confirm_text)
+                    if ifc:
+                        interface_name = Inquiry().ask_text("Write Interface Name")
+                        networkn_name = Inquiry().ask_text("Write Interface Network Name")
+                        if interface_name and networkn_name:
+                            interfc.append({
+                                'interface': interface_name,
+                                'network': networkn_name})
+                        return interfaces(interfc)
+                    else:
+                        return interfc
+                interfc = []
+                payload['interfaces'] = interfaces(interfc)
+                fields, rows  = Helper().filter_data_col(self.table, payload)
+                title = f'{self.table.capitalize()} Updating => {payload["name"]} Interfaces'
+                Presenter().show_table_col(title, fields, rows)
+                confirm = Inquiry().ask_confirm(f'update Interfaces in {self.table.capitalize()} {payload["name"]}?')
+                if not confirm:
+                    Helper().show_error(f'update Interfaces in {self.table.capitalize()} {payload["name"]} is Aborted')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            if len(args['interface']) == len(args['network']):
+                args['interfaces'] = []
+                temp_dict = {}
+                for ifc, nwk in zip(args['interface'], args['network']):
+                    temp_dict['interface'] = ifc
+                    temp_dict['network'] = nwk
+                    args['interfaces'].append(temp_dict)
+                    temp_dict = {}
+                del args['interface']
+                del args['network']
+                del args['ipaddress']
+                del args['macaddress']
+            else:
+                response = Helper().show_error('Each Interface should have Interface Name, Network, IP Address and MAC Address')
+            payload = args
+            filtered = {k: v for k, v in payload.items() if v is not None}
+            payload.clear()
+            payload.update(filtered)
+        if (len(payload) != 1) and ('name' in payload):
+            node_name = payload['name']
+            del payload['name']
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = {}
+            request_data['config'][self.table][node_name] = payload
+            response = Rest().post_data(self.table, node_name+'/interfaces', request_data)
+            if response == 204:
+                Helper().show_success(f'Interfaces updated in {self.table.capitalize()} {node_name}.')
+            else:
+                Helper().show_error(f'HTTP Error Code {response}.')
+        else:
+            Helper().show_error('Nothing to update.')
+        return response
+
+
+    def delete_interface(self, args=None):
+        """
+        Method to list a Group interfaces in Luna Configuration.
+        """
+        abort = False
+        payload = {}
+        if args['init']:
+            get_list = Helper().get_list(self.table)
+            if get_list:
+                names = list(get_list['config'][self.table].keys())
+                payload['name'] = Inquiry().ask_select("Select Group to delete Interface", names)
+                record = Helper().get_record(self.table, payload['name'])
+                all_interface = record['config'][self.table][payload['name']]['interfaces']
+                ifc_list = []
+                for ifc in all_interface:
+                    ifc_list.append(ifc['interface'])
+                payload['interface'] = Inquiry().ask_select("Select Interface to delete", ifc_list)
+                fields, rows  = Helper().filter_data_col(self.table, payload)
+                title = f'{self.table.capitalize()} Deleting Interface [{payload["interface"]}] => {payload["name"]}'
+                Presenter().show_table_col(title, fields, rows)
+                confirm = Inquiry().ask_confirm(f'Delete Interface {payload["interface"]} from {self.table.capitalize()} {payload["name"]}?')
+                if not confirm:
+                    abort = Helper().show_error(f'Deletion of {payload["name"]}, {self.table.capitalize()} is Aborted')
+            else:
+                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        else:
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            payload = args
+            if payload['name'] is None:
+                abort = Helper().show_error('Kindly provide Group Name.')
+            if payload['interface'] is None:
+                abort = Helper().show_error('Kindly provide Interface Name.')
+        if abort is False:
+            response = Rest().get_delete(self.table, payload['name']+'/interfaces/'+payload['interface'])
+            if response == 204:
+                Helper().show_success(f'Interface {payload["interface"]} Deleted from {self.table.capitalize()} {payload["name"]}.')
+            else:
+                Helper().show_error(f'HTTP Error Code: {response}.')
+        return response

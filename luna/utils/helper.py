@@ -137,6 +137,35 @@ class Helper(object):
         return True
 
 
+    def filter_interface(self, table=None, data=None):
+        """
+        This method will generate the data as for
+        row format from the interface
+        """
+        fields, rows, coloredfields = [], [], []
+        fields = self.filter_columns(table)
+        for fieldkey in fields:
+            valrow = []
+            for ele in data:
+                if fieldkey in list(ele.keys()):
+                    valrow.append(colored(ele[fieldkey], 'blue'))
+                else:
+                    valrow.append(colored("--NA--", 'red'))
+            rows.append(valrow)
+            valrow = []
+            coloredfields.append(colored(fieldkey, 'yellow', attrs=['bold']))
+        fields = coloredfields
+        rows = np.array(rows).T.tolist()
+        # Adding Serial Numbers to the dataset
+        fields.insert(0, colored('S. No.', 'yellow', attrs=['bold']))
+        num = 1
+        for outer in rows:
+            outer.insert(0, colored(num, 'blue'))
+            num = num + 1
+        # Adding Serial Numbers to the dataset
+        return fields, rows
+
+
     def list_to_dict(self, lst):
         """
         This method will iterate the list of strings
@@ -145,13 +174,14 @@ class Helper(object):
         response = []
         dictionary = {}
         for keyval in lst:
-            if ':' in keyval:
-                keyvalspl = keyval.split(':')
-                if len(keyvalspl) == 3:
-                    if keyvalspl[0] != '' and keyvalspl[1] != '' and keyvalspl[2] != '':
+            if '|' in keyval:
+                keyvalspl = keyval.split('|')
+                if len(keyvalspl) == 4:
+                    if keyvalspl[0] != '' and keyvalspl[1] != '' and keyvalspl[2] != '' and keyvalspl[3] != '':
                         dictionary['interface'] = keyvalspl[0]
                         dictionary['network'] = keyvalspl[1]
                         dictionary['ipaddress'] = keyvalspl[2]
+                        dictionary['macaddress'] = keyvalspl[3]
                 elif len(keyvalspl) == 2:
                     if keyvalspl[0] != '' and keyvalspl[1] != '':
                         dictionary['interface'] = keyvalspl[0]
@@ -318,13 +348,13 @@ class Helper(object):
             'cluster': ['name', 'hostname','ipaddr', 'technical_contacts', 'provision_method', 'security'],
             'controller': ['id', 'clusterid', 'hostname', 'status', 'ipaddr', 'serverport'],
             'group': ['name', 'bmcsetup', 'domain', 'provisionfallback', 'interfaces'],
-            'groupinterface': ['id', 'groupid', 'interfacename', 'networkid'],
+            'groupinterface': ['interfacename', 'network'],
             'groupsecrets': ['id', 'groupid', 'name', 'content', 'path'],
             'ipaddress': ['id', 'ipaddress', 'subnet', 'network'],
             'monitor': ['id', 'nodeid', 'status', 'state'],
             'network': ['name', 'network', 'ns_ip', 'ns_hostname', 'dhcp'],
             'node': ['name', 'hostname', 'setupbmc', 'status', 'tpmuuid'],
-            'nodeinterface': ['id', 'nodeid', 'networkid', 'ipaddress', 'macaddress', 'interface'],
+            'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network'],
             'nodesecrets': ['id', 'nodeid', 'name', 'content', 'path'],
             'osimage': ['name', 'kernelfile', 'path', 'tarball', 'distribution'],
             'otherdev': ['name', 'network', 'ipaddress', 'macaddr', 'comment'],
@@ -356,6 +386,8 @@ class Helper(object):
                         'path', 'tarball', 'torrent', 'distribution', 'comment'],
             'switch': ['name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'comment'],
             'otherdev': ['name', 'network', 'ipaddress', 'macaddr', 'comment'],
+            'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network'],
+            'groupinterface': ['interfacename', 'network'],
             'network': ['name', 'network', 'ns_hostname', 'ns_ip', 'ntp_server', 'gateway','dhcp','dhcp_range_begin','dhcp_range_end','comment']
         }
         response = list(static[table])
