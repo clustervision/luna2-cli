@@ -46,6 +46,8 @@ class Network(object):
                 self.clone_network(self.args)
             elif self.args["action"] == "ipinfo":
                 self.ipinfo_network(self.args)
+            elif self.args["action"] == "nextip":
+                self.nextip_network(self.args)
             else:
                 print("Not a valid option.")
         else:
@@ -113,10 +115,13 @@ class Network(object):
         cmd = network_args.add_parser('delete', help='Delete Network')
         cmd.add_argument('--init', '-i', action='store_true', help='Network values one-by-one')
         cmd.add_argument('--name', '-n', help='Name of the Network')
-        ## >>>>>>> Network Command >>>>>>> show
+        ## >>>>>>> Network Command >>>>>>> ipinfo
         cmd = network_args.add_parser('ipinfo', help='Show Network IP Information')
         cmd.add_argument('name', help='Name of the Network')
         cmd.add_argument('ipaddress', help='IP Address from the Network')
+        ## >>>>>>> Network Command >>>>>>> nextip
+        cmd = network_args.add_parser('nextip', help='Show Next Available IP Address on the Network')
+        cmd.add_argument('name', help='Name of the Network')
         ## >>>>>>> Network Commands Ends
         return parser
 
@@ -487,4 +492,20 @@ class Network(object):
                 response = Helper().show_success(f'{args["ipaddress"]} is {status.capitalize()}.')
             else:
                 response = Helper().show_warning(f'{args["ipaddress"]} is {status.capitalize()}.')
+        return response
+
+
+    def nextip_network(self, args=None):
+        """
+        Method to show a network in Luna Configuration.
+        """
+        response = False
+        uri = f'{args["name"]}/_nextfreeip'
+        nextip = Helper().get_record(self.table, uri)
+        if nextip:
+            ipaddr = nextip['config']['network'][args["name"]]['nextip']
+            if ipaddr:
+                response = Helper().show_success(f'Next Available IP Address is {ipaddr}.')
+            else:
+                response = Helper().show_warning(f'No More IP Address available on network {args["ipaddress"]}.')
         return response
