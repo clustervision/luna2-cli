@@ -22,11 +22,10 @@ from luna.bmcsetup import BMCSetup
 from luna.node import Node
 from luna.switch import Switch
 from luna.otherdevices import OtherDevices
-# from luna.service import Service
-# from luna.monitor import Monitor
-# from luna.control import Control
-# from luna.tracker import Tracker
-# from luna.secret import Secret
+from luna.secrets import Secrets
+from luna.service import Service
+from luna.control import Control
+
 
 class Cli(object):
     """
@@ -52,6 +51,9 @@ class Cli(object):
         Node.getarguments(self, parser, subparsers)
         Switch.getarguments(self, parser, subparsers)
         OtherDevices.getarguments(self, parser, subparsers)
+        Secrets.getarguments(self, parser, subparsers)
+        Service.getarguments(self, parser, subparsers)
+        Control.getarguments(self, parser, subparsers)
 
         args = vars(parser.parse_args())
         self.callclass(args)
@@ -80,6 +82,12 @@ class Cli(object):
                 Switch(args)
             elif args["command"] == "otherdevices":
                 OtherDevices(args)
+            elif args["command"] == "secrets":
+                Secrets(args)
+            elif args["command"] == "service":
+                Service(args)
+            elif args["command"] == "control":
+                Control(args)
         else:
             print("Please pass -h to see help menu.")
 
