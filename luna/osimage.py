@@ -44,6 +44,10 @@ class OSImage(object):
                 self.delete_osimage(self.args)
             elif self.args["action"] == "clone":
                 self.clone_osimage(self.args)
+            elif self.args["action"] == "pack":
+                self.pack_osimage(self.args)
+            elif self.args["action"] == "kernel":
+                self.kernel_osimage(self.args)
             else:
                 print("Not a valid option.")
         else:
@@ -125,6 +129,16 @@ class OSImage(object):
         cmd = osimage_args.add_parser('delete', help='Delete OSImage')
         cmd.add_argument('--init', '-i', action='store_true', help='OSImage values one-by-one')
         cmd.add_argument('--name', '-n', help='Name of the OSImage')
+        ## >>>>>>> OSImage Command >>>>>>> pack
+        cmd = osimage_args.add_parser('pack', help='Pack OSImage')
+        cmd.add_argument('name', help='Name of the OS Image')
+        ## >>>>>>> OSImage Command >>>>>>> kernel
+        cmd = osimage_args.add_parser('kernel', help='Chnage Kernel Version in OS Image')
+        cmd.add_argument('--init', '-i', action='store_true', help='OSImage values one-by-one')
+        cmd.add_argument('--name', '-n', help='Name of the OSImage')
+        cmd.add_argument('--initrdfile', '-rd', help='INIT RD File')
+        cmd.add_argument('--kernelfile', '-k', help='Kernel File')
+        cmd.add_argument('--kernelversion', '-v', help='Kernel Version')
         ## >>>>>>> OSImage Commands Ends
         return parser
 
@@ -468,3 +482,57 @@ class OSImage(object):
         else:
             Helper().show_error(f'Nothing to update in {payload["name"]}.')
         return True
+
+
+    def pack_osimage(self, args=None):
+        """
+        Method to pack the OS Image
+        """
+        response = Rest().get_status(self.table, args['name']+'/_pack')
+        if response == 204:
+            Helper().show_success(f'OS Image {args["name"]} Packed.')
+        else:
+            Helper().show_error(f'HTTP Error Code: {response}.')
+        return response
+
+
+    def kernel_osimage(self, args=None):
+        """
+        Method to change kernel version from an
+        OS Image
+        """
+        payload = {}
+        if args['init']:
+            payload['name'] = Inquiry().ask_text("Write Name Of OSImage")
+            payload['initrdfile'] = Inquiry().ask_text("Write INIT RD File")
+            payload['kernelfile'] = Inquiry().ask_text("Write Kernel File")
+            payload['kernelversion'] = Inquiry().ask_text("Write Kernel Version")
+            fields, rows  = Helper().filter_data_col(self.table, payload)
+            title = f'{self.table.capitalize()} Adding => {payload["name"]}'
+            Presenter().show_table_col(title, fields, rows)
+            confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
+            if not confirm:
+                Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+        else:
+            error = False
+            del args['debug']
+            del args['command']
+            del args['action']
+            del args['init']
+            payload = args
+            for key in payload:
+                if payload[key] is None:
+                    error = Helper().show_error(f'Kindly provide {key}.')
+            if error:
+                Helper().show_error(f'Adding {payload["name"]} in {self.table.capitalize()} Abort.')
+        if payload:
+            request_data = {}
+            request_data['config'] = {}
+            request_data['config'][self.table] = {}
+            request_data['config'][self.table][payload['name']] = payload
+            response = Rest().post_data(self.table, payload['name']+'/_kernel', request_data)
+            if response == 204:
+                Helper().show_success(f'OS Image {args["name"]} Kernel updated.')
+            else:
+                Helper().show_error(f'HTTP Error Code: {response}.')
+        return error

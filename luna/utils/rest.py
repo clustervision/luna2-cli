@@ -41,6 +41,7 @@ class Rest(object):
                 self.password = configparser.get('API', 'PASSWORD')
             if configparser.has_option('API', 'ENDPOINT'):
                 self.daemon = configparser.get('API', 'ENDPOINT')
+                # self.daemon = '127.0.0.1:7050'
 
 
     def get_token(self):
@@ -114,5 +115,20 @@ class Rest(object):
         headers = {'x-access-tokens': self.get_token()}
         daemon_url = f'http://{self.daemon}/config/{table}/{name}/_clone'
         call = requests.post(url=daemon_url, data=json.dumps(data), headers=headers, timeout=5)
+        response = call.status_code
+        return response
+
+
+    def get_status(self, table=None, name=None, data=None):
+        """
+        This method is based on REST API's GET method.
+        It will fetch the records from Luna 2 Daemon
+        via REST API's.
+        """
+        response = False
+        daemon_url = f'http://{self.daemon}/config/{table}'
+        if name:
+            daemon_url = f'{daemon_url}/{name}'
+        call = requests.get(url=daemon_url, params=data, timeout=5)
         response = call.status_code
         return response
