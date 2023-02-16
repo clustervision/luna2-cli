@@ -40,8 +40,8 @@ class Rest(object):
             if configparser.has_option('API', 'PASSWORD'):
                 self.password = configparser.get('API', 'PASSWORD')
             if configparser.has_option('API', 'ENDPOINT'):
-                # self.daemon = configparser.get('API', 'ENDPOINT')
-                self.daemon = '127.0.0.1:7050'
+                self.daemon = configparser.get('API', 'ENDPOINT')
+                # self.daemon = '127.0.0.1:7050'
 
 
     def get_token(self):
@@ -70,7 +70,10 @@ class Rest(object):
         daemon_url = f'http://{self.daemon}/config/{table}'
         if name:
             daemon_url = f'{daemon_url}/{name}'
+        print(daemon_url)
         call = requests.get(url=daemon_url, params=data, timeout=5)
+        print(call.content)
+        print(call.status_code)
         if call:
             response = call.json()
         return response

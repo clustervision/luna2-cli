@@ -157,27 +157,35 @@ class Secrets(object):
         Method to list Secrets all or only node or
         only group depending on the arguments.
         """
-        print(self.args)
         uri = self.route
         if 'name' in self.args:
             uri = f'{uri}/{self.args["entity"]}/{self.args["name"]}'
             if self.args['secret'] is not None:
                 uri = f'{uri}/{self.args["secret"]}'
-        print(uri)
         response = False
         fields, rows = [], []
         get_list = Helper().get_list(uri)
-        print(get_list)
-        # if get_list:
-        #     data = get_list['config']['cluster']
-        #     if args['raw']:
-        #         response = Presenter().show_json(data)
-        #     else:
-        #         fields, rows  = Helper().get_cluster(self.route, data)
-        #         response = Presenter().show_table(fields, rows)
-        # else:
-        #     response = Helper().show_error(f'{self.route} is not found.')
-        # return response
+        if get_list:
+            data = get_list['config']['secrets']
+            if self.args['raw']:
+                response = Presenter().show_json(data)
+            else:
+                if 'node' in data:
+                    node_data = data['node']
+                    table = f'node{self.route}'
+                    print(table)
+                    print(node_data)
+                    fields, rows  = Helper().filter_data(table, node_data)
+                    print(fields)
+                    print(rows)
+                    response = Presenter().show_table(fields, rows)
+                if 'group' in data:
+                    group_data = data['group']
+                # fields, rows  = Helper().get_cluster(self.route, data)
+                # response = Presenter().show_table(fields, rows)
+        else:
+            response = Helper().show_error(f'{self.route} is not found.')
+        return response
 
 
     def show_secrets(self, args=None):
