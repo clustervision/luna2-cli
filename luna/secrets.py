@@ -17,6 +17,39 @@ from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
 
+"""
+Secrets Commands:
+
+program = luna
+parser = secrets
+parser = list, show, update, delete, clone
+parser = node, group
+arguments = -R, -s
+
+1. luna secrets list -R
+2. luna secrets list node node001 -R
+3. luna secrets list group compute -R
+4. luna secrets list node node001 -s license -R
+5. luna secrets list group compute -s sshkey -R
+
+6. luna secrets show -R
+7. luna secrets show node node001 -R
+8. luna secrets show group compute -R
+9. luna secrets show node node001 -s license -R
+10. luna secrets show group compute -s sshkey -R
+
+11. luna secrets update node node001 append(-s secretname -c content -p path)
+12. luna secrets update group compute append(-s secretname -c content -p path)
+
+13. luna secrets delete node node001 -s secretname
+14. luna secrets delete group compute -s secretname
+
+13. luna secrets clone node node001 -s secretname -ns newsecretname -c content -p path
+14. luna secrets clone group compute -s secretname -ns newsecretname -c content -p path
+
+
+
+"""
 class Secrets(object):
     """
     Secrets Class responsible to show, list,
@@ -25,16 +58,18 @@ class Secrets(object):
 
     def __init__(self, args=None):
         self.args = args
-        self.table = "cluster"
-        self.version = None
-        self.clusterid = None
+        self.route = "secrets"
         if self.args:
             if self.args["action"] == "list":
-                self.list_cluster(self.args)
+                self.list_secrets()
             elif self.args["action"] == "show":
-                self.show_cluster(self.args)
+                self.show_secrets()
             elif self.args["action"] == "update":
-                self.update_cluster(self.args)
+                self.update_secrets()
+            elif self.args["action"] == "clone":
+                self.clone_secrets()
+            elif self.args["action"] == "delete":
+                self.delete_secrets()
             else:
                 print("Not a valid option.")
         else:
@@ -44,91 +79,143 @@ class Secrets(object):
     def getarguments(self, parser, subparsers):
         """
         Method will provide all the arguments
-        related to the Cluster class.
+        related to the Secrets class.
         """
-        cluster_menu = subparsers.add_parser('secrets', help='Cluster operations.')
-        cluster_args = cluster_menu.add_subparsers(dest='action')
-        ## >>>>>>> Cluster Command >>>>>>> list
-        cmd = cluster_args.add_parser('list', help='List Cluster')
-        cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Cluster Command >>>>>>> show
-        cmd = cluster_args.add_parser('show', help='Show Cluster')
-        cmd.add_argument('name', help='Name of the Cluster')
-        cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Cluster Command >>>>>>> add
-        cmd = cluster_args.add_parser('update', help='Update Cluster')
-        cmd.add_argument('name', help='Name of the Cluster')
-        cmd.add_argument('--name', '-n', help='New Cluster Name')
-        cmd.add_argument('--user', '-u', help='Cluster User')
-        cmd.add_argument('--ntp_server', '-ntp', metavar='N.N.N.N', help='Cluster NTP Server')
-        cmd.add_argument('--clusterdebug', '-d', help='Debug Mode')
-        cmd.add_argument('--technical_contacts', '-c', help='Technical Contact')
-        cmd.add_argument('--provision_method', '-pm', help='Provision Method')
-        cmd.add_argument('--provision_fallback', '-fb', help='Provision Fallback')
+        secrets_menu = subparsers.add_parser('secrets', help='Secrets operations.')
+        secrets_args = secrets_menu.add_subparsers(dest='action')
+        ## >>>>>>> Secrets Command >>>>>>> list
+        list_secrets = secrets_args.add_parser('list', help='List Secrets')
+        list_secrets.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        list_parser = list_secrets.add_subparsers(dest='entity')
+        list_node = list_parser.add_parser('node', help='List Node Secrets')
+        list_node.add_argument('name', help='Name of the Node')
+        list_node.add_argument('--secret', '-s', help='Name of the Secret')
+        list_node.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        list_group = list_parser.add_parser('group', help='List Group Secrets')
+        list_group.add_argument('name', help='Name of the Group')
+        list_group.add_argument('--secret', '-s', help='Name of the Secret')
+        list_group.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        ## >>>>>>> Secrets Command >>>>>>> show
+        show_secrets = secrets_args.add_parser('show', help='Show Secrets')
+        show_parser = show_secrets.add_subparsers(dest='entity')
+        show_node = show_parser.add_parser('node', help='Show Node Secrets')
+        show_node.add_argument('name', help='Name of the Node')
+        show_node.add_argument('--secret', '-s', help='Name of the Secret')
+        show_node.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        show_group = show_parser.add_parser('group', help='Show Group Secrets')
+        show_group.add_argument('name', help='Name of the Group')
+        show_group.add_argument('--secret', '-s', help='Name of the Secret')
+        show_group.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        ## >>>>>>> Secrets Command >>>>>>> update
+        update_secrets = secrets_args.add_parser('update', help='Update Secrets')
+        update_parser = update_secrets.add_subparsers(dest='entity')
+        update_node = update_parser.add_parser('node', help='Update Node Secrets')
+        update_node.add_argument('name', help='Name of the Node')
+        update_node.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
+        update_node.add_argument('--secret', '-s', help='Name of the Secret')
+        update_node.add_argument('--content', '-c', help='Content of the Secret')
+        update_node.add_argument('--path', '-p', help='Path of the Secret')
+        update_group = update_parser.add_parser('group', help='Update Group Secrets')
+        update_group.add_argument('name', help='Name of the Group')
+        update_group.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
+        update_group.add_argument('--secret', '-s', help='Name of the Secret')
+        update_group.add_argument('--content', '-c', help='Content of the Secret')
+        update_group.add_argument('--path', '-p', help='Path of the Secret')
+        ## >>>>>>> Secrets Command >>>>>>> clone
+        clone_secrets = secrets_args.add_parser('clone', help='Clone Secrets')
+        clone_parser = clone_secrets.add_subparsers(dest='entity')
+        clone_node = clone_parser.add_parser('node', help='Clone Node Secrets')
+        clone_node.add_argument('name', help='Name of the Node')
+        clone_node.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
+        clone_node.add_argument('--secret', '-s', help='Name of the Secret')
+        clone_node.add_argument('--newsecretname', '-n', help='New name for the Secret')
+        clone_node.add_argument('--content', '-c', help='Content of the Secret')
+        clone_node.add_argument('--path', '-p', help='Path of the Secret')
+        clone_group = clone_parser.add_parser('group', help='Clone Group Secrets')
+        clone_group.add_argument('name', help='Name of the Group')
+        clone_group.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
+        clone_group.add_argument('--secret', '-s', help='Name of the Secret')
+        clone_group.add_argument('--newsecretname', '-n', help='New name for the Secret')
+        clone_group.add_argument('--content', '-c', help='Content of the Secret')
+        clone_group.add_argument('--path', '-p', help='Path of the Secret')
+        ## >>>>>>> Secrets Command >>>>>>> delete
+        delete_secrets = secrets_args.add_parser('delete', help='Delete Secrets')
+        delete_parser = delete_secrets.add_subparsers(dest='entity')
+        delete_node = delete_parser.add_parser('node', help='Delete Node Secrets')
+        delete_node.add_argument('name', help='Name of the Node')
+        delete_node.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
+        delete_node.add_argument('--secret', '-s', help='Name of the Secret')
+        delete_group = delete_parser.add_parser('group', help='Delete Group Secrets')
+        delete_group.add_argument('name', help='Name of the Group')
+        delete_group.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
+        delete_group.add_argument('--secret', '-s', help='Name of the Secret')
         return parser
 
 
-    def list_cluster(self, args=None):
+    def list_secrets(self):
         """
-        Method to list all cluster from Luna Configuration.
+        Method to list Secrets all or only node or
+        only group depending on the arguments.
         """
+        print(self.args)
+        uri = self.route
+        if 'name' in self.args:
+            uri = f'{uri}/{self.args["entity"]}/{self.args["name"]}'
+            if self.args['secret'] is not None:
+                uri = f'{uri}/{self.args["secret"]}'
+        print(uri)
         response = False
         fields, rows = [], []
-        get_list = Helper().get_list(self.table)
-        if get_list:
-            data = get_list['config']['cluster']
-            if args['raw']:
-                response = Presenter().show_json(data)
-            else:
-                fields, rows  = Helper().get_cluster(self.table, data)
-                response = Presenter().show_table(fields, rows)
-        else:
-            response = Helper().show_error(f'{self.table} is not found.')
-        return response
+        get_list = Helper().get_list(uri)
+        print(get_list)
+        # if get_list:
+        #     data = get_list['config']['cluster']
+        #     if args['raw']:
+        #         response = Presenter().show_json(data)
+        #     else:
+        #         fields, rows  = Helper().get_cluster(self.route, data)
+        #         response = Presenter().show_table(fields, rows)
+        # else:
+        #     response = Helper().show_error(f'{self.route} is not found.')
+        # return response
 
 
-    def show_cluster(self, args=None):
+    def show_secrets(self, args=None):
         """
         Method to show a cluster in Luna Configuration.
         """
         response = False
         fields, rows = [], []
-        get_list = Helper().get_list(self.table)
+        get_list = Helper().get_list(self.route)
         if get_list:
             data = get_list['config']['cluster']
             if args['raw']:
                 response = Presenter().show_json(data)
             else:
-                fields, rows  = Helper().filter_data_col(self.table, data)
-                title = f'{self.table.capitalize()} => {data["name"]}'
+                fields, rows  = Helper().filter_data_col(self.route, data)
+                title = f'{self.route.capitalize()} => {data["name"]}'
                 response = Presenter().show_table_col(title, fields, rows)
         else:
-            response = Helper().show_error(f'{args["name"]} is not found in {self.table}.')
+            response = Helper().show_error(f'{args["name"]} is not found in {self.route}.')
         return response
 
 
-    def update_cluster(self, args=None):
+    def update_secrets(self, args=None):
         """
         Method to update cluster in Luna Configuration.
         """
-        payload = {}
-        del args['debug']
-        del args['command']
-        del args['action']
-        payload = args
-        filtered = {k: v for k, v in args.items() if v is not None}
-        payload.clear()
-        payload.update(filtered)
-        if payload['clusterdebug']:
-            payload['debug'] = True
-        del payload['clusterdebug']
-        if payload:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = payload
-            response = Rest().post_data(self.table, None, request_data)
-            if response == 204:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
-            else:
-                Helper().show_error(f'HTTP error code is: {response} ')
+        return True
+
+
+    def clone_secrets(self, args=None):
+        """
+        Method to update cluster in Luna Configuration.
+        """
+        return True
+
+
+    def delete_secrets(self, args=None):
+        """
+        Method to update cluster in Luna Configuration.
+        """
         return True
