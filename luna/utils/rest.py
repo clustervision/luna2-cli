@@ -40,8 +40,8 @@ class Rest(object):
             if configparser.has_option('API', 'PASSWORD'):
                 self.password = configparser.get('API', 'PASSWORD')
             if configparser.has_option('API', 'ENDPOINT'):
-                self.daemon = configparser.get('API', 'ENDPOINT')
-                # self.daemon = '127.0.0.1:7050'
+                # self.daemon = configparser.get('API', 'ENDPOINT')
+                self.daemon = '127.0.0.1:7050'
 
 
     def get_token(self):
@@ -131,4 +131,18 @@ class Rest(object):
             daemon_url = f'{daemon_url}/{name}'
         call = requests.get(url=daemon_url, params=data, timeout=5)
         response = call.status_code
+        return response
+
+
+    def get_raw(self, route=None, uri=None):
+        """
+        This method is based on REST API's GET method.
+        It will fetch the records from Luna 2 Daemon
+        via REST API's.
+        """
+        response = False
+        daemon_url = f'http://{self.daemon}/{route}'
+        if uri:
+            daemon_url = f'{daemon_url}/{uri}'
+        response = requests.get(url=daemon_url, timeout=5)
         return response
