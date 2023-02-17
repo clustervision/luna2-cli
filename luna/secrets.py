@@ -300,11 +300,88 @@ class Secrets(object):
         return response
 
 
-    def clone_secrets(self, args=None):
+    def clone_secrets(self):
         """
-        Method to update cluster in Luna Configuration.
+        Method to Clone Secrets for node or group
+        depending on the arguments.
         """
-        return True
+        response = False
+        secrets = []
+        secret = {}
+        old_secret_content, old_secret_path = '', ''
+        if self.args['entity'] is not None:
+            uri = f'{self.args["entity"]}/{self.args["name"]}/{self.args["secret"]}'
+            payload = {}
+            entity = self.args['entity']
+            del self.args['entity']
+            entity_name = self.args['name']
+            del self.args['name']
+            if self.args['init']:
+                get_list = Helper().get_list(entity)
+                if get_list:
+                    names = list(get_list['config'][entity].keys())
+                    entity_name = Inquiry().ask_select(f'Select {entity}', names)
+                    get_list = Helper().get_list(self.route+'/'+entity+'/'+entity_name)
+                    for sec in get_list['config'][self.route][entity][entity_name]:
+                        secrets.append(sec['name'])
+                        old_secret_content = sec['content']
+                        old_secret_path = sec['path']
+                    secret['name'] = Inquiry().ask_select('Select Secret to Clone', secrets)
+                    secret['newsecretname'] = Inquiry().ask_text("Write a New Secret Name to Clone")
+                    content = Inquiry().ask_text("Write Secret Content", True)
+                    if content:
+                        secret['content'] = content
+                    else:
+                        secret['content'] = old_secret_content
+                    path = Inquiry().ask_text("Write Secret Content", True)
+                    if path:
+                        secret['path'] = path
+                    else:
+                        secret['path'] = old_secret_path
+                    payload[entity_name] = [secret]
+                    table = f'{entity}{self.route}'
+                    print(table)
+                    print(payload)
+                    fields, rows  =  Helper().get_secrets(table, payload)
+                    Presenter().show_table(fields, rows)
+                    confirm = Inquiry().ask_confirm(f'Update {entity} => {entity_name.capitalize()} Secrets?')
+                    if not confirm:
+                        Helper().show_error(f'Update {entity} => {entity_name.capitalize()} Secrets Aborted')
+            else:
+                del self.args['debug']
+                del self.args['command']
+                del self.args['action']
+                del self.args['init']
+                get_list = Helper().get_list(self.route+'/'+entity+'/'+entity_name)
+                for sec in get_list['config'][self.route][entity][entity_name]:
+                    old_secret_content = sec['content']
+                    old_secret_path = sec['path']
+                secret = {}
+                secret['name'] = self.args['secret']
+                secret['newsecretname'] = self.args['newsecretname']
+                if self.args['content']:
+                    secret['content'] = self.args['content']
+                else:
+                    secret['content'] = old_secret_content
+                if self.args['path']:
+                    secret['path'] = self.args['path']
+                else:
+                    secret['path'] = old_secret_path
+                payload[entity_name] = [secret]
+            if payload:
+                request_data = {}
+                request_data['config'] = {}
+                request_data['config'][self.route] = {}
+                request_data['config'][self.route][entity] = {}
+                request_data['config'][self.route][entity]= payload
+                response = Rest().post_clone(self.route, uri, request_data)
+                if response == 204:
+                    Helper().show_success(f'Secret is Cloned.')
+                else:
+                    Helper().show_error(f'HTTP ERROR: {response}.')
+        else:
+            response = Helper().show_error('Either select node or group')
+        return response
 
 
     def delete_secrets(self, args=None):
