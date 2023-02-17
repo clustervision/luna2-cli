@@ -18,38 +18,6 @@ from luna.utils.presenter import Presenter
 from luna.utils.inquiry import Inquiry
 from luna.utils.rest import Rest
 
-"""
-Secrets Commands:
-
-program = luna
-parser = secrets
-parser = list, show, update, delete, clone
-parser = node, group
-arguments = -R, -s
-
-1. luna secrets list -R
-2. luna secrets list node node001 -R
-3. luna secrets list group compute -R
-4. luna secrets list node node001 -s license -R
-5. luna secrets list group compute -s sshkey -R
-
-7. luna secrets show node node001 -R
-8. luna secrets show group compute -R
-9. luna secrets show node node001 -s license -R
-10. luna secrets show group compute -s sshkey -R
-
-11. luna secrets update node node001 append(-s secretname -c content -p path)
-12. luna secrets update group compute append(-s secretname -c content -p path)
-
-13. luna secrets delete node node001 -s secretname
-14. luna secrets delete group compute -s secretname
-
-13. luna secrets clone node node001 -s secretname -ns newsecretname -c content -p path
-14. luna secrets clone group compute -s secretname -ns newsecretname -c content -p path
-
-
-
-"""
 class Secrets(object):
     """
     Secrets Class responsible to show, list,
@@ -340,8 +308,6 @@ class Secrets(object):
                         secret['path'] = old_secret_path
                     payload[entity_name] = [secret]
                     table = f'{entity}{self.route}'
-                    print(table)
-                    print(payload)
                     fields, rows  =  Helper().get_secrets(table, payload)
                     Presenter().show_table(fields, rows)
                     confirm = Inquiry().ask_confirm(f'Update {entity} => {entity_name.capitalize()} Secrets?')
@@ -384,8 +350,52 @@ class Secrets(object):
         return response
 
 
-    def delete_secrets(self, args=None):
+    def delete_secrets(self):
         """
-        Method to update cluster in Luna Configuration.
+        Method to Delete a Secrets for node or group
+        depending on the arguments.
         """
-        return True
+        response = False
+        abort = False
+        secrets = []
+        if self.args['entity'] is not None:
+            payload = {}
+            entity = self.args['entity']
+            del self.args['entity']
+            entity_name = self.args['name']
+            del self.args['name']
+            if self.args['init']:
+                get_list = Helper().get_list(entity)
+                if get_list:
+                    names = list(get_list['config'][entity].keys())
+                    entity_name = Inquiry().ask_select(f'Select {entity}', names)
+                    get_list = Helper().get_list(self.route+'/'+entity+'/'+entity_name)
+                    for sec in get_list['config'][self.route][entity][entity_name]:
+                        secrets.append(sec['name'])
+                    payload['name'] = Inquiry().ask_select('Select Secret to Delete', secrets)
+                    table = f'{entity}{self.route}'
+                    uri = f'{entity}/{entity_name}/{payload["name"]}'
+                    fields, rows  = Helper().filter_data_col(table, payload)
+                    title = f'{table.capitalize()} Deleting => {payload["name"]}'
+                    Presenter().show_table_col(title, fields, rows)
+                    confirm = Inquiry().ask_confirm(f'Delete {payload["name"]} from {table.capitalize()}?')
+                    if not confirm:
+                        abort = Helper().show_error(f'Deletion of {payload["name"]}, {table.capitalize()} is Aborted')
+                else:
+                    response = Helper().show_error(f'No {table.capitalize()} is available.')
+            else:
+                if entity and self.args['secret']:
+                    payload['name'] = entity
+                    payload['secret'] = self.args['secret']
+                    uri = f'{entity}/{entity_name}/{payload["secret"]}'
+                else:
+                    abort = Helper().show_error('Kindly Provide the Node/Group name and the secret name')
+            if abort is False:
+                response = Rest().get_delete(self.route, uri)
+                if response == 204:
+                    Helper().show_success('Secret is Deleted.')
+                else:
+                    Helper().show_error(f'HTTP ERROR: {response}.')
+        else:
+            response = Helper().show_error('Either select node or group')
+        return response
