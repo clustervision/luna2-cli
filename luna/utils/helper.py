@@ -304,6 +304,41 @@ class Helper(object):
         return fields, rows
 
 
+    def filter_secret_col(self, table=None, data=None):
+        """
+        This method will generate the data as for
+        row format
+        """
+        rows, coloredfields = [], []
+        fields = self.sortby(table)
+        for key in data:
+            newrow = []
+            for value in data[key]:
+                newrow.append(colored(key, 'blue'))
+                newrow.append(colored(value['name'], 'blue'))
+                newrow.append(colored(value['path'], 'blue'))
+                newrow.append(colored(value['content'], 'blue'))
+                rows.append(newrow)
+                newrow = []
+        for newfield in fields:
+            coloredfields.append(colored(newfield, 'yellow', attrs=['bold']))
+        fields = coloredfields
+        # Adding Serial Numbers to the dataset
+        fields.insert(0, colored('S. No.', 'yellow', attrs=['bold']))
+        num = 1
+        for outer in rows:
+            outer.insert(0, colored(num, 'blue'))
+            num = num + 1
+        # Adding Serial Numbers to the dataset
+        newfiels, newrows = [], []
+        for row in rows:
+            newfiels = newfiels + fields
+            newrows = newrows + row
+            newfiels.append("")
+            newrows.append("")
+        return newfiels, newrows
+
+
     def filter_data_col(self, table=None, data=None):
         """
         This method will generate the data as for
@@ -416,6 +451,8 @@ class Helper(object):
             'otherdev': ['name', 'network', 'ipaddress', 'macaddr', 'comment'],
             'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network'],
             'groupinterface': ['interfacename', 'network'],
+            'groupsecrets': ['Group', 'name', 'path', 'content'],
+            'nodesecrets': ['Node', 'name', 'path', 'content'],
             'network': ['name', 'network', 'ns_hostname', 'ns_ip', 'ntp_server', 'gateway','dhcp','dhcp_range_begin','dhcp_range_end','comment']
         }
         response = list(static[table])

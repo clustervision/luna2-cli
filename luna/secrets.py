@@ -182,23 +182,35 @@ class Secrets(object):
         return response
 
 
-    def show_secrets(self, args=None):
+    def show_secrets(self):
         """
-        Method to show a cluster in Luna Configuration.
+        Method to show Secrets all or only node or
+        only group depending on the arguments.
         """
         response = False
-        fields, rows = [], []
-        get_list = Helper().get_list(self.route)
-        if get_list:
-            data = get_list['config']['cluster']
-            if args['raw']:
-                response = Presenter().show_json(data)
-            else:
-                fields, rows  = Helper().filter_data_col(self.route, data)
-                title = f'{self.route.capitalize()} => {data["name"]}'
-                response = Presenter().show_table_col(title, fields, rows)
+        if self.args['entity'] is not None:
+            uri = f'{self.route}/{self.args["entity"]}/{self.args["name"]}'
+            if self.args['secret'] is not None:
+                uri = f'{uri}/{self.args["secret"]}'
+            get_list = Helper().get_list(uri)
+            if get_list:
+                data = get_list['config']['secrets']
+                if self.args['raw']:
+                    response = Presenter().show_json(data)
+                else:
+                    if 'group' in data:
+                        table = f'group{self.route}'
+                        fields, rows  = Helper().filter_secret_col(table, data['group'])
+                        group_name = list(data["group"].keys())[0]
+                        title = f'Group {group_name} Secrets'
+                        response = Presenter().show_table_col(title, fields, rows)
+                    if 'node' in data:
+                        table = f'node{self.route}'
+                        fields, rows  = Helper().filter_secret_col(table, data['node'])
+                        title = f'Node {self.args["name"]} Secrets'
+                        response = Presenter().show_table_col(title, fields, rows)
         else:
-            response = Helper().show_error(f'{args["name"]} is not found in {self.route}.')
+            response = Helper().show_error('Either select node or group')
         return response
 
 
