@@ -70,10 +70,7 @@ class Rest(object):
         daemon_url = f'http://{self.daemon}/config/{table}'
         if name:
             daemon_url = f'{daemon_url}/{name}'
-        print(daemon_url)
         call = requests.get(url=daemon_url, params=data, timeout=5)
-        print(call.content)
-        print(call.status_code)
         if call:
             response = call.json()
         return response

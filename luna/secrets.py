@@ -15,6 +15,7 @@ __status__      = "Production"
 
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
+from luna.utils.inquiry import Inquiry
 from luna.utils.rest import Rest
 
 """
@@ -32,7 +33,6 @@ arguments = -R, -s
 4. luna secrets list node node001 -s license -R
 5. luna secrets list group compute -s sshkey -R
 
-6. luna secrets show -R
 7. luna secrets show node node001 -R
 8. luna secrets show group compute -R
 9. luna secrets show node node001 -s license -R
@@ -110,44 +110,44 @@ class Secrets(object):
         update_secrets = secrets_args.add_parser('update', help='Update Secrets')
         update_parser = update_secrets.add_subparsers(dest='entity')
         update_node = update_parser.add_parser('node', help='Update Node Secrets')
-        update_node.add_argument('name', help='Name of the Node')
         update_node.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
-        update_node.add_argument('--secret', '-s', help='Name of the Secret')
-        update_node.add_argument('--content', '-c', help='Content of the Secret')
-        update_node.add_argument('--path', '-p', help='Path of the Secret')
+        update_node.add_argument('--name', '-n', help='Name of the Node')
+        update_node.add_argument('--secret', '-s', action='append', help='Name of the Secret')
+        update_node.add_argument('--content', '-c', action='append', help='Content of the Secret')
+        update_node.add_argument('--path', '-p', action='append', help='Path of the Secret')
         update_group = update_parser.add_parser('group', help='Update Group Secrets')
-        update_group.add_argument('name', help='Name of the Group')
         update_group.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
-        update_group.add_argument('--secret', '-s', help='Name of the Secret')
-        update_group.add_argument('--content', '-c', help='Content of the Secret')
-        update_group.add_argument('--path', '-p', help='Path of the Secret')
+        update_group.add_argument('--name', '-n', help='Name of the Group')
+        update_group.add_argument('--secret', '-s', action='append', help='Name of the Secret')
+        update_group.add_argument('--content', '-c', action='append', help='Content of the Secret')
+        update_group.add_argument('--path', '-p', action='append', help='Path of the Secret')
         ## >>>>>>> Secrets Command >>>>>>> clone
         clone_secrets = secrets_args.add_parser('clone', help='Clone Secrets')
         clone_parser = clone_secrets.add_subparsers(dest='entity')
         clone_node = clone_parser.add_parser('node', help='Clone Node Secrets')
-        clone_node.add_argument('name', help='Name of the Node')
         clone_node.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
+        clone_node.add_argument('--name', '-n', help='Name of the Node')
         clone_node.add_argument('--secret', '-s', help='Name of the Secret')
-        clone_node.add_argument('--newsecretname', '-n', help='New name for the Secret')
+        clone_node.add_argument('--newsecretname', '-nn', help='New name for the Secret')
         clone_node.add_argument('--content', '-c', help='Content of the Secret')
         clone_node.add_argument('--path', '-p', help='Path of the Secret')
         clone_group = clone_parser.add_parser('group', help='Clone Group Secrets')
-        clone_group.add_argument('name', help='Name of the Group')
         clone_group.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
+        clone_group.add_argument('--name', '-n', help='Name of the Group')
         clone_group.add_argument('--secret', '-s', help='Name of the Secret')
-        clone_group.add_argument('--newsecretname', '-n', help='New name for the Secret')
+        clone_group.add_argument('--newsecretname', '-nn', help='New name for the Secret')
         clone_group.add_argument('--content', '-c', help='Content of the Secret')
         clone_group.add_argument('--path', '-p', help='Path of the Secret')
         ## >>>>>>> Secrets Command >>>>>>> delete
         delete_secrets = secrets_args.add_parser('delete', help='Delete Secrets')
         delete_parser = delete_secrets.add_subparsers(dest='entity')
         delete_node = delete_parser.add_parser('node', help='Delete Node Secrets')
-        delete_node.add_argument('name', help='Name of the Node')
         delete_node.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
+        delete_node.add_argument('--name', '-n', help='Name of the Node')
         delete_node.add_argument('--secret', '-s', help='Name of the Secret')
         delete_group = delete_parser.add_parser('group', help='Delete Group Secrets')
-        delete_group.add_argument('name', help='Name of the Group')
         delete_group.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
+        delete_group.add_argument('--name', '-n', help='Name of the Group')
         delete_group.add_argument('--secret', '-s', help='Name of the Secret')
         return parser
 
@@ -184,8 +184,8 @@ class Secrets(object):
 
     def show_secrets(self):
         """
-        Method to show Secrets all or only node or
-        only group depending on the arguments.
+        Method to show Secrets for node or group
+        or only-one depending on the arguments.
         """
         response = False
         if self.args['entity'] is not None:
@@ -214,11 +214,90 @@ class Secrets(object):
         return response
 
 
-    def update_secrets(self, args=None):
+    def update_secrets(self):
         """
-        Method to update cluster in Luna Configuration.
+        Method to update Secrets for node or group
+        depending on the arguments.
         """
-        return True
+        response = False
+        if self.args['entity'] is not None:
+            uri = f'{self.args["entity"]}/{self.args["name"]}'
+            if self.args['secret'] is not None:
+                if len(self.args["secret"]) == 1:
+                    uri = f'{uri}/{self.args["secret"][0]}'
+            payload = {}
+            entity = self.args['entity']
+            del self.args['entity']
+            entity_name = self.args['name']
+            del self.args['name']
+            if self.args['init']:
+                get_list = Helper().get_list(entity)
+                if get_list:
+                    names = list(get_list['config'][entity].keys())
+                    entity_name = Inquiry().ask_select(f'Select {entity}', names)
+                    def secrets(secret):
+                        if len(secret):
+                            confirm_text = "Add one more Secret?"
+                        else:
+                            confirm_text = "Add Secret?"
+                        ifc = Inquiry().ask_confirm(confirm_text)
+                        if ifc:
+                            secret_name = Inquiry().ask_text("Write Secret Name")
+                            content = Inquiry().ask_text("Write Secret Content")
+                            path = Inquiry().ask_text("Write Secret Path")
+                            if secret_name and content and path:
+                                secret.append({
+                                    'name': secret_name,
+                                    'content': content,
+                                    'path': path
+                                })
+                            return secrets(secret)
+                        else:
+                            return secret
+                    secret = []
+                    payload[entity_name] = secrets(secret)
+                    table = f'{entity}{self.route}'
+                    fields, rows  =  Helper().get_secrets(table, payload)
+                    Presenter().show_table(fields, rows)
+                    confirm = Inquiry().ask_confirm(f'Update {entity} => {entity_name.capitalize()} Secrets?')
+                    if not confirm:
+                        Helper().show_error(f'Update {entity} => {entity_name.capitalize()} Secrets Aborted')
+            else:
+                del self.args['debug']
+                del self.args['command']
+                del self.args['action']
+                del self.args['init']
+                if len(self.args['secret']) == len(self.args['content']) == len(self.args['path']):
+                    self.args[entity_name] = []
+                    temp_dict = {}
+                    for secret, content, path in zip(self.args['secret'], self.args['content'], self.args['path']):
+                        temp_dict['name'] = secret
+                        temp_dict['content'] = content
+                        temp_dict['path'] = path
+                        self.args[entity_name].append(temp_dict)
+                        temp_dict = {}
+                    del self.args['secret']
+                    del self.args['content']
+                    del self.args['path']
+                else:
+                    response = Helper().show_error('Each Secret should have Secret Name, Content and Path')
+                payload = self.args
+            if payload:
+                request_data = {}
+                request_data['config'] = {}
+                request_data['config'][self.route] = {}
+                request_data['config'][self.route][entity] = {}
+                request_data['config'][self.route][entity]= payload
+                response = Rest().post_data(self.route, uri, request_data)
+                if response == 201:
+                    Helper().show_success(f'Secret for {entity} is created.')
+                elif response == 204:
+                    Helper().show_success(f'Secret for {entity} is update.')
+                else:
+                    Helper().show_error(f'HTTP ERROR: {response}.')
+        else:
+            response = Helper().show_error('Either select node or group')
+        return response
 
 
     def clone_secrets(self, args=None):
