@@ -163,26 +163,20 @@ class Secrets(object):
             if self.args['secret'] is not None:
                 uri = f'{uri}/{self.args["secret"]}'
         response = False
-        fields, rows = [], []
         get_list = Helper().get_list(uri)
         if get_list:
             data = get_list['config']['secrets']
             if self.args['raw']:
                 response = Presenter().show_json(data)
             else:
-                if 'node' in data:
-                    node_data = data['node']
-                    table = f'node{self.route}'
-                    print(table)
-                    print(node_data)
-                    fields, rows  = Helper().filter_data(table, node_data)
-                    print(fields)
-                    print(rows)
-                    response = Presenter().show_table(fields, rows)
                 if 'group' in data:
-                    group_data = data['group']
-                # fields, rows  = Helper().get_cluster(self.route, data)
-                # response = Presenter().show_table(fields, rows)
+                    table = f'group{self.route}'
+                    fields, rows  =  Helper().get_secrets(table, data['group'])
+                    response = Presenter().show_table(fields, rows)
+                if 'node' in data:
+                    table = f'node{self.route}'
+                    fields, rows  =  Helper().get_secrets(table, data['node'])
+                    response = Presenter().show_table(fields, rows)
         else:
             response = Helper().show_error(f'{self.route} is not found.')
         return response

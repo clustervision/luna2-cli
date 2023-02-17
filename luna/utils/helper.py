@@ -276,6 +276,34 @@ class Helper(object):
         return fields, rows
 
 
+    def get_secrets(self, table=None, data=None):
+        """
+        This method will filter data for Secrets
+        """
+        rows, coloredfields = [], []
+        fields = self.filter_columns(table)
+        for key in data:
+            newrow = []
+            for value in data[key]:
+                newrow.append(colored(key, 'blue'))
+                newrow.append(colored(value['name'], 'blue'))
+                newrow.append(colored(value['path'], 'blue'))
+                newrow.append(colored(value['content'], 'blue'))
+                rows.append(newrow)
+                newrow = []
+        for newfield in fields:
+            coloredfields.append(colored(newfield, 'yellow', attrs=['bold']))
+        fields = coloredfields
+        # Adding Serial Numbers to the dataset
+        fields.insert(0, colored('S. No.', 'yellow', attrs=['bold']))
+        num = 1
+        for outer in rows:
+            outer.insert(0, colored(num, 'blue'))
+            num = num + 1
+        # Adding Serial Numbers to the dataset
+        return fields, rows
+
+
     def filter_data_col(self, table=None, data=None):
         """
         This method will generate the data as for
@@ -349,13 +377,13 @@ class Helper(object):
             'controller': ['id', 'clusterid', 'hostname', 'status', 'ipaddr', 'serverport'],
             'group': ['name', 'bmcsetup', 'domain', 'provisionfallback', 'interfaces'],
             'groupinterface': ['interfacename', 'network'],
-            'groupsecrets': ['id', 'groupid', 'name', 'content', 'path'],
+            'groupsecrets': ['Group', 'name', 'path', 'content'],
             'ipaddress': ['id', 'ipaddress', 'subnet', 'network'],
             'monitor': ['id', 'nodeid', 'status', 'state'],
             'network': ['name', 'network', 'ns_ip', 'ns_hostname', 'dhcp'],
             'node': ['name', 'hostname', 'setupbmc', 'status', 'tpmuuid'],
             'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network'],
-            'nodesecrets': ['id', 'nodeid', 'name', 'content', 'path'],
+            'nodesecrets': ['Node', 'name', 'path', 'content'],
             'osimage': ['name', 'kernelfile', 'path', 'tarball', 'distribution'],
             'otherdev': ['name', 'network', 'ipaddress', 'macaddr', 'comment'],
             'roles': ['id', 'name', 'modules'],
