@@ -14,6 +14,7 @@ __status__      = "Production"
 
 from argparse import ArgumentParser
 from luna.utils.presenter import Presenter
+from luna.utils.log import Log
 from luna.network import Network
 from luna.group import Group
 from luna.osimage import OSImage
@@ -33,6 +34,10 @@ class Cli(object):
     """
 
     def __init__(self):
+        self.logger = None
+        self.parser = None
+        self.subparsers = None
+        self.args = None
         Presenter().show_banner()
 
     def main(self):
@@ -40,54 +45,58 @@ class Cli(object):
         Main method to fetch and provide the arguments
         for each class.
         """
-        parser = ArgumentParser(prog='luna', description='Manage Luna Cluster')
-        parser.add_argument('--debug', '-d', action='store_true', help='Show debug information')
-        subparsers = parser.add_subparsers(dest="command", help='See Details by --help')
-        Cluster.getarguments(self, parser, subparsers)
-        Network.getarguments(self, parser, subparsers)
-        OSImage.getarguments(self, parser, subparsers)
-        BMCSetup.getarguments(self, parser, subparsers)
-        Switch.getarguments(self, parser, subparsers)
-        OtherDevices.getarguments(self, parser, subparsers)
-        Group.getarguments(self, parser, subparsers)
-        Node.getarguments(self, parser, subparsers)
-        Secrets.getarguments(self, parser, subparsers)
-        Service.getarguments(self, parser, subparsers)
-        Control.getarguments(self, parser, subparsers)
+        self.parser = ArgumentParser(prog='luna', description='Manage Luna Cluster')
+        self.parser.add_argument('--debug', '-d', action='store_true', help='Show debug information')
+        self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
+        Cluster.getarguments(self, self.parser, self.subparsers)
+        Network.getarguments(self, self.parser, self.subparsers)
+        OSImage.getarguments(self, self.parser, self.subparsers)
+        BMCSetup.getarguments(self, self.parser, self.subparsers)
+        Switch.getarguments(self, self.parser, self.subparsers)
+        OtherDevices.getarguments(self, self.parser, self.subparsers)
+        Group.getarguments(self, self.parser, self.subparsers)
+        Node.getarguments(self, self.parser, self.subparsers)
+        Secrets.getarguments(self, self.parser, self.subparsers)
+        Service.getarguments(self, self.parser, self.subparsers)
+        Control.getarguments(self, self.parser, self.subparsers)
 
-        args = vars(parser.parse_args())
-        self.callclass(args)
+        self.args = vars(self.parser.parse_args())
+        self.callclass()
         return True
 
 
-    def callclass(self, args):
+    def callclass(self):
         """
         Method to call the class for further
         operations.
         """
-        if args:
-            if args["command"] == "cluster":
-                Cluster(args)
-            elif args["command"] == "network":
-                Network(args)
-            elif args["command"] == "osimage":
-                OSImage(args)
-            elif args["command"] == "bmcsetup":
-                BMCSetup(args)
-            elif args["command"] == "switch":
-                Switch(args)
-            elif args["command"] == "otherdevices":
-                OtherDevices(args)
-            elif args["command"] == "group":
-                Group(args)
-            elif args["command"] == "node":
-                Node(args)
-            elif args["command"] == "secrets":
-                Secrets(args)
-            elif args["command"] == "service":
-                Service(args)
-            elif args["command"] == "control":
-                Control(args)
+        if self.args["debug"]:
+            self.logger = Log.init_log('debug')
+        else:
+            self.logger = Log.init_log('info')
+        if self.args:
+            if self.args["command"] == "cluster":
+                Cluster(self.args)
+            elif self.args["command"] == "network":
+                Network(self.args)
+            elif self.args["command"] == "osimage":
+                OSImage(self.args)
+            elif self.args["command"] == "bmcsetup":
+                BMCSetup(self.args)
+            elif self.args["command"] == "switch":
+                Switch(self.args)
+            elif self.args["command"] == "otherdevices":
+                OtherDevices(self.args)
+            elif self.args["command"] == "group":
+                Group(self.args)
+            elif self.args["command"] == "node":
+                Node(self.args)
+            elif self.args["command"] == "secrets":
+                Secrets(self.args)
+            elif self.args["command"] == "service":
+                Service(self.args)
+            elif self.args["command"] == "control":
+                Control(self.args)
         else:
             print("Please pass -h to see help menu.")
 

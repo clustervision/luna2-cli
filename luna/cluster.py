@@ -16,6 +16,7 @@ __status__      = "Production"
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
+from luna.utils.log import Log
 
 class Cluster(object):
     """
@@ -24,10 +25,11 @@ class Cluster(object):
     """
 
     def __init__(self, args=None):
+        self.logger = Log.get_logger()
         self.args = args
         self.table = "cluster"
-        self.version = None
-        self.clusterid = None
+        self.logger.info("info")
+        self.logger.debug("debug")
         if self.args:
             if self.args["action"] == "list":
                 self.list_cluster(self.args)
