@@ -43,14 +43,14 @@ class Cli(object):
         parser = ArgumentParser(prog='luna', description='Manage Luna Cluster')
         parser.add_argument('--debug', '-d', action='store_true', help='Show debug information')
         subparsers = parser.add_subparsers(dest="command", help='See Details by --help')
-        Network.getarguments(self, parser, subparsers)
-        Group.getarguments(self, parser, subparsers)
-        OSImage.getarguments(self, parser, subparsers)
         Cluster.getarguments(self, parser, subparsers)
+        Network.getarguments(self, parser, subparsers)
+        OSImage.getarguments(self, parser, subparsers)
         BMCSetup.getarguments(self, parser, subparsers)
-        Node.getarguments(self, parser, subparsers)
         Switch.getarguments(self, parser, subparsers)
         OtherDevices.getarguments(self, parser, subparsers)
+        Group.getarguments(self, parser, subparsers)
+        Node.getarguments(self, parser, subparsers)
         Secrets.getarguments(self, parser, subparsers)
         Service.getarguments(self, parser, subparsers)
         Control.getarguments(self, parser, subparsers)
@@ -66,22 +66,22 @@ class Cli(object):
         operations.
         """
         if args:
-            if args["command"] == "network":
+            if args["command"] == "cluster":
+                Cluster(args)
+            elif args["command"] == "network":
                 Network(args)
-            elif args["command"] == "group":
-                Group(args)
             elif args["command"] == "osimage":
                 OSImage(args)
-            elif args["command"] == "cluster":
-                Cluster(args)
             elif args["command"] == "bmcsetup":
                 BMCSetup(args)
-            elif args["command"] == "node":
-                Node(args)
             elif args["command"] == "switch":
                 Switch(args)
             elif args["command"] == "otherdevices":
                 OtherDevices(args)
+            elif args["command"] == "group":
+                Group(args)
+            elif args["command"] == "node":
+                Node(args)
             elif args["command"] == "secrets":
                 Secrets(args)
             elif args["command"] == "service":

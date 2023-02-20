@@ -83,7 +83,7 @@ class OSImage(object):
         cmd.add_argument('--path', '-p', help='Path of image')
         cmd.add_argument('--tarball', '-tar', help='Tarball UUID')
         cmd.add_argument('--torrent', '-t', help='Torrent UUID')
-        cmd.add_argument('--distribution', '-d', help='Distribution From')
+        cmd.add_argument('--distribution', '-D', help='Distribution From')
         cmd.add_argument('--comment', '-c', help='Comment for OSImage')
         ## >>>>>>> OSImage Command >>>>>>> update
         cmd = osimage_args.add_parser('update', help='Update OSImage')
@@ -100,7 +100,7 @@ class OSImage(object):
         cmd.add_argument('--path', '-p', help='Path of image')
         cmd.add_argument('--tarball', '-tar', help='Tarball UUID')
         cmd.add_argument('--torrent', '-t', help='Torrent UUID')
-        cmd.add_argument('--distribution', '-d', help='Distribution From')
+        cmd.add_argument('--distribution', '-D', help='Distribution From')
         cmd.add_argument('--comment', '-c', help='Comment for OSImage')
         ## >>>>>>> OSImage Command >>>>>>> clone
         cmd = osimage_args.add_parser('clone', help='Clone OSImage')
@@ -118,7 +118,7 @@ class OSImage(object):
         cmd.add_argument('--path', '-p', help='Path of image')
         cmd.add_argument('--tarball', '-tar', help='Tarball UUID')
         cmd.add_argument('--torrent', '-t', help='Torrent UUID')
-        cmd.add_argument('--distribution', '-d', help='Distribution From')
+        cmd.add_argument('--distribution', '-D', help='Distribution From')
         cmd.add_argument('--comment', '-c', help='Comment for OSImage')
         ## >>>>>>> OSImage Command >>>>>>> rename
         cmd = osimage_args.add_parser('rename', help='Rename OSImage')

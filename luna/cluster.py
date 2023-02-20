@@ -61,7 +61,7 @@ class Cluster(object):
         cmd.add_argument('--name', '-n', help='New Cluster Name')
         cmd.add_argument('--user', '-u', help='Cluster User')
         cmd.add_argument('--ntp_server', '-ntp', metavar='N.N.N.N', help='Cluster NTP Server')
-        cmd.add_argument('--clusterdebug', '-d', help='Debug Mode')
+        cmd.add_argument('--clusterdebug', '-cd', help='Debug Mode')
         cmd.add_argument('--technical_contacts', '-c', help='Technical Contact')
         cmd.add_argument('--provision_method', '-pm', help='Provision Method')
         cmd.add_argument('--provision_fallback', '-fb', help='Provision Fallback')
