@@ -97,6 +97,7 @@ class Network(object):
         cmd = network_args.add_parser('clone', help='Clone Network')
         cmd.add_argument('--init', '-i', action='store_true', help='Network values one-by-one')
         cmd.add_argument('--name', '-n', help='Name of the Network')
+        cmd.add_argument('--newnetname', '-nn', help='New name of the Network')
         cmd.add_argument('--network', '-N', help='Network')
         cmd.add_argument('--gateway', '-g', help='Gateway of the Network')
         cmd.add_argument('--ns_ip', '-ni', metavar='N.N.N.N', help='Name server IP Address of the Network')
