@@ -42,6 +42,8 @@ class Rest(object):
             if configparser.has_option('API', 'ENDPOINT'):
                 self.daemon = configparser.get('API', 'ENDPOINT')
                 # self.daemon = '127.0.0.1:7050'
+        else:
+            print(f'{ini_file} is not found on this machine.')
 
 
     def get_token(self):

@@ -56,7 +56,7 @@ class Presenter(object):
         This method will fetch a records from
         the Luna 2 Daemon Database
         """
-        self.table.title = colored("title", 'cyan', attrs=['bold'])
+        # self.table.title = colored("title", 'cyan', attrs=['bold'])
         self.table.field_names = fields
         if '\\n' in str(rows):
             self.table.align = "l"

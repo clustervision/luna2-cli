@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Main Class for the CLI
+Testing file only for Development Purpose.
 """
 __author__      = "Sumit Sharma"
 __copyright__   = "Copyright 2022, Luna2 Project [CLI]"
@@ -12,8 +12,6 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-
 from luna.cli import Cli
-
 
 CLI = Cli().main()
