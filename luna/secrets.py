@@ -342,7 +342,7 @@ class Secrets(object):
                 request_data['config'][self.route][entity]= payload
                 response = Rest().post_clone(self.route, uri, request_data)
                 if response == 204:
-                    Helper().show_success(f'Secret is Cloned.')
+                    Helper().show_success('Secret is Cloned.')
                 else:
                     Helper().show_error(f'HTTP ERROR: {response}.')
         else:
