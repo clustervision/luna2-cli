@@ -1,3 +1,4 @@
 include requirements.txt
+include luna/log/luna2-cli.log
 include README.md
 include luna/utils/*

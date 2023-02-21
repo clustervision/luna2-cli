@@ -1,7 +1,7 @@
 __pycache__/
 
 
-log/luna2-cli.log
+#slog/luna2-cli.log
 build
 dist
 luna2_cli.egg-info

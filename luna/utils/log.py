@@ -23,7 +23,7 @@ from pathlib import Path
 
 CurrentDir = os.path.dirname(os.path.realpath(__file__))
 UTILSDIR = Path(CurrentDir)
-BASE_DIR = str(UTILSDIR.parent.parent)
+BASE_DIR = str(UTILSDIR.parent)
 logfile = f'{BASE_DIR}/log/luna2-cli.log'
 
 class Log:
