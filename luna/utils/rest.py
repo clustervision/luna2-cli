@@ -16,6 +16,7 @@ from configparser import RawConfigParser
 import json
 import os
 import requests
+from luna.utils.log import Log
 
 class Rest(object):
     """
@@ -28,10 +29,12 @@ class Rest(object):
         it will fetch the credentials and endpoint url
         from luna.ini from Luna 2 Daemon.
         """
+        self.logger = Log.get_logger()
         self.username, self.password, self.daemon = '', '', ''
         ini_file = '/trinity/local/luna/config/luna.ini'
         file_check = os.path.isfile(ini_file)
         read_check = os.access(ini_file, os.R_OK)
+        self.logger.debug(f'INI File => {ini_file} READ Check is {read_check}')
         if file_check and read_check:
             configparser = RawConfigParser()
             configparser.read(ini_file)
@@ -41,7 +44,7 @@ class Rest(object):
                 self.password = configparser.get('API', 'PASSWORD')
             if configparser.has_option('API', 'ENDPOINT'):
                 self.daemon = configparser.get('API', 'ENDPOINT')
-                # self.daemon = '127.0.0.1:7050'
+            self.logger.debug(f'INI File Username => {self.username}, Password {self.password} and Endpoint {self.daemon}')
         else:
             print(f'{ini_file} is not found on this machine.')
 
@@ -56,7 +59,9 @@ class Rest(object):
         data['username'] = self.username
         data['password'] = self.password
         daemon_url = f'http://{self.daemon}/token'
+        self.logger.debug(f'Token URL => {daemon_url}')
         call = requests.post(url = daemon_url, json=data, timeout=5)
+        self.logger.debug(f'Response Content => {call.content}, and HTTP Code {call.status_code}')
         data = call.json()
         if 'token' in data:
             response = data['token']
@@ -69,10 +74,13 @@ class Rest(object):
         via REST API's.
         """
         response = False
+        headers = {'x-access-tokens': self.get_token()}
         daemon_url = f'http://{self.daemon}/config/{table}'
         if name:
             daemon_url = f'{daemon_url}/{name}'
-        call = requests.get(url=daemon_url, params=data, timeout=5)
+        self.logger.debug(f'GET URL => {daemon_url}')
+        call = requests.get(url=daemon_url, params=data, headers=headers, timeout=5)
+        self.logger.debug(f'Response Content => {call.content}, and HTTP Code {call.status_code}')
         if call:
             response = call.json()
         return response
@@ -89,7 +97,9 @@ class Rest(object):
         daemon_url = f'http://{self.daemon}/config/{table}'
         if name:
             daemon_url = f'{daemon_url}/{name}'
+        self.logger.debug(f'POST URL => {daemon_url}')
         call = requests.post(url=daemon_url, data=json.dumps(data), headers=headers, timeout=5)
+        self.logger.debug(f'Response Content => {call.content}, and HTTP Code {call.status_code}')
         response = call.status_code
         return response
 
@@ -101,8 +111,11 @@ class Rest(object):
         via REST API's.
         """
         response = False
+        headers = {'x-access-tokens': self.get_token()}
         daemon_url = f'http://{self.daemon}/config/{table}/{name}/_delete'
-        call = requests.get(url=daemon_url, timeout=5)
+        self.logger.debug(f'GET URL => {daemon_url}')
+        call = requests.get(url=daemon_url, headers=headers, timeout=5)
+        self.logger.debug(f'Response Content => {call.content}, and HTTP Code {call.status_code}')
         response = call.status_code
         return response
 
@@ -116,7 +129,9 @@ class Rest(object):
         response = False
         headers = {'x-access-tokens': self.get_token()}
         daemon_url = f'http://{self.daemon}/config/{table}/{name}/_clone'
+        self.logger.debug(f'Clone URL => {daemon_url}')
         call = requests.post(url=daemon_url, data=json.dumps(data), headers=headers, timeout=5)
+        self.logger.debug(f'Response Content => {call.content}, and HTTP Code {call.status_code}')
         response = call.status_code
         return response
 
@@ -128,10 +143,13 @@ class Rest(object):
         via REST API's.
         """
         response = False
+        headers = {'x-access-tokens': self.get_token()}
         daemon_url = f'http://{self.daemon}/config/{table}'
         if name:
             daemon_url = f'{daemon_url}/{name}'
-        call = requests.get(url=daemon_url, params=data, timeout=5)
+        self.logger.debug(f'Status URL => {daemon_url}')
+        call = requests.get(url=daemon_url, params=data, headers=headers, timeout=5)
+        self.logger.debug(f'Response Content => {call.content}, and HTTP Code {call.status_code}')
         response = call.status_code
         return response
 
@@ -143,8 +161,11 @@ class Rest(object):
         via REST API's.
         """
         response = False
+        headers = {'x-access-tokens': self.get_token()}
         daemon_url = f'http://{self.daemon}/{route}'
         if uri:
             daemon_url = f'{daemon_url}/{uri}'
-        response = requests.get(url=daemon_url, timeout=5)
+        self.logger.debug(f'RAW URL => {daemon_url}')
+        response = requests.get(url=daemon_url, headers=headers, timeout=5)
+        self.logger.debug(f'Response Content => {response.content}, and HTTP Code {response.status_code}')
         return response

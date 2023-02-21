@@ -17,6 +17,7 @@ from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.inquiry import Inquiry
 from luna.utils.rest import Rest
+from luna.utils.log import Log
 
 class Network(object):
     """
@@ -25,33 +26,33 @@ class Network(object):
     """
 
     def __init__(self, args=None):
+        self.logger = Log.get_logger()
         self.args = args
         self.table = "network"
-        self.version = None
-        self.clusterid = None
         if self.args:
+            self.logger.debug(f'Arguments Supplied => {self.args}')
             if self.args["action"] == "list":
-                self.list_network(self.args)
+                self.list_network()
             elif self.args["action"] == "show":
-                self.show_network(self.args)
+                self.show_network()
             elif self.args["action"] == "add":
-                self.add_network(self.args)
+                self.add_network()
             elif self.args["action"] == "update":
-                self.update_network(self.args)
+                self.update_network()
             elif self.args["action"] == "rename":
-                self.rename_network(self.args)
+                self.rename_network()
             elif self.args["action"] == "delete":
-                self.delete_network(self.args)
+                self.delete_network()
             elif self.args["action"] == "clone":
-                self.clone_network(self.args)
+                self.clone_network()
             elif self.args["action"] == "ipinfo":
-                self.ipinfo_network(self.args)
+                self.ipinfo_network()
             elif self.args["action"] == "nextip":
-                self.nextip_network(self.args)
+                self.nextip_network()
             else:
-                print("Not a valid option.")
+                Helper().show_error("Not a valid option.")
         else:
-            print("Please pass -h to see help menu.")
+            Helper().show_error("Please pass -h to see help menu.")
 
 
     def getarguments(self, parser, subparsers):
@@ -63,115 +64,130 @@ class Network(object):
         network_args = network_menu.add_subparsers(dest='action')
         ## >>>>>>> Network Command >>>>>>> list
         cmd = network_args.add_parser('list', help='List Networks')
-        cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Network Command >>>>>>> show
         cmd = network_args.add_parser('show', help='Show Network')
         cmd.add_argument('name', help='Name of the Network')
-        cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Network Command >>>>>>> add
         cmd = network_args.add_parser('add', help='Add Network')
-        cmd.add_argument('--init', '-i', action='store_true', help='Network values one-by-one')
-        cmd.add_argument('--name', '-n', help='Name of the Network')
-        cmd.add_argument('--network', '-N', help='Network')
-        cmd.add_argument('--gateway', '-g', help='Gateway of the Network')
-        cmd.add_argument('--ns_ip', '-ni', metavar='N.N.N.N', help='Name server IP Address of the Network')
-        cmd.add_argument('--ns_hostname', '-nh', help='Name server Hostname of the Network')
-        cmd.add_argument('--ntp_server', '-ntp', help='NTP Server of the Network')
-        cmd.add_argument('--dhcp_range_begin', '-ds', metavar='N.N.N.N', help='DHCP Range Start for the Network')
-        cmd.add_argument('--dhcp_range_end', '-de', metavar='N.N.N.N', help='DHCP Range End for the Network')
-        cmd.add_argument('--comment', '-c', help='Comment for Network')
+        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cmd.add_argument('-i', '--init', action='store_true', help='Network values one-by-one')
+        cmd.add_argument('-n', '--name', help='Name of the Network')
+        cmd.add_argument('-N', '--network', help='Network')
+        cmd.add_argument('-g', '--gateway', help='Gateway of the Network')
+        cmd.add_argument('-ni', '--ns_ip', metavar='N.N.N.N', help='Name server IP Address of the Network')
+        cmd.add_argument('-nh', '--ns_hostname', help='Name server Hostname of the Network')
+        cmd.add_argument('-ntp', '--ntp_server', help='NTP Server of the Network')
+        cmd.add_argument('-ds', '--dhcp_range_begin', metavar='N.N.N.N', help='DHCP Range Start for the Network')
+        cmd.add_argument('-de', '--dhcp_range_end', metavar='N.N.N.N', help='DHCP Range End for the Network')
+        cmd.add_argument('-c', '--comment', help='Comment for Network')
         ## >>>>>>> Network Command >>>>>>> update
         cmd = network_args.add_parser('update', help='Update Network')
-        cmd.add_argument('--init', '-i', action='store_true', help='Network values one-by-one')
-        cmd.add_argument('--name', '-n', help='Name of the Network')
-        cmd.add_argument('--network', '-N', help='Network')
-        cmd.add_argument('--gateway', '-g', help='Gateway of the Network')
-        cmd.add_argument('--ns_ip', '-ni', metavar='N.N.N.N', help='Name server IP Address of the Network')
-        cmd.add_argument('--ns_hostname', '-nh', help='Name server Hostname of the Network')
-        cmd.add_argument('--ntp_server', '-ntp', help='NTP Server of the Network')
-        cmd.add_argument('--dhcp', '-d', help='DHCP of the Network')
-        cmd.add_argument('--dhcp_range_begin', '-ds', metavar='N.N.N.N', help='DHCP Range Start for the Network')
-        cmd.add_argument('--dhcp_range_end', '-de', metavar='N.N.N.N', help='DHCP Range End for the Network')
-        cmd.add_argument('--comment', '-c', help='Comment for Network')
+        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cmd.add_argument('-i', '--init', action='store_true', help='Network values one-by-one')
+        cmd.add_argument('-n', '--name', help='Name of the Network')
+        cmd.add_argument('-N', '--network', help='Network')
+        cmd.add_argument('-g', '--gateway', help='Gateway of the Network')
+        cmd.add_argument('-ni', '--ns_ip', metavar='N.N.N.N', help='Name server IP Address of the Network')
+        cmd.add_argument('-nh', '--ns_hostname', help='Name server Hostname of the Network')
+        cmd.add_argument('-ntp', '--ntp_server', help='NTP Server of the Network')
+        cmd.add_argument('-dh', '--dhcp', help='DHCP of the Network')
+        cmd.add_argument('-ds', '--dhcp_range_begin', metavar='N.N.N.N', help='DHCP Range Start for the Network')
+        cmd.add_argument('-de', '--dhcp_range_end', metavar='N.N.N.N', help='DHCP Range End for the Network')
+        cmd.add_argument('-c', '--comment', help='Comment for Network')
         ## >>>>>>> Network Command >>>>>>> clone
         cmd = network_args.add_parser('clone', help='Clone Network')
-        cmd.add_argument('--init', '-i', action='store_true', help='Network values one-by-one')
-        cmd.add_argument('--name', '-n', help='Name of the Network')
-        cmd.add_argument('--newnetname', '-nn', help='New name of the Network')
-        cmd.add_argument('--network', '-N', help='Network')
-        cmd.add_argument('--gateway', '-g', help='Gateway of the Network')
-        cmd.add_argument('--ns_ip', '-ni', metavar='N.N.N.N', help='Name server IP Address of the Network')
-        cmd.add_argument('--ns_hostname', '-nh', help='Name server Hostname of the Network')
-        cmd.add_argument('--ntp_server', '-ntp', help='NTP Server of the Network')
-        cmd.add_argument('--dhcp', '-d', help='DHCP of the Network')
-        cmd.add_argument('--dhcp_range_begin', '-ds', metavar='N.N.N.N', help='DHCP Range Start for the Network')
-        cmd.add_argument('--dhcp_range_end', '-de', metavar='N.N.N.N', help='DHCP Range End for the Network')
-        cmd.add_argument('--comment', '-c', help='Comment for Network')
+        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cmd.add_argument('-i', '--init', action='store_true', help='Network values one-by-one')
+        cmd.add_argument('-n', '--name', help='Name of the Network')
+        cmd.add_argument('-nn', '--newnetname', help='New name of the Network')
+        cmd.add_argument('-N', '--network', help='Network')
+        cmd.add_argument('-g', '--gateway', help='Gateway of the Network')
+        cmd.add_argument('-ni', '--ns_ip', metavar='N.N.N.N', help='Name server IP Address of the Network')
+        cmd.add_argument('-nh', '--ns_hostname', help='Name server Hostname of the Network')
+        cmd.add_argument('-ntp', '--ntp_server', help='NTP Server of the Network')
+        cmd.add_argument('-dh', '--dhcp', help='DHCP of the Network')
+        cmd.add_argument('-ds', '--dhcp_range_begin', metavar='N.N.N.N', help='DHCP Range Start for the Network')
+        cmd.add_argument('-de', '--dhcp_range_end', metavar='N.N.N.N', help='DHCP Range End for the Network')
+        cmd.add_argument('-c', '--comment', help='Comment for Network')
         ## >>>>>>> Network Command >>>>>>> rename
         cmd = network_args.add_parser('rename', help='Rename Network')
-        cmd.add_argument('--init', '-i', action='store_true', help='Network values one-by-one')
-        cmd.add_argument('--name', '-n', help='Name of the Network')
-        cmd.add_argument('--newnetname', '-nn', help='New name of the Network')
+        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cmd.add_argument('-i', '--init', action='store_true', help='Network values one-by-one')
+        cmd.add_argument('-n', '--name', help='Name of the Network')
+        cmd.add_argument('-nn', '--newnetname', help='New name of the Network')
         ## >>>>>>> Network Command >>>>>>> delete
         cmd = network_args.add_parser('delete', help='Delete Network')
-        cmd.add_argument('--init', '-i', action='store_true', help='Network values one-by-one')
-        cmd.add_argument('--name', '-n', help='Name of the Network')
+        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cmd.add_argument('-i', '--init', action='store_true', help='Network values one-by-one')
+        cmd.add_argument('-n', '--name', help='Name of the Network')
         ## >>>>>>> Network Command >>>>>>> ipinfo
         cmd = network_args.add_parser('ipinfo', help='Show Network IP Information')
+        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
         cmd.add_argument('name', help='Name of the Network')
         cmd.add_argument('ipaddress', help='IP Address from the Network')
         ## >>>>>>> Network Command >>>>>>> nextip
         cmd = network_args.add_parser('nextip', help='Show Next Available IP Address on the Network')
+        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
         cmd.add_argument('name', help='Name of the Network')
         ## >>>>>>> Network Commands Ends
         return parser
 
 
-    def list_network(self, args=None):
+    def list_network(self):
         """
         Method to list all networks from Luna Configuration.
         """
         response = False
         fields, rows = [], []
         get_list = Helper().get_list(self.table)
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config'][self.table]
-            if args['raw']:
+            if self.args['raw']:
                 response = Presenter().show_json(data)
             else:
                 fields, rows  = Helper().filter_data(self.table, data)
+                self.logger.debug(f'Fields => {fields}')
+                self.logger.debug(f'Rows => {rows}')
                 response = Presenter().show_table(fields, rows)
         else:
             response = Helper().show_error(f'{self.table} is not found.')
         return response
 
 
-    def show_network(self, args=None):
+    def show_network(self):
         """
         Method to show a network in Luna Configuration.
         """
         response = False
         fields, rows = [], []
-        get_list = Helper().get_record(self.table, args['name'])
+        get_list = Helper().get_record(self.table, self.args['name'])
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
-            data = get_list['config'][self.table][args["name"]]
-            if args['raw']:
+            data = get_list['config'][self.table][self.args["name"]]
+            if self.args['raw']:
                 response = Presenter().show_json(data)
             else:
                 fields, rows  = Helper().filter_data_col(self.table, data)
-                title = f'{self.table.capitalize()} => {args["name"]}'
+                self.logger.debug(f'Fields => {fields}')
+                self.logger.debug(f'Rows => {rows}')
+                title = f'{self.table.capitalize()} => {self.args["name"]}'
                 response = Presenter().show_table_col(title, fields, rows)
         else:
-            response = Helper().show_error(f'{args["name"]} is not found in {self.table}.')
+            response = Helper().show_error(f'{self.args["name"]} is not found in {self.table}.')
         return response
 
 
-    def add_network(self, args=None):
+    def add_network(self):
         """
         Method to add new network in Luna Configuration.
         """
         payload = {}
-        if args['init']:
+        if self.args['init']:
             payload['name'] = Inquiry().ask_text("Kindly provide Network Name")
             payload['network'] = Inquiry().ask_text("Kindly provide Network")
             payload['gateway'] = Inquiry().ask_text("Kindly provide Gateway for the Network")
@@ -195,16 +211,16 @@ class Network(object):
                 Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
         else:
             error = False
-            del args['debug']
-            del args['command']
-            del args['action']
-            del args['init']
-            if args['dhcp_range_begin'] and args['dhcp_range_end']:
-                args['dhcp'] = True
+            del self.args['debug']
+            del self.args['command']
+            del self.args['action']
+            del self.args['init']
+            if self.args['dhcp_range_begin'] and self.args['dhcp_range_end']:
+                self.args['dhcp'] = True
             else:
-                del args['dhcp_range_begin']
-                del args['dhcp_range_end']
-            payload = args
+                del self.args['dhcp_range_begin']
+                del self.args['dhcp_range_end']
+            payload = self.args
             for key in payload:
                 if payload[key] is None:
                     error = Helper().show_error(f'Kindly provide {key}.')
@@ -215,7 +231,9 @@ class Network(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
+            self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
+            self.logger.debug(f'Response => {response}')
             if response == 201:
                 Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
             elif response == 204:
@@ -225,12 +243,12 @@ class Network(object):
         return True
 
 
-    def update_network(self, args=None):
+    def update_network(self):
         """
         Method to update a network in Luna Configuration.
         """
         payload = {}
-        if args['init']:
+        if self.args['init']:
             get_list = Helper().get_list(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
@@ -262,16 +280,16 @@ class Network(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del args['debug']
-            del args['command']
-            del args['action']
-            del args['init']
-            if args['dhcp_range_begin'] and args['dhcp_range_end']:
-                args['dhcp'] = True
+            del self.args['debug']
+            del self.args['command']
+            del self.args['action']
+            del self.args['init']
+            if self.args['dhcp_range_begin'] and self.args['dhcp_range_end']:
+                self.args['dhcp'] = True
             else:
-                del args['dhcp_range_begin']
-                del args['dhcp_range_end']
-            payload = args
+                del self.args['dhcp_range_begin']
+                del self.args['dhcp_range_end']
+            payload = self.args
             filtered = {k: v for k, v in payload.items() if v is not None}
             payload.clear()
             payload.update(filtered)
@@ -284,7 +302,9 @@ class Network(object):
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
+                    self.logger.debug(f'Payload => {request_data}')
                     response = Rest().post_data(self.table, payload['name'], request_data)
+                    self.logger.debug(f'Response => {response}')
                     if response == 204:
                         Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
                 else:
@@ -296,12 +316,12 @@ class Network(object):
         return True
 
 
-    def rename_network(self, args=None):
+    def rename_network(self):
         """
         Method to rename a network in Luna Configuration.
         """
         payload = {}
-        if args['init']:
+        if self.args['init']:
             get_list = Helper().get_list(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
@@ -318,11 +338,11 @@ class Network(object):
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
             error = False
-            del args['debug']
-            del args['command']
-            del args['action']
-            del args['init']
-            payload = args
+            del self.args['debug']
+            del self.args['command']
+            del self.args['action']
+            del self.args['init']
+            payload = self.args
             if payload['name'] is None:
                 error = Helper().show_error('Kindly provide Network Name.')
             if payload['newnetname'] is None:
@@ -338,7 +358,9 @@ class Network(object):
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
+                    self.logger.debug(f'Payload => {request_data}')
                     response = Rest().post_data(self.table, payload['name'], request_data)
+                    self.logger.debug(f'Response => {response}')
                     if response == 204:
                         Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newnetname"]}.')
                 else:
@@ -348,13 +370,13 @@ class Network(object):
         return True
 
 
-    def delete_network(self, args=None):
+    def delete_network(self):
         """
         Method to delete a network in Luna Configuration.
         """
         abort = False
         payload = {}
-        if args['init']:
+        if self.args['init']:
             get_list = Helper().get_list(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
@@ -368,11 +390,11 @@ class Network(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del args['debug']
-            del args['command']
-            del args['action']
-            del args['init']
-            payload = args
+            del self.args['debug']
+            del self.args['command']
+            del self.args['action']
+            del self.args['init']
+            payload = self.args
             if payload['name'] is None:
                 abort = Helper().show_error('Kindly provide Network Name.')
         if abort is False:
@@ -380,7 +402,9 @@ class Network(object):
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
+                    self.logger.debug(f'Payload => {payload}')
                     response = Rest().get_delete(self.table, payload['name'])
+                    self.logger.debug(f'Response => {response}')
                     if response == 204:
                         Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
                 else:
@@ -390,12 +414,12 @@ class Network(object):
         return True
 
 
-    def clone_network(self, args=None):
+    def clone_network(self):
         """
         Method to rename a network in Luna Configuration.
         """
         payload = {}
-        if args['init']:
+        if self.args['init']:
             get_list = Helper().get_list(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
@@ -435,16 +459,16 @@ class Network(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del args['debug']
-            del args['command']
-            del args['action']
-            del args['init']
-            if args['dhcp_range_begin'] and args['dhcp_range_end']:
-                args['dhcp'] = True
+            del self.args['debug']
+            del self.args['command']
+            del self.args['action']
+            del self.args['init']
+            if self.args['dhcp_range_begin'] and self.args['dhcp_range_end']:
+                self.args['dhcp'] = True
             else:
-                del args['dhcp_range_begin']
-                del args['dhcp_range_end']
-            payload = args
+                del self.args['dhcp_range_begin']
+                del self.args['dhcp_range_end']
+            payload = self.args
             get_record = Helper().get_record(self.table, payload['name'])
             if get_record:
                 data = get_record['config'][self.table][payload["name"]]
@@ -466,7 +490,9 @@ class Network(object):
                     if payload["newnetname"] in names:
                         Helper().show_error(f'{payload["newnetname"]} is already present in {self.table.capitalize()}.')
                     else:
+                        self.logger.debug(f'Payload => {request_data}')
                         response = Rest().post_clone(self.table, payload['name'], request_data)
+                        self.logger.debug(f'Response => {response}')
                         if response == 201:
                             Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newnetname"]}.')
                         else:
@@ -480,33 +506,37 @@ class Network(object):
         return True
 
 
-    def ipinfo_network(self, args=None):
+    def ipinfo_network(self):
         """
         Method to show a network in Luna Configuration.
         """
         response = False
-        uri = f'{args["name"]}/{args["ipaddress"]}'
+        uri = f'{self.args["name"]}/{self.args["ipaddress"]}'
+        self.logger.debug(f'IPinfo URI => {uri}')
         ipinfo = Helper().get_record(self.table, uri)
+        self.logger.debug(f'IPinfo Response => {ipinfo}')
         if ipinfo:
-            status = ipinfo['config']['network'][args["ipaddress"]]['status']
+            status = ipinfo['config']['network'][self.args["ipaddress"]]['status']
             if 'free' in status:
-                response = Helper().show_success(f'{args["ipaddress"]} is {status.capitalize()}.')
+                response = Helper().show_success(f'{self.args["ipaddress"]} is {status.capitalize()}.')
             else:
-                response = Helper().show_warning(f'{args["ipaddress"]} is {status.capitalize()}.')
+                response = Helper().show_warning(f'{self.args["ipaddress"]} is {status.capitalize()}.')
         return response
 
 
-    def nextip_network(self, args=None):
+    def nextip_network(self):
         """
         Method to show a network in Luna Configuration.
         """
         response = False
-        uri = f'{args["name"]}/_nextfreeip'
+        uri = f'{self.args["name"]}/_nextfreeip'
+        self.logger.debug(f'NextIP URI => {uri}')
         nextip = Helper().get_record(self.table, uri)
+        self.logger.debug(f'NextIP Response => {nextip}')
         if nextip:
-            ipaddr = nextip['config']['network'][args["name"]]['nextip']
+            ipaddr = nextip['config']['network'][self.args["name"]]['nextip']
             if ipaddr:
                 response = Helper().show_success(f'Next Available IP Address is {ipaddr}.')
             else:
-                response = Helper().show_warning(f'No More IP Address available on network {args["ipaddress"]}.')
+                response = Helper().show_warning(f'No More IP Address available on network {self.args["ipaddress"]}.')
         return response

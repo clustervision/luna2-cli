@@ -15,6 +15,7 @@ __status__      = "Production"
 import numpy as np
 from termcolor import colored
 from luna.utils.rest import Rest
+from luna.utils.log import Log
 
 class Helper(object):
     """
@@ -25,7 +26,7 @@ class Helper(object):
         """
         Constructor - As of now, nothing have to initialize.
         """
-
+        self.logger = Log.get_logger()
 
 
     def get_list(self, table=None):
@@ -34,7 +35,9 @@ class Helper(object):
         the Luna 2 Daemon Database
         """
         response = False
+        self.logger.debug(f'Helper List => {table}')
         data_list = Rest().get_data(table, None, None)
+        self.logger.debug(f'Response => {data_list}')
         if data_list:
             response = data_list
         return response
@@ -46,7 +49,9 @@ class Helper(object):
         the Luna 2 Daemon Database
         """
         response = False
+        self.logger.debug(f'Table => {table} and Name => {name}')
         data_list = Rest().get_data(table, name, None)
+        self.logger.debug(f'Response => {data_list}')
         if data_list:
             response = data_list
         return response
@@ -115,6 +120,7 @@ class Helper(object):
         This method will add a new records into
         the Luna 2 Daemon Database
         """
+        self.logger.debug(f'Message => {message}')
         print(colored(message, 'red', attrs=['bold']))
         return True
 
@@ -124,6 +130,7 @@ class Helper(object):
         This method will add a new records into
         the Luna 2 Daemon Database
         """
+        self.logger.debug(f'Message => {message}')
         print(colored(message, 'green', attrs=['bold']))
         return True
 
@@ -133,6 +140,7 @@ class Helper(object):
         This method will add a new records into
         the Luna 2 Daemon Database
         """
+        self.logger.debug(f'Message => {message}')
         print(colored(message, 'yellow', attrs=['bold']))
         return True
 
@@ -142,8 +150,11 @@ class Helper(object):
         This method will generate the data as for
         row format from the interface
         """
+        self.logger.debug(f'table => {table}')
+        self.logger.debug(f'data => {data}')
         fields, rows, coloredfields = [], [], []
         fields = self.filter_columns(table)
+        self.logger.debug(f'fields => {fields}')
         for fieldkey in fields:
             valrow = []
             for ele in data:
@@ -151,10 +162,12 @@ class Helper(object):
                     valrow.append(colored(ele[fieldkey], 'blue'))
                 else:
                     valrow.append(colored("--NA--", 'red'))
+                self.logger.debug(f'Element => {ele}')
             rows.append(valrow)
             valrow = []
             coloredfields.append(colored(fieldkey, 'yellow', attrs=['bold']))
         fields = coloredfields
+        self.logger.debug(f'Rows before Swapping => {rows}')
         rows = np.array(rows).T.tolist()
         # Adding Serial Numbers to the dataset
         fields.insert(0, colored('S. No.', 'yellow', attrs=['bold']))
@@ -171,11 +184,13 @@ class Helper(object):
         This method will iterate the list of strings
         which have colon(:) for split purpose.
         """
+        self.logger.debug(f'List to Convert => {lst}')
         response = []
         dictionary = {}
         for keyval in lst:
             if '|' in keyval:
                 keyvalspl = keyval.split('|')
+                self.logger.debug(f'Length After Split with | => {len(keyvalspl)}')
                 if len(keyvalspl) == 4:
                     if keyvalspl[0] != '' and keyvalspl[1] != '' and keyvalspl[2] != '' and keyvalspl[3] != '':
                         dictionary['interface'] = keyvalspl[0]
@@ -189,6 +204,7 @@ class Helper(object):
             if dictionary:
                 response.append(dictionary)
                 dictionary = {}
+        self.logger.debug(f'Dict after Convert => {response}')
         return response
 
 
@@ -197,8 +213,11 @@ class Helper(object):
         This method will generate the data as for
         row format
         """
+        self.logger.debug(f'Table => {table}')
+        self.logger.debug(f'Data => {data}')
         fields, rows, coloredfields = [], [], []
         fields = self.filter_columns(table)
+        self.logger.debug(f'Fields => {fields}')
         for fieldkey in fields:
             valrow = []
             for ele in data:
@@ -207,6 +226,7 @@ class Helper(object):
                         newlist = []
                         for internal in data[ele][fieldkey]:
                             for internal_val in internal:
+                                self.logger.debug(f'Key => {internal_val} and Value => {internal[internal_val]}')
                                 inkey = colored(internal_val, 'cyan')
                                 inval = colored(internal[internal_val], 'magenta')
                                 newlist.append(f'{inkey} = {inval} ')
@@ -223,6 +243,7 @@ class Helper(object):
                 else:
                     valrow.append(colored("--NA--", 'red'))
             rows.append(valrow)
+            self.logger.debug(f'Each Row => {valrow}')
             valrow = []
             coloredfields.append(colored(fieldkey, 'yellow', attrs=['bold']))
         fields = coloredfields
@@ -241,13 +262,16 @@ class Helper(object):
         """
         This method will filter data for cluster
         """
+        self.logger.debug(f'Table => {table} and Data => {data}')
         fields, rows, coloredfields = [], [], []
         fields = self.filter_columns(table)
+        self.logger.debug(f'Fields => {fields}')
         for key in data:
             if isinstance(data[key], dict):
                 newrow = []
                 for fieldkey in fields:
                     if fieldkey in data[key]:
+                        self.logger.debug(f'Value => {data[key][fieldkey]}')
                         if data[key][fieldkey] is True:
                             newrow.append(colored(data[key][fieldkey], 'green'))
                         elif data[key][fieldkey] is False:
@@ -255,6 +279,7 @@ class Helper(object):
                         else:
                             newrow.append(colored(data[key][fieldkey], 'blue'))
                     elif fieldkey in data:
+                        self.logger.debug(f'Value => {data[fieldkey]}')
                         if data[fieldkey] is True:
                             newrow.append(colored(data[fieldkey], 'green'))
                         elif data[fieldkey] is False:
@@ -280,11 +305,14 @@ class Helper(object):
         """
         This method will filter data for Secrets
         """
+        self.logger.debug(f'Table => {table} and Data => {data}')
         rows, coloredfields = [], []
         fields = self.filter_columns(table)
+        self.logger.debug(f'Fields => {fields}')
         for key in data:
             newrow = []
             for value in data[key]:
+                self.logger.debug(f'Key => {key} and Value => {value}')
                 newrow.append(colored(key, 'blue'))
                 newrow.append(colored(value['name'], 'blue'))
                 newrow.append(colored(value['path'], 'blue'))
@@ -309,11 +337,14 @@ class Helper(object):
         This method will generate the data as for
         row format
         """
+        self.logger.debug(f'Table => {table} and Data => {data}')
         rows, coloredfields = [], []
         fields = self.sortby(table)
+        self.logger.debug(f'Fields => {fields}')
         for key in data:
             newrow = []
             for value in data[key]:
+                self.logger.debug(f'Key => {key} and Value => {value}')
                 newrow.append(colored(key, 'blue'))
                 newrow.append(colored(value['name'], 'blue'))
                 newrow.append(colored(value['path'], 'blue'))
@@ -344,12 +375,15 @@ class Helper(object):
         This method will generate the data as for
         row format
         """
+        self.logger.debug(f'Table => {table} and Data => {data}')
         definedkeys = self.sortby(table)
+        self.logger.debug(f'Fields => {definedkeys}')
         for newkey in list(data.keys()):
             if newkey not in definedkeys:
                 definedkeys.append(newkey)
         index_map = {v: i for i, v in enumerate(definedkeys)}
         data = sorted(data.items(), key=lambda pair: index_map[pair[0]])
+        self.logger.debug(f'Sorted Data => {data}')
         fields, rows = [], []
         for key in data:
             fields.append(colored(key[0], 'yellow', attrs=['bold']))
@@ -357,6 +391,7 @@ class Helper(object):
                 newlist = []
                 for internal in key[1]:
                     for internal_val in internal:
+                        self.logger.debug(f'Key => {internal_val} and Value => {internal[internal_val]}')
                         inkey = colored(internal_val, 'cyan')
                         inval = colored(internal[internal_val], 'magenta')
                         newlist.append(f'{inkey} = {inval} ')
@@ -366,6 +401,7 @@ class Helper(object):
             elif isinstance(key[1], dict):
                 newlist = []
                 for internal in key[1]:
+                    self.logger.debug(f'Key => {internal} and Value => {key[1][internal]}')
                     inkey = colored(internal, 'cyan')
                     inval = colored(key[1][internal], 'magenta')
                     newlist.append(f'{inkey} = {inval} ')

@@ -15,6 +15,7 @@ __status__      = "Production"
 
 from luna.utils.helper import Helper
 from luna.utils.rest import Rest
+from luna.utils.log import Log
 
 class Service(object):
     """
@@ -23,12 +24,14 @@ class Service(object):
     """
 
     def __init__(self, args=None):
+        self.logger = Log.get_logger()
         self.args = args
         self.route = "service"
         if self.args["service"] and self.args["action"]:
-            self.service_action(self.args)
+            self.logger.debug(f'Arguments Supplied => {self.args}')
+            self.service_action()
         else:
-            print("Select a service and action to be performed, See with -h.")
+            Helper().show_error("Select a service and action to be performed, See with -h.")
 
 
     def getarguments(self, parser, subparsers):
@@ -41,39 +44,50 @@ class Service(object):
         ## >>>>>>> Service Command >>>>>>> dhcp
         dhcp = service_args.add_parser('dhcp', help='DHCP Service')
         dhcp_parser = dhcp.add_subparsers(dest='action')
-        dhcp_parser.add_parser('stop', help='Stop DHCP Service')
-        dhcp_parser.add_parser('start', help='Start DHCP Service')
-        dhcp_parser.add_parser('restart', help='Restart DHCP Service')
+        dhcp_stop = dhcp_parser.add_parser('stop', help='Stop DHCP Service')
+        dhcp_stop.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        dhcp_start = dhcp_parser.add_parser('start', help='Start DHCP Service')
+        dhcp_start.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        dhcp_restart = dhcp_parser.add_parser('restart', help='Restart DHCP Service')
+        dhcp_restart.add_argument('-d', '--debug', action='store_true', help='Show debug information')
         ## >>>>>>> Service Command >>>>>>> dns
         dns = service_args.add_parser('dns', help='DNS Service')
         dns_parser = dns.add_subparsers(dest='action')
-        dns_parser.add_parser('stop', help='Stop DNS Service')
-        dns_parser.add_parser('start', help='Start DNS Service')
-        dns_parser.add_parser('restart', help='Restart DNS Service')
+        dns_stop = dns_parser.add_parser('stop', help='Stop DNS Service')
+        dns_stop.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        dns_start = dns_parser.add_parser('start', help='Start DNS Service')
+        dns_start.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        dns_restart = dns_parser.add_parser('restart', help='Restart DNS Service')
+        dns_restart.add_argument('-d', '--debug', action='store_true', help='Show debug information')
         ## >>>>>>> Service Command >>>>>>> luna2
         daemon = service_args.add_parser('luna2', help='Luna Daemon Service')
         daemon_parser = daemon.add_subparsers(dest='action')
-        daemon_parser.add_parser('stop', help='Stop Luna Daemon Service')
-        daemon_parser.add_parser('start', help='Start Luna Daemon Service')
-        daemon_parser.add_parser('restart', help='Restart Luna Daemon Service')
+        daemon_stop = daemon_parser.add_parser('stop', help='Stop Luna Daemon Service')
+        daemon_stop.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        daemon_start = daemon_parser.add_parser('start', help='Start Luna Daemon Service')
+        daemon_start.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        daemon_restart = daemon_parser.add_parser('restart', help='Restart Luna Daemon Service')
+        daemon_restart.add_argument('-d', '--debug', action='store_true', help='Show debug information')
         return parser
 
 
-    def service_action(self, args=None):
+    def service_action(self):
         """
         Method to will perform the action on
         the desired service via Luna Daemon
         with it's REST API.
         """
         response = False
-        uri = f'{args["service"]}/{args["action"]}'
+        uri = f'{self.args["service"]}/{self.args["action"]}'
+        self.logger.debug(f'Service URL => {uri}')
         result = Rest().get_raw(self.route, uri)
+        self.logger.debug(f'Response => {result}')
         if result:
             http_code = result.status_code
             result = result.json()
-            result = result['service'][args["service"]]
+            result = result['service'][self.args["service"]]
             if http_code == 200:
-                response = Helper().show_success(f'{args["action"]} performed on {args["service"]}')
+                response = Helper().show_success(f'{self.args["action"]} performed on {self.args["service"]}')
                 Helper().show_success(f'{result}')
             else:
                 Helper().show_error(f'HTTP error code is: {http_code} ')

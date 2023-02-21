@@ -22,7 +22,7 @@ from luna.cluster import Cluster
 from luna.bmcsetup import BMCSetup
 from luna.node import Node
 from luna.switch import Switch
-from luna.otherdevices import OtherDevices
+from luna.otherdev import OtherDev
 from luna.secrets import Secrets
 from luna.service import Service
 from luna.control import Control
@@ -46,14 +46,14 @@ class Cli(object):
         for each class.
         """
         self.parser = ArgumentParser(prog='luna', description='Manage Luna Cluster')
-        self.parser.add_argument('--debug', '-d', action='store_true', help='Show debug information')
+        self.parser.add_argument('-d', '--debug', action='store_true', help='Show debug information')
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
         Cluster.getarguments(self, self.parser, self.subparsers)
         Network.getarguments(self, self.parser, self.subparsers)
         OSImage.getarguments(self, self.parser, self.subparsers)
         BMCSetup.getarguments(self, self.parser, self.subparsers)
         Switch.getarguments(self, self.parser, self.subparsers)
-        OtherDevices.getarguments(self, self.parser, self.subparsers)
+        OtherDev.getarguments(self, self.parser, self.subparsers)
         Group.getarguments(self, self.parser, self.subparsers)
         Node.getarguments(self, self.parser, self.subparsers)
         Secrets.getarguments(self, self.parser, self.subparsers)
@@ -85,8 +85,8 @@ class Cli(object):
                 BMCSetup(self.args)
             elif self.args["command"] == "switch":
                 Switch(self.args)
-            elif self.args["command"] == "otherdevices":
-                OtherDevices(self.args)
+            elif self.args["command"] == "otherdev":
+                OtherDev(self.args)
             elif self.args["command"] == "group":
                 Group(self.args)
             elif self.args["command"] == "node":

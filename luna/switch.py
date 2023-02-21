@@ -17,6 +17,7 @@ from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.inquiry import Inquiry
 from luna.utils.rest import Rest
+from luna.utils.log import Log
 
 class Switch(object):
     """
@@ -25,11 +26,13 @@ class Switch(object):
     """
 
     def __init__(self, args=None):
+        self.logger = Log.get_logger()
         self.args = args
         self.table = "switch"
         self.version = None
         self.clusterid = None
         if self.args:
+            self.logger.debug(f'Arguments Supplied => {args}')
             if self.args["action"] == "list":
                 self.list_switch(self.args)
             elif self.args["action"] == "show":
@@ -59,51 +62,58 @@ class Switch(object):
         switch_args = switch_menu.add_subparsers(dest='action')
         ## >>>>>>> Switch Command >>>>>>> list
         cmd = switch_args.add_parser('list', help='List Switch')
-        cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Switch Command >>>>>>> show
         cmd = switch_args.add_parser('show', help='Show Switch')
         cmd.add_argument('name', help='Name of the Switch')
-        cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Switch Command >>>>>>> add
         cmd = switch_args.add_parser('add', help='Add Switch')
-        cmd.add_argument('--init', '-i', action='store_true', help='Switch values one-by-one')
-        cmd.add_argument('--name', '-n', help='Name of the Switch')
-        cmd.add_argument('--network', '-N', help='Network Switch belongs to')
-        cmd.add_argument('--ipaddress', '-ip', help='IP of the Switch')
-        cmd.add_argument('--read', '-r', default='public', help='Read community')
-        cmd.add_argument('--rw', '-w', default='private', help='Write community')
-        cmd.add_argument('--oid', '-o', default='.1.3.6.1.2.1.17.7.1.2.2.1.2', help='OID of the Switch')
-        cmd.add_argument('--comment', '-c', help='Comment for Switch')
+        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cmd.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
+        cmd.add_argument('-n', '--name', type=str, help='Name of the Switch')
+        cmd.add_argument('-N', '--network', help='Network Switch belongs to')
+        cmd.add_argument('-ip', '--ipaddress', help='IP of the Switch')
+        cmd.add_argument('-r', '--read', default='public', help='Read community')
+        cmd.add_argument('-w', '--rw', default='private', help='Write community')
+        cmd.add_argument('-o', '--oid', default='.1.3.6.1.2.1.17.7.1.2.2.1.2', help='OID of the Switch')
+        cmd.add_argument('-c', '--comment', help='Comment for Switch')
         ## >>>>>>> Switch Command >>>>>>> update
         cmd = switch_args.add_parser('update', help='Update Switch')
-        cmd.add_argument('--init', '-i', action='store_true', help='Switch values one-by-one')
-        cmd.add_argument('--name', '-n', help='Name of the Switch')
-        cmd.add_argument('--network', '-N', help='Network Switch belongs to')
-        cmd.add_argument('--ipaddress', '-ip', help='IP of the Switch')
-        cmd.add_argument('--read', '-r', help='Read community')
-        cmd.add_argument('--rw', '-w', help='Write community')
-        cmd.add_argument('--oid', '-o', help='OID of the Switch')
-        cmd.add_argument('--comment', '-c', help='Comment for Switch')
+        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cmd.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
+        cmd.add_argument('-n', '--name', help='Name of the Switch')
+        cmd.add_argument('-N', '--network', help='Network Switch belongs to')
+        cmd.add_argument('-ip', '--ipaddress', help='IP of the Switch')
+        cmd.add_argument('-r', '--read', help='Read community')
+        cmd.add_argument('-w', '--rw', help='Write community')
+        cmd.add_argument('-o', '--oid', help='OID of the Switch')
+        cmd.add_argument('-c', '--comment', help='Comment for Switch')
         ## >>>>>>> Switch Command >>>>>>> clone
         cmd = switch_args.add_parser('clone', help='Clone Switch')
-        cmd.add_argument('--init', '-i', action='store_true', help='Switch values one-by-one')
-        cmd.add_argument('--name', '-n', help='Name of the Switch')
-        cmd.add_argument('--newswitchname', '-nn', help='New name of the Switch')
-        cmd.add_argument('--network', '-N', help='Network Switch belongs to')
-        cmd.add_argument('--ipaddress', '-ip', help='IP of the Switch')
-        cmd.add_argument('--read', '-r', help='Read community')
-        cmd.add_argument('--rw', '-w', help='Write community')
-        cmd.add_argument('--oid', '-o', help='OID of the Switch')
-        cmd.add_argument('--comment', '-c', help='Comment for Switch')
+        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cmd.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
+        cmd.add_argument('-n', '--name', help='Name of the Switch')
+        cmd.add_argument('-nn', '--newswitchname', help='New name of the Switch')
+        cmd.add_argument('-N', '--network', help='Network Switch belongs to')
+        cmd.add_argument('-ip', '--ipaddress', help='IP of the Switch')
+        cmd.add_argument('-r', '--read', help='Read community')
+        cmd.add_argument('-w', '--rw', help='Write community')
+        cmd.add_argument('-o', '--oid', help='OID of the Switch')
+        cmd.add_argument('-c', '--comment', help='Comment for Switch')
         ## >>>>>>> Switch Command >>>>>>> rename
         cmd = switch_args.add_parser('rename', help='Rename Switch')
-        cmd.add_argument('--init', '-i', action='store_true', help='Switch values one-by-one')
-        cmd.add_argument('--name', '-n', help='Name of the Switch')
-        cmd.add_argument('--newswitchname', '-nn', help='New name of the Switch')
+        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cmd.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
+        cmd.add_argument('-n', '--name', help='Name of the Switch')
+        cmd.add_argument('-nn', '--newswitchname', help='New name of the Switch')
         ## >>>>>>> Switch Command >>>>>>> delete
         cmd = switch_args.add_parser('delete', help='Delete Switch')
-        cmd.add_argument('--init', '-i', action='store_true', help='Switch values one-by-one')
-        cmd.add_argument('--name', '-n', help='Name of the Switch')
+        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cmd.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
+        cmd.add_argument('-n', '--name', help='Name of the Switch')
         return parser
 
 
@@ -114,12 +124,15 @@ class Switch(object):
         response = False
         fields, rows = [], []
         get_list = Helper().get_list(self.table)
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config'][self.table]
             if args['raw']:
                 response = Presenter().show_json(data)
             else:
                 fields, rows  = Helper().filter_data(self.table, data)
+                self.logger.debug(f'Fields => {fields}')
+                self.logger.debug(f'Rows => {rows}')
                 response = Presenter().show_table(fields, rows)
         else:
             response = Helper().show_error(f'{self.table} is not found.')
@@ -133,12 +146,15 @@ class Switch(object):
         response = False
         fields, rows = [], []
         get_list = Helper().get_record(self.table, args['name'])
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config'][self.table][args["name"]]
             if args['raw']:
                 response = Presenter().show_json(data)
             else:
                 fields, rows  = Helper().filter_data_col(self.table, data)
+                self.logger.debug(f'Fields => {fields}')
+                self.logger.debug(f'Rows => {rows}')
                 title = f'{self.table.capitalize()} => {args["name"]}'
                 response = Presenter().show_table_col(title, fields, rows)
         else:
@@ -184,7 +200,9 @@ class Switch(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
+            self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
+            self.logger.debug(f'Response => {response}')
             if response == 201:
                 Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
             elif response == 204:
@@ -242,7 +260,9 @@ class Switch(object):
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
+                    self.logger.debug(f'Payload => {request_data}')
                     response = Rest().post_data(self.table, payload['name'], request_data)
+                    self.logger.debug(f'Response => {response}')
                     if response == 204:
                         Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
                 else:
@@ -296,7 +316,9 @@ class Switch(object):
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
+                    self.logger.debug(f'Payload => {request_data}')
                     response = Rest().post_data(self.table, payload['name'], request_data)
+                    self.logger.debug(f'Response => {response}')
                     if response == 204:
                         Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newswitchname"]}.')
                 else:
@@ -338,7 +360,9 @@ class Switch(object):
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
+                    self.logger.debug(f'Payload => {payload}')
                     response = Rest().get_delete(self.table, payload['name'])
+                    self.logger.debug(f'Response => {response}')
                     if response == 204:
                         Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
                 else:
@@ -413,7 +437,9 @@ class Switch(object):
                     if payload["newswitchname"] in names:
                         Helper().show_error(f'{payload["newswitchname"]} is already present in {self.table.capitalize()}.')
                     else:
+                        self.logger.debug(f'Payload => {request_data}')
                         response = Rest().post_clone(self.table, payload['name'], request_data)
+                        self.logger.debug(f'Response => {response}')
                         if response == 201:
                             Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newswitchname"]}.')
                         else:

@@ -3,8 +3,7 @@
 
 """
 This Log Class is responsible to start the Logger depend on the Level.
-Level Should be configured in config/luna.ini or by the argument --debug.
-Default Loggin level is set to the INFO.
+Level alway info untill argument --debug is not supplied.
 Method get_logger will provide a logging object, which is helpful to write the log messages.
 Logger Object have basic mathods: debug, error, info, critical and warnings.
 
@@ -53,7 +52,7 @@ class Log:
         cnsl.setFormatter(formatter)
         cls.__logger.addHandler(cnsl)
         levels = {0: 'NOTSET', 10: 'DEBUG', 20: 'INFO', 30: 'WARNING', 40: 'ERROR', 50: 'CRITICAL'}
-        cls.__logger.info(f'######### Luna Logging Level IsSet To [{levels[log_level]}] #########')
+        cls.__logger.debug(f'######### Luna Logging Level IsSet To [{levels[log_level]}] #########')
         return cls.__logger
 
 

@@ -17,6 +17,7 @@ from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.inquiry import Inquiry
 from luna.utils.rest import Rest
+from luna.utils.log import Log
 
 class Secrets(object):
     """
@@ -25,9 +26,11 @@ class Secrets(object):
     """
 
     def __init__(self, args=None):
+        self.logger = Log.get_logger()
         self.args = args
         self.route = "secrets"
         if self.args:
+            self.logger.debug(f'Arguments Supplied => {self.args}')
             if self.args["action"] == "list":
                 self.list_secrets()
             elif self.args["action"] == "show":
@@ -39,9 +42,9 @@ class Secrets(object):
             elif self.args["action"] == "delete":
                 self.delete_secrets()
             else:
-                print("Not a valid option.")
+                Helper().show_error("Not a valid option.")
         else:
-            print("Please pass -h to see help menu.")
+            Helper().show_error("Please pass -h to see help menu.")
 
 
     def getarguments(self, parser, subparsers):
@@ -53,39 +56,46 @@ class Secrets(object):
         secrets_args = secrets_menu.add_subparsers(dest='action')
         ## >>>>>>> Secrets Command >>>>>>> list
         list_secrets = secrets_args.add_parser('list', help='List Secrets')
-        list_secrets.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        list_secrets.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        list_secrets.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         list_parser = list_secrets.add_subparsers(dest='entity')
         list_node = list_parser.add_parser('node', help='List Node Secrets')
+        list_node.add_argument('-d', '--debug', action='store_true', help='Show debug information')
         list_node.add_argument('name', help='Name of the Node')
         list_node.add_argument('--secret', '-s', help='Name of the Secret')
-        list_node.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        list_node.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         list_group = list_parser.add_parser('group', help='List Group Secrets')
+        list_group.add_argument('-d', '--debug', action='store_true', help='Show debug information')
         list_group.add_argument('name', help='Name of the Group')
         list_group.add_argument('--secret', '-s', help='Name of the Secret')
-        list_group.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        list_group.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Secrets Command >>>>>>> show
         show_secrets = secrets_args.add_parser('show', help='Show Secrets')
         show_parser = show_secrets.add_subparsers(dest='entity')
         show_node = show_parser.add_parser('node', help='Show Node Secrets')
+        show_node.add_argument('-d', '--debug', action='store_true', help='Show debug information')
         show_node.add_argument('name', help='Name of the Node')
         show_node.add_argument('--secret', '-s', help='Name of the Secret')
-        show_node.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        show_node.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         show_group = show_parser.add_parser('group', help='Show Group Secrets')
+        show_group.add_argument('-d', '--debug', action='store_true', help='Show debug information')
         show_group.add_argument('name', help='Name of the Group')
         show_group.add_argument('--secret', '-s', help='Name of the Secret')
-        show_group.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        show_group.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Secrets Command >>>>>>> update
         update_secrets = secrets_args.add_parser('update', help='Update Secrets')
         update_parser = update_secrets.add_subparsers(dest='entity')
         update_node = update_parser.add_parser('node', help='Update Node Secrets')
-        update_node.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
-        update_node.add_argument('--name', '-n', help='Name of the Node')
+        update_node.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        update_node.add_argument('-i', '--init', action='store_true', help='Secret values one-by-one')
+        update_node.add_argument('-n', '--name', help='Name of the Node')
         update_node.add_argument('--secret', '-s', action='append', help='Name of the Secret')
         update_node.add_argument('--content', '-c', action='append', help='Content of the Secret')
         update_node.add_argument('--path', '-p', action='append', help='Path of the Secret')
         update_group = update_parser.add_parser('group', help='Update Group Secrets')
-        update_group.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
-        update_group.add_argument('--name', '-n', help='Name of the Group')
+        update_group.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        update_group.add_argument('-i', '--init', action='store_true', help='Secret values one-by-one')
+        update_group.add_argument('-n', '--name', help='Name of the Group')
         update_group.add_argument('--secret', '-s', action='append', help='Name of the Secret')
         update_group.add_argument('--content', '-c', action='append', help='Content of the Secret')
         update_group.add_argument('--path', '-p', action='append', help='Path of the Secret')
@@ -93,15 +103,17 @@ class Secrets(object):
         clone_secrets = secrets_args.add_parser('clone', help='Clone Secrets')
         clone_parser = clone_secrets.add_subparsers(dest='entity')
         clone_node = clone_parser.add_parser('node', help='Clone Node Secrets')
-        clone_node.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
-        clone_node.add_argument('--name', '-n', help='Name of the Node')
+        clone_node.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        clone_node.add_argument('-i', '--init', action='store_true', help='Secret values one-by-one')
+        clone_node.add_argument('-n', '--name', help='Name of the Node')
         clone_node.add_argument('--secret', '-s', help='Name of the Secret')
         clone_node.add_argument('--newsecretname', '-nn', help='New name for the Secret')
         clone_node.add_argument('--content', '-c', help='Content of the Secret')
         clone_node.add_argument('--path', '-p', help='Path of the Secret')
         clone_group = clone_parser.add_parser('group', help='Clone Group Secrets')
-        clone_group.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
-        clone_group.add_argument('--name', '-n', help='Name of the Group')
+        clone_group.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        clone_group.add_argument('-i', '--init', action='store_true', help='Secret values one-by-one')
+        clone_group.add_argument('-n', '--name', help='Name of the Group')
         clone_group.add_argument('--secret', '-s', help='Name of the Secret')
         clone_group.add_argument('--newsecretname', '-nn', help='New name for the Secret')
         clone_group.add_argument('--content', '-c', help='Content of the Secret')
@@ -110,12 +122,14 @@ class Secrets(object):
         delete_secrets = secrets_args.add_parser('delete', help='Delete Secrets')
         delete_parser = delete_secrets.add_subparsers(dest='entity')
         delete_node = delete_parser.add_parser('node', help='Delete Node Secrets')
-        delete_node.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
-        delete_node.add_argument('--name', '-n', help='Name of the Node')
+        delete_node.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        delete_node.add_argument('-i', '--init', action='store_true', help='Secret values one-by-one')
+        delete_node.add_argument('-n', '--name', help='Name of the Node')
         delete_node.add_argument('--secret', '-s', help='Name of the Secret')
         delete_group = delete_parser.add_parser('group', help='Delete Group Secrets')
-        delete_group.add_argument('--init', '-i', action='store_true', help='Secret values one-by-one')
-        delete_group.add_argument('--name', '-n', help='Name of the Group')
+        delete_group.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        delete_group.add_argument('-i', '--init', action='store_true', help='Secret values one-by-one')
+        delete_group.add_argument('-n', '--name', help='Name of the Group')
         delete_group.add_argument('--secret', '-s', help='Name of the Secret')
         return parser
 
@@ -130,8 +144,10 @@ class Secrets(object):
             uri = f'{uri}/{self.args["entity"]}/{self.args["name"]}'
             if self.args['secret'] is not None:
                 uri = f'{uri}/{self.args["secret"]}'
+        self.logger.debug(f'Secret URI => {uri}')
         response = False
         get_list = Helper().get_list(uri)
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config']['secrets']
             if self.args['raw']:
@@ -140,10 +156,14 @@ class Secrets(object):
                 if 'group' in data:
                     table = f'group{self.route}'
                     fields, rows  =  Helper().get_secrets(table, data['group'])
+                    self.logger.debug(f'Fields => {fields}')
+                    self.logger.debug(f'Rows => {rows}')
                     response = Presenter().show_table(fields, rows)
                 if 'node' in data:
                     table = f'node{self.route}'
                     fields, rows  =  Helper().get_secrets(table, data['node'])
+                    self.logger.debug(f'Fields => {fields}')
+                    self.logger.debug(f'Rows => {rows}')
                     response = Presenter().show_table(fields, rows)
         else:
             response = Helper().show_error(f'{self.route} is not found.')
@@ -160,7 +180,9 @@ class Secrets(object):
             uri = f'{self.route}/{self.args["entity"]}/{self.args["name"]}'
             if self.args['secret'] is not None:
                 uri = f'{uri}/{self.args["secret"]}'
+            self.logger.debug(f'Secret URI => {uri}')
             get_list = Helper().get_list(uri)
+            self.logger.debug(f'Get List Data from Helper => {get_list}')
             if get_list:
                 data = get_list['config']['secrets']
                 if self.args['raw']:
@@ -169,12 +191,16 @@ class Secrets(object):
                     if 'group' in data:
                         table = f'group{self.route}'
                         fields, rows  = Helper().filter_secret_col(table, data['group'])
+                        self.logger.debug(f'Fields => {fields}')
+                        self.logger.debug(f'Rows => {rows}')
                         group_name = list(data["group"].keys())[0]
                         title = f'Group {group_name} Secrets'
                         response = Presenter().show_table_col(title, fields, rows)
                     if 'node' in data:
                         table = f'node{self.route}'
                         fields, rows  = Helper().filter_secret_col(table, data['node'])
+                        self.logger.debug(f'Fields => {fields}')
+                        self.logger.debug(f'Rows => {rows}')
                         title = f'Node {self.args["name"]} Secrets'
                         response = Presenter().show_table_col(title, fields, rows)
         else:
@@ -193,6 +219,7 @@ class Secrets(object):
             if self.args['secret'] is not None:
                 if len(self.args["secret"]) == 1:
                     uri = f'{uri}/{self.args["secret"][0]}'
+            self.logger.debug(f'Secret URI => {uri}')
             payload = {}
             entity = self.args['entity']
             del self.args['entity']
@@ -200,6 +227,7 @@ class Secrets(object):
             del self.args['name']
             if self.args['init']:
                 get_list = Helper().get_list(entity)
+                self.logger.debug(f'Get List Data from Helper => {get_list}')
                 if get_list:
                     names = list(get_list['config'][entity].keys())
                     entity_name = Inquiry().ask_select(f'Select {entity}', names)
@@ -256,7 +284,9 @@ class Secrets(object):
                 request_data['config'][self.route] = {}
                 request_data['config'][self.route][entity] = {}
                 request_data['config'][self.route][entity]= payload
+                self.logger.debug(f'Payload => {request_data}')
                 response = Rest().post_data(self.route, uri, request_data)
+                self.logger.debug(f'Response => {response}')
                 if response == 201:
                     Helper().show_success(f'Secret for {entity} is created.')
                 elif response == 204:
@@ -279,6 +309,7 @@ class Secrets(object):
         old_secret_content, old_secret_path = '', ''
         if self.args['entity'] is not None:
             uri = f'{self.args["entity"]}/{self.args["name"]}/{self.args["secret"]}'
+            self.logger.debug(f'Secret URI => {uri}')
             payload = {}
             entity = self.args['entity']
             del self.args['entity']
@@ -286,6 +317,7 @@ class Secrets(object):
             del self.args['name']
             if self.args['init']:
                 get_list = Helper().get_list(entity)
+                self.logger.debug(f'Get List Data from Helper => {get_list}')
                 if get_list:
                     names = list(get_list['config'][entity].keys())
                     entity_name = Inquiry().ask_select(f'Select {entity}', names)
@@ -340,7 +372,9 @@ class Secrets(object):
                 request_data['config'][self.route] = {}
                 request_data['config'][self.route][entity] = {}
                 request_data['config'][self.route][entity]= payload
+                self.logger.debug(f'Payload => {request_data}')
                 response = Rest().post_clone(self.route, uri, request_data)
+                self.logger.debug(f'Response => {response}')
                 if response == 204:
                     Helper().show_success('Secret is Cloned.')
                 else:
@@ -366,6 +400,7 @@ class Secrets(object):
             del self.args['name']
             if self.args['init']:
                 get_list = Helper().get_list(entity)
+                self.logger.debug(f'Get List Data from Helper => {get_list}')
                 if get_list:
                     names = list(get_list['config'][entity].keys())
                     entity_name = Inquiry().ask_select(f'Select {entity}', names)
@@ -388,10 +423,12 @@ class Secrets(object):
                     payload['name'] = entity
                     payload['secret'] = self.args['secret']
                     uri = f'{entity}/{entity_name}/{payload["secret"]}'
+                    self.logger.debug(f'Delete URI => {uri}')
                 else:
                     abort = Helper().show_error('Kindly Provide the Node/Group name and the secret name')
             if abort is False:
                 response = Rest().get_delete(self.route, uri)
+                self.logger.debug(f'Response => {response}')
                 if response == 204:
                     Helper().show_success('Secret is Deleted.')
                 else:

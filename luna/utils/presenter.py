@@ -17,6 +17,7 @@ from prettytable import PrettyTable
 from rich import print_json
 import pyfiglet
 from termcolor import colored
+from luna.utils.log import Log
 
 class Presenter(object):
     """
@@ -27,6 +28,7 @@ class Presenter(object):
         """
         Constructor - As of now, nothing have to initialize.
         """
+        self.logger = Log.get_logger()
         self.table = PrettyTable()
 
 
@@ -35,7 +37,7 @@ class Presenter(object):
         This method will show the banner
         """
         banner = pyfiglet.figlet_format('Luna 2 CLI', font = "digital")
-        banner= colored(banner, 'green', attrs=['bold'])
+        banner = colored(banner, 'green', attrs=['bold'])
         print(banner)
         return True
 
@@ -45,6 +47,7 @@ class Presenter(object):
         This method will fetch all records from
         the Luna 2 Daemon Database
         """
+        self.logger.debug(f'Jason Data => {jsondata}')
         pretty = json.dumps(jsondata, indent=4)
         print_json(pretty)
         return True
@@ -56,6 +59,8 @@ class Presenter(object):
         This method will fetch a records from
         the Luna 2 Daemon Database
         """
+        self.logger.debug(f'Fields => {fields}')
+        self.logger.debug(f'Rows => {rows}')
         # self.table.title = colored("title", 'cyan', attrs=['bold'])
         self.table.field_names = fields
         if '\\n' in str(rows):
@@ -70,6 +75,8 @@ class Presenter(object):
         This method will fetch a records from
         the Luna 2 Daemon Database
         """
+        self.logger.debug(f'Fields => {field}')
+        self.logger.debug(f'Rows => {rows}')
         self.table.title = colored(title, 'cyan', attrs=['bold'])
         self.table.add_column("Field", field)
         self.table.add_column("Values", rows)

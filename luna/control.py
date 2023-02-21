@@ -51,21 +51,21 @@ class Control(object):
         cluster_args = cluster_menu.add_subparsers(dest='action')
         ## >>>>>>> Cluster Command >>>>>>> list
         cmd = cluster_args.add_parser('list', help='List Cluster')
-        cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Cluster Command >>>>>>> show
         cmd = cluster_args.add_parser('show', help='Show Cluster')
         cmd.add_argument('name', help='Name of the Cluster')
-        cmd.add_argument('--raw', '-R', action='store_true', help='Raw JSON output')
+        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Cluster Command >>>>>>> add
         cmd = cluster_args.add_parser('update', help='Update Cluster')
         cmd.add_argument('name', help='Name of the Cluster')
-        cmd.add_argument('--name', '-n', help='New Cluster Name')
-        cmd.add_argument('--user', '-u', help='Cluster User')
-        cmd.add_argument('--ntp_server', '-ntp', metavar='N.N.N.N', help='Cluster NTP Server')
+        cmd.add_argument('-n', '--name', help='New Cluster Name')
+        cmd.add_argument('-u', '--user', help='Cluster User')
+        cmd.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='Cluster NTP Server')
         cmd.add_argument('--clusterdebug', '-d', help='Debug Mode')
         cmd.add_argument('--technical_contacts', '-c', help='Technical Contact')
-        cmd.add_argument('--provision_method', '-pm', help='Provision Method')
-        cmd.add_argument('--provision_fallback', '-fb', help='Provision Fallback')
+        cmd.add_argument('-pm', '--provision_method', help='Provision Method')
+        cmd.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
         return parser
 
 

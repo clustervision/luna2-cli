@@ -16,6 +16,7 @@ import os
 import sys
 from InquirerPy import inquirer, get_style
 from termcolor import colored
+from luna.utils.log import Log
 
 class Inquiry(object):
     """
@@ -26,6 +27,7 @@ class Inquiry(object):
         """
         Constructor - As of now, nothing have to initialize.
         """
+        self.logger = Log.get_logger()
         self.styledict = {
             "questionmark": "#F91A00",
             "answermark": "#F91A00",
@@ -42,6 +44,7 @@ class Inquiry(object):
         and revert with key value based answer.
         """
         def ask(count, message, update):
+            self.logger.debug(f'Count => {count}')
             if count == 3:
                 error_message = "You have lost all 3 attempts, Please try again."
                 print(colored(error_message, 'red', attrs=['bold']))
@@ -70,6 +73,7 @@ class Inquiry(object):
         and revert with key value based answer.
         """
         def ask(count, message, update):
+            self.logger.debug(f'Count => {count}')
             if count == 3:
                 error_message = "You have lost all 3 attempts, Please try again."
                 print(colored(error_message, 'red', attrs=['bold']))
@@ -105,6 +109,7 @@ class Inquiry(object):
         response = False
         try:
             response = inquirer.confirm(message=message, style= self.style, default=False).execute()
+            self.logger.debug(f'Response => {response}')
         except KeyboardInterrupt:
             print(colored("Exited! Try Again, with new Inputs.", 'red', attrs=['bold']))
             sys.exit(0)
@@ -117,6 +122,7 @@ class Inquiry(object):
         and revert with key value based answer.
         """
         def ask(count, message, update):
+            self.logger.debug(f'Count => {count}')
             if count == 3:
                 error_message = "You have lost all 3 attempts, Please try again."
                 print(colored(error_message, 'red', attrs=['bold']))
@@ -156,6 +162,7 @@ class Inquiry(object):
                 choices = choices,
                 default = None,
             ).execute()
+            self.logger.debug(f'Response => {response}')
         except KeyboardInterrupt:
             print(colored("Exited! Try Again, with new Inputs.", 'red', attrs=['bold']))
             sys.exit(0)
@@ -168,6 +175,7 @@ class Inquiry(object):
         and revert with key value based answer.
         """
         def ask(count, message, update):
+            self.logger.debug(f'Count => {count}')
             if count == 3:
                 error_message = "You have lost all 3 attempts, Please try again."
                 print(colored(error_message, 'red', attrs=['bold']))
@@ -175,6 +183,7 @@ class Inquiry(object):
             else:
                 try:
                     home_path = "/" if os.name == "posix" else "C:\\"
+                    self.logger.debug(f'Home Path => {home_path}')
                     name = inquirer.filepath(message=message, style= self.style, default=home_path).execute()
                     if update:
                         return name
