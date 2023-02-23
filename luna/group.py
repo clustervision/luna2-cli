@@ -67,111 +67,115 @@ class Group(object):
         group_menu = subparsers.add_parser('group', help='Group operations')
         group_args = group_menu.add_subparsers(dest='action')
         ## >>>>>>> Group Command >>>>>>> list
-        cmd = group_args.add_parser('list', help='List Groups')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        list_parser = group_args.add_parser('list', help='List Groups')
+        list_parser.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        list_parser.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Group Command >>>>>>> show
-        cmd = group_args.add_parser('show', help='Show Group')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('name', help='Name of the Group')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        show_parser = group_args.add_parser('show', help='Show Group')
+        show_parser.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        show_parser.add_argument('name', help='Name of the Group')
+        show_parser.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Group Command >>>>>>> add
-        cmd = group_args.add_parser('add', help='Add Group')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Group values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Group')
-        cmd.add_argument('-b', '--bmcsetup', action='store_true', help='BMC Setup')
-        cmd.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
-        cmd.add_argument('-D', '--domain', help='Domain Name')
-        cmd.add_argument('-o', '--osimage', help='OS Image Name')
-        cmd.add_argument('-pre', '--prescript', help='Pre Script')
-        cmd.add_argument('-part', '--partscript', help='Part Script')
-        cmd.add_argument('-post', '--postscript', help='Post Script')
-        cmd.add_argument('-nb', '--netboot', help='Network Boot')
-        cmd.add_argument('-li', '--localinstall', help='Local Install')
-        cmd.add_argument('-bm', '--bootmenu', help='Boot Menu')
-        cmd.add_argument('-pm', '--provision_method', help='Provision Method')
-        cmd.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        cmd.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        cmd.add_argument('-if', '--interfaces', action='append', help='Group Interfaces interfacename|networkname')
-        cmd.add_argument('-c', '--comment', help='Comment for Group')
-        ## >>>>>>> Group Command >>>>>>> udpate
-        cmd = group_args.add_parser('udpate', help='Update Group')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Group values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Group')
-        cmd.add_argument('-b', '--bmcsetup', action='store_true', help='BMC Setup True/False')
-        cmd.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
-        cmd.add_argument('-D', '--domain', help='Domain Name')
-        cmd.add_argument('-o', '--osimage', help='OS Image Name')
-        cmd.add_argument('-pre', '--prescript', help='Pre Script')
-        cmd.add_argument('-part', '--partscript', help='Part Script')
-        cmd.add_argument('-post', '--postscript', help='Post Script')
-        cmd.add_argument('-nb', '--netboot', help='Network Boot')
-        cmd.add_argument('-li', '--localinstall', help='Local Install')
-        cmd.add_argument('-bm', '--bootmenu', help='Boot Menu')
-        cmd.add_argument('-pm', '--provision_method', help='Provision Method')
-        cmd.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        cmd.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        cmd.add_argument('-if', '--interfaces', action='append', help='Group Interfaces interfacename|networkname')
-        cmd.add_argument('-c', '--comment', help='Comment for Group')
+        add_parser = group_args.add_parser('add', help='Add Group')
+        add_parser.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        add_parser.add_argument('-i', '--init', action='store_true', help='Group values one-by-one')
+        add_parser.add_argument('-n', '--name', help='Name of the Group')
+        add_parser.add_argument('-b', '--bmcsetup', help='BMC Setup')
+        add_parser.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
+        add_parser.add_argument('-D', '--domain', help='Domain Name')
+        add_parser.add_argument('-o', '--osimage', help='OS Image Name')
+        add_parser.add_argument('-pre', '--prescript', help='Pre Script')
+        add_parser.add_argument('-part', '--partscript', help='Part Script')
+        add_parser.add_argument('-post', '--postscript', help='Post Script')
+        add_parser.add_argument('-nb', '--netboot', help='Network Boot')
+        add_parser.add_argument('-li', '--localinstall', help='Local Install')
+        add_parser.add_argument('-bm', '--bootmenu', help='Boot Menu')
+        add_parser.add_argument('-pi', '--provision_interface', help='Provision Interface')
+        add_parser.add_argument('-pm', '--provision_method', help='Provision Method')
+        add_parser.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
+        add_parser.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
+        add_parser.add_argument('-I', '--interface', action='append', help='Interface Name')
+        add_parser.add_argument('-N', '--network', action='append', help='Interface Network Name')
+        add_parser.add_argument('-c', '--comment', help='Comment for Group')
+        ## >>>>>>> Group Command >>>>>>> update
+        update_parser = group_args.add_parser('update', help='Update Group')
+        update_parser.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        update_parser.add_argument('-i', '--init', action='store_true', help='Group values one-by-one')
+        update_parser.add_argument('-n', '--name', help='Name of the Group')
+        update_parser.add_argument('-b', '--bmcsetup', action='store_true', help='BMC Setup True/False')
+        update_parser.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
+        update_parser.add_argument('-D', '--domain', help='Domain Name')
+        update_parser.add_argument('-o', '--osimage', help='OS Image Name')
+        update_parser.add_argument('-pre', '--prescript', help='Pre Script')
+        update_parser.add_argument('-part', '--partscript', help='Part Script')
+        update_parser.add_argument('-post', '--postscript', help='Post Script')
+        update_parser.add_argument('-nb', '--netboot', help='Network Boot')
+        update_parser.add_argument('-li', '--localinstall', help='Local Install')
+        update_parser.add_argument('-bm', '--bootmenu', help='Boot Menu')
+        update_parser.add_argument('-pm', '--provision_method', help='Provision Method')
+        update_parser.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
+        update_parser.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
+        update_parser.add_argument('-I', '--interface', action='append', help='Interface Name')
+        update_parser.add_argument('-N', '--network', action='append', help='Interface Network Name')
+        update_parser.add_argument('-c', '--comment', help='Comment for Group')
         ## >>>>>>> Group Command >>>>>>> clone
-        cmd = group_args.add_parser('clone', help='Clone Group.')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Group values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Group')
-        cmd.add_argument('-nn', '--newgroupname', help='New Name for the Group')
-        cmd.add_argument('-b', '--bmcsetup', action='store_true', help='BMC Setup True/False')
-        cmd.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
-        cmd.add_argument('-D', '--domain', help='Domain Name')
-        cmd.add_argument('-o', '--osimage', help='OS Image Name')
-        cmd.add_argument('-pre', '--prescript', help='Pre Script')
-        cmd.add_argument('-part', '--partscript', help='Part Script')
-        cmd.add_argument('-post', '--postscript', help='Post Script')
-        cmd.add_argument('-nb', '--netboot', help='Network Boot')
-        cmd.add_argument('-li', '--localinstall', help='Local Install')
-        cmd.add_argument('-bm', '--bootmenu', help='Boot Menu')
-        cmd.add_argument('-pm', '--provision_method', help='Provision Method')
-        cmd.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        cmd.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        cmd.add_argument('-if', '--interfaces', action='append', help='Group Interfaces interfacename|networkname')
-        cmd.add_argument('-c', '--comment', help='Comment for Group')
+        clone_parser = group_args.add_parser('clone', help='Clone Group.')
+        clone_parser.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        clone_parser.add_argument('-i', '--init', action='store_true', help='Group values one-by-one')
+        clone_parser.add_argument('-n', '--name', help='Name of the Group')
+        clone_parser.add_argument('-nn', '--newgroupname', help='New Name for the Group')
+        clone_parser.add_argument('-b', '--bmcsetup', action='store_true', help='BMC Setup True/False')
+        clone_parser.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
+        clone_parser.add_argument('-D', '--domain', help='Domain Name')
+        clone_parser.add_argument('-o', '--osimage', help='OS Image Name')
+        clone_parser.add_argument('-pre', '--prescript', help='Pre Script')
+        clone_parser.add_argument('-part', '--partscript', help='Part Script')
+        clone_parser.add_argument('-post', '--postscript', help='Post Script')
+        clone_parser.add_argument('-nb', '--netboot', help='Network Boot')
+        clone_parser.add_argument('-li', '--localinstall', help='Local Install')
+        clone_parser.add_argument('-bm', '--bootmenu', help='Boot Menu')
+        clone_parser.add_argument('-pm', '--provision_method', help='Provision Method')
+        clone_parser.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
+        clone_parser.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
+        clone_parser.add_argument('-I', '--interface', action='append', help='Interface Name')
+        clone_parser.add_argument('-N', '--network', action='append', help='Interface Network Name')
+        clone_parser.add_argument('-c', '--comment', help='Comment for Group')
         ## >>>>>>> Group Command >>>>>>> rename
-        cmd = group_args.add_parser('rename', help='Rename Group.')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Group values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Group')
-        cmd.add_argument('-nn', '--newgroupname', help='New Name for the Group')
+        rename_parser = group_args.add_parser('rename', help='Rename Group.')
+        rename_parser.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        rename_parser.add_argument('-i', '--init', action='store_true', help='Group values one-by-one')
+        rename_parser.add_argument('-n', '--name', help='Name of the Group')
+        rename_parser.add_argument('-nn', '--newgroupname', help='New Name for the Group')
         ## >>>>>>> Group Command >>>>>>> delete
-        cmd = group_args.add_parser('delete', help='Delete Group')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Group values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Group')
+        delete_parser = group_args.add_parser('delete', help='Delete Group')
+        delete_parser.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        delete_parser.add_argument('-i', '--init', action='store_true', help='Group values one-by-one')
+        delete_parser.add_argument('-n', '--name', help='Name of the Group')
         ## >>>>>>> Group Commands Ends
         ## >>>>>>> Group Interface Command >>>>>>> interfaces
-        cmd = group_args.add_parser('interfaces', help='List Group Interfaces')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('name', help='Name of the Group')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        interfaces_parser = group_args.add_parser('interfaces', help='List Group Interfaces')
+        interfaces_parser.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        interfaces_parser.add_argument('name', help='Name of the Group')
+        interfaces_parser.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Group Interface Command >>>>>>> interfaces
-        cmd = group_args.add_parser('interface', help='Show Group Interface')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('name', help='Name of the Group')
-        cmd.add_argument('interface', help='Name of the Group Interface')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        interface_parser = group_args.add_parser('interface', help='Show Group Interface')
+        interface_parser.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        interface_parser.add_argument('name', help='Name of the Group')
+        interface_parser.add_argument('interface', help='Name of the Group Interface')
+        interface_parser.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Group Interface Command >>>>>>> delete
-        cmd = group_args.add_parser('updateinterface', help='Update Group Interface')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Group values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Group')
-        cmd.add_argument('-if', '--interface', action='append', help='Group Interface')
-        cmd.add_argument('-N', '--network', action='append', help='Network Name')
+        updateinterface_parser = group_args.add_parser('updateinterface', help='Update Group Interface')
+        updateinterface_parser.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        updateinterface_parser.add_argument('-i', '--init', action='store_true', help='Group values one-by-one')
+        updateinterface_parser.add_argument('-n', '--name', help='Name of the Group')
+        updateinterface_parser.add_argument('-if', '--interface', action='append', help='Group Interface')
+        updateinterface_parser.add_argument('-N', '--network', action='append', help='Network Name')
         ## >>>>>>> Group Interface Command >>>>>>> delete
-        cmd = group_args.add_parser('deleteinterface', help='Delete Group Interface')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Group values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Group')
-        cmd.add_argument('-if', '--interface', help='Name of the Group Interface')
+        deleteinterface_parser = group_args.add_parser('deleteinterface', help='Delete Group Interface')
+        deleteinterface_parser.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        deleteinterface_parser.add_argument('-i', '--init', action='store_true', help='Group values one-by-one')
+        deleteinterface_parser.add_argument('-n', '--name', help='Name of the Group')
+        deleteinterface_parser.add_argument('-if', '--interface', help='Name of the Group Interface')
         return parser
 
 
@@ -271,14 +275,23 @@ class Group(object):
             del self.args['command']
             del self.args['action']
             del self.args['init']
-            if self.args['interfaces']:
-                self.args['interfaces'] = Helper().list_to_dict(self.args['interfaces'])
-            payload = self.args
-            for key in payload:
-                if payload[key] is None:
-                    error = Helper().show_error(f'Kindly provide {key}.')
+            iface = [self.args['interface'], self.args['network']]
+            ifacecount = sum(x is not None for x in iface)
+            if ifacecount:
+                if ifacecount == 2:
+                    if len(self.args['interface']) == len(self.args['network']):
+                        interface_data = {'interface': self.args['interface'], 'network': self.args['network']}
+                        self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
+                    else:
+                        error = Helper().show_warning('Each Interface should have Interface Name and Network Name.')
+                else:
+                    error = Helper().show_warning('Each Interface should have Interface Name and Network Name.')
+            del self.args['interface']
+            del self.args['network']
             if error:
-                Helper().show_error(f'Adding {payload["name"]} in {self.table.capitalize()} Abort.')
+                Helper().show_error('Operation Aborted.')
+                self.args.clear()
+            payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
             request_data = {}
             request_data['config'] = {}
@@ -351,16 +364,28 @@ class Group(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
+            error = False
             del self.args['debug']
             del self.args['command']
             del self.args['action']
             del self.args['init']
-            if self.args['interfaces']:
-                self.args['interfaces'] = Helper().list_to_dict(self.args['interfaces'])
-            payload = self.args
-            filtered = {k: v for k, v in payload.items() if v is not None}
-            payload.clear()
-            payload.update(filtered)
+            iface = [self.args['interface'], self.args['network']]
+            ifacecount = sum(x is not None for x in iface)
+            if ifacecount:
+                if ifacecount == 2:
+                    if len(self.args['interface']) == len(self.args['network']):
+                        interface_data = {'interface': self.args['interface'], 'network': self.args['network']}
+                        self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
+                    else:
+                        error = Helper().show_warning('Each Interface should have Interface Name and Network Name.')
+                else:
+                    error = Helper().show_warning('Each Interface should have Interface Name and Network Name.')
+            del self.args['interface']
+            del self.args['network']
+            if error:
+                Helper().show_error('Operation Aborted.')
+                self.args.clear()
+            payload = {k: v for k, v in self.args.items() if v is not None}
         if (len(payload) != 1) and ('name' in payload):
             request_data = {}
             request_data['config'] = {}

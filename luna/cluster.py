@@ -65,10 +65,11 @@ class Cluster(object):
         cmd.add_argument('-n', '--name', help='New Cluster Name')
         cmd.add_argument('-u', '--user', help='Cluster User')
         cmd.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='Cluster NTP Server')
-        cmd.add_argument('-cd', '--clusterdebug', help='Debug Mode')
-        cmd.add_argument('-c', '--technical_contacts', help='Technical Contact')
-        cmd.add_argument('-pm', '--provision_method', help='Provision Method')
-        cmd.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
+        cmd.add_argument('-c', '--technical_contacts', default=Helper().default_values('cluster', 'technical_contacts'), help='Technical Contact')
+        cmd.add_argument('-pm', '--provision_method', default=Helper().default_values('cluster', 'provision_method'), required=True, help='Provision Method')
+        cmd.add_argument('-fb', '--provision_fallback', default=Helper().default_values('cluster', 'provision_fallback'), required=True, help='Provision Fallback')
+        cmd.add_argument('-s', '--security', default=Helper().default_values('cluster', 'security'), required=True, help='Debug Mode')
+        cmd.add_argument('-D', '--clusterdebug', default=Helper().default_values('cluster', 'debug'), required=True, help='Debug Mode')
         return parser
 
 

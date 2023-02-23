@@ -493,3 +493,159 @@ class Helper(object):
         }
         response = list(static[table])
         return response
+
+
+    def default_values(self, table=None, key=None):
+        """
+        This method will provide the all default
+        values for each key of every table from luna
+        database. It will be called from the getarguments
+        method for the default values.
+        """
+        response = False
+        database = {
+            'cluster': {
+                'name': True,
+                'ns_ip': True,
+                'ntp_server': True,
+                'provision_fallback': 'http',
+                'provision_method': 'torrent',
+                'security': 1,
+                'technical_contacts': ['root@localhost'],
+                'user': True,
+                'debug': False
+            },
+            'controller': {
+                'hostname': True,
+                'ipaddr': True,
+                'luna_config': True,
+                'srverport': True,
+                'status': True
+            },
+            'node': {
+                'name': True,
+                'hostname': True,
+                'group': True,
+                'osimage': True,
+                'interfaces': True,
+                'localboot': True,
+                'macaddr': True,
+                'switch': True,
+                'switchport': True,
+                'setupbmc': True,
+                'status': True,
+                'service': True,
+                'prescript': True,
+                'partscript': True,
+                'postscript': True,
+                'netboot': True,
+                'localinstall': True,
+                'bootmenu': True,
+                'provisionmethod': True,
+                'provisioninterface': True,
+                'provisionfallback': True,
+                'tpmuuid': True,
+                'tpmpubkey': True,
+                'tpmsha256': True, 
+                'unmanaged_bmc_users': True,
+                'comment': True
+            },
+            'group': {
+                'name': True,
+                'bmcsetup': True,
+                'bmcsetupname': True,
+                'domain': True,
+                'interfaces': True,
+                'osimage': True,
+                'prescript': True,
+                'partscript': True,
+                'postscript': True,
+                'netboot': True,
+                'localinstall': True,
+                'bootmenu': True,
+                'provisionmethod': True,
+                'provisioninterface': True,
+                'provisionfallback': True,
+                'unmanaged_bmc_users': True,
+                'comment': True
+            },
+            'bmcsetup': {
+                'name': True,
+                'userid': True,
+                'username': True,
+                'password': True,
+                'netchannel': True,
+                'mgmtchannel': True,
+                'unmanaged_bmc_users': True,
+                'comment': True
+            },
+            'osimage': {
+                'name': True,
+                'dracutmodules': True,
+                'grab_filesystems': True,
+                'grab_exclude': True,
+                'initrdfile': True,
+                'kernelversion': True,
+                'kernelfile': True,
+                'kernelmodules': True,
+                'kerneloptions': True,
+                'path': True,
+                'tarball': True,
+                'torrent': True,
+                'distribution': True,
+                'comment': True
+            },
+            'switch': {
+                'name': True,
+                'network': True,
+                'oid': True,
+                'read': True,
+                'rw': True,
+                'ipaddress': True,
+                'comment': True
+            },
+            'otherdev': {
+                'name': True,
+                'network': True,
+                'ipaddress': True,
+                'macaddr': True,
+                'comment': True
+            },
+            'nodeinterface': {
+                'interface': True,
+                'ipaddress': True,
+                'macaddress': True,
+                'network': True
+            },
+            'groupinterface': {
+                'interfacename': True,
+                'network': True,
+                'ipaddress': True
+            },
+            'groupsecrets': {
+                'Group': True,
+                'name': True,
+                'path': True,
+                'content': True
+            },
+            'nodesecrets': {
+                'Node': True,
+                'name': True,
+                'path': True,
+                'content': True
+            },
+            'network': {
+                'name': True,
+                'network': True,
+                'ns_hostname': True,
+                'ns_ip': True,
+                'ntp_server': True,
+                'gateway': True,
+                'dhcp': True,
+                'dhcp_range_begin': True,
+                'dhcp_range_end': True,
+                'comment': True
+            }
+        }
+        response = database[table][key]
+        return response
