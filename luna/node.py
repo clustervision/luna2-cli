@@ -105,7 +105,10 @@ class Node(object):
         cmd.add_argument('-tkey', '--tpm_pubkey', help='TPM Public Key')
         cmd.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
         cmd.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        cmd.add_argument('-if', '--interfaces', action='append', help='Node Interfaces interfacename|networkname|ipaddress|macaddress')
+        cmd.add_argument('-if', '--interface', action='append', help='Interface Name')
+        cmd.add_argument('-N', '--network', action='append', help='Interfaces Network Name')
+        cmd.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
+        cmd.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
         cmd.add_argument('-c', '--comment', help='Comment for Node')
         ## >>>>>>> Node Command >>>>>>> update
         cmd = node_args.add_parser('update', help='Update Node')
@@ -135,7 +138,10 @@ class Node(object):
         cmd.add_argument('-tkey', '--tpm_pubkey', help='TPM Public Key')
         cmd.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
         cmd.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        cmd.add_argument('-if', '--interfaces', action='append', help='Node Interfaces interfacename|networkname|ipaddress|macaddress')
+        cmd.add_argument('-if', '--interface', action='append', help='Interface Name')
+        cmd.add_argument('-N', '--network', action='append', help='Interfaces Network Name')
+        cmd.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
+        cmd.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
         cmd.add_argument('-c', '--comment', help='Comment for Node')
         ## >>>>>>> Node Command >>>>>>> clone
         cmd = node_args.add_parser('clone', help='Clone Node')
@@ -166,7 +172,10 @@ class Node(object):
         cmd.add_argument('-tkey', '--tpm_pubkey', help='TPM Public Key')
         cmd.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
         cmd.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        cmd.add_argument('-if', '--interfaces', action='append', help='Node Interfaces interfacename|networkname|ipaddress|macaddress')
+        cmd.add_argument('-if', '--interface', action='append', help='Interface Name')
+        cmd.add_argument('-N', '--network', action='append', help='Interfaces Network Name')
+        cmd.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
+        cmd.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
         cmd.add_argument('-c', '--comment', help='Comment for Node')
         ## >>>>>>> Node Command >>>>>>> rename
         cmd = node_args.add_parser('rename', help='Rename Node')
@@ -321,14 +330,25 @@ class Node(object):
             del self.args['command']
             del self.args['action']
             del self.args['init']
-            if self.args['interfaces']:
-                self.args['interfaces'] = Helper().list_to_dict(self.args['interfaces'])
-            payload = self.args
-            for key in payload:
-                if payload[key] is None:
-                    error = Helper().show_error(f'Kindly provide {key}.')
+            iface = [self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']]
+            ifacecount = sum(x is not None for x in iface)
+            if ifacecount:
+                if ifacecount == 2:
+                    if len(self.args['interface']) == len(self.args['network']):
+                        interface_data = {'interface': self.args['interface'], 'network': self.args['network'], 'ipaddress': self.args['ipaddress'], 'macaddress': self.args['macaddress']}
+                        self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
+                    else:
+                        error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
+                else:
+                    error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
+            del self.args['interface']
+            del self.args['network']
+            del self.args['ipaddress']
+            del self.args['macaddress']
             if error:
-                Helper().show_error(f'Adding {payload["name"]} in {self.table.capitalize()} Abort.')
+                Helper().show_error('Operation Aborted.')
+                self.args.clear()
+            payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
             request_data = {}
             request_data['config'] = {}
@@ -417,16 +437,30 @@ class Node(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
+            error = False
             del self.args['debug']
             del self.args['command']
             del self.args['action']
             del self.args['init']
-            if self.args['interfaces']:
-                self.args['interfaces'] = Helper().list_to_dict(self.args['interfaces'])
-            payload = self.args
-            filtered = {k: v for k, v in payload.items() if v is not None}
-            payload.clear()
-            payload.update(filtered)
+            iface = [self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']]
+            ifacecount = sum(x is not None for x in iface)
+            if ifacecount:
+                if ifacecount == 2:
+                    if len(self.args['interface']) == len(self.args['network']):
+                        interface_data = {'interface': self.args['interface'], 'network': self.args['network'], 'ipaddress': self.args['ipaddress'], 'macaddress': self.args['macaddress']}
+                        self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
+                    else:
+                        error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
+                else:
+                    error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
+            del self.args['interface']
+            del self.args['network']
+            del self.args['ipaddress']
+            del self.args['macaddress']
+            if error:
+                Helper().show_error('Operation Aborted.')
+                self.args.clear()
+            payload = {k: v for k, v in self.args.items() if v is not None}
         if (len(payload) != 1) and ('name' in payload):
             request_data = {}
             request_data['config'] = {}
@@ -627,11 +661,30 @@ class Node(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
+            error = False
             del self.args['debug']
             del self.args['command']
             del self.args['action']
             del self.args['init']
-            payload = self.args
+            iface = [self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']]
+            ifacecount = sum(x is not None for x in iface)
+            if ifacecount:
+                if ifacecount == 2:
+                    if len(self.args['interface']) == len(self.args['network']):
+                        interface_data = {'interface': self.args['interface'], 'network': self.args['network'], 'ipaddress': self.args['ipaddress'], 'macaddress': self.args['macaddress']}
+                        self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
+                    else:
+                        error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
+                else:
+                    error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
+            del self.args['interface']
+            del self.args['network']
+            del self.args['ipaddress']
+            del self.args['macaddress']
+            if error:
+                Helper().show_error('Operation Aborted.')
+                self.args.clear()
+            payload = {k: v for k, v in self.args.items() if v is not None}
             get_record = Helper().get_record(self.table, payload['name'])
             if get_record:
                 data = get_record['config'][self.table][payload["name"]]

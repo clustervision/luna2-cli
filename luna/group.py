@@ -570,11 +570,28 @@ class Group(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
+            error =  False
             del self.args['debug']
             del self.args['command']
             del self.args['action']
             del self.args['init']
-            payload = self.args
+            iface = [self.args['interface'], self.args['network']]
+            ifacecount = sum(x is not None for x in iface)
+            if ifacecount:
+                if ifacecount == 2:
+                    if len(self.args['interface']) == len(self.args['network']):
+                        interface_data = {'interface': self.args['interface'], 'network': self.args['network']}
+                        self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
+                    else:
+                        error = Helper().show_warning('Each Interface should have Interface Name and Network Name.')
+                else:
+                    error = Helper().show_warning('Each Interface should have Interface Name and Network Name.')
+            del self.args['interface']
+            del self.args['network']
+            if error:
+                Helper().show_error('Operation Aborted.')
+                self.args.clear()
+            payload = {k: v for k, v in self.args.items() if v is not None}
             get_record = Helper().get_record(self.table, payload['name'])
             if get_record:
                 data = get_record['config'][self.table][payload["name"]]
@@ -710,14 +727,9 @@ class Group(object):
                     temp_dict = {}
                 del self.args['interface']
                 del self.args['network']
-                del self.args['ipaddress']
-                del self.args['macaddress']
             else:
-                response = Helper().show_error('Each Interface should have Interface Name, Network, IP Address and MAC Address')
-            payload = self.args
-            filtered = {k: v for k, v in payload.items() if v is not None}
-            payload.clear()
-            payload.update(filtered)
+                response = Helper().show_error('Each Interface should have Interface Name and Network Name.')
+            payload = {k: v for k, v in self.args.items() if v is not None}
         if (len(payload) != 1) and ('name' in payload):
             node_name = payload['name']
             del payload['name']
