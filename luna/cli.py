@@ -59,7 +59,6 @@ class Cli(object):
         Secrets.getarguments(self, self.parser, self.subparsers)
         Service.getarguments(self, self.parser, self.subparsers)
         Control.getarguments(self, self.parser, self.subparsers)
-
         self.args = vars(self.parser.parse_args())
         self.callclass()
         return True

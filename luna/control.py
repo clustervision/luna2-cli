@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Control Class for the CLI
+Control Class for the CLI     [{[{[{[{[{WIP}]}]}]}]}]
 """
 __author__      = "Sumit Sharma"
 __copyright__   = "Copyright 2022, Luna2 Project [CLI]"
@@ -27,8 +27,6 @@ class Control(object):
     def __init__(self, args=None):
         self.args = args
         self.table = "cluster"
-        self.version = None
-        self.clusterid = None
         if self.args:
             if self.args["action"] == "list":
                 self.list_cluster(self.args)
@@ -75,14 +73,15 @@ class Control(object):
         """
         response = False
         fields, rows = [], []
-        get_list = Helper().get_list(self.table)
+        get_list = Rest().get_data(self.table)
         if get_list:
             data = get_list['config']['cluster']
             if args['raw']:
                 response = Presenter().show_json(data)
             else:
                 fields, rows  = Helper().get_cluster(self.table, data)
-                response = Presenter().show_table(fields, rows)
+                title = f' << {self.table.capitalize()} >>'
+                response = Presenter().show_table(title, fields, rows)
         else:
             response = Helper().show_error(f'{self.table} is not found.')
         return response
@@ -94,7 +93,7 @@ class Control(object):
         """
         response = False
         fields, rows = [], []
-        get_list = Helper().get_list(self.table)
+        get_list = Rest().get_data(self.table)
         if get_list:
             data = get_list['config']['cluster']
             if args['raw']:

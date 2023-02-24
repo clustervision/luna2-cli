@@ -29,24 +29,22 @@ class Switch(object):
         self.logger = Log.get_logger()
         self.args = args
         self.table = "switch"
-        self.version = None
-        self.clusterid = None
         if self.args:
-            self.logger.debug(f'Arguments Supplied => {args}')
+            self.logger.debug(f'Arguments Supplied => {self.args}')
             if self.args["action"] == "list":
-                self.list_switch(self.args)
+                self.list_switch()
             elif self.args["action"] == "show":
-                self.show_switch(self.args)
+                self.show_switch()
             elif self.args["action"] == "add":
-                self.add_switch(self.args)
+                self.add_switch()
             elif self.args["action"] == "update":
-                self.update_switch(self.args)
+                self.update_switch()
             elif self.args["action"] == "rename":
-                self.rename_switch(self.args)
+                self.rename_switch()
             elif self.args["action"] == "delete":
-                self.delete_switch(self.args)
+                self.delete_switch()
             elif self.args["action"] == "clone":
-                self.clone_switch(self.args)
+                self.clone_switch()
             else:
                 print("Not a valid option.")
         else:
@@ -61,113 +59,82 @@ class Switch(object):
         switch_menu = subparsers.add_parser('switch', help='Switch operations.')
         switch_args = switch_menu.add_subparsers(dest='action')
         ## >>>>>>> Switch Command >>>>>>> list
-        cmd = switch_args.add_parser('list', help='List Switch')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        switch_list = switch_args.add_parser('list', help='List Switch')
+        switch_list.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        switch_list.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Switch Command >>>>>>> show
-        cmd = switch_args.add_parser('show', help='Show Switch')
-        cmd.add_argument('name', help='Name of the Switch')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        switch_show = switch_args.add_parser('show', help='Show Switch')
+        switch_show.add_argument('name', help='Name of the Switch')
+        switch_show.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        switch_show.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Switch Command >>>>>>> add
-        cmd = switch_args.add_parser('add', help='Add Switch')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
-        cmd.add_argument('-n', '--name', type=str, help='Name of the Switch')
-        cmd.add_argument('-N', '--network', help='Network Switch belongs to')
-        cmd.add_argument('-ip', '--ipaddress', help='IP of the Switch')
-        cmd.add_argument('-r', '--read', default='public', help='Read community')
-        cmd.add_argument('-w', '--rw', default='private', help='Write community')
-        cmd.add_argument('-o', '--oid', default='.1.3.6.1.2.1.17.7.1.2.2.1.2', help='OID of the Switch')
-        cmd.add_argument('-c', '--comment', help='Comment for Switch')
+        switch_add = switch_args.add_parser('add', help='Add Switch')
+        switch_add.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        switch_add.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
+        switch_add.add_argument('-n', '--name', type=str, help='Name of the Switch')
+        switch_add.add_argument('-N', '--network', help='Network Switch belongs to')
+        switch_add.add_argument('-ip', '--ipaddress', help='IP of the Switch')
+        switch_add.add_argument('-r', '--read', default='public', help='Read community')
+        switch_add.add_argument('-w', '--rw', default='private', help='Write community')
+        switch_add.add_argument('-o', '--oid', default='.1.3.6.1.2.1.17.7.1.2.2.1.2', help='OID of the Switch')
+        switch_add.add_argument('-c', '--comment', help='Comment for Switch')
         ## >>>>>>> Switch Command >>>>>>> update
-        cmd = switch_args.add_parser('update', help='Update Switch')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Switch')
-        cmd.add_argument('-N', '--network', help='Network Switch belongs to')
-        cmd.add_argument('-ip', '--ipaddress', help='IP of the Switch')
-        cmd.add_argument('-r', '--read', help='Read community')
-        cmd.add_argument('-w', '--rw', help='Write community')
-        cmd.add_argument('-o', '--oid', help='OID of the Switch')
-        cmd.add_argument('-c', '--comment', help='Comment for Switch')
+        switch_update = switch_args.add_parser('update', help='Update Switch')
+        switch_update.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        switch_update.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
+        switch_update.add_argument('-n', '--name', help='Name of the Switch')
+        switch_update.add_argument('-N', '--network', help='Network Switch belongs to')
+        switch_update.add_argument('-ip', '--ipaddress', help='IP of the Switch')
+        switch_update.add_argument('-r', '--read', help='Read community')
+        switch_update.add_argument('-w', '--rw', help='Write community')
+        switch_update.add_argument('-o', '--oid', help='OID of the Switch')
+        switch_update.add_argument('-c', '--comment', help='Comment for Switch')
         ## >>>>>>> Switch Command >>>>>>> clone
-        cmd = switch_args.add_parser('clone', help='Clone Switch')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Switch')
-        cmd.add_argument('-nn', '--newswitchname', help='New name of the Switch')
-        cmd.add_argument('-N', '--network', help='Network Switch belongs to')
-        cmd.add_argument('-ip', '--ipaddress', help='IP of the Switch')
-        cmd.add_argument('-r', '--read', help='Read community')
-        cmd.add_argument('-w', '--rw', help='Write community')
-        cmd.add_argument('-o', '--oid', help='OID of the Switch')
-        cmd.add_argument('-c', '--comment', help='Comment for Switch')
+        switch_clone = switch_args.add_parser('clone', help='Clone Switch')
+        switch_clone.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        switch_clone.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
+        switch_clone.add_argument('-n', '--name', help='Name of the Switch')
+        switch_clone.add_argument('-nn', '--newswitchname', help='New name of the Switch')
+        switch_clone.add_argument('-N', '--network', help='Network Switch belongs to')
+        switch_clone.add_argument('-ip', '--ipaddress', help='IP of the Switch')
+        switch_clone.add_argument('-r', '--read', help='Read community')
+        switch_clone.add_argument('-w', '--rw', help='Write community')
+        switch_clone.add_argument('-o', '--oid', help='OID of the Switch')
+        switch_clone.add_argument('-c', '--comment', help='Comment for Switch')
         ## >>>>>>> Switch Command >>>>>>> rename
-        cmd = switch_args.add_parser('rename', help='Rename Switch')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Switch')
-        cmd.add_argument('-nn', '--newswitchname', help='New name of the Switch')
+        switch_rename = switch_args.add_parser('rename', help='Rename Switch')
+        switch_rename.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        switch_rename.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
+        switch_rename.add_argument('-n', '--name', help='Name of the Switch')
+        switch_rename.add_argument('-nn', '--newswitchname', help='New name of the Switch')
         ## >>>>>>> Switch Command >>>>>>> delete
-        cmd = switch_args.add_parser('delete', help='Delete Switch')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Switch')
+        switch_delete = switch_args.add_parser('delete', help='Delete Switch')
+        switch_delete.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        switch_delete.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
+        switch_delete.add_argument('-n', '--name', help='Name of the Switch')
         return parser
 
 
-    def list_switch(self, args=None):
+    def list_switch(self):
         """
         Method to list all switchs from Luna Configuration.
         """
-        response = False
-        fields, rows = [], []
-        get_list = Helper().get_list(self.table)
-        self.logger.debug(f'Get List Data from Helper => {get_list}')
-        if get_list:
-            data = get_list['config'][self.table]
-            if args['raw']:
-                response = Presenter().show_json(data)
-            else:
-                fields, rows  = Helper().filter_data(self.table, data)
-                self.logger.debug(f'Fields => {fields}')
-                self.logger.debug(f'Rows => {rows}')
-                response = Presenter().show_table(fields, rows)
-        else:
-            response = Helper().show_error(f'{self.table} is not found.')
-        return response
+        return Helper().get_list(self.table, self.args)
 
 
-    def show_switch(self, args=None):
+    def show_switch(self):
         """
         Method to show a switch in Luna Configuration.
         """
-        response = False
-        fields, rows = [], []
-        get_list = Helper().get_record(self.table, args['name'])
-        self.logger.debug(f'Get List Data from Helper => {get_list}')
-        if get_list:
-            data = get_list['config'][self.table][args["name"]]
-            if args['raw']:
-                response = Presenter().show_json(data)
-            else:
-                fields, rows  = Helper().filter_data_col(self.table, data)
-                self.logger.debug(f'Fields => {fields}')
-                self.logger.debug(f'Rows => {rows}')
-                title = f'{self.table.capitalize()} => {args["name"]}'
-                response = Presenter().show_table_col(title, fields, rows)
-        else:
-            response = Helper().show_error(f'{args["name"]} is not found in {self.table}.')
-        return response
+        return Helper().show_data(self.table, self.args)
 
 
-    def add_switch(self, args=None):
+    def add_switch(self):
         """
         Method to add new switch in Luna Configuration.
         """
         payload = {}
-        if args['init']:
+        if self.args['init']:
             payload['name'] = Inquiry().ask_text("Kindly provide Switch Name")
             payload['network'] = Inquiry().ask_text("Kindly provide Switch Network")
             payload['ipaddress'] = Inquiry().ask_text("Kindly provide Switch IP Address")
@@ -185,11 +152,11 @@ class Switch(object):
                 Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
         else:
             error = False
-            del args['debug']
-            del args['command']
-            del args['action']
-            del args['init']
-            payload = args
+            del self.args['debug']
+            del self.args['command']
+            del self.args['action']
+            del self.args['init']
+            payload = self.args
             for key in payload:
                 if payload[key] is None:
                     error = Helper().show_error(f'Kindly provide {key}.')
@@ -212,13 +179,13 @@ class Switch(object):
         return True
 
 
-    def update_switch(self, args=None):
+    def update_switch(self):
         """
         Method to update a switch in Luna Configuration.
         """
         payload = {}
-        if args['init']:
-            get_list = Helper().get_list(self.table)
+        if self.args['init']:
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Switch to update", names)
@@ -243,11 +210,11 @@ class Switch(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del args['debug']
-            del args['command']
-            del args['action']
-            del args['init']
-            payload = args
+            del self.args['debug']
+            del self.args['command']
+            del self.args['action']
+            del self.args['init']
+            payload = self.args
             filtered = {k: v for k, v in payload.items() if v is not None}
             payload.clear()
             payload.update(filtered)
@@ -256,7 +223,7 @@ class Switch(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
@@ -274,13 +241,13 @@ class Switch(object):
         return True
 
 
-    def rename_switch(self, args=None):
+    def rename_switch(self):
         """
         Method to rename a switch in Luna Configuration.
         """
         payload = {}
-        if args['init']:
-            get_list = Helper().get_list(self.table)
+        if self.args['init']:
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Switch to rename", names)
@@ -296,11 +263,11 @@ class Switch(object):
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
             error = False
-            del args['debug']
-            del args['command']
-            del args['action']
-            del args['init']
-            payload = args
+            del self.args['debug']
+            del self.args['command']
+            del self.args['action']
+            del self.args['init']
+            payload = self.args
             if payload['name'] is None:
                 error = Helper().show_error('Kindly provide Switch Name.')
             if payload['newswitchname'] is None:
@@ -312,7 +279,7 @@ class Switch(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
@@ -328,14 +295,14 @@ class Switch(object):
         return True
 
 
-    def delete_switch(self, args=None):
+    def delete_switch(self):
         """
         Method to delete a switch in Luna Configuration.
         """
         abort = False
         payload = {}
-        if args['init']:
-            get_list = Helper().get_list(self.table)
+        if self.args['init']:
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Switch to delete", names)
@@ -348,15 +315,15 @@ class Switch(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del args['debug']
-            del args['command']
-            del args['action']
-            del args['init']
-            payload = args
+            del self.args['debug']
+            del self.args['command']
+            del self.args['action']
+            del self.args['init']
+            payload = self.args
             if payload['name'] is None:
                 abort = Helper().show_error('Kindly provide Switch Name.')
         if abort is False:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
@@ -372,13 +339,13 @@ class Switch(object):
         return True
 
 
-    def clone_switch(self, args=None):
+    def clone_switch(self):
         """
         Method to rename a switch in Luna Configuration.
         """
         payload = {}
-        if args['init']:
-            get_list = Helper().get_list(self.table)
+        if self.args['init']:
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Switch to update", names)
@@ -391,7 +358,7 @@ class Switch(object):
                 comment = Inquiry().ask_confirm("Do you want to provide a comment?")
                 if comment:
                     payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
-                get_record = Helper().get_record(self.table, payload['name'])
+                get_record = Rest().get_data(self.table, payload['name'])
                 if get_record:
                     data = get_record['config'][self.table][payload["name"]]
                     for key, value in payload.items():
@@ -411,12 +378,12 @@ class Switch(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del args['debug']
-            del args['command']
-            del args['action']
-            del args['init']
-            payload = args
-            get_record = Helper().get_record(self.table, payload['name'])
+            del self.args['debug']
+            del self.args['command']
+            del self.args['action']
+            del self.args['init']
+            payload = self.args
+            get_record = Rest().get_data(self.table, payload['name'])
             if get_record:
                 data = get_record['config'][self.table][payload["name"]]
                 for key, value in payload.items():
@@ -430,7 +397,7 @@ class Switch(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:

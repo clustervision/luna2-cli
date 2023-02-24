@@ -54,14 +54,14 @@ class Presenter(object):
 
 
 
-    def show_table(self, fields=None, rows=None):
+    def show_table(self, title=None, fields=None, rows=None):
         """
         This method will fetch a records from
         the Luna 2 Daemon Database
         """
         self.logger.debug(f'Fields => {fields}')
         self.logger.debug(f'Rows => {rows}')
-        # self.table.title = colored("title", 'cyan', attrs=['bold'])
+        self.table.title = colored(title, 'cyan', attrs=['bold'])
         self.table.field_names = fields
         if '\\n' in str(rows):
             self.table.align = "l"

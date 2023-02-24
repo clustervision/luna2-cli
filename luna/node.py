@@ -69,152 +69,152 @@ class Node(object):
         node_menu = subparsers.add_parser('node', help='Node operations.')
         node_args = node_menu.add_subparsers(dest='action')
         ## >>>>>>> Node Command >>>>>>> list
-        cmd = node_args.add_parser('list', help='List Node')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        node_list = node_args.add_parser('list', help='List Node')
+        node_list.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        node_list.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Node Command >>>>>>> show
-        cmd = node_args.add_parser('show', help='Show Node')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('name', help='Name of the Node')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        node_show = node_args.add_parser('show', help='Show Node')
+        node_show.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        node_show.add_argument('name', help='Name of the Node')
+        node_show.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Node Command >>>>>>> add
-        cmd = node_args.add_parser('add', help='Add Node')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Node values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Node')
-        cmd.add_argument('-host', '--hostname',help='Hostname')
-        cmd.add_argument('-g', '--group', help='Group Name')
-        cmd.add_argument('-lb', '--localboot', help='Local Boot')
-        cmd.add_argument('-m', '--macaddr', help='MAC Address')
-        cmd.add_argument('-o', '--osimage', help='OS Image Name')
-        cmd.add_argument('-sw', '--switch', help='Switch Name')
-        cmd.add_argument('-sp', '--switchport', help='Switch Port')
-        cmd.add_argument('-ser', '--service', action='store_true', help='Service')
-        cmd.add_argument('-b', '--setupbmc', action='store_true', help='BMC Setup')
-        cmd.add_argument('-s', '--status', help='Status')
-        cmd.add_argument('-pre', '--prescript', help='Pre Script')
-        cmd.add_argument('-part', '--partscript', help='Part Script')
-        cmd.add_argument('-post', '--postscript', help='Post Script')
-        cmd.add_argument('-nb', '--netboot', help='Network Boot')
-        cmd.add_argument('-li', '--localinstall', help='Local Install')
-        cmd.add_argument('-bm', '--bootmenu', help='Boot Menu')
-        cmd.add_argument('-pi', '--provision_interface', help='Provision Interface')
-        cmd.add_argument('-pm', '--provision_method', help='Provision Method')
-        cmd.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        cmd.add_argument('-tid', '--tpm_uuid', action='store_true', help='TPM UUID')
-        cmd.add_argument('-tkey', '--tpm_pubkey', help='TPM Public Key')
-        cmd.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
-        cmd.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        cmd.add_argument('-if', '--interface', action='append', help='Interface Name')
-        cmd.add_argument('-N', '--network', action='append', help='Interfaces Network Name')
-        cmd.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
-        cmd.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
-        cmd.add_argument('-c', '--comment', help='Comment for Node')
+        node_add = node_args.add_parser('add', help='Add Node')
+        node_add.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        node_add.add_argument('-i', '--init', action='store_true', help='Node values one-by-one')
+        node_add.add_argument('-n', '--name', help='Name of the Node')
+        node_add.add_argument('-host', '--hostname',help='Hostname')
+        node_add.add_argument('-g', '--group', help='Group Name')
+        node_add.add_argument('-lb', '--localboot', help='Local Boot')
+        node_add.add_argument('-m', '--macaddr', help='MAC Address')
+        node_add.add_argument('-o', '--osimage', help='OS Image Name')
+        node_add.add_argument('-sw', '--switch', help='Switch Name')
+        node_add.add_argument('-sp', '--switchport', help='Switch Port')
+        node_add.add_argument('-ser', '--service', action='store_true', help='Service')
+        node_add.add_argument('-b', '--setupbmc', action='store_true', help='BMC Setup')
+        node_add.add_argument('-s', '--status', help='Status')
+        node_add.add_argument('-pre', '--prescript', help='Pre Script')
+        node_add.add_argument('-part', '--partscript', help='Part Script')
+        node_add.add_argument('-post', '--postscript', help='Post Script')
+        node_add.add_argument('-nb', '--netboot', help='Network Boot')
+        node_add.add_argument('-li', '--localinstall', help='Local Install')
+        node_add.add_argument('-bm', '--bootmenu', help='Boot Menu')
+        node_add.add_argument('-pi', '--provision_interface', help='Provision Interface')
+        node_add.add_argument('-pm', '--provision_method', help='Provision Method')
+        node_add.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
+        node_add.add_argument('-tid', '--tpm_uuid', action='store_true', help='TPM UUID')
+        node_add.add_argument('-tkey', '--tpm_pubkey', help='TPM Public Key')
+        node_add.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
+        node_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
+        node_add.add_argument('-if', '--interface', action='append', help='Interface Name')
+        node_add.add_argument('-N', '--network', action='append', help='Interfaces Network Name')
+        node_add.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
+        node_add.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
+        node_add.add_argument('-c', '--comment', help='Comment for Node')
         ## >>>>>>> Node Command >>>>>>> update
-        cmd = node_args.add_parser('update', help='Update Node')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Node values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Node')
-        cmd.add_argument('-host', '--hostname',help='Hostname')
-        cmd.add_argument('-g', '--group', help='Group Name')
-        cmd.add_argument('-lb', '--localboot', help='Local Boot')
-        cmd.add_argument('-m', '--macaddr', help='MAC Address')
-        cmd.add_argument('-o', '--osimage', help='OS Image Name')
-        cmd.add_argument('-sw', '--switch', help='Switch Name')
-        cmd.add_argument('-sp', '--switchport', help='Switch Port')
-        cmd.add_argument('-ser', '--service', action='store_true', help='Service')
-        cmd.add_argument('-b', '--setupbmc', action='store_true', help='BMC Setup')
-        cmd.add_argument('-s', '--status', help='Status')
-        cmd.add_argument('-pre', '--prescript', help='Pre Script')
-        cmd.add_argument('-part', '--partscript', help='Part Script')
-        cmd.add_argument('-post', '--postscript', help='Post Script')
-        cmd.add_argument('-nb', '--netboot', help='Network Boot')
-        cmd.add_argument('-li', '--localinstall', help='Local Install')
-        cmd.add_argument('-bm', '--bootmenu', help='Boot Menu')
-        cmd.add_argument('-pi', '--provision_interface', help='Provision Interface')
-        cmd.add_argument('-pm', '--provision_method', help='Provision Method')
-        cmd.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        cmd.add_argument('-tid', '--tpm_uuid', action='store_true', help='TPM UUID')
-        cmd.add_argument('-tkey', '--tpm_pubkey', help='TPM Public Key')
-        cmd.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
-        cmd.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        cmd.add_argument('-if', '--interface', action='append', help='Interface Name')
-        cmd.add_argument('-N', '--network', action='append', help='Interfaces Network Name')
-        cmd.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
-        cmd.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
-        cmd.add_argument('-c', '--comment', help='Comment for Node')
+        node_update = node_args.add_parser('update', help='Update Node')
+        node_update.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        node_update.add_argument('-i', '--init', action='store_true', help='Node values one-by-one')
+        node_update.add_argument('-n', '--name', help='Name of the Node')
+        node_update.add_argument('-host', '--hostname',help='Hostname')
+        node_update.add_argument('-g', '--group', help='Group Name')
+        node_update.add_argument('-lb', '--localboot', help='Local Boot')
+        node_update.add_argument('-m', '--macaddr', help='MAC Address')
+        node_update.add_argument('-o', '--osimage', help='OS Image Name')
+        node_update.add_argument('-sw', '--switch', help='Switch Name')
+        node_update.add_argument('-sp', '--switchport', help='Switch Port')
+        node_update.add_argument('-ser', '--service', action='store_true', help='Service')
+        node_update.add_argument('-b', '--setupbmc', action='store_true', help='BMC Setup')
+        node_update.add_argument('-s', '--status', help='Status')
+        node_update.add_argument('-pre', '--prescript', help='Pre Script')
+        node_update.add_argument('-part', '--partscript', help='Part Script')
+        node_update.add_argument('-post', '--postscript', help='Post Script')
+        node_update.add_argument('-nb', '--netboot', help='Network Boot')
+        node_update.add_argument('-li', '--localinstall', help='Local Install')
+        node_update.add_argument('-bm', '--bootmenu', help='Boot Menu')
+        node_update.add_argument('-pi', '--provision_interface', help='Provision Interface')
+        node_update.add_argument('-pm', '--provision_method', help='Provision Method')
+        node_update.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
+        node_update.add_argument('-tid', '--tpm_uuid', action='store_true', help='TPM UUID')
+        node_update.add_argument('-tkey', '--tpm_pubkey', help='TPM Public Key')
+        node_update.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
+        node_update.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
+        node_update.add_argument('-if', '--interface', action='append', help='Interface Name')
+        node_update.add_argument('-N', '--network', action='append', help='Interfaces Network Name')
+        node_update.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
+        node_update.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
+        node_update.add_argument('-c', '--comment', help='Comment for Node')
         ## >>>>>>> Node Command >>>>>>> clone
-        cmd = node_args.add_parser('clone', help='Clone Node')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Node values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Node')
-        cmd.add_argument('-nn', '--newnodename', help='New Name for the Node')
-        cmd.add_argument('-host', '--hostname',help='Hostname')
-        cmd.add_argument('-g', '--group', help='Group Name')
-        cmd.add_argument('-lb', '--localboot', help='Local Boot')
-        cmd.add_argument('-m', '--macaddr', help='MAC Address')
-        cmd.add_argument('-o', '--osimage', help='OS Image Name')
-        cmd.add_argument('-sw', '--switch', help='Switch Name')
-        cmd.add_argument('-sp', '--switchport', help='Switch Port')
-        cmd.add_argument('-ser', '--service', action='store_true', help='Service')
-        cmd.add_argument('-b', '--setupbmc', action='store_true', help='BMC Setup')
-        cmd.add_argument('-s', '--status', help='Status')
-        cmd.add_argument('-pre', '--prescript', help='Pre Script')
-        cmd.add_argument('-part', '--partscript', help='Part Script')
-        cmd.add_argument('-post', '--postscript', help='Post Script')
-        cmd.add_argument('-nb', '--netboot', help='Network Boot')
-        cmd.add_argument('-li', '--localinstall', help='Local Install')
-        cmd.add_argument('-bm', '--bootmenu', help='Boot Menu')
-        cmd.add_argument('-pi', '--provision_interface', help='Provision Interface')
-        cmd.add_argument('-pm', '--provision_method', help='Provision Method')
-        cmd.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        cmd.add_argument('-tid', '--tpm_uuid', action='store_true', help='TPM UUID')
-        cmd.add_argument('-tkey', '--tpm_pubkey', help='TPM Public Key')
-        cmd.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
-        cmd.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        cmd.add_argument('-if', '--interface', action='append', help='Interface Name')
-        cmd.add_argument('-N', '--network', action='append', help='Interfaces Network Name')
-        cmd.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
-        cmd.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
-        cmd.add_argument('-c', '--comment', help='Comment for Node')
+        node_clone = node_args.add_parser('clone', help='Clone Node')
+        node_clone.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        node_clone.add_argument('-i', '--init', action='store_true', help='Node values one-by-one')
+        node_clone.add_argument('-n', '--name', help='Name of the Node')
+        node_clone.add_argument('-nn', '--newnodename', help='New Name for the Node')
+        node_clone.add_argument('-host', '--hostname',help='Hostname')
+        node_clone.add_argument('-g', '--group', help='Group Name')
+        node_clone.add_argument('-lb', '--localboot', help='Local Boot')
+        node_clone.add_argument('-m', '--macaddr', help='MAC Address')
+        node_clone.add_argument('-o', '--osimage', help='OS Image Name')
+        node_clone.add_argument('-sw', '--switch', help='Switch Name')
+        node_clone.add_argument('-sp', '--switchport', help='Switch Port')
+        node_clone.add_argument('-ser', '--service', action='store_true', help='Service')
+        node_clone.add_argument('-b', '--setupbmc', action='store_true', help='BMC Setup')
+        node_clone.add_argument('-s', '--status', help='Status')
+        node_clone.add_argument('-pre', '--prescript', help='Pre Script')
+        node_clone.add_argument('-part', '--partscript', help='Part Script')
+        node_clone.add_argument('-post', '--postscript', help='Post Script')
+        node_clone.add_argument('-nb', '--netboot', help='Network Boot')
+        node_clone.add_argument('-li', '--localinstall', help='Local Install')
+        node_clone.add_argument('-bm', '--bootmenu', help='Boot Menu')
+        node_clone.add_argument('-pi', '--provision_interface', help='Provision Interface')
+        node_clone.add_argument('-pm', '--provision_method', help='Provision Method')
+        node_clone.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
+        node_clone.add_argument('-tid', '--tpm_uuid', action='store_true', help='TPM UUID')
+        node_clone.add_argument('-tkey', '--tpm_pubkey', help='TPM Public Key')
+        node_clone.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
+        node_clone.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
+        node_clone.add_argument('-if', '--interface', action='append', help='Interface Name')
+        node_clone.add_argument('-N', '--network', action='append', help='Interfaces Network Name')
+        node_clone.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
+        node_clone.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
+        node_clone.add_argument('-c', '--comment', help='Comment for Node')
         ## >>>>>>> Node Command >>>>>>> rename
-        cmd = node_args.add_parser('rename', help='Rename Node')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Node values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Node')
-        cmd.add_argument('-nn', '--newnodename', help='New Name for the Node')
+        node_rename = node_args.add_parser('rename', help='Rename Node')
+        node_rename.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        node_rename.add_argument('-i', '--init', action='store_true', help='Node values one-by-one')
+        node_rename.add_argument('-n', '--name', help='Name of the Node')
+        node_rename.add_argument('-nn', '--newnodename', help='New Name for the Node')
         ## >>>>>>> Network Command >>>>>>> delete
-        cmd = node_args.add_parser('delete', help='Delete Node')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Node values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Node')
+        node_delete = node_args.add_parser('delete', help='Delete Node')
+        node_delete.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        node_delete.add_argument('-i', '--init', action='store_true', help='Node values one-by-one')
+        node_delete.add_argument('-n', '--name', help='Name of the Node')
         ## >>>>>>> Node Commands Ends
         ## >>>>>>> Node Interface Command >>>>>>> interfaces
-        cmd = node_args.add_parser('interfaces', help='List Node Interfaces')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('name', help='Name of the Node')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        node_interfaces = node_args.add_parser('interfaces', help='List Node Interfaces')
+        node_interfaces.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        node_interfaces.add_argument('name', help='Name of the Node')
+        node_interfaces.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Node Interface Command >>>>>>> interfaces
-        cmd = node_args.add_parser('interface', help='Show Node Interface')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('name', help='Name of the Node')
-        cmd.add_argument('interface', help='Name of the Node Interface')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        node_interface = node_args.add_parser('interface', help='Show Node Interface')
+        node_interface.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        node_interface.add_argument('name', help='Name of the Node')
+        node_interface.add_argument('interface', help='Name of the Node Interface')
+        node_interface.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Network Interface Command >>>>>>> delete
-        cmd = node_args.add_parser('updateinterface', help='Update Node Interface')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Node values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Node')
-        cmd.add_argument('-if', '--interface', action='append', help='Node Interface')
-        cmd.add_argument('-N', '--network', action='append', help='Network Name')
-        cmd.add_argument('-ip', '--ipaddress', action='append', help='IP Address')
-        cmd.add_argument('-m', '--macaddress', action='append', help='MAC Address')
+        node_updateinterface = node_args.add_parser('updateinterface', help='Update Node Interface')
+        node_updateinterface.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        node_updateinterface.add_argument('-i', '--init', action='store_true', help='Node values one-by-one')
+        node_updateinterface.add_argument('-n', '--name', help='Name of the Node')
+        node_updateinterface.add_argument('-if', '--interface', action='append', help='Node Interface')
+        node_updateinterface.add_argument('-N', '--network', action='append', help='Network Name')
+        node_updateinterface.add_argument('-ip', '--ipaddress', action='append', help='IP Address')
+        node_updateinterface.add_argument('-m', '--macaddress', action='append', help='MAC Address')
         ## >>>>>>> Network Interface Command >>>>>>> delete
-        cmd = node_args.add_parser('deleteinterface', help='Delete Node Interface')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Node values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Node')
-        cmd.add_argument('-if', '--interface', help='Name of the Node Interface')
+        node_deleteinterface = node_args.add_parser('deleteinterface', help='Delete Node Interface')
+        node_deleteinterface.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        node_deleteinterface.add_argument('-i', '--init', action='store_true', help='Node values one-by-one')
+        node_deleteinterface.add_argument('-n', '--name', help='Name of the Node')
+        node_deleteinterface.add_argument('-if', '--interface', help='Name of the Node Interface')
         return parser
 
 
@@ -222,45 +222,14 @@ class Node(object):
         """
         Method to list all nodes from Luna Configuration.
         """
-        response = False
-        fields, rows = [], []
-        get_list = Helper().get_list(self.table)
-        self.logger.debug(f'Get List Data from Helper => {get_list}')
-        if get_list:
-            data = get_list['config'][self.table]
-            if self.args['raw']:
-                response = Presenter().show_json(data)
-            else:
-                fields, rows  = Helper().filter_data(self.table, data)
-                self.logger.debug(f'Fields => {fields}')
-                self.logger.debug(f'Rows => {rows}')
-                response = Presenter().show_table(fields, rows)
-        else:
-            response = Helper().show_error(f'{self.table} is not found.')
-        return response
+        return Helper().get_list(self.table, self.args)
 
 
     def show_node(self):
         """
         Method to show a node in Luna Configuration.
         """
-        response = False
-        fields, rows = [], []
-        get_list = Helper().get_record(self.table, self.args['name'])
-        self.logger.debug(f'Get List Data from Helper => {get_list}')
-        if get_list:
-            data = get_list['config'][self.table][self.args["name"]]
-            if self.args['raw']:
-                response = Presenter().show_json(data)
-            else:
-                fields, rows  = Helper().filter_data_col(self.table, data)
-                self.logger.debug(f'Fields => {fields}')
-                self.logger.debug(f'Rows => {rows}')
-                title = f'{self.table.capitalize()} => {self.args["name"]}'
-                response = Presenter().show_table_col(title, fields, rows)
-        else:
-            response = Helper().show_error(f'{self.args["name"]} is not found in {self.table}.')
-        return response
+        return Helper().show_data(self.table, self.args)
 
 
     def add_node(self):
@@ -333,8 +302,8 @@ class Node(object):
             iface = [self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']]
             ifacecount = sum(x is not None for x in iface)
             if ifacecount:
-                if ifacecount == 2:
-                    if len(self.args['interface']) == len(self.args['network']):
+                if ifacecount == 4:
+                    if len(self.args['interface']) == len(self.args['network']) == len(self.args['ipaddress']) == len(self.args['macaddress']):
                         interface_data = {'interface': self.args['interface'], 'network': self.args['network'], 'ipaddress': self.args['ipaddress'], 'macaddress': self.args['macaddress']}
                         self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
                     else:
@@ -372,7 +341,7 @@ class Node(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Node", names)
@@ -445,8 +414,8 @@ class Node(object):
             iface = [self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']]
             ifacecount = sum(x is not None for x in iface)
             if ifacecount:
-                if ifacecount == 2:
-                    if len(self.args['interface']) == len(self.args['network']):
+                if ifacecount == 4:
+                    if len(self.args['interface']) == len(self.args['network']) == len(self.args['ipaddress']) == len(self.args['macaddress']):
                         interface_data = {'interface': self.args['interface'], 'network': self.args['network'], 'ipaddress': self.args['ipaddress'], 'macaddress': self.args['macaddress']}
                         self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
                     else:
@@ -466,7 +435,7 @@ class Node(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
@@ -490,7 +459,7 @@ class Node(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Node to rename", names)
@@ -522,7 +491,7 @@ class Node(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
@@ -545,7 +514,7 @@ class Node(object):
         abort = False
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Node to delete", names)
@@ -566,7 +535,7 @@ class Node(object):
             if payload['name'] is None:
                 abort = Helper().show_error('Kindly provide Node Name.')
         if abort is False:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
@@ -588,7 +557,7 @@ class Node(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Node", names)
@@ -641,7 +610,7 @@ class Node(object):
                 comment = Inquiry().ask_confirm("Do you want to provide a comment?")
                 if comment:
                     payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
-                get_record = Helper().get_record(self.table, payload['name'])
+                get_record = Rest().get_data(self.table, payload['name'])
                 if get_record:
                     data = get_record['config'][self.table][payload["name"]]
                     for key, value in payload.items():
@@ -669,8 +638,8 @@ class Node(object):
             iface = [self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']]
             ifacecount = sum(x is not None for x in iface)
             if ifacecount:
-                if ifacecount == 2:
-                    if len(self.args['interface']) == len(self.args['network']):
+                if ifacecount == 4:
+                    if len(self.args['interface']) == len(self.args['network']) == len(self.args['ipaddress']) == len(self.args['macaddress']):
                         interface_data = {'interface': self.args['interface'], 'network': self.args['network'], 'ipaddress': self.args['ipaddress'], 'macaddress': self.args['macaddress']}
                         self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
                     else:
@@ -685,7 +654,7 @@ class Node(object):
                 Helper().show_error('Operation Aborted.')
                 self.args.clear()
             payload = {k: v for k, v in self.args.items() if v is not None}
-            get_record = Helper().get_record(self.table, payload['name'])
+            get_record = Rest().get_data(self.table, payload['name'])
             if get_record:
                 data = get_record['config'][self.table][payload["name"]]
                 for key, value in payload.items():
@@ -699,7 +668,7 @@ class Node(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
@@ -729,7 +698,7 @@ class Node(object):
         response = False
         fields, rows = [], []
         self.logger.debug(f'Table => {self.table} and URI => {self.args["name"]}/interfaces')
-        get_list = Helper().get_record(self.table, self.args['name']+'/interfaces')
+        get_list = Rest().get_data(self.table, self.args['name']+'/interfaces')
         self.logger.debug(f'List Interfaces => {get_list}')
         if get_list:
             data = get_list['config'][self.table][self.args["name"]]['interfaces']
@@ -739,7 +708,8 @@ class Node(object):
                 fields, rows  = Helper().filter_interface(self.interface, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
-                response = Presenter().show_table(fields, rows)
+                title = f' << {self.table.capitalize()} {self.args["name"]} Interfaces >>'
+                response = Presenter().show_table(title, fields, rows)
         else:
             response = Helper().show_error(f'{self.args["name"]} is not found in {self.table}.')
         return response
@@ -752,7 +722,7 @@ class Node(object):
         response = False
         fields, rows = [], []
         self.logger.debug(f'Table => {self.table} and URI => {self.args["name"]}/interfaces{self.args["interface"]}')
-        get_list = Helper().get_record(self.table, self.args['name']+'/interfaces/'+self.args['interface'])
+        get_list = Rest().get_data(self.table, self.args['name']+'/interfaces/'+self.args['interface'])
         self.logger.debug(f'List Interfaces => {get_list}')
         if get_list:
             data = get_list['config'][self.table][self.args["name"]]['interfaces'][0]
@@ -773,9 +743,10 @@ class Node(object):
         """
         Method to list a node interfaces in Luna Configuration.
         """
+        response = False
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Node", names)
@@ -810,30 +781,37 @@ class Node(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
+            error = False
             del self.args['debug']
             del self.args['command']
             del self.args['action']
             del self.args['init']
-            if len(self.args['interface']) == len(self.args['network']) == len(self.args['ipaddress']) == len(self.args['macaddress']):
-                self.args['interfaces'] = []
-                temp_dict = {}
-                for ifc, nwk, ip, mac in zip(self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']):
-                    temp_dict['interface'] = ifc
-                    temp_dict['network'] = nwk
-                    temp_dict['ipaddress'] = ip
-                    temp_dict['macaddress'] = mac
-                    self.args['interfaces'].append(temp_dict)
-                    temp_dict = {}
-                del self.args['interface']
-                del self.args['network']
-                del self.args['ipaddress']
-                del self.args['macaddress']
-            else:
-                response = Helper().show_error('Each Interface should have Interface Name, Network, IP Address and MAC Address')
-            payload = self.args
-            filtered = {k: v for k, v in payload.items() if v is not None}
-            payload.clear()
-            payload.update(filtered)
+            iface = [self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']]
+            ifacecount = sum(x is not None for x in iface)
+            if ifacecount:
+                if ifacecount == 4:
+                    if len(self.args['interface']) == len(self.args['network']) == len(self.args['ipaddress']) == len(self.args['macaddress']):
+                        self.args['interfaces'] = []
+                        temp_dict = {}
+                        for ifc, nwk, ip, mac in zip(self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']):
+                            temp_dict['interface'] = ifc
+                            temp_dict['network'] = nwk
+                            temp_dict['ipaddress'] = ip
+                            temp_dict['macaddress'] = mac
+                            self.args['interfaces'].append(temp_dict)
+                            temp_dict = {}
+                        del self.args['interface']
+                        del self.args['network']
+                        del self.args['ipaddress']
+                        del self.args['macaddress']
+                    else:
+                        response = Helper().show_error('Each Interface should have Interface Name, Network, IP Address and MAC Address')
+                else:
+                    error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
+            if error:
+                Helper().show_error('Operation Aborted.')
+                self.args.clear()
+            payload = {k: v for k, v in self.args.items() if v is not None}
         if (len(payload) != 1) and ('name' in payload):
             node_name = payload['name']
             del payload['name']
@@ -860,11 +838,11 @@ class Node(object):
         abort = False
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Node to delete Interface", names)
-                record = Helper().get_record(self.table, payload['name'])
+                record = Rest().get_data(self.table, payload['name'])
                 all_interface = record['config'][self.table][payload['name']]['interfaces']
                 ifc_list = []
                 for ifc in all_interface:

@@ -63,92 +63,92 @@ class OSImage(object):
         osimage_menu = subparsers.add_parser('osimage', help='OSImage operations.')
         osimage_args = osimage_menu.add_subparsers(dest='action')
         ## >>>>>>> OSImage Command >>>>>>> list
-        cmd = osimage_args.add_parser('list', help='List OSImages')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        osimage_list = osimage_args.add_parser('list', help='List OSImages')
+        osimage_list.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        osimage_list.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> OSImage Command >>>>>>> show
-        cmd = osimage_args.add_parser('show', help='Show a OSImage')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('name', help='Name of the OSImage')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        osimage_show = osimage_args.add_parser('show', help='Show a OSImage')
+        osimage_show.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        osimage_show.add_argument('name', help='Name of the OSImage')
+        osimage_show.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> OSImage Command >>>>>>> add
-        cmd = osimage_args.add_parser('add', help='Add OSImage')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='OSImage values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the OSImage')
-        cmd.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
-        cmd.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
-        cmd.add_argument('-ge', '--grab_exclude', help='Grab Excludes')
-        cmd.add_argument('-rd', '--initrdfile', help='INIT RD File')
-        cmd.add_argument('-k', '--kernelfile', help='Kernel File')
-        cmd.add_argument('-m', '--kernelmodules', help='Kernel Modules')
-        cmd.add_argument('-o', '--kerneloptions', help='Kernel Options')
-        cmd.add_argument('-v', '--kernelversion', help='Kernel Version')
-        cmd.add_argument('-p', '--path', help='Path of image')
-        cmd.add_argument('-tar', '--tarball', help='Tarball UUID')
-        cmd.add_argument('-t', '--torrent', help='Torrent UUID')
-        cmd.add_argument('-D', '--distribution', help='Distribution From')
-        cmd.add_argument('-c', '--comment', help='Comment for OSImage')
+        osimage_add = osimage_args.add_parser('add', help='Add OSImage')
+        osimage_add.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        osimage_add.add_argument('-i', '--init', action='store_true', help='OSImage values one-by-one')
+        osimage_add.add_argument('-n', '--name', help='Name of the OSImage')
+        osimage_add.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
+        osimage_add.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
+        osimage_add.add_argument('-ge', '--grab_exclude', help='Grab Excludes')
+        osimage_add.add_argument('-rd', '--initrdfile', help='INIT RD File')
+        osimage_add.add_argument('-k', '--kernelfile', help='Kernel File')
+        osimage_add.add_argument('-m', '--kernelmodules', help='Kernel Modules')
+        osimage_add.add_argument('-o', '--kerneloptions', help='Kernel Options')
+        osimage_add.add_argument('-v', '--kernelversion', help='Kernel Version')
+        osimage_add.add_argument('-p', '--path', help='Path of image')
+        osimage_add.add_argument('-tar', '--tarball', help='Tarball UUID')
+        osimage_add.add_argument('-t', '--torrent', help='Torrent UUID')
+        osimage_add.add_argument('-D', '--distribution', help='Distribution From')
+        osimage_add.add_argument('-c', '--comment', help='Comment for OSImage')
         ## >>>>>>> OSImage Command >>>>>>> update
-        cmd = osimage_args.add_parser('update', help='Update OSImage')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='OSImage values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the OSImage')
-        cmd.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
-        cmd.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
-        cmd.add_argument('-ge', '--grab_exclude', help='Grab Excludes')
-        cmd.add_argument('-rd', '--initrdfile', help='INIT RD File')
-        cmd.add_argument('-k', '--kernelfile', help='Kernel File')
-        cmd.add_argument('-m', '--kernelmodules', help='Kernel Modules')
-        cmd.add_argument('-o', '--kerneloptions', help='Kernel Options')
-        cmd.add_argument('-v', '--kernelversion', help='Kernel Version')
-        cmd.add_argument('-p', '--path', help='Path of image')
-        cmd.add_argument('-tar', '--tarball', help='Tarball UUID')
-        cmd.add_argument('-t', '--torrent', help='Torrent UUID')
-        cmd.add_argument('-D', '--distribution', help='Distribution From')
-        cmd.add_argument('-c', '--comment', help='Comment for OSImage')
+        osimage_update = osimage_args.add_parser('update', help='Update OSImage')
+        osimage_update.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        osimage_update.add_argument('-i', '--init', action='store_true', help='OSImage values one-by-one')
+        osimage_update.add_argument('-n', '--name', help='Name of the OSImage')
+        osimage_update.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
+        osimage_update.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
+        osimage_update.add_argument('-ge', '--grab_exclude', help='Grab Excludes')
+        osimage_update.add_argument('-rd', '--initrdfile', help='INIT RD File')
+        osimage_update.add_argument('-k', '--kernelfile', help='Kernel File')
+        osimage_update.add_argument('-m', '--kernelmodules', help='Kernel Modules')
+        osimage_update.add_argument('-o', '--kerneloptions', help='Kernel Options')
+        osimage_update.add_argument('-v', '--kernelversion', help='Kernel Version')
+        osimage_update.add_argument('-p', '--path', help='Path of image')
+        osimage_update.add_argument('-tar', '--tarball', help='Tarball UUID')
+        osimage_update.add_argument('-t', '--torrent', help='Torrent UUID')
+        osimage_update.add_argument('-D', '--distribution', help='Distribution From')
+        osimage_update.add_argument('-c', '--comment', help='Comment for OSImage')
         ## >>>>>>> OSImage Command >>>>>>> clone
-        cmd = osimage_args.add_parser('clone', help='Clone OSImage')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='OSImage values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the OSImage')
-        cmd.add_argument('-nn', '--newosimage', help='New Name of the OSImage')
-        cmd.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
-        cmd.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
-        cmd.add_argument('-ge', '--grab_exclude', help='Grab Excludes')
-        cmd.add_argument('-rd', '--initrdfile', help='INIT RD File')
-        cmd.add_argument('-k', '--kernelfile', help='Kernel File')
-        cmd.add_argument('-m', '--kernelmodules', help='Kernel Modules')
-        cmd.add_argument('-o', '--kerneloptions', help='Kernel Options')
-        cmd.add_argument('-v', '--kernelversion', help='Kernel Version')
-        cmd.add_argument('-p', '--path', help='Path of image')
-        cmd.add_argument('-tar', '--tarball', help='Tarball UUID')
-        cmd.add_argument('-t', '--torrent', help='Torrent UUID')
-        cmd.add_argument('-D', '--distribution', help='Distribution From')
-        cmd.add_argument('-c', '--comment', help='Comment for OSImage')
+        osimage_clone = osimage_args.add_parser('clone', help='Clone OSImage')
+        osimage_clone.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        osimage_clone.add_argument('-i', '--init', action='store_true', help='OSImage values one-by-one')
+        osimage_clone.add_argument('-n', '--name', help='Name of the OSImage')
+        osimage_clone.add_argument('-nn', '--newosimage', help='New Name of the OSImage')
+        osimage_clone.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
+        osimage_clone.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
+        osimage_clone.add_argument('-ge', '--grab_exclude', help='Grab Excludes')
+        osimage_clone.add_argument('-rd', '--initrdfile', help='INIT RD File')
+        osimage_clone.add_argument('-k', '--kernelfile', help='Kernel File')
+        osimage_clone.add_argument('-m', '--kernelmodules', help='Kernel Modules')
+        osimage_clone.add_argument('-o', '--kerneloptions', help='Kernel Options')
+        osimage_clone.add_argument('-v', '--kernelversion', help='Kernel Version')
+        osimage_clone.add_argument('-p', '--path', help='Path of image')
+        osimage_clone.add_argument('-tar', '--tarball', help='Tarball UUID')
+        osimage_clone.add_argument('-t', '--torrent', help='Torrent UUID')
+        osimage_clone.add_argument('-D', '--distribution', help='Distribution From')
+        osimage_clone.add_argument('-c', '--comment', help='Comment for OSImage')
         ## >>>>>>> OSImage Command >>>>>>> rename
-        cmd = osimage_args.add_parser('rename', help='Rename OSImage')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='OSImage values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the OSImage')
-        cmd.add_argument('-nn', '--newosimage', help='New Name of the OSImage')
+        osimage_rename = osimage_args.add_parser('rename', help='Rename OSImage')
+        osimage_rename.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        osimage_rename.add_argument('-i', '--init', action='store_true', help='OSImage values one-by-one')
+        osimage_rename.add_argument('-n', '--name', help='Name of the OSImage')
+        osimage_rename.add_argument('-nn', '--newosimage', help='New Name of the OSImage')
         ## >>>>>>> OSImage Command >>>>>>> delete
-        cmd = osimage_args.add_parser('delete', help='Delete OSImage')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='OSImage values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the OSImage')
+        osimage_delete = osimage_args.add_parser('delete', help='Delete OSImage')
+        osimage_delete.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        osimage_delete.add_argument('-i', '--init', action='store_true', help='OSImage values one-by-one')
+        osimage_delete.add_argument('-n', '--name', help='Name of the OSImage')
         ## >>>>>>> OSImage Command >>>>>>> pack
-        cmd = osimage_args.add_parser('pack', help='Pack OSImage')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('name', help='Name of the OS Image')
+        osimage_pack = osimage_args.add_parser('pack', help='Pack OSImage')
+        osimage_pack.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        osimage_pack.add_argument('name', help='Name of the OS Image')
         ## >>>>>>> OSImage Command >>>>>>> kernel
-        cmd = osimage_args.add_parser('kernel', help='Chnage Kernel Version in OS Image')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='OSImage values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the OSImage')
-        cmd.add_argument('-rd', '--initrdfile', help='INIT RD File')
-        cmd.add_argument('-k', '--kernelfile', help='Kernel File')
-        cmd.add_argument('-v', '--kernelversion', help='Kernel Version')
+        osimage_kernel = osimage_args.add_parser('kernel', help='Chnage Kernel Version in OS Image')
+        osimage_kernel.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        osimage_kernel.add_argument('-i', '--init', action='store_true', help='OSImage values one-by-one')
+        osimage_kernel.add_argument('-n', '--name', help='Name of the OSImage')
+        osimage_kernel.add_argument('-rd', '--initrdfile', help='INIT RD File')
+        osimage_kernel.add_argument('-k', '--kernelfile', help='Kernel File')
+        osimage_kernel.add_argument('-v', '--kernelversion', help='Kernel Version')
         ## >>>>>>> OSImage Commands Ends
         return parser
 
@@ -157,45 +157,14 @@ class OSImage(object):
         """
         Method to list all osimages from Luna Configuration.
         """
-        response = False
-        fields, rows = [], []
-        get_list = Helper().get_list(self.table)
-        self.logger.debug(f'Get List Data from Helper => {get_list}')
-        if get_list:
-            data = get_list['config'][self.table]
-            if self.args['raw']:
-                response = Presenter().show_json(data)
-            else:
-                fields, rows  = Helper().filter_data(self.table, data)
-                self.logger.debug(f'Fields => {fields}')
-                self.logger.debug(f'Rows => {rows}')
-                response = Presenter().show_table(fields, rows)
-        else:
-            response = Helper().show_error(f'{self.table} is not found.')
-        return response
+        return Helper().get_list(self.table, self.args)
 
 
     def show_osimage(self):
         """
         Method to show a osimage in Luna Configuration.
         """
-        response = False
-        fields, rows = [], []
-        get_list = Helper().get_record(self.table, self.args['name'])
-        self.logger.debug(f'Get List Data from Helper => {get_list}')
-        if get_list:
-            data = get_list['config'][self.table][self.args["name"]]
-            if self.args['raw']:
-                response = Presenter().show_json(data)
-            else:
-                fields, rows  = Helper().filter_data_col(self.table, data)
-                self.logger.debug(f'Fields => {fields}')
-                self.logger.debug(f'Rows => {rows}')
-                title = f'{self.table.capitalize()} => {self.args["name"]}'
-                response = Presenter().show_table_col(title, fields, rows)
-        else:
-            response = Helper().show_error(f'{self.args["name"]} is not found in {self.table}.')
-        return response
+        return Helper().show_data(self.table, self.args)
 
 
     def add_osimage(self):
@@ -261,7 +230,7 @@ class OSImage(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select OSImage", names)
@@ -306,7 +275,7 @@ class OSImage(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
@@ -330,7 +299,7 @@ class OSImage(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select OSImage to rename", names)
@@ -362,7 +331,7 @@ class OSImage(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
@@ -385,7 +354,7 @@ class OSImage(object):
         abort = False
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select OSImage to delete", names)
@@ -406,7 +375,7 @@ class OSImage(object):
             if payload['name'] is None:
                 abort = Helper().show_error('Kindly provide OSImage Name.')
         if abort is False:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
@@ -428,7 +397,7 @@ class OSImage(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select OSImage", names)
@@ -448,7 +417,7 @@ class OSImage(object):
                 comment = Inquiry().ask_confirm("Do you want to provide a comment?")
                 if comment:
                     payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
-                get_record = Helper().get_record(self.table, payload['name'])
+                get_record = Rest().get_data(self.table, payload['name'])
                 if get_record:
                     data = get_record['config'][self.table][payload["name"]]
                     for key, value in payload.items():
@@ -473,7 +442,7 @@ class OSImage(object):
             del self.args['action']
             del self.args['init']
             payload = self.args
-            get_record = Helper().get_record(self.table, payload['name'])
+            get_record = Rest().get_data(self.table, payload['name'])
             if get_record:
                 data = get_record['config'][self.table][payload["name"]]
                 for key, value in payload.items():
@@ -487,7 +456,7 @@ class OSImage(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:

@@ -56,56 +56,56 @@ class OtherDev(object):
         Method will provide all the arguments
         related to the OtherDev class.
         """
-        otherdevice_menu = subparsers.add_parser('otherdev', help='Other Devices operations.')
-        otherdevice_args = otherdevice_menu.add_subparsers(dest='action')
+        otherdev_menu = subparsers.add_parser('otherdev', help='Other Devices operations.')
+        otherdev_args = otherdev_menu.add_subparsers(dest='action')
         ## >>>>>>> Other Devices Command >>>>>>> list
-        cmd = otherdevice_args.add_parser('list', help='List Other Devices')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        otherdev_list = otherdev_args.add_parser('list', help='List Other Devices')
+        otherdev_list.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        otherdev_list.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Other Devices Command >>>>>>> show
-        cmd = otherdevice_args.add_parser('show', help='Show Other Devices')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('name', help='Name of the Other Devices')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        otherdev_show = otherdev_args.add_parser('show', help='Show Other Devices')
+        otherdev_show.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        otherdev_show.add_argument('name', help='Name of the Other Devices')
+        otherdev_show.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Other Devices Command >>>>>>> add
-        cmd = otherdevice_args.add_parser('add', help='Add Other Devices')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Other Device values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Other Device')
-        cmd.add_argument('-N', '--network', help='Network Other Device belongs to')
-        cmd.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
-        cmd.add_argument('-m', '--macaddr', default='public', help='MAC Address of the Other Device')
-        cmd.add_argument('-c', '--comment', help='Comment for Other Device')
+        otherdev_add = otherdev_args.add_parser('add', help='Add Other Devices')
+        otherdev_add.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        otherdev_add.add_argument('-i', '--init', action='store_true', help='Other Device values one-by-one')
+        otherdev_add.add_argument('-n', '--name', help='Name of the Other Device')
+        otherdev_add.add_argument('-N', '--network', help='Network Other Device belongs to')
+        otherdev_add.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
+        otherdev_add.add_argument('-m', '--macaddr', default='public', help='MAC Address of the Other Device')
+        otherdev_add.add_argument('-c', '--comment', help='Comment for Other Device')
         ## >>>>>>> Other Devices Command >>>>>>> update
-        cmd = otherdevice_args.add_parser('update', help='Update Other Devices')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Other Device values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Other Device')
-        cmd.add_argument('-N', '--network', help='Network Other Device belongs to')
-        cmd.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
-        cmd.add_argument('-m', '--macaddr', default='public', help='MAC Address of the Other Device')
-        cmd.add_argument('-c', '--comment', help='Comment for Other Device')
+        otherdev_update = otherdev_args.add_parser('update', help='Update Other Devices')
+        otherdev_update.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        otherdev_update.add_argument('-i', '--init', action='store_true', help='Other Device values one-by-one')
+        otherdev_update.add_argument('-n', '--name', help='Name of the Other Device')
+        otherdev_update.add_argument('-N', '--network', help='Network Other Device belongs to')
+        otherdev_update.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
+        otherdev_update.add_argument('-m', '--macaddr', default='public', help='MAC Address of the Other Device')
+        otherdev_update.add_argument('-c', '--comment', help='Comment for Other Device')
         ## >>>>>>> Other Devices Command >>>>>>> clone
-        cmd = otherdevice_args.add_parser('clone', help='Clone Other Devices')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Other Device values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Other Device')
-        cmd.add_argument('-nn', '--newotherdevname', help='New name of the Other Device')
-        cmd.add_argument('-N', '--network', help='Network Other Device belongs to')
-        cmd.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
-        cmd.add_argument('-m', '--macaddr', default='public', help='MAC Address of the Other Device')
-        cmd.add_argument('-c', '--comment', help='Comment for Other Device')
+        otherdev_clone = otherdev_args.add_parser('clone', help='Clone Other Devices')
+        otherdev_clone.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        otherdev_clone.add_argument('-i', '--init', action='store_true', help='Other Device values one-by-one')
+        otherdev_clone.add_argument('-n', '--name', help='Name of the Other Device')
+        otherdev_clone.add_argument('-nn', '--newotherdevname', help='New name of the Other Device')
+        otherdev_clone.add_argument('-N', '--network', help='Network Other Device belongs to')
+        otherdev_clone.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
+        otherdev_clone.add_argument('-m', '--macaddr', default='public', help='MAC Address of the Other Device')
+        otherdev_clone.add_argument('-c', '--comment', help='Comment for Other Device')
         ## >>>>>>> Other Devices Command >>>>>>> rename
-        cmd = otherdevice_args.add_parser('rename', help='Rename Other Devices')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Other Devices values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Other Devices')
-        cmd.add_argument('-nn', '--newotherdevname', help='New name of the Other Devices')
+        otherdev_rename = otherdev_args.add_parser('rename', help='Rename Other Devices')
+        otherdev_rename.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        otherdev_rename.add_argument('-i', '--init', action='store_true', help='Other Devices values one-by-one')
+        otherdev_rename.add_argument('-n', '--name', help='Name of the Other Devices')
+        otherdev_rename.add_argument('-nn', '--newotherdevname', help='New name of the Other Devices')
         ## >>>>>>> Other Devices Command >>>>>>> delete
-        cmd = otherdevice_args.add_parser('delete', help='Delete Other Devices')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='Other Devices values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the Other Devices')
+        otherdev_delete = otherdev_args.add_parser('delete', help='Delete Other Devices')
+        otherdev_delete.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        otherdev_delete.add_argument('-i', '--init', action='store_true', help='Other Devices values one-by-one')
+        otherdev_delete.add_argument('-n', '--name', help='Name of the Other Devices')
         ## >>>>>>> Other Devices Commands Ends
         return parser
 
@@ -114,45 +114,14 @@ class OtherDev(object):
         """
         Method to list all other devices from Luna Configuration.
         """
-        response = False
-        fields, rows = [], []
-        get_list = Helper().get_list(self.table)
-        self.logger.debug(f'Get List Data from Helper => {get_list}')
-        if get_list:
-            data = get_list['config'][self.table]
-            if self.args['raw']:
-                response = Presenter().show_json(data)
-            else:
-                fields, rows  = Helper().filter_data(self.table, data)
-                self.logger.debug(f'Fields => {fields}')
-                self.logger.debug(f'Rows => {rows}')
-                response = Presenter().show_table(fields, rows)
-        else:
-            response = Helper().show_error(f'{self.table} is not found.')
-        return response
+        return Helper().get_list(self.table, self.args)
 
 
     def show_otherdevices(self):
         """
         Method to show a other devices in Luna Configuration.
         """
-        response = False
-        fields, rows = [], []
-        get_list = Helper().get_record(self.table, self.args['name'])
-        self.logger.debug(f'Get List Data from Helper => {get_list}')
-        if get_list:
-            data = get_list['config'][self.table][self.args["name"]]
-            if self.args['raw']:
-                response = Presenter().show_json(data)
-            else:
-                fields, rows  = Helper().filter_data_col(self.table, data)
-                self.logger.debug(f'Fields => {fields}')
-                self.logger.debug(f'Rows => {rows}')
-                title = f'{self.table.capitalize()} => {self.args["name"]}'
-                response = Presenter().show_table_col(title, fields, rows)
-        else:
-            response = Helper().show_error(f'{self.args["name"]} is not found in {self.table}.')
-        return response
+        return Helper().show_data(self.table, self.args)
 
 
     def add_otherdevices(self):
@@ -209,7 +178,7 @@ class OtherDev(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Device to update", names)
@@ -245,7 +214,7 @@ class OtherDev(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
@@ -269,7 +238,7 @@ class OtherDev(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Device to rename", names)
@@ -301,7 +270,7 @@ class OtherDev(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
@@ -324,7 +293,7 @@ class OtherDev(object):
         abort = False
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Device to delete", names)
@@ -345,7 +314,7 @@ class OtherDev(object):
             if payload['name'] is None:
                 abort = Helper().show_error('Kindly provide Device Name.')
         if abort is False:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
@@ -367,7 +336,7 @@ class OtherDev(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Device to clone", names)
@@ -378,7 +347,7 @@ class OtherDev(object):
                 comment = Inquiry().ask_confirm("Do you want to provide a comment?")
                 if comment:
                     payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
-                get_record = Helper().get_record(self.table, payload['name'])
+                get_record = Rest().get_data(self.table, payload['name'])
                 if get_record:
                     data = get_record['config'][self.table][payload["name"]]
                     for key, value in payload.items():
@@ -403,7 +372,7 @@ class OtherDev(object):
             del self.args['action']
             del self.args['init']
             payload = self.args
-            get_record = Helper().get_record(self.table, payload['name'])
+            get_record = Rest().get_data(self.table, payload['name'])
             if get_record:
                 data = get_record['config'][self.table][payload["name"]]
                 for key, value in payload.items():
@@ -417,7 +386,7 @@ class OtherDev(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:

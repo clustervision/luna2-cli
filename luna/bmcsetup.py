@@ -59,62 +59,62 @@ class BMCSetup(object):
         bmcsetup_menu = subparsers.add_parser('bmcsetup', help='BMC Setup operations.')
         bmcsetup_args = bmcsetup_menu.add_subparsers(dest='action')
         ## >>>>>>> BMC Setup Command >>>>>>> list
-        cmd = bmcsetup_args.add_parser('list', help='List BMC Setups')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        bmcsetup_list = bmcsetup_args.add_parser('list', help='List BMC Setups')
+        bmcsetup_list.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        bmcsetup_list.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> BMC Setup Command >>>>>>> show
-        cmd = bmcsetup_args.add_parser('show', help='Show BMC Setup')
-        cmd.add_argument('name', help='Name of the BMC Setup')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        bmcsetup_show = bmcsetup_args.add_parser('show', help='Show BMC Setup')
+        bmcsetup_show.add_argument('name', help='Name of the BMC Setup')
+        bmcsetup_show.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        bmcsetup_show.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> BMC Setup Command >>>>>>> add
-        cmd = bmcsetup_args.add_parser('add', help='Add BMC Setup')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='BMC Setup values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the BMC Setup')
-        cmd.add_argument('-uid', '--userid', type=int, help='UserID for BMC Setup')
-        cmd.add_argument('-u', '--username', help='Username for BMC Setup')
-        cmd.add_argument('-p', '--password', help='Password for BMC Setup')
-        cmd.add_argument('-nc', '--netchannel', type=int, help='Net Channel for BMC Setup')
-        cmd.add_argument('-mc', '--mgmtchannel', type=int, help='MGMT Channel for BMC Setup')
-        cmd.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        cmd.add_argument('-c', '--comment', help='Comment for BMC Setup')
+        bmcsetup_add = bmcsetup_args.add_parser('add', help='Add BMC Setup')
+        bmcsetup_add.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        bmcsetup_add.add_argument('-i', '--init', action='store_true', help='BMC Setup values one-by-one')
+        bmcsetup_add.add_argument('-n', '--name', help='Name of the BMC Setup')
+        bmcsetup_add.add_argument('-uid', '--userid', type=int, help='UserID for BMC Setup')
+        bmcsetup_add.add_argument('-u', '--username', help='Username for BMC Setup')
+        bmcsetup_add.add_argument('-p', '--password', help='Password for BMC Setup')
+        bmcsetup_add.add_argument('-nc', '--netchannel', type=int, help='Net Channel for BMC Setup')
+        bmcsetup_add.add_argument('-mc', '--mgmtchannel', type=int, help='MGMT Channel for BMC Setup')
+        bmcsetup_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
+        bmcsetup_add.add_argument('-c', '--comment', help='Comment for BMC Setup')
         ## >>>>>>> BMC Setup Command >>>>>>> update
-        cmd = bmcsetup_args.add_parser('update', help='Update a BMC Setup')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='BMC Setup values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the BMC Setup')
-        cmd.add_argument('-uid', '--userid', type=int, help='UserID for BMC Setup')
-        cmd.add_argument('-u', '--username', help='Username for BMC Setup')
-        cmd.add_argument('-p', '--password', help='Password for BMC Setup')
-        cmd.add_argument('-nc', '--netchannel', type=int, help='Net Channel for BMC Setup')
-        cmd.add_argument('-mc', '--mgmtchannel', type=int, help='MGMT Channel for BMC Setup')
-        cmd.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        cmd.add_argument('-c', '--comment', help='Comment for BMC Setup')
+        bmcsetup_update = bmcsetup_args.add_parser('update', help='Update a BMC Setup')
+        bmcsetup_update.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        bmcsetup_update.add_argument('-i', '--init', action='store_true', help='BMC Setup values one-by-one')
+        bmcsetup_update.add_argument('-n', '--name', help='Name of the BMC Setup')
+        bmcsetup_update.add_argument('-uid', '--userid', type=int, help='UserID for BMC Setup')
+        bmcsetup_update.add_argument('-u', '--username', help='Username for BMC Setup')
+        bmcsetup_update.add_argument('-p', '--password', help='Password for BMC Setup')
+        bmcsetup_update.add_argument('-nc', '--netchannel', type=int, help='Net Channel for BMC Setup')
+        bmcsetup_update.add_argument('-mc', '--mgmtchannel', type=int, help='MGMT Channel for BMC Setup')
+        bmcsetup_update.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
+        bmcsetup_update.add_argument('-c', '--comment', help='Comment for BMC Setup')
         ## >>>>>>> BMC Setup Command >>>>>>> clone
-        cmd = bmcsetup_args.add_parser('clone', help='Clone BMC Setup')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='BMC Setup values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the BMC Setup')
-        cmd.add_argument('-nn', '--newbmcname', help='New name of the BMC Setup')
-        cmd.add_argument('-uid', '--userid', type=int, help='UserID for BMC Setup')
-        cmd.add_argument('-u', '--username', help='Username for BMC Setup')
-        cmd.add_argument('-p', '--password', help='Password for BMC Setup')
-        cmd.add_argument('-nc', '--netchannel', type=int, help='Net Channel for BMC Setup')
-        cmd.add_argument('-mc', '--mgmtchannel', type=int, help='MGMT Channel for BMC Setup')
-        cmd.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        cmd.add_argument('-c', '--comment', help='Comment for BMC Setup')
+        bmcsetup_clone = bmcsetup_args.add_parser('clone', help='Clone BMC Setup')
+        bmcsetup_clone.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        bmcsetup_clone.add_argument('-i', '--init', action='store_true', help='BMC Setup values one-by-one')
+        bmcsetup_clone.add_argument('-n', '--name', help='Name of the BMC Setup')
+        bmcsetup_clone.add_argument('-nn', '--newbmcname', help='New name of the BMC Setup')
+        bmcsetup_clone.add_argument('-uid', '--userid', type=int, help='UserID for BMC Setup')
+        bmcsetup_clone.add_argument('-u', '--username', help='Username for BMC Setup')
+        bmcsetup_clone.add_argument('-p', '--password', help='Password for BMC Setup')
+        bmcsetup_clone.add_argument('-nc', '--netchannel', type=int, help='Net Channel for BMC Setup')
+        bmcsetup_clone.add_argument('-mc', '--mgmtchannel', type=int, help='MGMT Channel for BMC Setup')
+        bmcsetup_clone.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
+        bmcsetup_clone.add_argument('-c', '--comment', help='Comment for BMC Setup')
         ## >>>>>>> BMC Setup Command >>>>>>> rename
-        cmd = bmcsetup_args.add_parser('rename', help='Rename BMC Setup')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='BMC Setup values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the BMC Setup')
-        cmd.add_argument('-nn', '--newbmcname', help='New name of the BMC Setup')
+        bmcsetup_rename = bmcsetup_args.add_parser('rename', help='Rename BMC Setup')
+        bmcsetup_rename.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        bmcsetup_rename.add_argument('-i', '--init', action='store_true', help='BMC Setup values one-by-one')
+        bmcsetup_rename.add_argument('-n', '--name', help='Name of the BMC Setup')
+        bmcsetup_rename.add_argument('-nn', '--newbmcname', help='New name of the BMC Setup')
         ## >>>>>>> BMC Setup Command >>>>>>> delete
-        cmd = bmcsetup_args.add_parser('delete', help='Delete BMC Setup')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-i', '--init', action='store_true', help='BMC Setup values one-by-one')
-        cmd.add_argument('-n', '--name', help='Name of the BMC Setup')
+        bmcsetup_delete = bmcsetup_args.add_parser('delete', help='Delete BMC Setup')
+        bmcsetup_delete.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        bmcsetup_delete.add_argument('-i', '--init', action='store_true', help='BMC Setup values one-by-one')
+        bmcsetup_delete.add_argument('-n', '--name', help='Name of the BMC Setup')
         return parser
 
 
@@ -123,22 +123,7 @@ class BMCSetup(object):
         Method to list all bmc setups from
         Luna 2 Daemon.
         """
-        response = False
-        fields, rows = [], []
-        get_list = Helper().get_list(self.table)
-        self.logger.debug(f'Get List Data from Helper => {get_list}')
-        if get_list:
-            data = get_list['config']['bmcsetup']
-            if self.args['raw']:
-                response = Presenter().show_json(data)
-            else:
-                fields, rows  = Helper().filter_data(self.table, data)
-                self.logger.debug(f'Fields => {fields}')
-                self.logger.debug(f'Rows => {rows}')
-                response = Presenter().show_table(fields, rows)
-        else:
-            response = Helper().show_error(f'{self.table} is not found.')
-        return response
+        return Helper().get_list(self.table, self.args)
 
 
     def show_bmcsetup(self):
@@ -146,23 +131,7 @@ class BMCSetup(object):
         Method to show a bmc setup from
         Luna 2 Daemon.
         """
-        response = False
-        fields, rows = [], []
-        get_list = Helper().get_record(self.table, self.args['name'])
-        self.logger.debug(f'Get List Data from Helper => {get_list}')
-        if get_list:
-            data = get_list['config']['bmcsetup'][self.args["name"]]
-            if self.args['raw']:
-                response = Presenter().show_json(data)
-            else:
-                fields, rows  = Helper().filter_data_col(self.table, data)
-                self.logger.debug(f'Fields => {fields}')
-                self.logger.debug(f'Rows => {rows}')
-                title = f'{self.table.capitalize()} => {self.args["name"]}'
-                response = Presenter().show_table_col(title, fields, rows)
-        else:
-            response = Helper().show_error(f'{self.args["name"]} is not found in {self.table}.')
-        return response
+        return Helper().show_data(self.table, self.args)
 
 
     def add_bmcsetup(self):
@@ -222,7 +191,7 @@ class BMCSetup(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config']['bmcsetup'].keys())
                 payload['name'] = Inquiry().ask_select("Select BMC Setup to update", names)
@@ -261,7 +230,7 @@ class BMCSetup(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config']['bmcsetup'].keys())
                 if payload["name"] in names:
@@ -285,7 +254,7 @@ class BMCSetup(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config']['bmcsetup'].keys())
                 payload['name'] = Inquiry().ask_select("Select BMC Setup to update", names)
@@ -317,7 +286,7 @@ class BMCSetup(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config']['bmcsetup'].keys())
                 if payload["name"] in names:
@@ -340,7 +309,7 @@ class BMCSetup(object):
         abort = False
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select BMC Setup to delete", names)
@@ -361,7 +330,7 @@ class BMCSetup(object):
             if payload['name'] is None:
                 abort = Helper().show_error('Kindly provide BMC Name.')
         if abort is False:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:
@@ -382,7 +351,7 @@ class BMCSetup(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config']['bmcsetup'].keys())
                 payload['name'] = Inquiry().ask_select("Select BMC Setup to update", names)
@@ -397,7 +366,7 @@ class BMCSetup(object):
                 if comment:
                     payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
 
-                get_record = Helper().get_record(self.table, payload['name'])
+                get_record = Rest().get_data(self.table, payload['name'])
                 if get_record:
                     data = get_record['config'][self.table][payload["name"]]
                     for key, value in payload.items():
@@ -422,7 +391,7 @@ class BMCSetup(object):
             del self.args['action']
             del self.args['init']
             payload = self.args
-            get_record = Helper().get_record(self.table, payload['name'])
+            get_record = Rest().get_data(self.table, payload['name'])
             if get_record:
                 data = get_record['config'][self.table][payload["name"]]
                 for key, value in payload.items():
@@ -436,7 +405,7 @@ class BMCSetup(object):
             request_data['config'] = {}
             request_data['config'][self.table] = {}
             request_data['config'][self.table][payload['name']] = payload
-            get_list = Helper().get_list(self.table)
+            get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config'][self.table].keys())
                 if payload["name"] in names:

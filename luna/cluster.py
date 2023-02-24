@@ -50,26 +50,26 @@ class Cluster(object):
         cluster_menu = subparsers.add_parser('cluster', help='Cluster operations.')
         cluster_args = cluster_menu.add_subparsers(dest='action')
         ## >>>>>>> Cluster Command >>>>>>> list
-        cmd = cluster_args.add_parser('list', help='List Cluster')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        cluster_list = cluster_args.add_parser('list', help='List Cluster')
+        cluster_list.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cluster_list.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Cluster Command >>>>>>> show
-        cmd = cluster_args.add_parser('show', help='Show Cluster')
-        cmd.add_argument('name', help='Name of the Cluster')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        cluster_show = cluster_args.add_parser('show', help='Show Cluster')
+        cluster_show.add_argument('name', help='Name of the Cluster')
+        cluster_show.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cluster_show.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Cluster Command >>>>>>> add
-        cmd = cluster_args.add_parser('update', help='Update Cluster')
-        cmd.add_argument('name', help='Name of the Cluster')
-        cmd.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        cmd.add_argument('-n', '--name', help='New Cluster Name')
-        cmd.add_argument('-u', '--user', help='Cluster User')
-        cmd.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='Cluster NTP Server')
-        cmd.add_argument('-c', '--technical_contacts', default=Helper().default_values('cluster', 'technical_contacts'), help='Technical Contact')
-        cmd.add_argument('-pm', '--provision_method', default=Helper().default_values('cluster', 'provision_method'), required=True, help='Provision Method')
-        cmd.add_argument('-fb', '--provision_fallback', default=Helper().default_values('cluster', 'provision_fallback'), required=True, help='Provision Fallback')
-        cmd.add_argument('-s', '--security', default=Helper().default_values('cluster', 'security'), required=True, help='Debug Mode')
-        cmd.add_argument('-D', '--clusterdebug', default=Helper().default_values('cluster', 'debug'), required=True, help='Debug Mode')
+        cluster_update = cluster_args.add_parser('update', help='Update Cluster')
+        cluster_update.add_argument('name', help='Name of the Cluster')
+        cluster_update.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cluster_update.add_argument('-n', '--name', help='New Cluster Name')
+        cluster_update.add_argument('-u', '--user', help='Cluster User')
+        cluster_update.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='Cluster NTP Server')
+        cluster_update.add_argument('-c', '--technical_contacts', default=Helper().default_values('cluster', 'technical_contacts'), help='Technical Contact')
+        cluster_update.add_argument('-pm', '--provision_method', default=Helper().default_values('cluster', 'provision_method'), required=True, help='Provision Method')
+        cluster_update.add_argument('-fb', '--provision_fallback', default=Helper().default_values('cluster', 'provision_fallback'), required=True, help='Provision Fallback')
+        cluster_update.add_argument('-s', '--security', default=Helper().default_values('cluster', 'security'), required=True, help='Debug Mode')
+        cluster_update.add_argument('-D', '--clusterdebug', default=Helper().default_values('cluster', 'debug'), required=True, help='Debug Mode')
         return parser
 
 
@@ -79,7 +79,7 @@ class Cluster(object):
         """
         response = False
         fields, rows = [], []
-        get_list = Helper().get_list(self.table)
+        get_list = Rest().get_data(self.table)
         self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config'][self.table]
@@ -89,7 +89,8 @@ class Cluster(object):
                 fields, rows  = Helper().get_cluster(self.table, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
-                response = Presenter().show_table(fields, rows)
+                title = f' << {self.table.capitalize()} & Controllers >>'
+                response = Presenter().show_table(title, fields, rows)
         else:
             response = Helper().show_error(f'{self.table} is not found.')
         return response
@@ -101,7 +102,7 @@ class Cluster(object):
         """
         response = False
         fields, rows = [], []
-        get_list = Helper().get_list(self.table)
+        get_list = Rest().get_data(self.table)
         self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config'][self.table]

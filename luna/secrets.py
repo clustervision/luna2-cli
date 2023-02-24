@@ -146,7 +146,7 @@ class Secrets(object):
                 uri = f'{uri}/{self.args["secret"]}'
         self.logger.debug(f'Secret URI => {uri}')
         response = False
-        get_list = Helper().get_list(uri)
+        get_list = Rest().get_data(uri)
         self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config']['secrets']
@@ -158,12 +158,14 @@ class Secrets(object):
                     fields, rows  =  Helper().get_secrets(table, data['group'])
                     self.logger.debug(f'Fields => {fields}')
                     self.logger.debug(f'Rows => {rows}')
-                    response = Presenter().show_table(fields, rows)
+                    title = f' << Group {self.args["name"]} Secrets >>'
+                    response = Presenter().show_table(title, fields, rows)
                 if 'node' in data:
                     table = f'node{self.route}'
                     fields, rows  =  Helper().get_secrets(table, data['node'])
                     self.logger.debug(f'Fields => {fields}')
                     self.logger.debug(f'Rows => {rows}')
+                    title = f' << Node {self.args["name"]} Secrets >>'
                     response = Presenter().show_table(fields, rows)
         else:
             response = Helper().show_error(f'{self.route} is not found.')
@@ -181,7 +183,7 @@ class Secrets(object):
             if self.args['secret'] is not None:
                 uri = f'{uri}/{self.args["secret"]}'
             self.logger.debug(f'Secret URI => {uri}')
-            get_list = Helper().get_list(uri)
+            get_list = Rest().get_data(uri)
             self.logger.debug(f'Get List Data from Helper => {get_list}')
             if get_list:
                 data = get_list['config']['secrets']
@@ -226,7 +228,7 @@ class Secrets(object):
             entity_name = self.args['name']
             del self.args['name']
             if self.args['init']:
-                get_list = Helper().get_list(entity)
+                get_list = Rest().get_data(entity)
                 self.logger.debug(f'Get List Data from Helper => {get_list}')
                 if get_list:
                     names = list(get_list['config'][entity].keys())
@@ -252,12 +254,16 @@ class Secrets(object):
                             return secret
                     secret = []
                     payload[entity_name] = secrets(secret)
-                    table = f'{entity}{self.route}'
-                    fields, rows  =  Helper().get_secrets(table, payload)
-                    Presenter().show_table(fields, rows)
-                    confirm = Inquiry().ask_confirm(f'Update {entity} => {entity_name.capitalize()} Secrets?')
-                    if not confirm:
-                        Helper().show_error(f'Update {entity} => {entity_name.capitalize()} Secrets Aborted')
+                    if secret:
+                        table = f'{entity}{self.route}'
+                        fields, rows  =  Helper().get_secrets(table, payload)
+                        title = f' << {entity.capitalize()} {entity_name} Secret >>'
+                        Presenter().show_table(title, fields, rows)
+                        confirm = Inquiry().ask_confirm(f'Update {entity} => {entity_name.capitalize()} Secrets?')
+                        if not confirm:
+                            Helper().show_error(f'Update {entity} => {entity_name.capitalize()} Secrets Aborted')
+                    else:
+                        Helper().show_error('Nothing to update, Aborted')
             else:
                 del self.args['debug']
                 del self.args['command']
@@ -316,12 +322,12 @@ class Secrets(object):
             entity_name = self.args['name']
             del self.args['name']
             if self.args['init']:
-                get_list = Helper().get_list(entity)
+                get_list = Rest().get_data(entity)
                 self.logger.debug(f'Get List Data from Helper => {get_list}')
                 if get_list:
                     names = list(get_list['config'][entity].keys())
                     entity_name = Inquiry().ask_select(f'Select {entity}', names)
-                    get_list = Helper().get_list(self.route+'/'+entity+'/'+entity_name)
+                    get_list = Rest().get_data(self.route+'/'+entity+'/'+entity_name)
                     for sec in get_list['config'][self.route][entity][entity_name]:
                         secrets.append(sec['name'])
                         old_secret_content = sec['content']
@@ -339,18 +345,22 @@ class Secrets(object):
                     else:
                         secret['path'] = old_secret_path
                     payload[entity_name] = [secret]
-                    table = f'{entity}{self.route}'
-                    fields, rows  =  Helper().get_secrets(table, payload)
-                    Presenter().show_table(fields, rows)
-                    confirm = Inquiry().ask_confirm(f'Update {entity} => {entity_name.capitalize()} Secrets?')
-                    if not confirm:
-                        Helper().show_error(f'Update {entity} => {entity_name.capitalize()} Secrets Aborted')
+                    if secret:
+                        table = f'{entity}{self.route}'
+                        fields, rows  =  Helper().get_secrets(table, payload)
+                        title = f' << {entity.capitalize()} {entity_name} Secret >>'
+                        Presenter().show_table(title, fields, rows)
+                        confirm = Inquiry().ask_confirm(f'Update {entity} => {entity_name.capitalize()} Secrets?')
+                        if not confirm:
+                            Helper().show_error(f'Update {entity} => {entity_name.capitalize()} Secrets Aborted')
+                    else:
+                        Helper().show_error('Nothing to Clone, Aborted')
             else:
                 del self.args['debug']
                 del self.args['command']
                 del self.args['action']
                 del self.args['init']
-                get_list = Helper().get_list(self.route+'/'+entity+'/'+entity_name)
+                get_list = Rest().get_data(self.route+'/'+entity+'/'+entity_name)
                 for sec in get_list['config'][self.route][entity][entity_name]:
                     old_secret_content = sec['content']
                     old_secret_path = sec['path']
@@ -399,12 +409,12 @@ class Secrets(object):
             entity_name = self.args['name']
             del self.args['name']
             if self.args['init']:
-                get_list = Helper().get_list(entity)
+                get_list = Rest().get_data(entity)
                 self.logger.debug(f'Get List Data from Helper => {get_list}')
                 if get_list:
                     names = list(get_list['config'][entity].keys())
                     entity_name = Inquiry().ask_select(f'Select {entity}', names)
-                    get_list = Helper().get_list(self.route+'/'+entity+'/'+entity_name)
+                    get_list = Rest().get_data(self.route+'/'+entity+'/'+entity_name)
                     for sec in get_list['config'][self.route][entity][entity_name]:
                         secrets.append(sec['name'])
                     payload['name'] = Inquiry().ask_select('Select Secret to Delete', secrets)

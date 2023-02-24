@@ -16,6 +16,7 @@ import numpy as np
 from termcolor import colored
 from luna.utils.rest import Rest
 from luna.utils.log import Log
+from luna.utils.presenter import Presenter
 
 class Helper(object):
     """
@@ -29,31 +30,49 @@ class Helper(object):
         self.logger = Log.get_logger()
 
 
-    def get_list(self, table=None):
+    def get_list(self, table=None, args=None):
         """
-        This method will fetch all records from
-        the Luna 2 Daemon Database
+        Method to list all switchs from Luna Configuration.
         """
         response = False
-        self.logger.debug(f'Helper List => {table}')
-        data_list = Rest().get_data(table, None, None)
-        self.logger.debug(f'Response => {data_list}')
-        if data_list:
-            response = data_list
+        fields, rows = [], []
+        get_list = Rest().get_data(table)
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
+        if get_list:
+            data = get_list['config'][table]
+            if args['raw']:
+                response = Presenter().show_json(data)
+            else:
+                fields, rows  = self.filter_data(table, data)
+                self.logger.debug(f'Fields => {fields}')
+                self.logger.debug(f'Rows => {rows}')
+                title = f' << {table.capitalize()} >>'
+                response = Presenter().show_table(title, fields, rows)
+        else:
+            response = self.show_error(f'{table} is not found.')
         return response
 
 
-    def get_record(self, table=None, name=None):
+    def show_data(self, table=None, args=None):
         """
-        This method will fetch a records from
-        the Luna 2 Daemon Database
+        Method to show a switch in Luna Configuration.
         """
         response = False
-        self.logger.debug(f'Table => {table} and Name => {name}')
-        data_list = Rest().get_data(table, name, None)
-        self.logger.debug(f'Response => {data_list}')
-        if data_list:
-            response = data_list
+        fields, rows = [], []
+        get_list = Rest().get_data(table, args['name'])
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
+        if get_list:
+            data = get_list['config'][table][args["name"]]
+            if args['raw']:
+                response = Presenter().show_json(data)
+            else:
+                fields, rows  = self.filter_data_col(table, data)
+                self.logger.debug(f'Fields => {fields}')
+                self.logger.debug(f'Rows => {rows}')
+                title = f'{table.capitalize()} => {args["name"]}'
+                response = Presenter().show_table_col(title, fields, rows)
+        else:
+            response = self.show_error(f'{args["name"]} is not found in {table}.')
         return response
 
 
