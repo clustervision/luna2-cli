@@ -60,17 +60,17 @@ class Switch(object):
         switch_args = switch_menu.add_subparsers(dest='action')
         ## >>>>>>> Switch Command >>>>>>> list
         switch_list = switch_args.add_parser('list', help='List Switch')
-        switch_list.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        switch_list.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         switch_list.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Switch Command >>>>>>> show
         switch_show = switch_args.add_parser('show', help='Show Switch')
         switch_show.add_argument('name', help='Name of the Switch')
-        switch_show.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        switch_show.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         switch_show.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Switch Command >>>>>>> add
         switch_add = switch_args.add_parser('add', help='Add Switch')
-        switch_add.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        switch_add.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
+        switch_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        switch_add.add_argument('-i', '--init', action='store_true', help='Switch Interactive Mode')
         switch_add.add_argument('-n', '--name', type=str, help='Name of the Switch')
         switch_add.add_argument('-N', '--network', help='Network Switch belongs to')
         switch_add.add_argument('-ip', '--ipaddress', help='IP of the Switch')
@@ -80,8 +80,8 @@ class Switch(object):
         switch_add.add_argument('-c', '--comment', help='Comment for Switch')
         ## >>>>>>> Switch Command >>>>>>> update
         switch_update = switch_args.add_parser('update', help='Update Switch')
-        switch_update.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        switch_update.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
+        switch_update.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        switch_update.add_argument('-i', '--init', action='store_true', help='Switch Interactive Mode')
         switch_update.add_argument('-n', '--name', help='Name of the Switch')
         switch_update.add_argument('-N', '--network', help='Network Switch belongs to')
         switch_update.add_argument('-ip', '--ipaddress', help='IP of the Switch')
@@ -91,8 +91,8 @@ class Switch(object):
         switch_update.add_argument('-c', '--comment', help='Comment for Switch')
         ## >>>>>>> Switch Command >>>>>>> clone
         switch_clone = switch_args.add_parser('clone', help='Clone Switch')
-        switch_clone.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        switch_clone.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
+        switch_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        switch_clone.add_argument('-i', '--init', action='store_true', help='Switch Interactive Mode')
         switch_clone.add_argument('-n', '--name', help='Name of the Switch')
         switch_clone.add_argument('-nn', '--newswitchname', help='New name of the Switch')
         switch_clone.add_argument('-N', '--network', help='Network Switch belongs to')
@@ -103,14 +103,14 @@ class Switch(object):
         switch_clone.add_argument('-c', '--comment', help='Comment for Switch')
         ## >>>>>>> Switch Command >>>>>>> rename
         switch_rename = switch_args.add_parser('rename', help='Rename Switch')
-        switch_rename.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        switch_rename.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
+        switch_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        switch_rename.add_argument('-i', '--init', action='store_true', help='Switch Interactive Mode')
         switch_rename.add_argument('-n', '--name', help='Name of the Switch')
         switch_rename.add_argument('-nn', '--newswitchname', help='New name of the Switch')
         ## >>>>>>> Switch Command >>>>>>> delete
         switch_delete = switch_args.add_parser('delete', help='Delete Switch')
-        switch_delete.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        switch_delete.add_argument('-i', '--init', action='store_true', help='Switch values one-by-one')
+        switch_delete.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        switch_delete.add_argument('-i', '--init', action='store_true', help='Switch Interactive Mode')
         switch_delete.add_argument('-n', '--name', help='Name of the Switch')
         return parser
 

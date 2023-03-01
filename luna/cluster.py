@@ -51,25 +51,45 @@ class Cluster(object):
         cluster_args = cluster_menu.add_subparsers(dest='action')
         ## >>>>>>> Cluster Command >>>>>>> list
         cluster_list = cluster_args.add_parser('list', help='List Cluster')
-        cluster_list.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cluster_list.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         cluster_list.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Cluster Command >>>>>>> show
         cluster_show = cluster_args.add_parser('show', help='Show Cluster')
         cluster_show.add_argument('name', help='Name of the Cluster')
-        cluster_show.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cluster_show.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         cluster_show.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Cluster Command >>>>>>> add
+        ## >>>>>>> Cluster Command >>>>>>> update
         cluster_update = cluster_args.add_parser('update', help='Update Cluster')
         cluster_update.add_argument('name', help='Name of the Cluster')
-        cluster_update.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        cluster_update.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         cluster_update.add_argument('-n', '--name', help='New Cluster Name')
         cluster_update.add_argument('-u', '--user', help='Cluster User')
-        cluster_update.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='Cluster NTP Server')
-        cluster_update.add_argument('-c', '--technical_contacts', default=Helper().default_values('cluster', 'technical_contacts'), help='Technical Contact')
-        cluster_update.add_argument('-pm', '--provision_method', default=Helper().default_values('cluster', 'provision_method'), required=True, help='Provision Method')
-        cluster_update.add_argument('-fb', '--provision_fallback', default=Helper().default_values('cluster', 'provision_fallback'), required=True, help='Provision Fallback')
-        cluster_update.add_argument('-s', '--security', default=Helper().default_values('cluster', 'security'), required=True, help='Debug Mode')
-        cluster_update.add_argument('-D', '--clusterdebug', default=Helper().default_values('cluster', 'debug'), required=True, help='Debug Mode')
+        cluster_update.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='NTP IP')
+        cluster_update.add_argument(
+            '-c', '--technical_contacts',
+            default=Helper().default_values('cluster', 'technical_contacts'),
+            help='Technical Contact'
+        )
+        cluster_update.add_argument(
+            '-pm', '--provision_method',
+            default=Helper().default_values('cluster', 'provision_method'),
+            required=True, help='Provision Method'
+        )
+        cluster_update.add_argument(
+            '-fb', '--provision_fallback',
+            default=Helper().default_values('cluster', 'provision_fallback'),
+            required=True, help='Provision Fallback'
+        )
+        cluster_update.add_argument(
+            '-s', '--security',
+            default=Helper().default_values('cluster', 'security'),
+            required=True, help='Debug Mode'
+        )
+        cluster_update.add_argument(
+            '-D', '--clusterdebug',
+            default=Helper().default_values('cluster', 'debug'),
+            required=True, help='Debug Mode'
+        )
         return parser
 
 

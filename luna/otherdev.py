@@ -60,17 +60,17 @@ class OtherDev(object):
         otherdev_args = otherdev_menu.add_subparsers(dest='action')
         ## >>>>>>> Other Devices Command >>>>>>> list
         otherdev_list = otherdev_args.add_parser('list', help='List Other Devices')
-        otherdev_list.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        otherdev_list.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         otherdev_list.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Other Devices Command >>>>>>> show
         otherdev_show = otherdev_args.add_parser('show', help='Show Other Devices')
-        otherdev_show.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        otherdev_show.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         otherdev_show.add_argument('name', help='Name of the Other Devices')
         otherdev_show.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Other Devices Command >>>>>>> add
         otherdev_add = otherdev_args.add_parser('add', help='Add Other Devices')
-        otherdev_add.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        otherdev_add.add_argument('-i', '--init', action='store_true', help='Other Device values one-by-one')
+        otherdev_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        otherdev_add.add_argument('-i', '--init', action='store_true', help='Other Device Interactive Mode')
         otherdev_add.add_argument('-n', '--name', help='Name of the Other Device')
         otherdev_add.add_argument('-N', '--network', help='Network Other Device belongs to')
         otherdev_add.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
@@ -78,8 +78,8 @@ class OtherDev(object):
         otherdev_add.add_argument('-c', '--comment', help='Comment for Other Device')
         ## >>>>>>> Other Devices Command >>>>>>> update
         otherdev_update = otherdev_args.add_parser('update', help='Update Other Devices')
-        otherdev_update.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        otherdev_update.add_argument('-i', '--init', action='store_true', help='Other Device values one-by-one')
+        otherdev_update.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        otherdev_update.add_argument('-i', '--init', action='store_true', help='Other Device Interactive Mode')
         otherdev_update.add_argument('-n', '--name', help='Name of the Other Device')
         otherdev_update.add_argument('-N', '--network', help='Network Other Device belongs to')
         otherdev_update.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
@@ -87,8 +87,8 @@ class OtherDev(object):
         otherdev_update.add_argument('-c', '--comment', help='Comment for Other Device')
         ## >>>>>>> Other Devices Command >>>>>>> clone
         otherdev_clone = otherdev_args.add_parser('clone', help='Clone Other Devices')
-        otherdev_clone.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        otherdev_clone.add_argument('-i', '--init', action='store_true', help='Other Device values one-by-one')
+        otherdev_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        otherdev_clone.add_argument('-i', '--init', action='store_true', help='Other Device Interactive Mode')
         otherdev_clone.add_argument('-n', '--name', help='Name of the Other Device')
         otherdev_clone.add_argument('-nn', '--newotherdevname', help='New name of the Other Device')
         otherdev_clone.add_argument('-N', '--network', help='Network Other Device belongs to')
@@ -97,14 +97,14 @@ class OtherDev(object):
         otherdev_clone.add_argument('-c', '--comment', help='Comment for Other Device')
         ## >>>>>>> Other Devices Command >>>>>>> rename
         otherdev_rename = otherdev_args.add_parser('rename', help='Rename Other Devices')
-        otherdev_rename.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        otherdev_rename.add_argument('-i', '--init', action='store_true', help='Other Devices values one-by-one')
+        otherdev_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        otherdev_rename.add_argument('-i', '--init', action='store_true', help='Other Devices Interactive Mode')
         otherdev_rename.add_argument('-n', '--name', help='Name of the Other Devices')
         otherdev_rename.add_argument('-nn', '--newotherdevname', help='New name of the Other Devices')
         ## >>>>>>> Other Devices Command >>>>>>> delete
         otherdev_delete = otherdev_args.add_parser('delete', help='Delete Other Devices')
-        otherdev_delete.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        otherdev_delete.add_argument('-i', '--init', action='store_true', help='Other Devices values one-by-one')
+        otherdev_delete.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        otherdev_delete.add_argument('-i', '--init', action='store_true', help='Other Devices Interactive Mode')
         otherdev_delete.add_argument('-n', '--name', help='Name of the Other Devices')
         ## >>>>>>> Other Devices Commands Ends
         return parser

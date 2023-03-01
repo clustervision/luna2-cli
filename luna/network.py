@@ -64,17 +64,17 @@ class Network(object):
         network_args = network_menu.add_subparsers(dest='action')
         ## >>>>>>> Network Command >>>>>>> list
         network_list = network_args.add_parser('list', help='List Networks')
-        network_list.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        network_list.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         network_list.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Network Command >>>>>>> show
         network_show = network_args.add_parser('show', help='Show Network')
         network_show.add_argument('name', help='Name of the Network')
-        network_show.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        network_show.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         network_show.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         ## >>>>>>> Network Command >>>>>>> add
         network_add = network_args.add_parser('add', help='Add Network')
-        network_add.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        network_add.add_argument('-i', '--init', action='store_true', help='Network values one-by-one')
+        network_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        network_add.add_argument('-i', '--init', action='store_true', help='Network Interactive Mode')
         network_add.add_argument('-n', '--name', help='Name of the Network')
         network_add.add_argument('-N', '--network', help='Network')
         network_add.add_argument('-g', '--gateway', help='Gateway of the Network')
@@ -86,8 +86,8 @@ class Network(object):
         network_add.add_argument('-c', '--comment', help='Comment for Network')
         ## >>>>>>> Network Command >>>>>>> update
         network_update = network_args.add_parser('update', help='Update Network')
-        network_update.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        network_update.add_argument('-i', '--init', action='store_true', help='Network values one-by-one')
+        network_update.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        network_update.add_argument('-i', '--init', action='store_true', help='Network Interactive Mode')
         network_update.add_argument('-n', '--name', help='Name of the Network')
         network_update.add_argument('-N', '--network', help='Network')
         network_update.add_argument('-g', '--gateway', help='Gateway of the Network')
@@ -100,8 +100,8 @@ class Network(object):
         network_update.add_argument('-c', '--comment', help='Comment for Network')
         ## >>>>>>> Network Command >>>>>>> clone
         network_clone = network_args.add_parser('clone', help='Clone Network')
-        network_clone.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        network_clone.add_argument('-i', '--init', action='store_true', help='Network values one-by-one')
+        network_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        network_clone.add_argument('-i', '--init', action='store_true', help='Network Interactive Mode')
         network_clone.add_argument('-n', '--name', help='Name of the Network')
         network_clone.add_argument('-nn', '--newnetname', help='New name of the Network')
         network_clone.add_argument('-N', '--network', help='Network')
@@ -115,23 +115,23 @@ class Network(object):
         network_clone.add_argument('-c', '--comment', help='Comment for Network')
         ## >>>>>>> Network Command >>>>>>> rename
         network_rename = network_args.add_parser('rename', help='Rename Network')
-        network_rename.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        network_rename.add_argument('-i', '--init', action='store_true', help='Network values one-by-one')
+        network_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        network_rename.add_argument('-i', '--init', action='store_true', help='Network Interactive Mode')
         network_rename.add_argument('-n', '--name', help='Name of the Network')
         network_rename.add_argument('-nn', '--newnetname', help='New name of the Network')
         ## >>>>>>> Network Command >>>>>>> delete
         network_delete = network_args.add_parser('delete', help='Delete Network')
-        network_delete.add_argument('-d', '--debug', action='store_true', help='Show debug information')
-        network_delete.add_argument('-i', '--init', action='store_true', help='Network values one-by-one')
+        network_delete.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        network_delete.add_argument('-i', '--init', action='store_true', help='Network Interactive Mode')
         network_delete.add_argument('-n', '--name', help='Name of the Network')
         ## >>>>>>> Network Command >>>>>>> ipinfo
         network_ipinfo = network_args.add_parser('ipinfo', help='Show Network IP Information')
-        network_ipinfo.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        network_ipinfo.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         network_ipinfo.add_argument('name', help='Name of the Network')
         network_ipinfo.add_argument('ipaddress', help='IP Address from the Network')
         ## >>>>>>> Network Command >>>>>>> nextip
         network_nextip = network_args.add_parser('nextip', help='Show Next Available IP Address on the Network')
-        network_nextip.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        network_nextip.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         network_nextip.add_argument('name', help='Name of the Network')
         ## >>>>>>> Network Commands Ends
         return parser

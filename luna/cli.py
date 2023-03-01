@@ -46,7 +46,7 @@ class Cli(object):
         for each class.
         """
         self.parser = ArgumentParser(prog='luna', description='Manage Luna Cluster')
-        self.parser.add_argument('-d', '--debug', action='store_true', help='Show debug information')
+        self.parser.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
         Cluster.getarguments(self, self.parser, self.subparsers)
         Network.getarguments(self, self.parser, self.subparsers)
