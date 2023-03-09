@@ -74,7 +74,7 @@ class OtherDev(object):
         otherdev_add.add_argument('-n', '--name', help='Name of the Other Device')
         otherdev_add.add_argument('-N', '--network', help='Network Other Device belongs to')
         otherdev_add.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
-        otherdev_add.add_argument('-m', '--macaddr', default='public', help='MAC Address of the Other Device')
+        otherdev_add.add_argument('-m', '--macaddress', default='public', help='MAC Address of the Other Device')
         otherdev_add.add_argument('-c', '--comment', help='Comment for Other Device')
         ## >>>>>>> Other Devices Command >>>>>>> update
         otherdev_update = otherdev_args.add_parser('update', help='Update Other Devices')
@@ -83,7 +83,7 @@ class OtherDev(object):
         otherdev_update.add_argument('-n', '--name', help='Name of the Other Device')
         otherdev_update.add_argument('-N', '--network', help='Network Other Device belongs to')
         otherdev_update.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
-        otherdev_update.add_argument('-m', '--macaddr', default='public', help='MAC Address of the Other Device')
+        otherdev_update.add_argument('-m', '--macaddress', default='public', help='MAC Address of the Other Device')
         otherdev_update.add_argument('-c', '--comment', help='Comment for Other Device')
         ## >>>>>>> Other Devices Command >>>>>>> clone
         otherdev_clone = otherdev_args.add_parser('clone', help='Clone Other Devices')
@@ -93,7 +93,7 @@ class OtherDev(object):
         otherdev_clone.add_argument('-nn', '--newotherdevname', help='New name of the Other Device')
         otherdev_clone.add_argument('-N', '--network', help='Network Other Device belongs to')
         otherdev_clone.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
-        otherdev_clone.add_argument('-m', '--macaddr', default='public', help='MAC Address of the Other Device')
+        otherdev_clone.add_argument('-m', '--macaddress', default='public', help='MAC Address of the Other Device')
         otherdev_clone.add_argument('-c', '--comment', help='Comment for Other Device')
         ## >>>>>>> Other Devices Command >>>>>>> rename
         otherdev_rename = otherdev_args.add_parser('rename', help='Rename Other Devices')
@@ -133,7 +133,7 @@ class OtherDev(object):
             payload['name'] = Inquiry().ask_text("Kindly provide Device Name")
             payload['network'] = Inquiry().ask_text("Kindly provide Device Network")
             payload['ipaddress'] = Inquiry().ask_text("Kindly provide Device IP Address")
-            payload['macaddr'] = Inquiry().ask_text("Kindly provide Device MAC Address")
+            payload['macaddress'] = Inquiry().ask_text("Kindly provide Device MAC Address")
             comment = Inquiry().ask_confirm("Do you want to provide a comment?")
             if comment:
                 payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)")
@@ -184,7 +184,7 @@ class OtherDev(object):
                 payload['name'] = Inquiry().ask_select("Select Device to update", names)
                 payload['network'] = Inquiry().ask_text("Kindly provide Device Network", True)
                 payload['ipaddress'] = Inquiry().ask_text("Kindly provide Device IP Address", True)
-                payload['macaddr'] = Inquiry().ask_text("Kindly provide MAC Address", True)
+                payload['macaddress'] = Inquiry().ask_text("Kindly provide MAC Address", True)
                 comment = Inquiry().ask_confirm("Do you want to provide a comment?")
                 if comment:
                     payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
@@ -343,7 +343,7 @@ class OtherDev(object):
                 payload['newotherdevname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
                 payload['network'] = Inquiry().ask_text("Kindly provide Device Network", True)
                 payload['ipaddress'] = Inquiry().ask_text("Kindly provide Device IP Address", True)
-                payload['macaddr'] = Inquiry().ask_text("Kindly provide MAC Address", True)
+                payload['macaddress'] = Inquiry().ask_text("Kindly provide MAC Address", True)
                 comment = Inquiry().ask_confirm("Do you want to provide a comment?")
                 if comment:
                     payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)

@@ -463,8 +463,8 @@ class Helper(object):
         response = False
         static = {
             'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
-            'cluster': ['name', 'hostname','ipaddr', 'technical_contacts', 'provision_method', 'security'],
-            'controller': ['id', 'clusterid', 'hostname', 'status', 'ipaddr', 'serverport'],
+            'cluster': ['name', 'hostname','ipaddress', 'technical_contacts', 'provision_method', 'security'],
+            'controller': ['id', 'clusterid', 'hostname', 'status', 'ipaddress', 'serverport'],
             'group': ['name', 'bmcsetup', 'domain', 'provisionfallback', 'interfaces'],
             'groupinterface': ['interfacename', 'network'],
             'groupsecrets': ['Group', 'name', 'path', 'content'],
@@ -475,7 +475,7 @@ class Helper(object):
             'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network'],
             'nodesecrets': ['Node', 'name', 'path', 'content'],
             'osimage': ['name', 'kernelfile', 'path', 'tarball', 'distribution'],
-            'otherdev': ['name', 'network', 'ipaddress', 'macaddr', 'comment'],
+            'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
             'roles': ['id', 'name', 'modules'],
             'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],
             'tracker': ['id', 'infohash', 'peer', 'ipaddress', 'port', 'download', 'upload', 'left', 'updated', 'status'],
@@ -493,8 +493,8 @@ class Helper(object):
         response = False
         static = {
             'cluster': ['name', 'ns_ip','ntp_server', 'provision_fallback', 'provision_method', 'security', 'technical_contacts', 'user', 'debug'],
-            'controller': ['hostname', 'ipaddr','luna_config', 'srverport', 'status'],
-            'node': ['name', 'hostname', 'group', 'osimage', 'interfaces', 'localboot', 'macaddr', 'switch', 'switchport', 'setupbmc', 'status', 'service',
+            'controller': ['hostname', 'ipaddress','luna_config', 'srverport', 'status'],
+            'node': ['name', 'hostname', 'group', 'osimage', 'interfaces', 'localboot', 'macaddress', 'switch', 'switchport', 'setupbmc', 'status', 'service',
                        'prescript', 'partscript', 'postscript', 'netboot', 'localinstall', 'bootmenu', 'provisionmethod', 'provisioninterface', 'provisionfallback', 'tpmuuid'
                        , 'tpmpubkey', 'tpmsha256',  'unmanaged_bmc_users', 'comment'],
             'group': ['name', 'bmcsetup', 'bmcsetupname', 'domain', 'interfaces', 'osimage', 'prescript', 'partscript', 'postscript', 'netboot', 'localinstall',
@@ -503,7 +503,7 @@ class Helper(object):
             'osimage': ['name', 'dracutmodules', 'grab_filesystems', 'grab_exclude', 'initrdfile', 'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions',
                         'path', 'tarball', 'torrent', 'distribution', 'comment'],
             'switch': ['name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'comment'],
-            'otherdev': ['name', 'network', 'ipaddress', 'macaddr', 'comment'],
+            'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
             'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network'],
             'groupinterface': ['interfacename', 'network'],
             'groupsecrets': ['Group', 'name', 'path', 'content'],
@@ -536,7 +536,7 @@ class Helper(object):
             },
             'controller': {
                 'hostname': True,
-                'ipaddr': True,
+                'ipaddress': True,
                 'luna_config': True,
                 'srverport': True,
                 'status': True
@@ -548,7 +548,7 @@ class Helper(object):
                 'osimage': True,
                 'interfaces': True,
                 'localboot': True,
-                'macaddr': True,
+                'macaddress': True,
                 'switch': True,
                 'switchport': True,
                 'setupbmc': True,
@@ -627,7 +627,7 @@ class Helper(object):
                 'name': True,
                 'network': True,
                 'ipaddress': True,
-                'macaddr': True,
+                'macaddress': True,
                 'comment': True
             },
             'nodeinterface': {
