@@ -13,6 +13,7 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
 import numpy as np
+import hostlist
 from termcolor import colored
 from luna.utils.rest import Rest
 from luna.utils.log import Log
@@ -74,6 +75,94 @@ class Helper(object):
         else:
             response = self.show_error(f'{args["name"]} is not found in {table}.')
         return response
+
+
+    def get_hostlist(self, rawhosts=None):
+        """
+        This method will perform power option on node.
+        """
+        response = []
+        self.logger.debug(f'Received hostlist: {rawhosts}.')
+        try:
+            response = hostlist.expand_hostlist(rawhosts)
+            self.logger.debug(f'Expanded hostlist: {response}.')
+        except Exception:
+            self.logger.debug(f'Hostlist is incorrect: {rawhosts}.')
+        return response
+
+
+    def control_print(self, num=None, control_data=None):
+        """
+        This method will perform power option on node.
+        """
+        count = num
+        response = None
+        fields = ['S. No.', 'Node', 'Status']
+        rows = []
+        if 'control' in control_data:
+            if 'power' in control_data['control']:
+                if control_data['control']['power']['failed']['hostlist']:
+                    hostlist = control_data['control']['power']['failed']['hostlist'].split(',')
+                    newrow = []
+                    # num = 1
+                    for node in hostlist:
+                        newrow.append(num)
+                        newrow.append(node)
+                        newrow.append('Failed')
+                        num = num + 1
+                        rows.append(newrow)
+                        newrow = []
+                if control_data['control']['power']['off']['hostlist']:
+                    hostlist = control_data['control']['power']['off']['hostlist'].split(',')
+                    newrow = []
+                    # num = 1
+                    for node in hostlist:
+                        newrow.append(num)
+                        newrow.append(node)
+                        newrow.append('OFF')
+                        num = num + 1
+                        rows.append(newrow)
+                        newrow = []
+                if control_data['control']['power']['on']['hostlist']:
+                    hostlist = control_data['control']['power']['on']['hostlist'].split(',')
+                    newrow = []
+                    # num = 1
+                    for node in hostlist:
+                        newrow.append(num)
+                        newrow.append(node)
+                        newrow.append('ON')
+                        num = num + 1
+                        rows.append(newrow)
+                        newrow = []
+                if control_data['control']['power']['failed']['hostlist'] or control_data['control']['power']['off']['hostlist'] or control_data['control']['power']['on']['hostlist']:
+                    title = "<< Power Control Status Of Nodes >>"
+                    print(rows)
+                    # if count == 1:
+                    #     response = Presenter().show_table(title, fields, rows)
+                    # else:
+                    #     response = Presenter().show_table(title, fields, rows)
+                        # response = Presenter().table_only_rows(fields, rows)
+        return num, response
+
+
+    # def control_status(self, queue=None, request_id=None, node_status=None):
+    #     """
+    #     This method will perform power option on node.
+    #     """
+    #     response = None
+    #     queue.put(request_id +':'  + " job is started")
+    #     uri = f'control/status/{request_id}'
+    #     print(uri)
+    #     import time
+    #     time.sleep(2)
+    #     response = Rest().get_raw(uri)
+    #     http_code = response.status_code
+    #     http_response = response.json()
+    #     print(http_code)
+    #     print(http_response)
+
+        
+    #     return http_response
 
 
     def add_record(self, table=None, data=None):

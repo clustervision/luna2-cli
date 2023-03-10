@@ -169,3 +169,18 @@ class Rest(object):
         response = requests.get(url=daemon_url, headers=headers, timeout=5)
         self.logger.debug(f'Response Content => {response.content}, and HTTP Code {response.status_code}')
         return response
+
+
+    def post_raw(self, route=None, payload=None):
+        """
+        This method is based on REST API's GET method.
+        It will fetch the records from Luna 2 Daemon
+        via REST API's.
+        """
+        response = False
+        headers = {'x-access-tokens': self.get_token()}
+        daemon_url = f'http://{self.daemon}/{route}'
+        self.logger.debug(f'Clone URL => {daemon_url}')
+        response = requests.post(url=daemon_url, data=json.dumps(payload), headers=headers, timeout=5)
+        self.logger.debug(f'Response Content => {response.content}, and HTTP Code {response.status_code}')
+        return response

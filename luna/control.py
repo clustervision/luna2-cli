@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Control Class for the CLI     [{[{[{[{[{WIP}]}]}]}]}]
+Control Class for the CLI
 """
 __author__      = "Sumit Sharma"
 __copyright__   = "Copyright 2022, Luna2 Project [CLI]"
@@ -12,12 +12,13 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-
+from multiprocessing import Process, Queue
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
+from luna.utils.log import Log
 
-class Control(object):
+class Control():
     """
     Control class is a power control area.
     It is responsible to perform all power related
@@ -25,110 +26,222 @@ class Control(object):
     """
 
     def __init__(self, args=None):
+        self.logger = Log.get_logger()
         self.args = args
-        self.table = "cluster"
-        if self.args:
-            if self.args["action"] == "list":
-                self.list_cluster(self.args)
-            elif self.args["action"] == "show":
-                self.show_cluster(self.args)
-            elif self.args["action"] == "update":
-                self.update_cluster(self.args)
+        self.route = "control"
+        self.action = "power"
+        if self.args["power"] and self.args["action"]:
+            self.logger.debug(f'Arguments Supplied => {self.args}')
+            if self.args["action"] == "status":
+                self.power_status()
+            elif self.args["action"] == "on":
+                self.power_on()
+            elif self.args["action"] == "off":
+                self.power_off()
             else:
-                print("Not a valid option.")
+                Helper().show_error("Not a valid option.")
         else:
-            print("Please pass -h to see help menu.")
+            Helper().show_error("Select a service and action to be performed, See with -h.")
 
 
     def getarguments(self, parser, subparsers):
         """
         Method will provide all the arguments
-        related to the Cluster class.
+        related to the Control Process class.
         """
-        cluster_menu = subparsers.add_parser('control', help='Cluster operations.')
-        cluster_args = cluster_menu.add_subparsers(dest='action')
-        ## >>>>>>> Cluster Command >>>>>>> list
-        cmd = cluster_args.add_parser('list', help='List Cluster')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Cluster Command >>>>>>> show
-        cmd = cluster_args.add_parser('show', help='Show Cluster')
-        cmd.add_argument('name', help='Name of the Cluster')
-        cmd.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Cluster Command >>>>>>> add
-        cmd = cluster_args.add_parser('update', help='Update Cluster')
-        cmd.add_argument('name', help='Name of the Cluster')
-        cmd.add_argument('-n', '--name', help='New Cluster Name')
-        cmd.add_argument('-u', '--user', help='Cluster User')
-        cmd.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='NTP IP')
-        cmd.add_argument('--clusterdebug', '-d', help='Debug Mode')
-        cmd.add_argument('--technical_contacts', '-c', help='Technical Contact')
-        cmd.add_argument('-pm', '--provision_method', help='Provision Method')
-        cmd.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
+        control_menu = subparsers.add_parser('control', help='Control Nodes.')
+        control_args = control_menu.add_subparsers(dest='power')
+        power_parser = control_args.add_parser('power', help='Power Operations')
+        power_menu = power_parser.add_subparsers(dest='action')
+        ## >>>>>>> Control Command >>>>>>> status
+        status_parser = power_menu.add_parser('status', help='Status of Node(s)')
+        status_parser.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        status_parser.add_argument('node', help='Node Name or Node Hostlist')
+        ## >>>>>>> Control Command >>>>>>> on
+        on_parser = power_menu.add_parser('on', help='Power On Node(s)')
+        on_parser.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        on_parser.add_argument('node', help='Node Name or Node Hostlist')
+        ## >>>>>>> Control Command >>>>>>> of
+        off_parser = power_menu.add_parser('off', help='Power Off Node(s)')
+        off_parser.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        off_parser.add_argument('node', help='Node Name or Node Hostlist')
         return parser
 
 
-    def list_cluster(self, args=None):
+    def power_status(self):
         """
-        Method to list all cluster from Luna Configuration.
+        This method provide the status of one or more nodes.
         """
+        http_code = 000
+        http_response = None
         response = False
-        fields, rows = [], []
-        get_list = Rest().get_data(self.table)
-        if get_list:
-            data = get_list['config']['cluster']
-            if args['raw']:
-                response = Presenter().show_json(data)
+        node_status = {}
+        if self.args['node']:
+            hostlist = Helper().get_hostlist(self.args['node'])
+            if len(hostlist) == 1:
+                uri = f'{self.action}/{self.args["node"]}/{self.args["action"]}'
+                result = Rest().get_raw(self.route, uri)
+                http_code = result.status_code
+                http_response = result.json()
+            elif len(hostlist) > 1:
+                uri = f'{self.route}/{self.action}'
+                payload = {"control": {"power": {self.args["action"]: {"hostlist": self.args['node'] } } } }
+                result = Rest().post_raw(uri, payload)
+                http_code = result.status_code
+                http_response = result.json()
+                
+                
+                def dig_data(code=None, request_id=None, count=None):
+                    import time
+                    # time.sleep(2)
+                    uri = f'control/status/{request_id}'
+                    response = Rest().get_raw(uri)
+                    code = response.status_code
+                    http_response = response.json()
+                    if code == 200:
+                        count, status = Helper().control_print(count, http_response)
+                        return dig_data(code, request_id, count)
+                    elif code == 400:
+                        print("All Done")
+                        return True
+                    else:
+                        print(f"Something Went Wrong {code}")
+                        return False
+
+                
+                
+                request_id = None
+                if http_code == 200:
+                    if 'request_id' in http_response['control']['power']:
+                        count, filter = Helper().control_print(1, http_response)
+                        request_id = http_response['control']['power']['request_id']
+                        check = dig_data(http_code, request_id, count)
+                        print(f'checking {check}')
+
+
+                # if REQID:
+                # NESTED(CODE):
+                #     SLEEP(2)
+                #     CALL: GET_RAW TIll CODE == 200
+                #     PRINT TABLE
+                #     IF CODE == 200:
+                #         RETURN NESTED(CODE)
+                #     ELIF CODE == 400:
+                #         RETURN True
+                #     ELSE:
+                #         RETURN False
+                
+
+                # CHECK = NESTED(200)
+
+                # if http_code == 200:
+                #     if 'request_id' in http_response['control']['power']:
+                #         request_id = http_response['control']['power']['request_id']
+                #         print(request_id)
+                #         print(http_response)
+                #         queue = Queue()
+                #         process = Process(target=Helper().control_status, args=(queue, request_id, node_status))
+                #         process.start()
+                #         print(f"Schedule job status ====>>> {process.is_alive()}")
+
+                #         if process.is_alive():
+                #             print(f"Job queue status ====>>> {queue.get()}")
+                #         result = {"message": "Ansible Installation is Running."}
+
+
+
+                    # if 'control' in http_response:
+                    #     if http_response['control']['power']['failed']['hostlist']:
+                    #         node_status['failed'] = http_response['control']['power']['failed']['hostlist']
+                            # hostlist = http_response['control']['power']['failed']['hostlist'].split(',')
+                            # for node in hostlist:
+                            #     # node_status[node] = 'failed'
+                            #     node_status['failed'] = node
+                                # node_status['node'].append(node)
+                                # node_status['status'].append('failed')
+
+
+
+
+
+            # num = 1
+            # node = 'node001'
+            # status = 'ON'
+            # header = f'| S.No.|     Node Name      |       Status      |'
+            # # line = f'| {num}    |     {node}         |       {status}    |'
+            # line = '| {}    |     {}         |       {}    |'
+            # print('-------------------------------------------------')
+            # print(header)
+            # print('-------------------------------------------------')
+            # for x in range(20):
+            #     print(line.format(x, f'node00{x}', status))
+            # print('-------------------------------------------------')
+
+
+
+
             else:
-                fields, rows  = Helper().get_cluster(self.table, data)
-                title = f' << {self.table.capitalize()} >>'
-                response = Presenter().show_table(title, fields, rows)
-        else:
-            response = Helper().show_error(f'{self.table} is not found.')
+                print("Incorrect host list")
+            # print(len(hostlist))
+            # print(uri)
+            # print(http_code)
+            # print(http_response)
+        # print(node_status)
+        # self.logger.debug(f'Service URL => {uri}')
+        # result = Rest().get_raw(self.route, uri)
+        # self.logger.debug(f'Response => {result}')
+        # if result:
+        #     http_code = result.status_code
+        #     result = result.json()
+        #     result = result['service'][self.args["service"]]
+        #     if http_code == 200:
+        #         response = Helper().show_success(f'{self.args["action"]} performed on {self.args["service"]}')
+        #         Helper().show_success(f'{result}')
+        #     else:
+        #         Helper().show_error(f'HTTP error code is: {http_code} ')
+        #         Helper().show_error(f'{result}')
         return response
 
 
-    def show_cluster(self, args=None):
+    def power_on(self):
         """
-        Method to show a cluster in Luna Configuration.
+        This method power on one or more nodes.
         """
         response = False
-        fields, rows = [], []
-        get_list = Rest().get_data(self.table)
-        if get_list:
-            data = get_list['config']['cluster']
-            if args['raw']:
-                response = Presenter().show_json(data)
+        uri = f'{self.route}/{self.action}'
+        self.logger.debug(f'Service URL => {uri}')
+        result = Rest().get_raw(self.route, uri)
+        self.logger.debug(f'Response => {result}')
+        if result:
+            http_code = result.status_code
+            result = result.json()
+            result = result['service'][self.args["service"]]
+            if http_code == 200:
+                response = Helper().show_success(f'{self.args["action"]} performed on {self.args["service"]}')
+                Helper().show_success(f'{result}')
             else:
-                fields, rows  = Helper().filter_data_col(self.table, data)
-                title = f'{self.table.capitalize()} => {data["name"]}'
-                response = Presenter().show_table_col(title, fields, rows)
-        else:
-            response = Helper().show_error(f'{args["name"]} is not found in {self.table}.')
+                Helper().show_error(f'HTTP error code is: {http_code} ')
+                Helper().show_error(f'{result}')
         return response
 
 
-    def update_cluster(self, args=None):
+    def power_off(self):
         """
-        Method to update cluster in Luna Configuration.
+        This method power off one or more nodes.
         """
-        payload = {}
-        del args['debug']
-        del args['command']
-        del args['action']
-        payload = args
-        filtered = {k: v for k, v in args.items() if v is not None}
-        payload.clear()
-        payload.update(filtered)
-        if payload['clusterdebug']:
-            payload['debug'] = True
-        del payload['clusterdebug']
-        if payload:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = payload
-            response = Rest().post_data(self.table, None, request_data)
-            if response == 204:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
+        response = False
+        uri = f'{self.route}/{self.action}'
+        self.logger.debug(f'Service URL => {uri}')
+        result = Rest().get_raw(self.route, uri)
+        self.logger.debug(f'Response => {result}')
+        if result:
+            http_code = result.status_code
+            result = result.json()
+            result = result['service'][self.args["service"]]
+            if http_code == 200:
+                response = Helper().show_success(f'{self.args["action"]} performed on {self.args["service"]}')
+                Helper().show_success(f'{result}')
             else:
-                Helper().show_error(f'HTTP error code is: {response} ')
-        return True
+                Helper().show_error(f'HTTP error code is: {http_code} ')
+                Helper().show_error(f'{result}')
+        return response

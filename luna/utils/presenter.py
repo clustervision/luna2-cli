@@ -84,3 +84,15 @@ class Presenter(object):
         self.table.align = "l"
         print(self.table)
         return True
+
+
+    def table_only_rows(self, fields=None, rows=None):
+        """
+        This method will fetch a records from
+        the Luna 2 Daemon Database
+        """
+        self.logger.debug(f'Rows => {rows}')
+        self.table.field_names = fields
+        self.table.add_rows(rows)
+        print(self.table)
+        return True
