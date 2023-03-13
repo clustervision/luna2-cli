@@ -12,6 +12,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
+from time import sleep
 import numpy as np
 import hostlist
 from termcolor import colored
@@ -95,74 +96,106 @@ class Helper(object):
         """
         This method will perform power option on node.
         """
-        count = num
-        response = None
-        fields = ['S. No.', 'Node', 'Status']
+        self.loader()
+        header = f"{colored('|', 'yellow')} {colored('S.No.', 'cyan')} {colored('|', 'yellow')}"
+        header = f"{header}     {colored('Node Name', 'cyan')}      {colored('|', 'yellow')}       "
+        header = f"{header}{colored('Status', 'cyan')}       {colored('|', 'yellow')}"
+        hr_line = colored(
+            'X-------------------------------------------------X',
+            'yellow',
+            attrs=['bold']
+        )
         rows = []
+        power_status = ['failed', 'off', 'on']
         if 'control' in control_data:
             if 'power' in control_data['control']:
-                if control_data['control']['power']['failed']['hostlist']:
-                    hostlist = control_data['control']['power']['failed']['hostlist'].split(',')
-                    newrow = []
-                    # num = 1
-                    for node in hostlist:
-                        newrow.append(num)
-                        newrow.append(node)
-                        newrow.append('Failed')
-                        num = num + 1
-                        rows.append(newrow)
-                        newrow = []
-                if control_data['control']['power']['off']['hostlist']:
-                    hostlist = control_data['control']['power']['off']['hostlist'].split(',')
-                    newrow = []
-                    # num = 1
-                    for node in hostlist:
-                        newrow.append(num)
-                        newrow.append(node)
-                        newrow.append('OFF')
-                        num = num + 1
-                        rows.append(newrow)
-                        newrow = []
-                if control_data['control']['power']['on']['hostlist']:
-                    hostlist = control_data['control']['power']['on']['hostlist'].split(',')
-                    newrow = []
-                    # num = 1
-                    for node in hostlist:
-                        newrow.append(num)
-                        newrow.append(node)
-                        newrow.append('ON')
-                        num = num + 1
-                        rows.append(newrow)
-                        newrow = []
-                if control_data['control']['power']['failed']['hostlist'] or control_data['control']['power']['off']['hostlist'] or control_data['control']['power']['on']['hostlist']:
-                    title = "<< Power Control Status Of Nodes >>"
-                    print(rows)
-                    # if count == 1:
-                    #     response = Presenter().show_table(title, fields, rows)
-                    # else:
-                    #     response = Presenter().show_table(title, fields, rows)
-                        # response = Presenter().table_only_rows(fields, rows)
-        return num, response
+                for state in power_status:
+                    if control_data['control']['power'][state]['hostlist']:
+                        host_list = control_data['control']['power'][state]['hostlist'].split(',')
+                        for node in host_list:
+                            rows.append([num, node, state.capitalize()])
+                            num = num + 1
+
+        if rows:
+            for row in rows:
+                if row[0] == 1:
+                    print(hr_line)
+                    print(header)
+                    print(hr_line)
+                row[0] = colored(f'{row[0]}'.ljust(6), 'blue')
+                row[1] = colored(f'{row[1]}'.ljust(19), 'blue')
+                if row[2] in ['Failed', 'Off', 'off']:
+                    row[2] = colored(row[2].ljust(19), 'red')
+                if row[2] in ['on', 'On']:
+                    row[2] = colored(row[2].ljust(19), 'green')
+                line = f'| {row[0]}| {row[1]}| {row[2]}|'
+                line = line.replace('|', colored('|', 'yellow'))
+                print(line)
+        return num
 
 
-    # def control_status(self, queue=None, request_id=None, node_status=None):
-    #     """
-    #     This method will perform power option on node.
-    #     """
-    #     response = None
-    #     queue.put(request_id +':'  + " job is started")
-    #     uri = f'control/status/{request_id}'
-    #     print(uri)
-    #     import time
-    #     time.sleep(2)
-    #     response = Rest().get_raw(uri)
-    #     http_code = response.status_code
-    #     http_response = response.json()
-    #     print(http_code)
-    #     print(http_response)
+    def loader(self):
+        """
+        This method is a loader, will run while transactions happens.
+        """
+        animation = [
+        colored("[=       ] Fetching Nodes Status", 'yellow', attrs=['bold']),
+        colored("[===     ] Fetching Nodes Status", 'yellow', attrs=['bold']),
+        colored("[====    ] Fetching Nodes Status", 'yellow', attrs=['bold']),
+        colored("[=====   ] Fetching Nodes Status", 'yellow', attrs=['bold']),
+        colored("[======  ] Fetching Nodes Status", 'yellow', attrs=['bold']),
+        colored("[======= ] Fetching Nodes Status", 'yellow', attrs=['bold']),
+        colored("[========] Fetching Nodes Status", 'yellow', attrs=['bold']),
+        colored("[ =======] Fetching Nodes Status", 'yellow', attrs=['bold']),
+        colored("[  ======] Fetching Nodes Status", 'yellow', attrs=['bold']),
+        colored("[   =====] Fetching Nodes Status", 'yellow', attrs=['bold']),
+        colored("[    ====] Fetching Nodes Status", 'yellow', attrs=['bold']),
+        colored("[     ===] Fetching Nodes Status", 'yellow', attrs=['bold']),
+        colored("[      ==] Fetching Nodes Status", 'yellow', attrs=['bold']),
+        colored("[       =] Fetching Nodes Status", 'yellow', attrs=['bold']),
+        colored("[        ] Fetching Nodes Status", 'yellow', attrs=['bold']),
+        colored("[        ] Fetching Nodes Status", 'yellow', attrs=['bold'])
+        ]
+        notcomplete = True
+        i = 0
+        while notcomplete:
+            if i == 10:
+                notcomplete = False
+            print(animation[i % len(animation)], end='\r')
+            sleep(.1)
+            i += 1
+        return True
 
-        
-    #     return http_response
+
+    def dig_data(self, code=None, request_id=None, count=None, bad_count=None):
+        """
+        Data Digger for Control API's.
+        """
+        uri = f'control/status/{request_id}'
+        response = Rest().get_raw(uri)
+        code = response.status_code
+        http_response = response.json()
+        if code == 200:
+            count = Helper().control_print(count, http_response)
+            return self.dig_data(code, request_id, count, bad_count)
+        elif code == 400:
+            bad_count = bad_count + 1
+            if bad_count < 10:
+                count = Helper().control_print(count, http_response)
+                return self.dig_data(code, request_id, count, bad_count)
+            elif bad_count > 10:
+                Helper().show_error("Too Many Bad Response, Try Again!")
+            else:
+                hr_line = colored(
+                    'X-------------------------------------------------X',
+                    'yellow',
+                    attrs=['bold']
+                )
+                print(hr_line)
+                return True
+        else:
+            Helper().show_error(f"Something Went Wrong {code}")
+            return False
 
 
     def add_record(self, table=None, data=None):
