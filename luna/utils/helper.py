@@ -92,6 +92,25 @@ class Helper(object):
         return response
 
 
+    def common_list_args(self, parser=None):
+        """
+        This method will provide the common list and show arguments..
+        """
+        parser.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        parser.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        return parser
+
+
+    def common_add_args(self, parser=None, name=None):
+        """
+        This method will provide the common add, update, clone, and rename arguments..
+        """
+        parser.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        parser.add_argument('-i', '--init', action='store_true', help='Interactive Mode')
+        parser.add_argument('-n', '--name', help=f'Name of the {name}')
+        return parser
+
+
     def control_print(self, num=None, control_data=None):
         """
         This method will perform power option on node.

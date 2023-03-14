@@ -58,63 +58,44 @@ class BMCSetup():
         """
         bmcsetup_menu = subparsers.add_parser('bmcsetup', help='BMC Setup operations.')
         bmcsetup_args = bmcsetup_menu.add_subparsers(dest='action')
-        ## >>>>>>> BMC Setup Command >>>>>>> list
         bmcsetup_list = bmcsetup_args.add_parser('list', help='List BMC Setups')
-        bmcsetup_list.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        bmcsetup_list.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> BMC Setup Command >>>>>>> show
+        Helper().common_list_args(bmcsetup_list)
         bmcsetup_show = bmcsetup_args.add_parser('show', help='Show BMC Setup')
         bmcsetup_show.add_argument('name', help='Name of the BMC Setup')
-        bmcsetup_show.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        bmcsetup_show.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> BMC Setup Command >>>>>>> add
+        Helper().common_list_args(bmcsetup_show)
         bmcsetup_add = bmcsetup_args.add_parser('add', help='Add BMC Setup')
-        bmcsetup_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        bmcsetup_add.add_argument('-i', '--init', action='store_true', help='Interactive Mode')
-        bmcsetup_add.add_argument('-n', '--name', help='Name of the BMC Setup')
-        bmcsetup_add.add_argument('-uid', '--userid', type=int, help='UserID for BMC Setup')
+        Helper().common_add_args(bmcsetup_add, 'BMC Setup')
+        bmcsetup_add.add_argument('-U', '--userid', type=int, help='UserID for BMC Setup')
         bmcsetup_add.add_argument('-u', '--username', help='Username for BMC Setup')
         bmcsetup_add.add_argument('-p', '--password', help='Password for BMC Setup')
-        bmcsetup_add.add_argument('-nc', '--netchannel', type=int, help='Network Channel')
-        bmcsetup_add.add_argument('-mc', '--mgmtchannel', type=int, help='Management Channel')
+        bmcsetup_add.add_argument('-N', '--netchannel', type=int, help='Network Channel')
+        bmcsetup_add.add_argument('-M', '--mgmtchannel', type=int, help='Management Channel')
         bmcsetup_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         bmcsetup_add.add_argument('-c', '--comment', help='Comment for BMC Setup')
-        ## >>>>>>> BMC Setup Command >>>>>>> update
         bmcsetup_update = bmcsetup_args.add_parser('update', help='Update a BMC Setup')
-        bmcsetup_update.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        bmcsetup_update.add_argument('-i', '--init', action='store_true', help='Interactive Mode')
-        bmcsetup_update.add_argument('-n', '--name', help='Name of the BMC Setup')
-        bmcsetup_update.add_argument('-uid', '--userid', type=int, help='UserID for BMC Setup')
+        Helper().common_add_args(bmcsetup_update, 'BMC Setup')
+        bmcsetup_update.add_argument('-U', '--userid', type=int, help='UserID for BMC Setup')
         bmcsetup_update.add_argument('-u', '--username', help='Username for BMC Setup')
         bmcsetup_update.add_argument('-p', '--password', help='Password for BMC Setup')
-        bmcsetup_update.add_argument('-nc', '--netchannel', type=int, help='Network Channel')
-        bmcsetup_update.add_argument('-mc', '--mgmtchannel', type=int, help='Management Channel')
+        bmcsetup_update.add_argument('-N', '--netchannel', type=int, help='Network Channel')
+        bmcsetup_update.add_argument('-M', '--mgmtchannel', type=int, help='Management Channel')
         bmcsetup_update.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         bmcsetup_update.add_argument('-c', '--comment', help='Comment for BMC Setup')
-        ## >>>>>>> BMC Setup Command >>>>>>> clone
         bmcsetup_clone = bmcsetup_args.add_parser('clone', help='Clone BMC Setup')
-        bmcsetup_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        bmcsetup_clone.add_argument('-i', '--init', action='store_true', help='Interactive Mode')
-        bmcsetup_clone.add_argument('-n', '--name', help='Name of the BMC Setup')
+        Helper().common_add_args(bmcsetup_clone, 'BMC Setup')
         bmcsetup_clone.add_argument('-nn', '--newbmcname', help='New name of the BMC Setup')
-        bmcsetup_clone.add_argument('-uid', '--userid', type=int, help='UserID for BMC Setup')
+        bmcsetup_clone.add_argument('-U', '--userid', type=int, help='UserID for BMC Setup')
         bmcsetup_clone.add_argument('-u', '--username', help='Username for BMC Setup')
         bmcsetup_clone.add_argument('-p', '--password', help='Password for BMC Setup')
-        bmcsetup_clone.add_argument('-nc', '--netchannel', type=int, help='Network Channel')
-        bmcsetup_clone.add_argument('-mc', '--mgmtchannel', type=int, help='Management Channel')
+        bmcsetup_clone.add_argument('-N', '--netchannel', type=int, help='Network Channel')
+        bmcsetup_clone.add_argument('-M', '--mgmtchannel', type=int, help='Management Channel')
         bmcsetup_clone.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         bmcsetup_clone.add_argument('-c', '--comment', help='Comment for BMC Setup')
-        ## >>>>>>> BMC Setup Command >>>>>>> rename
         bmcsetup_rename = bmcsetup_args.add_parser('rename', help='Rename BMC Setup')
-        bmcsetup_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        bmcsetup_rename.add_argument('-i', '--init', action='store_true', help='Interactive Mode')
-        bmcsetup_rename.add_argument('-n', '--name', help='Name of the BMC Setup')
+        Helper().common_add_args(bmcsetup_rename, 'BMC Setup')
         bmcsetup_rename.add_argument('-nn', '--newbmcname', help='New name of the BMC Setup')
-        ## >>>>>>> BMC Setup Command >>>>>>> delete
         bmcsetup_delete = bmcsetup_args.add_parser('delete', help='Delete BMC Setup')
-        bmcsetup_delete.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        bmcsetup_delete.add_argument('-i', '--init', action='store_true', help='Interactive Mode')
-        bmcsetup_delete.add_argument('-n', '--name', help='Name of the BMC Setup')
+        Helper().common_add_args(bmcsetup_delete, 'BMC Setup')
         return parser
 
 
@@ -141,15 +122,15 @@ class BMCSetup():
         payload = {}
         if self.args['init']:
             payload['name'] = Inquiry().ask_text("BMC Setup Name:")
-            payload['userid'] = Inquiry().ask_number("User ID:")
-            payload['username'] = Inquiry().ask_text("Username:")
-            payload['password'] = Inquiry().ask_secret("Password:")
-            payload['netchannel'] = Inquiry().ask_number("Network Channel:")
-            payload['mgmtchannel'] = Inquiry().ask_number("Management Channel:")
-            payload['unmanaged_bmc_users'] = Inquiry().ask_text("Unmanaged BMC Users:")
+            payload['userid'] = Inquiry().ask_number("User ID:", True)
+            payload['username'] = Inquiry().ask_text("Username:", True)
+            payload['password'] = Inquiry().ask_secret("Password:", True)
+            payload['netchannel'] = Inquiry().ask_number("Network Channel:", True)
+            payload['mgmtchannel'] = Inquiry().ask_number("Management Channel:", True)
+            payload['unmanaged_bmc_users'] = Inquiry().ask_text("Unmanaged BMC Users:", True)
             comment = Inquiry().ask_confirm("Do you want to provide a comment?")
             if comment:
-                payload['comment'] = Inquiry().ask_text("Comment:")
+                payload['comment'] = Inquiry().ask_text("Comment:", True)
             fields, rows  = Helper().filter_data_col(self.table, payload)
             title = f'{self.table.capitalize()} Adding => {payload["name"]}'
             Presenter().show_table_col(title, fields, rows)
@@ -157,22 +138,18 @@ class BMCSetup():
             if not confirm:
                 Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
         else:
-            error = False
             del self.args['debug']
             del self.args['command']
             del self.args['action']
             del self.args['init']
-            payload = self.args
-            for key in payload:
-                if payload[key] is None:
-                    error = Helper().show_error(f'Kindly provide {key}.')
-            if error:
-                Helper().show_error(f'Adding {payload["name"]} in {self.table.capitalize()} Abort.')
+            if not self.args["name"]:
+                payload = {}
+                Helper().show_error('BMC Setup name is a Mandatory Key.')
+            else:
+                payload = self.args
+                payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
+            request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
@@ -195,11 +172,11 @@ class BMCSetup():
             if get_list:
                 names = list(get_list['config']['bmcsetup'].keys())
                 payload['name'] = Inquiry().ask_select("Select BMC Setup to update:", names)
-                payload['userid'] = Inquiry().ask_number("Update BMC User ID", True)
-                payload['username'] = Inquiry().ask_text("Update BMC Username", True)
-                payload['password'] = Inquiry().ask_secret("Update BMC Password", True)
-                payload['netchannel'] = Inquiry().ask_number("Update NET Channel", True)
-                payload['mgmtchannel'] = Inquiry().ask_number("Update MGMT Channel", True)
+                payload['userid'] = Inquiry().ask_number("Update User ID", True)
+                payload['username'] = Inquiry().ask_text("Update Username", True)
+                payload['password'] = Inquiry().ask_secret("Update Password", True)
+                payload['netchannel'] = Inquiry().ask_number("Update Network Channel", True)
+                payload['mgmtchannel'] = Inquiry().ask_number("Update Management Channel", True)
                 payload['unmanaged_bmc_users'] = Inquiry().ask_text("Update Unmanaged BMC Users", True)
                 comment = Inquiry().ask_confirm("Do you want to provide a comment?")
                 if comment:
@@ -207,33 +184,29 @@ class BMCSetup():
                 filtered = {k: v for k, v in payload.items() if v != ''}
                 payload.clear()
                 payload.update(filtered)
-                if len(payload) != 1:
-                    fields, rows  = Helper().filter_data_col(self.table, payload)
-                    title = f'{self.table.capitalize()} Updating => {payload["name"]}'
-                    Presenter().show_table_col(title, fields, rows)
-                    confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
-                    if not confirm:
-                        Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+                fields, rows  = Helper().filter_data_col(self.table, payload)
+                title = f'{self.table.capitalize()} Updating => {payload["name"]}'
+                Presenter().show_table_col(title, fields, rows)
+                confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
+                if not confirm:
+                    payload = {}
+                    Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
             else:
-                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+                Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
-            payload = self.args
-            filtered = {k: v for k, v in payload.items() if v is not None}
-            payload.clear()
-            payload.update(filtered)
-        if (len(payload) != 1) and ('name' in payload):
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
+            if not self.args["name"]:
+                payload = {}
+                Helper().show_error('BMC Setup name is a Mandatory Key.')
+            else:
+                payload = self.args
+                payload = {k: v for k, v in self.args.items() if v is not None}
+        if payload:
+            request_data = {'config':{self.table:{payload['name']: payload}}}
             get_list = Rest().get_data(self.table)
             if get_list:
-                names = list(get_list['config']['bmcsetup'].keys())
-                if payload["name"] in names:
+                if payload["name"] in list(get_list['config']['bmcsetup'].keys()):
                     self.logger.debug(f'Payload => {request_data}')
                     response = Rest().post_data(self.table, payload['name'], request_data)
                     self.logger.debug(f'Response => {response}')
@@ -242,9 +215,7 @@ class BMCSetup():
                 else:
                     Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
             else:
-                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
-        else:
-            Helper().show_error(f'Nothing to update in {payload["name"]}.')
+                Helper().show_error(f'No {self.table.capitalize()} is available.')
         return True
 
 

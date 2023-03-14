@@ -49,16 +49,11 @@ class Cluster():
         """
         cluster_menu = subparsers.add_parser('cluster', help='Cluster operations.')
         cluster_args = cluster_menu.add_subparsers(dest='action')
-        ## >>>>>>> Cluster Command >>>>>>> list
         cluster_list = cluster_args.add_parser('list', help='List Cluster')
-        cluster_list.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        cluster_list.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Cluster Command >>>>>>> show
+        Helper().common_list_args(cluster_list)
         cluster_show = cluster_args.add_parser('show', help='Show Cluster')
         cluster_show.add_argument('name', help='Name of the Cluster')
-        cluster_show.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        cluster_show.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Cluster Command >>>>>>> update
+        Helper().common_list_args(cluster_show)
         cluster_update = cluster_args.add_parser('update', help='Update Cluster')
         cluster_update.add_argument('name', help='Name of the Cluster')
         cluster_update.add_argument('-d', '--debug', action='store_true', help='Get debug log')
