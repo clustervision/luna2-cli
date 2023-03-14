@@ -96,7 +96,7 @@ class Helper(object):
         """
         This method will perform power option on node.
         """
-        self.loader()
+        self.loader("Fetching Nodes Status")
         header = f"{colored('|', 'yellow')} {colored('S.No.', 'cyan')} {colored('|', 'yellow')}"
         header = f"{header}     {colored('Node Name', 'cyan')}      {colored('|', 'yellow')}       "
         header = f"{header}{colored('Status', 'cyan')}       {colored('|', 'yellow')}"
@@ -134,27 +134,27 @@ class Helper(object):
         return num
 
 
-    def loader(self):
+    def loader(self, message=None):
         """
         This method is a loader, will run while transactions happens.
         """
         animation = [
-        colored("[=       ] Fetching Nodes Status", 'yellow', attrs=['bold']),
-        colored("[===     ] Fetching Nodes Status", 'yellow', attrs=['bold']),
-        colored("[====    ] Fetching Nodes Status", 'yellow', attrs=['bold']),
-        colored("[=====   ] Fetching Nodes Status", 'yellow', attrs=['bold']),
-        colored("[======  ] Fetching Nodes Status", 'yellow', attrs=['bold']),
-        colored("[======= ] Fetching Nodes Status", 'yellow', attrs=['bold']),
-        colored("[========] Fetching Nodes Status", 'yellow', attrs=['bold']),
-        colored("[ =======] Fetching Nodes Status", 'yellow', attrs=['bold']),
-        colored("[  ======] Fetching Nodes Status", 'yellow', attrs=['bold']),
-        colored("[   =====] Fetching Nodes Status", 'yellow', attrs=['bold']),
-        colored("[    ====] Fetching Nodes Status", 'yellow', attrs=['bold']),
-        colored("[     ===] Fetching Nodes Status", 'yellow', attrs=['bold']),
-        colored("[      ==] Fetching Nodes Status", 'yellow', attrs=['bold']),
-        colored("[       =] Fetching Nodes Status", 'yellow', attrs=['bold']),
-        colored("[        ] Fetching Nodes Status", 'yellow', attrs=['bold']),
-        colored("[        ] Fetching Nodes Status", 'yellow', attrs=['bold'])
+        colored(f"[=       ] {message}", 'yellow', attrs=['bold']),
+        colored(f"[===     ] {message}", 'yellow', attrs=['bold']),
+        colored(f"[====    ] {message}", 'yellow', attrs=['bold']),
+        colored(f"[=====   ] {message}", 'yellow', attrs=['bold']),
+        colored(f"[======  ] {message}", 'yellow', attrs=['bold']),
+        colored(f"[======= ] {message}", 'yellow', attrs=['bold']),
+        colored(f"[========] {message}", 'yellow', attrs=['bold']),
+        colored(f"[ =======] {message}", 'yellow', attrs=['bold']),
+        colored(f"[  ======] {message}", 'yellow', attrs=['bold']),
+        colored(f"[   =====] {message}", 'yellow', attrs=['bold']),
+        colored(f"[    ====] {message}", 'yellow', attrs=['bold']),
+        colored(f"[     ===] {message}", 'yellow', attrs=['bold']),
+        colored(f"[      ==] {message}", 'yellow', attrs=['bold']),
+        colored(f"[       =] {message}", 'yellow', attrs=['bold']),
+        colored(f"[        ] {message}", 'yellow', attrs=['bold']),
+        colored(f"[        ] {message}", 'yellow', attrs=['bold'])
         ]
         notcomplete = True
         i = 0
@@ -593,7 +593,7 @@ class Helper(object):
             'ipaddress': ['id', 'ipaddress', 'subnet', 'network'],
             'monitor': ['id', 'nodeid', 'status', 'state'],
             'network': ['name', 'network', 'ns_ip', 'ns_hostname', 'dhcp'],
-            'node': ['name', 'hostname', 'setupbmc', 'status', 'tpmuuid'],
+            'node': ['name', 'group', 'osimage', 'setupbmc', 'status', 'tpmuuid'],
             'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network'],
             'nodesecrets': ['Node', 'name', 'path', 'content'],
             'osimage': ['name', 'kernelfile', 'path', 'tarball', 'distribution'],

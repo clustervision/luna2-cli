@@ -12,7 +12,8 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-
+from time import sleep
+from termcolor import colored
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.inquiry import Inquiry
@@ -483,14 +484,34 @@ class OSImage(object):
         """
         Method to pack the OS Image
         """
-        uri = self.args['name']+'/_pack'
-        self.logger.debug(f'OS Image Pack URI => {uri}')
-        response = Rest().get_status(self.table, uri)
-        self.logger.debug(f'Response => {response}')
-        if response == 204:
-            Helper().show_success(f'OS Image {self.args["name"]} Packed.')
+        Helper().loader("OS Image Packing")
+        response = False
+        uri = f'config/{self.table}/{self.args["name"]}/_pack'
+        result = Rest().get_raw(uri)
+        if result.status_code == 200:
+            http_response = result.json()
+            if 'request_id' in http_response.keys():
+                uri = f'config/status/{http_response["request_id"]}'
+                def dig_packing_status(uri):
+                    result = Rest().get_raw(uri)
+                    if result.status_code == 400:
+                        return True
+                    elif result.status_code == 200:
+                        http_response = result.json()
+                        if http_response['message']:
+                            msg = http_response['message'].split(';;')
+                            for mg in msg:
+                                sleep(2)
+                                Helper().loader(mg)
+                        sleep(2)
+                        return dig_packing_status(uri)
+                    else:
+                        return False
+                response = dig_packing_status(uri)
+        if response:
+            print(colored(f'[========] OS Image {self.args["name"]} Packed.', 'green', attrs=['bold']))
         else:
-            Helper().show_error(f'HTTP Error Code: {response}.')
+            print(colored("[X ERROR X] Try Again!", 'red', attrs=['bold']))
         return response
 
 

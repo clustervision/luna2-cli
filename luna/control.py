@@ -100,7 +100,7 @@ class Control():
             if result.status_code == 200:
                 http_response = result.json()
                 request_id = http_response['control']['power']['request_id']
-                Helper().loader()
+                Helper().loader("Fetching Nodes Status")
                 count = 1
                 if 'failed' in http_response['control']['power'].keys():
                     count = Helper().control_print(1, http_response)
@@ -154,7 +154,7 @@ class Control():
 
             if result.status_code == 200:
                 request_id = http_response['control']['power']['request_id']
-                Helper().loader()
+                Helper().loader("Fetching Nodes Status")
                 count = 1
                 if 'failed' in http_response['control']['power'].keys():
                     count = Helper().control_print(1, http_response)
