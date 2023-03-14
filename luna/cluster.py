@@ -18,7 +18,7 @@ from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 
-class Cluster(object):
+class Cluster():
     """
     Cluster Class responsible to show, list,
     and update information for the Cluster
@@ -65,6 +65,8 @@ class Cluster(object):
         cluster_update.add_argument('-n', '--name', help='New Cluster Name')
         cluster_update.add_argument('-u', '--user', help='Cluster User')
         cluster_update.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='NTP IP')
+        cluster_update.add_argument('-ns', '--nameserver_ip', metavar='N.N.N.N', help='Name Server IP')
+        cluster_update.add_argument('-fs', '--forwardserver_ip', metavar='N.N.N.N', help='Forward Server IP')
         cluster_update.add_argument(
             '-c', '--technical_contacts',
             default=Helper().default_values('cluster', 'technical_contacts'),
@@ -73,22 +75,22 @@ class Cluster(object):
         cluster_update.add_argument(
             '-pm', '--provision_method',
             default=Helper().default_values('cluster', 'provision_method'),
-            required=True, help='Provision Method'
+            help='Provision Method'
         )
         cluster_update.add_argument(
-            '-fb', '--provision_fallback',
+            '-pf', '--provision_fallback',
             default=Helper().default_values('cluster', 'provision_fallback'),
-            required=True, help='Provision Fallback'
+            help='Provision Fallback'
         )
         cluster_update.add_argument(
             '-s', '--security',
             default=Helper().default_values('cluster', 'security'),
-            required=True, help='Debug Mode'
+            help='Security'
         )
         cluster_update.add_argument(
             '-D', '--clusterdebug',
             default=Helper().default_values('cluster', 'debug'),
-            required=True, help='Debug Mode'
+            help='Debug Mode'
         )
         return parser
 
