@@ -29,8 +29,11 @@ class BMCSetup():
         self.logger = Log.get_logger()
         self.args = args
         self.table = "bmcsetup"
+        self.get_list = None
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
+            if self.args["action"] in ["update", "rename", "delete", "clone"]:
+                self.get_list = Rest().get_data(self.table)
             if self.args["action"] == "list":
                 self.list_bmcsetup()
             elif self.args["action"] == "show":
@@ -65,35 +68,35 @@ class BMCSetup():
         Helper().common_list_args(bmcsetup_show)
         bmcsetup_add = bmcsetup_args.add_parser('add', help='Add BMC Setup')
         Helper().common_add_args(bmcsetup_add, 'BMC Setup')
-        bmcsetup_add.add_argument('-U', '--userid', type=int, help='UserID for BMC Setup')
+        bmcsetup_add.add_argument('-id', '--userid', type=int, help='UserID for BMC Setup')
         bmcsetup_add.add_argument('-u', '--username', help='Username for BMC Setup')
         bmcsetup_add.add_argument('-p', '--password', help='Password for BMC Setup')
-        bmcsetup_add.add_argument('-N', '--netchannel', type=int, help='Network Channel')
-        bmcsetup_add.add_argument('-M', '--mgmtchannel', type=int, help='Management Channel')
+        bmcsetup_add.add_argument('-nt', '--netchannel', type=int, help='Network Channel')
+        bmcsetup_add.add_argument('-mt', '--mgmtchannel', type=int, help='Management Channel')
         bmcsetup_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         bmcsetup_add.add_argument('-c', '--comment', help='Comment for BMC Setup')
         bmcsetup_update = bmcsetup_args.add_parser('update', help='Update a BMC Setup')
         Helper().common_add_args(bmcsetup_update, 'BMC Setup')
-        bmcsetup_update.add_argument('-U', '--userid', type=int, help='UserID for BMC Setup')
+        bmcsetup_update.add_argument('-id', '--userid', type=int, help='UserID for BMC Setup')
         bmcsetup_update.add_argument('-u', '--username', help='Username for BMC Setup')
         bmcsetup_update.add_argument('-p', '--password', help='Password for BMC Setup')
-        bmcsetup_update.add_argument('-N', '--netchannel', type=int, help='Network Channel')
-        bmcsetup_update.add_argument('-M', '--mgmtchannel', type=int, help='Management Channel')
+        bmcsetup_update.add_argument('-nt', '--netchannel', type=int, help='Network Channel')
+        bmcsetup_update.add_argument('-mt', '--mgmtchannel', type=int, help='Management Channel')
         bmcsetup_update.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         bmcsetup_update.add_argument('-c', '--comment', help='Comment for BMC Setup')
         bmcsetup_clone = bmcsetup_args.add_parser('clone', help='Clone BMC Setup')
         Helper().common_add_args(bmcsetup_clone, 'BMC Setup')
-        bmcsetup_clone.add_argument('-nn', '--newbmcname', help='New name of the BMC Setup')
-        bmcsetup_clone.add_argument('-U', '--userid', type=int, help='UserID for BMC Setup')
+        bmcsetup_clone.add_argument('-N', '--newbmcname', help='New name of the BMC Setup')
+        bmcsetup_clone.add_argument('-id', '--userid', type=int, help='UserID for BMC Setup')
         bmcsetup_clone.add_argument('-u', '--username', help='Username for BMC Setup')
         bmcsetup_clone.add_argument('-p', '--password', help='Password for BMC Setup')
-        bmcsetup_clone.add_argument('-N', '--netchannel', type=int, help='Network Channel')
-        bmcsetup_clone.add_argument('-M', '--mgmtchannel', type=int, help='Management Channel')
+        bmcsetup_clone.add_argument('-nt', '--netchannel', type=int, help='Network Channel')
+        bmcsetup_clone.add_argument('-mt', '--mgmtchannel', type=int, help='Management Channel')
         bmcsetup_clone.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         bmcsetup_clone.add_argument('-c', '--comment', help='Comment for BMC Setup')
         bmcsetup_rename = bmcsetup_args.add_parser('rename', help='Rename BMC Setup')
         Helper().common_add_args(bmcsetup_rename, 'BMC Setup')
-        bmcsetup_rename.add_argument('-nn', '--newbmcname', help='New name of the BMC Setup')
+        bmcsetup_rename.add_argument('-N', '--newbmcname', help='New name of the BMC Setup')
         bmcsetup_delete = bmcsetup_args.add_parser('delete', help='Delete BMC Setup')
         Helper().common_add_args(bmcsetup_delete, 'BMC Setup')
         return parser
@@ -138,10 +141,8 @@ class BMCSetup():
             if not confirm:
                 Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
         else:
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             if not self.args["name"]:
                 payload = {}
                 Helper().show_error('BMC Setup name is a Mandatory Key.')
@@ -167,11 +168,10 @@ class BMCSetup():
         Method to update a bmc setup in Luna Configuration.
         """
         payload = {}
-        if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config']['bmcsetup'].keys())
-                payload['name'] = Inquiry().ask_select("Select BMC Setup to update:", names)
+        if self.get_list:
+            bmc_names = list(self.get_list['config']['bmcsetup'].keys())
+            if self.args['init']:
+                payload['name'] = Inquiry().ask_select("Select BMC Setup to update:", bmc_names)
                 payload['userid'] = Inquiry().ask_number("Update User ID", True)
                 payload['username'] = Inquiry().ask_text("Update Username", True)
                 payload['password'] = Inquiry().ask_secret("Update Password", True)
@@ -189,33 +189,27 @@ class BMCSetup():
                 Presenter().show_table_col(title, fields, rows)
                 confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
                 if not confirm:
-                    payload = {}
                     Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+                    payload = {}
             else:
-                Helper().show_error(f'No {self.table.capitalize()} is available.')
+                for remove in ['debug', 'command', 'action', 'init']:
+                    self.args.pop(remove, None)
+                if not self.args["name"]:
+                    Helper().show_error('BMC Setup name is a Mandatory Key.')
+                else:
+                    if self.args["name"] not in bmc_names:
+                        Helper().show_error(f'{self.args["name"]} Not found in {self.table.capitalize()}.')
+                    else:
+                        payload = {k: v for k, v in self.args.items() if v is not None}
         else:
-            for remove in ['debug', 'command', 'action', 'init']:
-                self.args.pop(remove, None)
-            if not self.args["name"]:
-                payload = {}
-                Helper().show_error('BMC Setup name is a Mandatory Key.')
-            else:
-                payload = self.args
-                payload = {k: v for k, v in self.args.items() if v is not None}
+            Helper().show_error(f'No {self.table.capitalize()} is available.')
         if payload:
             request_data = {'config':{self.table:{payload['name']: payload}}}
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                if payload["name"] in list(get_list['config']['bmcsetup'].keys()):
-                    self.logger.debug(f'Payload => {request_data}')
-                    response = Rest().post_data(self.table, payload['name'], request_data)
-                    self.logger.debug(f'Response => {response}')
-                    if response == 204:
-                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
-                else:
-                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
-            else:
-                Helper().show_error(f'No {self.table.capitalize()} is available.')
+            self.logger.debug(f'Payload => {request_data}')
+            response = Rest().post_data(self.table, payload['name'], request_data)
+            self.logger.debug(f'Response => {response}')
+            if response == 204:
+                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
         return True
 
 
@@ -240,23 +234,17 @@ class BMCSetup():
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            error = False
             del self.args['debug']
             del self.args['command']
             del self.args['action']
             del self.args['init']
+            if self.args['name'] is None:
+                Helper().show_error('Kindly provide BMC Name.')
+            if self.args['newbmcname'] is None:
+                Helper().show_error('Kindly provide New BMC Name.')
             payload = self.args
-            if payload['name'] is None:
-                error = Helper().show_error('Kindly provide BMC Name.')
-            if payload['newbmcname'] is None:
-                error = Helper().show_error('Kindly provide New BMC Name.')
-            if error:
-                Helper().show_error(f'Renaming {payload["name"]} in {self.table.capitalize()} Abort.')
         if payload['newbmcname'] and payload['name']:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
+            request_data = {'config': {self.table: {payload['name']: payload}}}
             get_list = Rest().get_data(self.table)
             if get_list:
                 names = list(get_list['config']['bmcsetup'].keys())

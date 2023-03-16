@@ -18,7 +18,7 @@ from InquirerPy import inquirer, get_style
 from termcolor import colored
 from luna.utils.log import Log
 
-class Inquiry(object):
+class Inquiry():
     """
     All kind of display methods.
     """
