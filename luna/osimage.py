@@ -13,6 +13,7 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
 from time import sleep
+from multiprocessing import Process
 from termcolor import colored
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
@@ -484,7 +485,8 @@ class OSImage(object):
         """
         Method to pack the OS Image
         """
-        Helper().loader("OS Image Packing")
+        process1 = Process(target=Helper().loader, args=("OS Image Packing...",))
+        process1.start()
         response = False
         uri = f'config/{self.table}/{self.args["name"]}/_pack'
         result = Rest().get_raw(uri)
@@ -495,14 +497,15 @@ class OSImage(object):
                 def dig_packing_status(uri):
                     result = Rest().get_raw(uri)
                     if result.status_code == 400:
+                        process1.terminate()
                         return True
                     elif result.status_code == 200:
                         http_response = result.json()
                         if http_response['message']:
-                            msg = http_response['message'].split(';;')
-                            for mg in msg:
+                            message = http_response['message'].split(';;')
+                            for msg in message:
                                 sleep(2)
-                                Helper().loader(mg)
+                                print(colored(msg, 'yellow', attrs=['bold']))
                         sleep(2)
                         return dig_packing_status(uri)
                     else:

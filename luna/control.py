@@ -12,6 +12,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
+from multiprocessing import Process
 from termcolor import colored
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
@@ -94,17 +95,19 @@ class Control():
             else:
                 response = Helper().show_error(http_response['message'])
         elif len(hostlist) > 1:
+            process1 = Process(target=Helper().loader, args=("Fetching Nodes Status...",))
+            process1.start()
             uri = f'{self.route}/{self.action}'
             payload = {"control":{"power":{self.args["action"]:{"hostlist":self.args['node']}}}}
             result = Rest().post_raw(uri, payload)
             if result.status_code == 200:
                 http_response = result.json()
                 request_id = http_response['control']['power']['request_id']
-                Helper().loader("Fetching Nodes Status")
                 count = 1
                 if 'failed' in http_response['control']['power'].keys():
                     count = Helper().control_print(1, http_response)
                 check = Helper().dig_data(result.status_code, request_id, count, 0)
+                process1.terminate()
                 if check:
                     print(colored("[========] Process Completed", 'green', attrs=['bold']))
                 else:
@@ -145,6 +148,8 @@ class Control():
                 http_response = result.json()
                 Helper().show_error(http_response['message'])
         elif len(hostlist) > 1:
+            process1 = Process(target=Helper().loader, args=("Fetching Nodes Status...",))
+            process1.start()
             uri = f'{self.route}/{self.action}'
             payload = {"control":{"power":{self.args["action"]:{"hostlist":self.args['node']}}}}
             Rest().post_raw(uri, payload)
@@ -154,11 +159,12 @@ class Control():
 
             if result.status_code == 200:
                 request_id = http_response['control']['power']['request_id']
-                Helper().loader("Fetching Nodes Status")
+                # Helper().loader("Fetching Nodes Status")
                 count = 1
                 if 'failed' in http_response['control']['power'].keys():
                     count = Helper().control_print(1, http_response)
                 check = Helper().dig_data(result.status_code, request_id, count, 0)
+                process1.terminate()
                 if check:
                     print(colored("[========] Process Completed", 'green', attrs=['bold']))
                 else:

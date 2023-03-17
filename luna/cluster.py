@@ -57,7 +57,7 @@ class Cluster():
         cluster_update = cluster_args.add_parser('update', help='Update Cluster')
         cluster_update.add_argument('name', help='Name of the Cluster')
         cluster_update.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        cluster_update.add_argument('-N', '--name', help='New Name For Cluster')
+        cluster_update.add_argument('-nn', '--name', help='New Name For Cluster')
         cluster_update.add_argument('-u', '--user', help='Cluster User')
         cluster_update.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='NTP IP')
         cluster_update.add_argument(

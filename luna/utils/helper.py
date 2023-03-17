@@ -115,7 +115,6 @@ class Helper(object):
         """
         This method will perform power option on node.
         """
-        self.loader("Fetching Nodes Status")
         header = f"{colored('|', 'yellow')} {colored('S.No.', 'cyan')} {colored('|', 'yellow')}"
         header = f"{header}     {colored('Node Name', 'cyan')}      {colored('|', 'yellow')}       "
         header = f"{header}{colored('Status', 'cyan')}       {colored('|', 'yellow')}"
@@ -178,8 +177,6 @@ class Helper(object):
         notcomplete = True
         i = 0
         while notcomplete:
-            if i == 10:
-                notcomplete = False
             print(animation[i % len(animation)], end='\r')
             sleep(.1)
             i += 1

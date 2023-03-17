@@ -86,7 +86,7 @@ class BMCSetup():
         bmcsetup_update.add_argument('-c', '--comment', help='Comment for BMC Setup')
         bmcsetup_clone = bmcsetup_args.add_parser('clone', help='Clone BMC Setup')
         Helper().common_add_args(bmcsetup_clone, 'BMC Setup')
-        bmcsetup_clone.add_argument('-N', '--newbmcname', help='New name of the BMC Setup')
+        bmcsetup_clone.add_argument('-nn', '--newbmcname', help='New name of the BMC Setup')
         bmcsetup_clone.add_argument('-id', '--userid', type=int, help='UserID for BMC Setup')
         bmcsetup_clone.add_argument('-u', '--username', help='Username for BMC Setup')
         bmcsetup_clone.add_argument('-p', '--password', help='Password for BMC Setup')
@@ -96,7 +96,7 @@ class BMCSetup():
         bmcsetup_clone.add_argument('-c', '--comment', help='Comment for BMC Setup')
         bmcsetup_rename = bmcsetup_args.add_parser('rename', help='Rename BMC Setup')
         Helper().common_add_args(bmcsetup_rename, 'BMC Setup')
-        bmcsetup_rename.add_argument('-N', '--newbmcname', help='New name of the BMC Setup')
+        bmcsetup_rename.add_argument('-nn', '--newbmcname', help='New name of the BMC Setup')
         bmcsetup_delete = bmcsetup_args.add_parser('delete', help='Delete BMC Setup')
         Helper().common_add_args(bmcsetup_delete, 'BMC Setup')
         return parser
