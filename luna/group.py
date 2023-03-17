@@ -12,14 +12,14 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-
+from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.inquiry import Inquiry
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 
-class Group(object):
+class Group():
     """
     Group Class responsible to show, list,
     add, remove information for the Group
@@ -32,19 +32,11 @@ class Group(object):
         self.interface = "groupinterface"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            if self.args["action"] == "list":
-                self.list_group()
-            elif self.args["action"] == "show":
-                self.show_group()
-            elif self.args["action"] == "add":
-                self.add_group()
-            elif self.args["action"] == "update":
-                self.update_group()
-            elif self.args["action"] == "rename":
-                self.rename_group()
-            elif self.args["action"] == "delete":
-                self.delete_group()
-            
+            if self.args["action"] in ["update", "rename", "delete", "clone"]:
+                self.get_list = Rest().get_data(self.table)
+            if self.args["action"] in ["list", "show", "add", "update", "rename", "delete"]:
+                call = methodcaller(f'{self.args["action"]}_group')
+                call(self)
             elif self.args["action"] == "interfaces":
                 self.list_interfaces()
             elif self.args["action"] == "interface":
@@ -66,115 +58,48 @@ class Group(object):
         """
         group_menu = subparsers.add_parser('group', help='Group operations')
         group_args = group_menu.add_subparsers(dest='action')
-        ## >>>>>>> Group Command >>>>>>> list
         group_list = group_args.add_parser('list', help='List Groups')
-        group_list.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        group_list.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Group Command >>>>>>> show
+        Helper().common_list_args(group_list)
         group_show = group_args.add_parser('show', help='Show Group')
-        group_show.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         group_show.add_argument('name', help='Name of the Group')
-        group_show.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Group Command >>>>>>> add
+        Helper().common_list_args(group_show)
         group_add = group_args.add_parser('add', help='Add Group')
-        group_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        group_add.add_argument('-i', '--init', action='store_true', help='Group Interactive Mode')
-        group_add.add_argument('-n', '--name', help='Name of the Group')
-        group_add.add_argument('-b', '--bmcsetup', help='BMC Setup')
+        Helper().common_add_args(group_add, 'The Group')
+        Helper().common_group_node_args(group_add)
+        group_add.add_argument('-b', '--setupbmc', help='BMC Setup')
         group_add.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         group_add.add_argument('-D', '--domain', help='Domain Name')
-        group_add.add_argument('-o', '--osimage', help='OS Image Name')
-        group_add.add_argument('-pre', '--prescript', help='Pre Script')
-        group_add.add_argument('-part', '--partscript', help='Part Script')
-        group_add.add_argument('-post', '--postscript', help='Post Script')
-        group_add.add_argument('-nb', '--netboot', help='Network Boot')
-        group_add.add_argument('-li', '--localinstall', help='Local Install')
-        group_add.add_argument('-bm', '--bootmenu', help='Boot Menu')
-        group_add.add_argument('-pi', '--provision_interface', help='Provision Interface')
-        group_add.add_argument('-pm', '--provision_method', help='Provision Method')
-        group_add.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        group_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        group_add.add_argument('-I', '--interface', action='append', help='Interface Name')
-        group_add.add_argument('-N', '--network', action='append', help='Interface Network Name')
-        group_add.add_argument('-c', '--comment', help='Comment for Group')
-        ## >>>>>>> Group Command >>>>>>> update
         group_update = group_args.add_parser('update', help='Update Group')
-        group_update.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        group_update.add_argument('-i', '--init', action='store_true', help='Group Interactive Mode')
-        group_update.add_argument('-n', '--name', help='Name of the Group')
-        group_update.add_argument('-b', '--bmcsetup', action='store_true', help='BMC Setup True/False')
+        Helper().common_add_args(group_update, 'The Group')
+        Helper().common_group_node_args(group_update)
+        group_update.add_argument('-b', '--setupbmc', action='store_true', help='BMC Setup True/False')
         group_update.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         group_update.add_argument('-D', '--domain', help='Domain Name')
-        group_update.add_argument('-o', '--osimage', help='OS Image Name')
-        group_update.add_argument('-pre', '--prescript', help='Pre Script')
-        group_update.add_argument('-part', '--partscript', help='Part Script')
-        group_update.add_argument('-post', '--postscript', help='Post Script')
-        group_update.add_argument('-nb', '--netboot', help='Network Boot')
-        group_update.add_argument('-li', '--localinstall', help='Local Install')
-        group_update.add_argument('-bm', '--bootmenu', help='Boot Menu')
-        group_update.add_argument('-pm', '--provision_method', help='Provision Method')
-        group_update.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        group_update.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        group_update.add_argument('-I', '--interface', action='append', help='Interface Name')
-        group_update.add_argument('-N', '--network', action='append', help='Interface Network Name')
-        group_update.add_argument('-c', '--comment', help='Comment for Group')
-        ## >>>>>>> Group Command >>>>>>> clone
         group_clone = group_args.add_parser('clone', help='Clone Group.')
-        group_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        group_clone.add_argument('-i', '--init', action='store_true', help='Group Interactive Mode')
-        group_clone.add_argument('-n', '--name', help='Name of the Group')
+        Helper().common_add_args(group_clone, 'The Group')
+        Helper().common_group_node_args(group_clone)
         group_clone.add_argument('-nn', '--newgroupname', help='New Name for the Group')
-        group_clone.add_argument('-b', '--bmcsetup', action='store_true', help='BMC Setup True/False')
+        group_clone.add_argument('-b', '--setupbmc', action='store_true', help='BMC Setup True/False')
         group_clone.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         group_clone.add_argument('-D', '--domain', help='Domain Name')
-        group_clone.add_argument('-o', '--osimage', help='OS Image Name')
-        group_clone.add_argument('-pre', '--prescript', help='Pre Script')
-        group_clone.add_argument('-part', '--partscript', help='Part Script')
-        group_clone.add_argument('-post', '--postscript', help='Post Script')
-        group_clone.add_argument('-nb', '--netboot', help='Network Boot')
-        group_clone.add_argument('-li', '--localinstall', help='Local Install')
-        group_clone.add_argument('-bm', '--bootmenu', help='Boot Menu')
-        group_clone.add_argument('-pm', '--provision_method', help='Provision Method')
-        group_clone.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        group_clone.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        group_clone.add_argument('-I', '--interface', action='append', help='Interface Name')
-        group_clone.add_argument('-N', '--network', action='append', help='Interface Network Name')
-        group_clone.add_argument('-c', '--comment', help='Comment for Group')
-        ## >>>>>>> Group Command >>>>>>> rename
         group_rename = group_args.add_parser('rename', help='Rename Group.')
-        group_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        group_rename.add_argument('-i', '--init', action='store_true', help='Group Interactive Mode')
-        group_rename.add_argument('-n', '--name', help='Name of the Group')
+        Helper().common_add_args(group_rename, 'The Group')
         group_rename.add_argument('-nn', '--newgroupname', help='New Name for the Group')
-        ## >>>>>>> Group Command >>>>>>> delete
         group_delete = group_args.add_parser('delete', help='Delete Group')
-        group_delete.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        group_delete.add_argument('-i', '--init', action='store_true', help='Group Interactive Mode')
-        group_delete.add_argument('-n', '--name', help='Name of the Group')
-        ## >>>>>>> Group Commands Ends
-        ## >>>>>>> Group Interface Command >>>>>>> interfaces
+        Helper().common_add_args(group_delete, 'The Group')
         group_interfaces = group_args.add_parser('interfaces', help='List Group Interfaces')
-        group_interfaces.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         group_interfaces.add_argument('name', help='Name of the Group')
-        group_interfaces.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Group Interface Command >>>>>>> interfaces
+        Helper().common_list_args(group_interfaces)
         group_interface = group_args.add_parser('interface', help='Show Group Interface')
-        group_interface.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         group_interface.add_argument('name', help='Name of the Group')
         group_interface.add_argument('interface', help='Name of the Group Interface')
-        group_interface.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Group Interface Command >>>>>>> delete
+        Helper().common_list_args(group_interface)
         group_updateinterface = group_args.add_parser('updateinterface', help='Update Group Interface')
-        group_updateinterface.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        group_updateinterface.add_argument('-i', '--init', action='store_true', help='Group Interactive Mode')
-        group_updateinterface.add_argument('-n', '--name', help='Name of the Group')
+        Helper().common_add_args(group_updateinterface, 'The Group')
         group_updateinterface.add_argument('-if', '--interface', action='append', help='Group Interface')
         group_updateinterface.add_argument('-N', '--network', action='append', help='Network Name')
-        ## >>>>>>> Group Interface Command >>>>>>> delete
         group_deleteinterface = group_args.add_parser('deleteinterface', help='Delete Group Interface')
-        group_deleteinterface.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        group_deleteinterface.add_argument('-i', '--init', action='store_true', help='Group Interactive Mode')
-        group_deleteinterface.add_argument('-n', '--name', help='Name of the Group')
+        Helper().common_add_args(group_deleteinterface, 'The Group')
         group_deleteinterface.add_argument('-if', '--interface', help='Name of the Group Interface')
         return parser
 
@@ -200,19 +125,19 @@ class Group(object):
         payload = {}
         if self.args['init']:
             payload['name'] = Inquiry().ask_text("Write Name Of Group")
-            payload['bmcsetup'] = Inquiry().ask_text("BMC Setup True or False")
-            payload['bmcsetupname'] = Inquiry().ask_text("Write BMC Setup Name")
-            payload['domain'] = Inquiry().ask_text("Write Domain Name")
-            payload['osimage'] = Inquiry().ask_text("Write OSImage Name")
-            payload['prescript'] = Inquiry().ask_text("Write Pre-Script")
-            payload['partscript'] = Inquiry().ask_text("Write Part-Script")
-            payload['postscript'] = Inquiry().ask_text("Write Post-Script")
-            payload['netboot'] = Inquiry().ask_text("Network Boot")
-            payload['localinstall'] = Inquiry().ask_file("Local Install")
-            payload['bootmenu'] = Inquiry().ask_text("Boot Menu")
-            payload['provision_method'] = Inquiry().ask_text("Provision Method")
-            payload['provision_fallback'] = Inquiry().ask_text("Provision Fallback")
-            payload['unmanaged_bmc_users'] = Inquiry().ask_text("Unmanaged BMC Users")
+            payload['setupbmc'] = Inquiry().ask_text("BMC Setup True or False", True)
+            payload['bmcsetupname'] = Inquiry().ask_text("Write BMC Setup Name", True)
+            payload['domain'] = Inquiry().ask_text("Write Domain Name", True)
+            payload['osimage'] = Inquiry().ask_text("Write OSImage Name", True)
+            payload['prescript'] = Inquiry().ask_text("Write Pre-Script", True)
+            payload['partscript'] = Inquiry().ask_text("Write Part-Script", True)
+            payload['postscript'] = Inquiry().ask_text("Write Post-Script", True)
+            payload['netboot'] = Inquiry().ask_text("Network Boot", True)
+            payload['localinstall'] = Inquiry().ask_file("Local Install", True)
+            payload['bootmenu'] = Inquiry().ask_text("Boot Menu", True)
+            payload['provision_method'] = Inquiry().ask_text("Provision Method", True)
+            payload['provision_fallback'] = Inquiry().ask_text("Provision Fallback", True)
+            payload['unmanaged_bmc_users'] = Inquiry().ask_text("Unmanaged BMC Users", True)
             def interfaces(interfc):
                 if len(interfc):
                     confirm_text = "Add one more Interface?"
@@ -227,8 +152,7 @@ class Group(object):
                     return interfaces(interfc)
                 else:
                     return interfc
-            interfc = []
-            payload['interfaces'] = interfaces(interfc)
+            payload['interfaces'] = interfaces([])
             comment = Inquiry().ask_confirm("Do you want to provide a comment?")
             if comment:
                 payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)")
@@ -238,12 +162,11 @@ class Group(object):
             confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
             if not confirm:
                 Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+                payload = {}
         else:
             error = False
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             iface = [self.args['interface'], self.args['network']]
             ifacecount = sum(x is not None for x in iface)
             if ifacecount:
@@ -260,12 +183,10 @@ class Group(object):
             if error:
                 Helper().show_error('Operation Aborted.')
                 self.args.clear()
-            payload = {k: v for k, v in self.args.items() if v is not None}
+            else:
+                payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
+            request_data = {'config': {self.table: {payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
@@ -284,11 +205,10 @@ class Group(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Group", names)
-                payload['bmcsetup'] = Inquiry().ask_text("BMC Setup True or False", True)
+                payload['setupbmc'] = Inquiry().ask_text("BMC Setup True or False", True)
                 payload['bmcsetupname'] = Inquiry().ask_text("Write BMC Setup Name", True)
                 payload['domain'] = Inquiry().ask_text("Write Domain Name", True)
                 payload['osimage'] = Inquiry().ask_text("Write OSImage Name", True)
@@ -315,8 +235,7 @@ class Group(object):
                         return interfaces(interfc)
                     else:
                         return interfc
-                interfc = []
-                payload['interfaces'] = interfaces(interfc)
+                payload['interfaces'] = interfaces([])
                 comment = Inquiry().ask_confirm("Do you want to provide a comment?")
                 if comment:
                     payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
@@ -334,10 +253,8 @@ class Group(object):
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
             error = False
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             iface = [self.args['interface'], self.args['network']]
             ifacecount = sum(x is not None for x in iface)
             if ifacecount:
@@ -356,13 +273,9 @@ class Group(object):
                 self.args.clear()
             payload = {k: v for k, v in self.args.items() if v is not None}
         if (len(payload) != 1) and ('name' in payload):
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            request_data = {'config': {self.table: {payload['name']: payload}}}
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     self.logger.debug(f'Payload => {request_data}')
                     response = Rest().post_data(self.table, payload['name'], request_data)
@@ -384,9 +297,8 @@ class Group(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Group to rename", names)
                 payload['newgroupname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
                 fields, rows  = Helper().filter_data_col(self.table, payload)
@@ -400,10 +312,8 @@ class Group(object):
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
             error = False
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             payload = self.args
             if payload['name'] is None:
                 error = Helper().show_error('Kindly provide Group Name.')
@@ -412,13 +322,9 @@ class Group(object):
             if error:
                 Helper().show_error(f'Renaming {payload["name"]} in {self.table.capitalize()} Abort.')
         if payload['newgroupname'] and payload['name']:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            request_data = {'config': {self.table: {payload['name']: payload}}}
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     self.logger.debug(f'Payload => {request_data}')
                     response = Rest().post_data(self.table, payload['name'], request_data)
@@ -439,9 +345,8 @@ class Group(object):
         abort = False
         payload = {}
         if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Group to delete", names)
                 fields, rows  = Helper().filter_data_col(self.table, payload)
                 title = f'{self.table.capitalize()} Deleting => {payload["name"]}'
@@ -452,17 +357,14 @@ class Group(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             payload = self.args
             if payload['name'] is None:
                 abort = Helper().show_error('Kindly provide Group Name.')
         if abort is False:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     self.logger.debug(f'Payload => {payload}')
                     response = Rest().get_delete(self.table, payload['name'])
@@ -482,12 +384,11 @@ class Group(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Group", names)
                 payload['newgroupname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
-                payload['bmcsetup'] = Inquiry().ask_text("BMC Setup True or False", True)
+                payload['setupbmc'] = Inquiry().ask_text("BMC Setup True or False", True)
                 payload['bmcsetupname'] = Inquiry().ask_text("Write BMC Setup Name", True)
                 payload['domain'] = Inquiry().ask_text("Write Domain Name", True)
                 payload['osimage'] = Inquiry().ask_text("Write OSImage Name", True)
@@ -540,10 +441,8 @@ class Group(object):
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
             error =  False
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             iface = [self.args['interface'], self.args['network']]
             ifacecount = sum(x is not None for x in iface)
             if ifacecount:
@@ -571,13 +470,9 @@ class Group(object):
                 payload.clear()
                 payload.update(filtered)
         if len(payload) != 1:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            request_data = {'config': {self.table: {payload['name']: payload}}}
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     if payload["newgroupname"] in names:
                         Helper().show_error(f'{payload["newgroupname"]} is already present in {self.table.capitalize()}.')
@@ -684,10 +579,8 @@ class Group(object):
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
             error = False
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             iface = [self.args['interface'], self.args['network']]
             ifacecount = sum(x is not None for x in iface)
             if ifacecount:
@@ -708,10 +601,7 @@ class Group(object):
         if (len(payload) != 1) and ('name' in payload):
             node_name = payload['name']
             del payload['name']
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][node_name] = payload
+            request_data = {'config': {self.table: {node_name: payload}}}
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, node_name+'/interfaces', request_data)
             self.logger.debug(f'Response => {response}')
@@ -750,10 +640,8 @@ class Group(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             payload = self.args
             if payload['name'] is None:
                 abort = Helper().show_error('Kindly provide Group Name.')

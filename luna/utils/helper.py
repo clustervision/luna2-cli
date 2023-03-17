@@ -111,6 +111,37 @@ class Helper(object):
         return parser
 
 
+    def common_control_args(self, parser=None):
+        """
+        This method will provide the control arguments..
+        """
+        parser.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        parser.add_argument('node', help='Node Name or Node Hostlist')
+        return parser
+
+
+    def common_group_node_args(self, parser=None):
+        """
+        This method will provide the control arguments..
+        """
+        parser.add_argument('-pre', '--prescript', help='Pre Script')
+        parser.add_argument('-part', '--partscript', help='Part Script')
+        parser.add_argument('-post', '--postscript', help='Post Script')
+        parser.add_argument('-pi', '--provision_interface', help='Provision Interface')
+        parser.add_argument('-pm', '--provision_method', help='Provision Method')
+        parser.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
+        parser.add_argument('-o', '--osimage', help='OS Image Name')
+        parser.add_argument('-nb', '--netboot', help='Network Boot')
+        parser.add_argument('-li', '--localinstall', help='Local Install')
+        parser.add_argument('-bm', '--bootmenu', help='Boot Menu')
+        parser.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
+        parser.add_argument('-if', '--interface', action='append', help='Interface Name')
+        parser.add_argument('-N', '--network', action='append', help='Interface Network Name')
+        parser.add_argument('-c', '--comment', help='Comment')
+        return parser
+    
+
+
     def control_print(self, num=None, control_data=None):
         """
         This method will perform power option on node.

@@ -52,18 +52,12 @@ class Control():
         control_args = control_menu.add_subparsers(dest='power')
         power_parser = control_args.add_parser('power', help='Power Operations')
         power_menu = power_parser.add_subparsers(dest='action')
-        ## >>>>>>> Control Command >>>>>>> status
         status_parser = power_menu.add_parser('status', help='Status of Node(s)')
-        status_parser.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        status_parser.add_argument('node', help='Node Name or Node Hostlist')
-        ## >>>>>>> Control Command >>>>>>> on
+        Helper().common_control_args(status_parser)
         on_parser = power_menu.add_parser('on', help='Power On Node(s)')
-        on_parser.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        on_parser.add_argument('node', help='Node Name or Node Hostlist')
-        ## >>>>>>> Control Command >>>>>>> of
+        Helper().common_control_args(on_parser)
         off_parser = power_menu.add_parser('off', help='Power Off Node(s)')
-        off_parser.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        off_parser.add_argument('node', help='Node Name or Node Hostlist')
+        Helper().common_control_args(off_parser)
         return parser
 
 
@@ -159,7 +153,6 @@ class Control():
 
             if result.status_code == 200:
                 request_id = http_response['control']['power']['request_id']
-                # Helper().loader("Fetching Nodes Status")
                 count = 1
                 if 'failed' in http_response['control']['power'].keys():
                     count = Helper().control_print(1, http_response)

@@ -12,7 +12,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-
+from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.inquiry import Inquiry
@@ -34,24 +34,8 @@ class BMCSetup():
             self.logger.debug(f'Arguments Supplied => {self.args}')
             if self.args["action"] in ["update", "rename", "delete", "clone"]:
                 self.get_list = Rest().get_data(self.table)
-            if self.args["action"] == "list":
-                self.list_bmcsetup()
-            elif self.args["action"] == "show":
-                self.show_bmcsetup()
-            elif self.args["action"] == "add":
-                self.add_bmcsetup()
-            elif self.args["action"] == "update":
-                self.update_bmcsetup()
-            elif self.args["action"] == "rename":
-                self.rename_bmcsetup()
-            elif self.args["action"] == "delete":
-                self.delete_bmcsetup()
-            elif self.args["action"] == "clone":
-                self.clone_bmcsetup()
-            else:
-                Helper().show_error("Not a valid option.")
-        else:
-            Helper().show_error("Please pass -h to see help menu.")
+            call = methodcaller(f'{self.args["action"]}_bmcsetup')
+            call(self)
 
 
     def getarguments(self, parser, subparsers):
