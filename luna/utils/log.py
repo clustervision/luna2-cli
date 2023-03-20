@@ -16,15 +16,10 @@ __maintainer__  = 'Sumit Sharma'
 __email__       = 'sumit.sharma@clustervision.com'
 __status__      = 'Development'
 
-import os
 import sys
 import logging
-from pathlib import Path
 
-CurrentDir = os.path.dirname(os.path.realpath(__file__))
-UTILSDIR = Path(CurrentDir)
-BASE_DIR = str(UTILSDIR.parent)
-logfile = f'{BASE_DIR}/log/luna2-cli.log'
+LOG_FILE = '/var/log/luna/luna2-cli.log'
 
 class Log:
     """This Log Class is responsible to start the Logger depend on the Level."""
@@ -43,16 +38,17 @@ class Log:
         thread_level = '[%(levelname)s]:[%(asctime)s]:[%(threadName)s]:'
         message = '[%(filename)s:%(funcName)s@%(lineno)d] - %(message)s'
         log_format = f'{thread_level}{message}'
-        logging.basicConfig(filename=logfile, format=log_format, filemode='a', level=log_level)
-        cls.__logger = logging.getLogger('luna2-daemon')
+        logging.basicConfig(filename=LOG_FILE, format=log_format, filemode='a', level=log_level)
+        cls.__logger = logging.getLogger('luna2-cli')
         cls.__logger.setLevel(log_level)
-        formatter = logging.Formatter(log_format)
-        cnsl = logging.StreamHandler(sys.stdout)
-        cnsl.setLevel(log_level)
-        cnsl.setFormatter(formatter)
-        cls.__logger.addHandler(cnsl)
+        if log_level == 10:
+            formatter = logging.Formatter(log_format)
+            cnsl = logging.StreamHandler(sys.stdout)
+            cnsl.setLevel(log_level)
+            cnsl.setFormatter(formatter)
+            cls.__logger.addHandler(cnsl)
         levels = {0: 'NOTSET', 10: 'DEBUG', 20: 'INFO', 30: 'WARNING', 40: 'ERROR', 50: 'CRITICAL'}
-        cls.__logger.debug(f'######### Luna Logging Level IsSet To [{levels[log_level]}] #########')
+        cls.__logger.info(f'######### Luna Logging Level IsSet To [{levels[log_level]}] #########')
         return cls.__logger
 
 

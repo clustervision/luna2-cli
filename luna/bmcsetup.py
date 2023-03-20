@@ -32,10 +32,13 @@ class BMCSetup():
         self.get_list = None
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            if self.args["action"] in ["update", "rename", "delete", "clone"]:
+            actions = ["list", "show", "update", "rename", "delete", "clone"]
+            if self.args["action"] in ["list", "show", "add", "update", "rename", "delete", "clone"]:
                 self.get_list = Rest().get_data(self.table)
-            call = methodcaller(f'{self.args["action"]}_bmcsetup')
-            call(self)
+                call = methodcaller(f'{self.args["action"]}_bmcsetup')
+                call(self)
+            else:
+                Helper().show_error(f"Kindly choose from {actions}.")
         if parser and subparsers:
             self.getarguments(parser, subparsers)
 
@@ -130,11 +133,13 @@ class BMCSetup():
             for remove in ['debug', 'command', 'action', 'init']:
                 self.args.pop(remove, None)
             if not self.args["name"]:
-                payload = {}
                 Helper().show_error('BMC Setup name is a Mandatory Key.')
             else:
-                payload = self.args
-                payload = {k: v for k, v in self.args.items() if v is not None}
+                bmc_names = list(self.get_list['config'][self.table].keys())
+                if self.args["name"] in bmc_names:
+                    Helper().show_warning(f'BMC Setup {self.args["name"]} present already.')
+                else:
+                    payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
             request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')

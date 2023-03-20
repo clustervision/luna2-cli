@@ -67,6 +67,7 @@ class Cli():
             self.logger = Log.init_log('debug')
         else:
             self.logger = Log.init_log('info')
+        self.logger.info(f'Command => {self.args}')
         if self.args["command"]:
             if self.args["command"] == "osimage":
                 call = globals()["OSImage"]
