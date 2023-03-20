@@ -12,47 +12,35 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-
+from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.inquiry import Inquiry
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 
-class Network(object):
+class Network():
     """
     Network Class responsible to show, list,
     add, remove information for the networks
     """
 
-    def __init__(self, args=None):
+    def __init__(self, args=None, parser=None, subparsers=None):
         self.logger = Log.get_logger()
         self.args = args
         self.table = "network"
+        self.get_list = None
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            if self.args["action"] == "list":
-                self.list_network()
-            elif self.args["action"] == "show":
-                self.show_network()
-            elif self.args["action"] == "add":
-                self.add_network()
-            elif self.args["action"] == "update":
-                self.update_network()
-            elif self.args["action"] == "rename":
-                self.rename_network()
-            elif self.args["action"] == "delete":
-                self.delete_network()
-            elif self.args["action"] == "clone":
-                self.clone_network()
-            elif self.args["action"] == "ipinfo":
-                self.ipinfo_network()
-            elif self.args["action"] == "nextip":
-                self.nextip_network()
+            actions = ["list", "show", "add", "update", "rename", "clone", "delete", "ipinfo", "nextip"]
+            if self.args["action"] in actions:
+                self.get_list = Rest().get_data(self.table)
+                call = methodcaller(f'{self.args["action"]}_network')
+                call(self)
             else:
                 Helper().show_error("Not a valid option.")
-        else:
-            Helper().show_error("Please pass -h to see help menu.")
+        if parser and subparsers:
+            self.getarguments(parser, subparsers)
 
 
     def getarguments(self, parser, subparsers):
@@ -60,22 +48,15 @@ class Network(object):
         Method will provide all the arguments
         related to the Network class.
         """
-        network_menu = subparsers.add_parser('network', help='Node operations.')
+        network_menu = subparsers.add_parser('network', help='Network operations.')
         network_args = network_menu.add_subparsers(dest='action')
-        ## >>>>>>> Network Command >>>>>>> list
         network_list = network_args.add_parser('list', help='List Networks')
-        network_list.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        network_list.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Network Command >>>>>>> show
+        Helper().common_list_args(network_list)
         network_show = network_args.add_parser('show', help='Show Network')
         network_show.add_argument('name', help='Name of the Network')
-        network_show.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        network_show.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Network Command >>>>>>> add
+        Helper().common_list_args(network_show)
         network_add = network_args.add_parser('add', help='Add Network')
-        network_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        network_add.add_argument('-i', '--init', action='store_true', help='Network Interactive Mode')
-        network_add.add_argument('-n', '--name', help='Name of the Network')
+        Helper().common_add_args(network_add, 'Network')
         network_add.add_argument('-N', '--network', help='Network')
         network_add.add_argument('-g', '--gateway', help='Gateway of the Network')
         network_add.add_argument('-ni', '--ns_ip', metavar='N.N.N.N', help='Name server IP Address of the Network')
@@ -84,11 +65,8 @@ class Network(object):
         network_add.add_argument('-ds', '--dhcp_range_begin', metavar='N.N.N.N', help='DHCP Range Start for the Network')
         network_add.add_argument('-de', '--dhcp_range_end', metavar='N.N.N.N', help='DHCP Range End for the Network')
         network_add.add_argument('-c', '--comment', help='Comment for Network')
-        ## >>>>>>> Network Command >>>>>>> update
         network_update = network_args.add_parser('update', help='Update Network')
-        network_update.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        network_update.add_argument('-i', '--init', action='store_true', help='Network Interactive Mode')
-        network_update.add_argument('-n', '--name', help='Name of the Network')
+        Helper().common_add_args(network_update, 'Network')
         network_update.add_argument('-N', '--network', help='Network')
         network_update.add_argument('-g', '--gateway', help='Gateway of the Network')
         network_update.add_argument('-ni', '--ns_ip', metavar='N.N.N.N', help='Name server IP Address of the Network')
@@ -98,11 +76,8 @@ class Network(object):
         network_update.add_argument('-ds', '--dhcp_range_begin', metavar='N.N.N.N', help='DHCP Range Start for the Network')
         network_update.add_argument('-de', '--dhcp_range_end', metavar='N.N.N.N', help='DHCP Range End for the Network')
         network_update.add_argument('-c', '--comment', help='Comment for Network')
-        ## >>>>>>> Network Command >>>>>>> clone
         network_clone = network_args.add_parser('clone', help='Clone Network')
-        network_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        network_clone.add_argument('-i', '--init', action='store_true', help='Network Interactive Mode')
-        network_clone.add_argument('-n', '--name', help='Name of the Network')
+        Helper().common_add_args(network_clone, 'Network')
         network_clone.add_argument('-nn', '--newnetname', help='New name of the Network')
         network_clone.add_argument('-N', '--network', help='Network')
         network_clone.add_argument('-g', '--gateway', help='Gateway of the Network')
@@ -113,27 +88,18 @@ class Network(object):
         network_clone.add_argument('-ds', '--dhcp_range_begin', metavar='N.N.N.N', help='DHCP Range Start for the Network')
         network_clone.add_argument('-de', '--dhcp_range_end', metavar='N.N.N.N', help='DHCP Range End for the Network')
         network_clone.add_argument('-c', '--comment', help='Comment for Network')
-        ## >>>>>>> Network Command >>>>>>> rename
         network_rename = network_args.add_parser('rename', help='Rename Network')
-        network_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        network_rename.add_argument('-i', '--init', action='store_true', help='Network Interactive Mode')
-        network_rename.add_argument('-n', '--name', help='Name of the Network')
+        Helper().common_add_args(network_rename, 'Network')
         network_rename.add_argument('-nn', '--newnetname', help='New name of the Network')
-        ## >>>>>>> Network Command >>>>>>> delete
         network_delete = network_args.add_parser('delete', help='Delete Network')
-        network_delete.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        network_delete.add_argument('-i', '--init', action='store_true', help='Network Interactive Mode')
-        network_delete.add_argument('-n', '--name', help='Name of the Network')
-        ## >>>>>>> Network Command >>>>>>> ipinfo
+        Helper().common_add_args(network_delete, 'Network')
         network_ipinfo = network_args.add_parser('ipinfo', help='Show Network IP Information')
         network_ipinfo.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         network_ipinfo.add_argument('name', help='Name of the Network')
         network_ipinfo.add_argument('ipaddress', help='IP Address from the Network')
-        ## >>>>>>> Network Command >>>>>>> nextip
         network_nextip = network_args.add_parser('nextip', help='Show Next Available IP Address on the Network')
         network_nextip.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         network_nextip.add_argument('name', help='Name of the Network')
-        ## >>>>>>> Network Commands Ends
         return parser
 
 
@@ -180,10 +146,8 @@ class Network(object):
                 Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
         else:
             error = False
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             if self.args['dhcp_range_begin'] and self.args['dhcp_range_end']:
                 self.args['dhcp'] = True
             else:
@@ -196,10 +160,7 @@ class Network(object):
             if error:
                 Helper().show_error(f'Adding {payload["name"]} in {self.table.capitalize()} Abort.')
         if payload:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
+            request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
@@ -218,9 +179,8 @@ class Network(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Network to update", names)
                 payload['network'] = Inquiry().ask_text("Kindly provide Network", True)
                 payload['gateway'] = Inquiry().ask_text("Kindly provide Gateway for the Network", True)
@@ -249,10 +209,8 @@ class Network(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             if self.args['dhcp_range_begin'] and self.args['dhcp_range_end']:
                 self.args['dhcp'] = True
             else:
@@ -263,13 +221,9 @@ class Network(object):
             payload.clear()
             payload.update(filtered)
         if (len(payload) != 1) and ('name' in payload):
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            request_data = {'config':{self.table:{payload['name']: payload}}}
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     self.logger.debug(f'Payload => {request_data}')
                     response = Rest().post_data(self.table, payload['name'], request_data)
@@ -291,9 +245,8 @@ class Network(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Network to rename", names)
                 payload['newnetname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
                 fields, rows  = Helper().filter_data_col(self.table, payload)
@@ -307,10 +260,8 @@ class Network(object):
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
             error = False
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             payload = self.args
             if payload['name'] is None:
                 error = Helper().show_error('Kindly provide Network Name.')
@@ -319,13 +270,9 @@ class Network(object):
             if error:
                 Helper().show_error(f'Renaming {payload["name"]} in {self.table.capitalize()} Abort.')
         if payload['newnetname'] and payload['name']:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            request_data = {'config':{self.table:{payload['name']: payload}}}
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     self.logger.debug(f'Payload => {request_data}')
                     response = Rest().post_data(self.table, payload['name'], request_data)
@@ -346,9 +293,8 @@ class Network(object):
         abort = False
         payload = {}
         if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Network to delete", names)
                 fields, rows  = Helper().filter_data_col(self.table, payload)
                 title = f'{self.table.capitalize()} Deleting => {payload["name"]}'
@@ -359,17 +305,14 @@ class Network(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             payload = self.args
             if payload['name'] is None:
                 abort = Helper().show_error('Kindly provide Network Name.')
         if abort is False:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     self.logger.debug(f'Payload => {payload}')
                     response = Rest().get_delete(self.table, payload['name'])
@@ -389,9 +332,8 @@ class Network(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Network to clone", names)
                 payload['newnetname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
                 payload['network'] = Inquiry().ask_text("Kindly provide Network", True)
@@ -428,10 +370,8 @@ class Network(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             if self.args['dhcp_range_begin'] and self.args['dhcp_range_end']:
                 self.args['dhcp'] = True
             else:
@@ -448,13 +388,9 @@ class Network(object):
                 payload.clear()
                 payload.update(filtered)
         if len(payload) != 1:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            request_data = {'config':{self.table:{payload['name']: payload}}}
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     if payload["newnetname"] in names:
                         Helper().show_error(f'{payload["newnetname"]} is already present in {self.table.capitalize()}.')

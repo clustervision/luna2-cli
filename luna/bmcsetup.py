@@ -25,7 +25,7 @@ class BMCSetup():
     add, remove information for the BMC Setup
     """
 
-    def __init__(self, args=None):
+    def __init__(self, args=None, parser=None, subparsers=None):
         self.logger = Log.get_logger()
         self.args = args
         self.table = "bmcsetup"
@@ -36,6 +36,8 @@ class BMCSetup():
                 self.get_list = Rest().get_data(self.table)
             call = methodcaller(f'{self.args["action"]}_bmcsetup')
             call(self)
+        if parser and subparsers:
+            self.getarguments(parser, subparsers)
 
 
     def getarguments(self, parser, subparsers):

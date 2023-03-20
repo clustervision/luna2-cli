@@ -12,43 +12,35 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-
+from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.inquiry import Inquiry
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 
-class OtherDev(object):
+class OtherDev():
     """
     Other Devices Class responsible to show, list,
     add, remove information for the Other Devices
     """
 
-    def __init__(self, args=None):
+    def __init__(self, args=None, parser=None, subparsers=None):
         self.logger = Log.get_logger()
         self.args = args
         self.table = "otherdev"
+        self.get_list = None
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            if self.args["action"] == "list":
-                self.list_otherdevices()
-            elif self.args["action"] == "show":
-                self.show_otherdevices()
-            elif self.args["action"] == "add":
-                self.add_otherdevices()
-            elif self.args["action"] == "update":
-                self.update_otherdevices()
-            elif self.args["action"] == "rename":
-                self.rename_otherdevices()
-            elif self.args["action"] == "delete":
-                self.delete_otherdevices()
-            elif self.args["action"] == "clone":
-                self.clone_otherdevices()
+            actions = ["list", "show", "add", "update", "rename", "clone", "delete"]
+            if self.args["action"] in actions:
+                self.get_list = Rest().get_data(self.table)
+                call = methodcaller(f'{self.args["action"]}_otherdevices')
+                call(self)
             else:
                 Helper().show_error("Not a valid option.")
-        else:
-            Helper().show_error("Please pass -h to see help menu.")
+        if parser and subparsers:
+            self.getarguments(parser, subparsers)
 
 
     def getarguments(self, parser, subparsers):
@@ -58,55 +50,35 @@ class OtherDev(object):
         """
         otherdev_menu = subparsers.add_parser('otherdev', help='Other Devices operations.')
         otherdev_args = otherdev_menu.add_subparsers(dest='action')
-        ## >>>>>>> Other Devices Command >>>>>>> list
         otherdev_list = otherdev_args.add_parser('list', help='List Other Devices')
-        otherdev_list.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        otherdev_list.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Other Devices Command >>>>>>> show
+        Helper().common_list_args(otherdev_list)
         otherdev_show = otherdev_args.add_parser('show', help='Show Other Devices')
-        otherdev_show.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         otherdev_show.add_argument('name', help='Name of the Other Devices')
-        otherdev_show.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> Other Devices Command >>>>>>> add
+        Helper().common_list_args(otherdev_show)
         otherdev_add = otherdev_args.add_parser('add', help='Add Other Devices')
-        otherdev_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        otherdev_add.add_argument('-i', '--init', action='store_true', help='Other Device Interactive Mode')
-        otherdev_add.add_argument('-n', '--name', help='Name of the Other Device')
+        Helper().common_add_args(otherdev_add, 'Other Device')
         otherdev_add.add_argument('-N', '--network', help='Network Other Device belongs to')
         otherdev_add.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
         otherdev_add.add_argument('-m', '--macaddress', default='public', help='MAC Address of the Other Device')
         otherdev_add.add_argument('-c', '--comment', help='Comment for Other Device')
-        ## >>>>>>> Other Devices Command >>>>>>> update
         otherdev_update = otherdev_args.add_parser('update', help='Update Other Devices')
-        otherdev_update.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        otherdev_update.add_argument('-i', '--init', action='store_true', help='Other Device Interactive Mode')
-        otherdev_update.add_argument('-n', '--name', help='Name of the Other Device')
+        Helper().common_add_args(otherdev_update, 'Other Device')
         otherdev_update.add_argument('-N', '--network', help='Network Other Device belongs to')
         otherdev_update.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
         otherdev_update.add_argument('-m', '--macaddress', default='public', help='MAC Address of the Other Device')
         otherdev_update.add_argument('-c', '--comment', help='Comment for Other Device')
-        ## >>>>>>> Other Devices Command >>>>>>> clone
         otherdev_clone = otherdev_args.add_parser('clone', help='Clone Other Devices')
-        otherdev_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        otherdev_clone.add_argument('-i', '--init', action='store_true', help='Other Device Interactive Mode')
-        otherdev_clone.add_argument('-n', '--name', help='Name of the Other Device')
+        Helper().common_add_args(otherdev_clone, 'Other Device')
         otherdev_clone.add_argument('-nn', '--newotherdevname', help='New name of the Other Device')
         otherdev_clone.add_argument('-N', '--network', help='Network Other Device belongs to')
         otherdev_clone.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
         otherdev_clone.add_argument('-m', '--macaddress', default='public', help='MAC Address of the Other Device')
         otherdev_clone.add_argument('-c', '--comment', help='Comment for Other Device')
-        ## >>>>>>> Other Devices Command >>>>>>> rename
         otherdev_rename = otherdev_args.add_parser('rename', help='Rename Other Devices')
-        otherdev_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        otherdev_rename.add_argument('-i', '--init', action='store_true', help='Other Devices Interactive Mode')
-        otherdev_rename.add_argument('-n', '--name', help='Name of the Other Devices')
+        Helper().common_add_args(otherdev_rename, 'Other Device')
         otherdev_rename.add_argument('-nn', '--newotherdevname', help='New name of the Other Devices')
-        ## >>>>>>> Other Devices Command >>>>>>> delete
         otherdev_delete = otherdev_args.add_parser('delete', help='Delete Other Devices')
-        otherdev_delete.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        otherdev_delete.add_argument('-i', '--init', action='store_true', help='Other Devices Interactive Mode')
-        otherdev_delete.add_argument('-n', '--name', help='Name of the Other Devices')
-        ## >>>>>>> Other Devices Commands Ends
+        Helper().common_add_args(otherdev_delete, 'Other Device')
         return parser
 
 
@@ -145,10 +117,8 @@ class OtherDev(object):
                 Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
         else:
             error = False
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             payload = self.args
             for key in payload:
                 if payload[key] is None:
@@ -156,10 +126,7 @@ class OtherDev(object):
             if error:
                 Helper().show_error(f'Adding {payload["name"]} in {self.table.capitalize()} Abort.')
         if payload:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
+            request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
@@ -178,9 +145,8 @@ class OtherDev(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Device to update", names)
                 payload['network'] = Inquiry().ask_text("Kindly provide Device Network", True)
                 payload['ipaddress'] = Inquiry().ask_text("Kindly provide Device IP Address", True)
@@ -201,22 +167,16 @@ class OtherDev(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             payload = self.args
             filtered = {k: v for k, v in payload.items() if v is not None}
             payload.clear()
             payload.update(filtered)
         if (len(payload) != 1) and ('name' in payload):
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            request_data = {'config':{self.table:{payload['name']: payload}}}
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     self.logger.debug(f'Payload => {request_data}')
                     response = Rest().post_data(self.table, payload['name'], request_data)
@@ -238,9 +198,8 @@ class OtherDev(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Device to rename", names)
                 payload['newotherdevname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
                 fields, rows  = Helper().filter_data_col(self.table, payload)
@@ -254,10 +213,8 @@ class OtherDev(object):
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
             error = False
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             payload = self.args
             if payload['name'] is None:
                 error = Helper().show_error('Kindly provide Device Name.')
@@ -266,13 +223,9 @@ class OtherDev(object):
             if error:
                 Helper().show_error(f'Renaming {payload["name"]} in {self.table.capitalize()} Abort.')
         if payload['newotherdevname'] and payload['name']:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            request_data = {'config':{self.table:{payload['name']: payload}}}
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     self.logger.debug(f'Payload => {request_data}')
                     response = Rest().post_data(self.table, payload['name'], request_data)
@@ -293,9 +246,8 @@ class OtherDev(object):
         abort = False
         payload = {}
         if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Device to delete", names)
                 fields, rows  = Helper().filter_data_col(self.table, payload)
                 title = f'{self.table.capitalize()} Deleting => {payload["name"]}'
@@ -306,17 +258,14 @@ class OtherDev(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             payload = self.args
             if payload['name'] is None:
                 abort = Helper().show_error('Kindly provide Device Name.')
         if abort is False:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     self.logger.debug(f'Payload => {payload}')
                     response = Rest().get_delete(self.table, payload['name'])
@@ -336,9 +285,8 @@ class OtherDev(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select Device to clone", names)
                 payload['newotherdevname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
                 payload['network'] = Inquiry().ask_text("Kindly provide Device Network", True)
@@ -367,10 +315,8 @@ class OtherDev(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             payload = self.args
             get_record = Rest().get_data(self.table, payload['name'])
             if get_record:
@@ -382,13 +328,9 @@ class OtherDev(object):
                 payload.clear()
                 payload.update(filtered)
         if len(payload) != 1:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            request_data = {'config':{self.table:{payload['name']: payload}}}
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     if payload["newotherdevname"] in names:
                         Helper().show_error(f'{payload["newotherdevname"]} is already present in {self.table.capitalize()}.')

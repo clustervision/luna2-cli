@@ -12,6 +12,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
+from operator import methodcaller
 from time import sleep
 from multiprocessing import Process
 from termcolor import colored
@@ -21,40 +22,28 @@ from luna.utils.inquiry import Inquiry
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 
-class OSImage(object):
+class OSImage():
     """
     OSImage Class responsible to show, list,
     add, remove information for the osimage
     """
 
-    def __init__(self, args=None):
+    def __init__(self, args=None, parser=None, subparsers=None):
         self.logger = Log.get_logger()
         self.args = args
         self.table = "osimage"
+        self.get_list = None
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            if self.args["action"] == "list":
-                self.list_osimage()
-            elif self.args["action"] == "show":
-                self.show_osimage()
-            elif self.args["action"] == "add":
-                self.add_osimage()
-            elif self.args["action"] == "update":
-                self.update_osimage()
-            elif self.args["action"] == "rename":
-                self.rename_osimage()
-            elif self.args["action"] == "delete":
-                self.delete_osimage()
-            elif self.args["action"] == "clone":
-                self.clone_osimage()
-            elif self.args["action"] == "pack":
-                self.pack_osimage()
-            elif self.args["action"] == "kernel":
-                self.kernel_osimage()
+            actions = ["list", "show", "add", "update", "rename", "clone", "delete", "pack", "kernel"]
+            self.get_list = Rest().get_data(self.table)
+            if self.args["action"] in actions:
+                call = methodcaller(f'{self.args["action"]}_osimage')
+                call(self)
             else:
                 Helper().show_error("Not a valid option.")
-        else:
-            Helper().show_error("Please pass -h to see help menu.")
+        if parser and subparsers:
+            self.getarguments(parser, subparsers)
 
 
     def getarguments(self, parser, subparsers):
@@ -64,20 +53,13 @@ class OSImage(object):
         """
         osimage_menu = subparsers.add_parser('osimage', help='OSImage operations.')
         osimage_args = osimage_menu.add_subparsers(dest='action')
-        ## >>>>>>> OSImage Command >>>>>>> list
         osimage_list = osimage_args.add_parser('list', help='List OSImages')
-        osimage_list.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        osimage_list.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> OSImage Command >>>>>>> show
+        Helper().common_list_args(osimage_list)
         osimage_show = osimage_args.add_parser('show', help='Show a OSImage')
-        osimage_show.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         osimage_show.add_argument('name', help='Name of the OSImage')
-        osimage_show.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        ## >>>>>>> OSImage Command >>>>>>> add
+        Helper().common_list_args(osimage_show)
         osimage_add = osimage_args.add_parser('add', help='Add OSImage')
-        osimage_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        osimage_add.add_argument('-i', '--init', action='store_true', help='OSImage Interactive Mode')
-        osimage_add.add_argument('-n', '--name', help='Name of the OSImage')
+        Helper().common_add_args(osimage_add, 'OSImage')
         osimage_add.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
         osimage_add.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
         osimage_add.add_argument('-ge', '--grab_exclude', help='Grab Excludes')
@@ -91,11 +73,8 @@ class OSImage(object):
         osimage_add.add_argument('-t', '--torrent', help='Torrent UUID')
         osimage_add.add_argument('-D', '--distribution', help='Distribution From')
         osimage_add.add_argument('-c', '--comment', help='Comment for OSImage')
-        ## >>>>>>> OSImage Command >>>>>>> update
         osimage_update = osimage_args.add_parser('update', help='Update OSImage')
-        osimage_update.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        osimage_update.add_argument('-i', '--init', action='store_true', help='OSImage Interactive Mode')
-        osimage_update.add_argument('-n', '--name', help='Name of the OSImage')
+        Helper().common_add_args(osimage_update, 'OSImage')
         osimage_update.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
         osimage_update.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
         osimage_update.add_argument('-ge', '--grab_exclude', help='Grab Excludes')
@@ -109,11 +88,8 @@ class OSImage(object):
         osimage_update.add_argument('-t', '--torrent', help='Torrent UUID')
         osimage_update.add_argument('-D', '--distribution', help='Distribution From')
         osimage_update.add_argument('-c', '--comment', help='Comment for OSImage')
-        ## >>>>>>> OSImage Command >>>>>>> clone
         osimage_clone = osimage_args.add_parser('clone', help='Clone OSImage')
-        osimage_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        osimage_clone.add_argument('-i', '--init', action='store_true', help='OSImage Interactive Mode')
-        osimage_clone.add_argument('-n', '--name', help='Name of the OSImage')
+        Helper().common_add_args(osimage_clone, 'OSImage')
         osimage_clone.add_argument('-nn', '--newosimage', help='New Name of the OSImage')
         osimage_clone.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
         osimage_clone.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
@@ -128,30 +104,19 @@ class OSImage(object):
         osimage_clone.add_argument('-t', '--torrent', help='Torrent UUID')
         osimage_clone.add_argument('-D', '--distribution', help='Distribution From')
         osimage_clone.add_argument('-c', '--comment', help='Comment for OSImage')
-        ## >>>>>>> OSImage Command >>>>>>> rename
         osimage_rename = osimage_args.add_parser('rename', help='Rename OSImage')
-        osimage_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        osimage_rename.add_argument('-i', '--init', action='store_true', help='OSImage Interactive Mode')
-        osimage_rename.add_argument('-n', '--name', help='Name of the OSImage')
+        Helper().common_add_args(osimage_rename, 'OSImage')
         osimage_rename.add_argument('-nn', '--newosimage', help='New Name of the OSImage')
-        ## >>>>>>> OSImage Command >>>>>>> delete
         osimage_delete = osimage_args.add_parser('delete', help='Delete OSImage')
-        osimage_delete.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        osimage_delete.add_argument('-i', '--init', action='store_true', help='OSImage Interactive Mode')
-        osimage_delete.add_argument('-n', '--name', help='Name of the OSImage')
-        ## >>>>>>> OSImage Command >>>>>>> pack
+        Helper().common_add_args(osimage_delete, 'OSImage')
         osimage_pack = osimage_args.add_parser('pack', help='Pack OSImage')
         osimage_pack.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         osimage_pack.add_argument('name', help='Name of the OS Image')
-        ## >>>>>>> OSImage Command >>>>>>> kernel
         osimage_kernel = osimage_args.add_parser('kernel', help='Chnage Kernel Version in OS Image')
-        osimage_kernel.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        osimage_kernel.add_argument('-i', '--init', action='store_true', help='OSImage Interactive Mode')
-        osimage_kernel.add_argument('-n', '--name', help='Name of the OSImage')
+        Helper().common_add_args(osimage_kernel, 'OSImage')
         osimage_kernel.add_argument('-rd', '--initrdfile', help='INIT RD File')
         osimage_kernel.add_argument('-k', '--kernelfile', help='Kernel File')
         osimage_kernel.add_argument('-v', '--kernelversion', help='Kernel Version')
-        ## >>>>>>> OSImage Commands Ends
         return parser
 
 
@@ -199,10 +164,8 @@ class OSImage(object):
                 Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
         else:
             error = False
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             payload = self.args
             for key in payload:
                 if payload[key] is None:
@@ -210,10 +173,7 @@ class OSImage(object):
             if error:
                 Helper().show_error(f'Adding {payload["name"]} in {self.table.capitalize()} Abort.')
         if payload:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
+            request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
@@ -232,9 +192,8 @@ class OSImage(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select OSImage", names)
                 payload['dracutmodules'] = Inquiry().ask_text("Write Dracut Modules", True)
                 payload['grab_filesystems'] = Inquiry().ask_text("Write Grab Filesystems", True)
@@ -264,22 +223,16 @@ class OSImage(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             payload = self.args
             filtered = {k: v for k, v in payload.items() if v is not None}
             payload.clear()
             payload.update(filtered)
         if (len(payload) != 1) and ('name' in payload):
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            request_data = {'config':{self.table:{payload['name']: payload}}}
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     self.logger.debug(f'Payload => {request_data}')
                     response = Rest().post_data(self.table, payload['name'], request_data)
@@ -301,9 +254,8 @@ class OSImage(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select OSImage to rename", names)
                 payload['newosimage'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
                 fields, rows  = Helper().filter_data_col(self.table, payload)
@@ -317,10 +269,8 @@ class OSImage(object):
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
             error = False
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             payload = self.args
             if payload['name'] is None:
                 error = Helper().show_error('Kindly provide OSImage Name.')
@@ -329,13 +279,9 @@ class OSImage(object):
             if error:
                 Helper().show_error(f'Renaming {payload["name"]} in {self.table.capitalize()} Abort.')
         if payload['newosimage'] and payload['name']:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            request_data = {'config':{self.table:{payload['name']: payload}}}
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     self.logger.debug(f'Payload => {request_data}')
                     response = Rest().post_data(self.table, payload['name'], request_data)
@@ -356,9 +302,8 @@ class OSImage(object):
         abort = False
         payload = {}
         if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select OSImage to delete", names)
                 fields, rows  = Helper().filter_data_col(self.table, payload)
                 title = f'{self.table.capitalize()} Deleting => {payload["name"]}'
@@ -369,17 +314,14 @@ class OSImage(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             payload = self.args
             if payload['name'] is None:
                 abort = Helper().show_error('Kindly provide OSImage Name.')
         if abort is False:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     self.logger.debug(f'Payload => {payload}')
                     response = Rest().get_delete(self.table, payload['name'])
@@ -399,9 +341,8 @@ class OSImage(object):
         """
         payload = {}
         if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 payload['name'] = Inquiry().ask_select("Select OSImage", names)
                 payload['newosimage'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
                 payload['dracutmodules'] = Inquiry().ask_text("Write Dracut Modules", True)
@@ -439,10 +380,8 @@ class OSImage(object):
             else:
                 response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         else:
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             payload = self.args
             get_record = Rest().get_data(self.table, payload['name'])
             if get_record:
@@ -454,13 +393,9 @@ class OSImage(object):
                 payload.clear()
                 payload.update(filtered)
         if len(payload) != 1:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
+            request_data = {'config':{self.table:{payload['name']: payload}}}
+            if self.get_list:
+                names = list(self.get_list['config'][self.table].keys())
                 if payload["name"] in names:
                     if payload["newosimage"] in names:
                         Helper().show_error(f'{payload["newosimage"]} is already present in {self.table.capitalize()}.')
@@ -537,10 +472,8 @@ class OSImage(object):
                 Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
         else:
             error = False
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
+            for remove in ['debug', 'command', 'action', 'init']:
+                self.args.pop(remove, None)
             payload = self.args
             for key in payload:
                 if payload[key] is None:
@@ -548,10 +481,7 @@ class OSImage(object):
             if error:
                 Helper().show_error(f'Adding {payload["name"]} in {self.table.capitalize()} Abort.')
         if payload:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
+            request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
             self.logger.debug(f'Change Kernel URI => {payload["name"]}/_kernel')
             response = Rest().post_data(self.table, payload['name']+'/_kernel', request_data)

@@ -12,7 +12,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-
+from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.inquiry import Inquiry
@@ -25,26 +25,20 @@ class Secrets(object):
     and update information for all Secrets
     """
 
-    def __init__(self, args=None):
+    def __init__(self, args=None, parser=None, subparsers=None):
         self.logger = Log.get_logger()
         self.args = args
         self.route = "secrets"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            if self.args["action"] == "list":
-                self.list_secrets()
-            elif self.args["action"] == "show":
-                self.show_secrets()
-            elif self.args["action"] == "update":
-                self.update_secrets()
-            elif self.args["action"] == "clone":
-                self.clone_secrets()
-            elif self.args["action"] == "delete":
-                self.delete_secrets()
+            actions = ["list", "show", "update", "clone", "delete"]
+            if self.args["action"] in actions:
+                call = methodcaller(f'{self.args["action"]}_secrets')
+                call(self)
             else:
                 Helper().show_error("Not a valid option.")
-        else:
-            Helper().show_error("Please pass -h to see help menu.")
+        if parser and subparsers:
+            self.getarguments(parser, subparsers)
 
 
     def getarguments(self, parser, subparsers):

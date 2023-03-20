@@ -50,17 +50,9 @@ class Cli():
         self.parser = ArgumentParser(prog='luna', description='Manage Luna Cluster')
         self.parser.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
-        Cluster.getarguments(self, self.parser, self.subparsers)
-        Network.getarguments(self, self.parser, self.subparsers)
-        OSImage.getarguments(self, self.parser, self.subparsers)
-        BMCSetup.getarguments(self, self.parser, self.subparsers)
-        Switch.getarguments(self, self.parser, self.subparsers)
-        OtherDev.getarguments(self, self.parser, self.subparsers)
-        Group.getarguments(self, self.parser, self.subparsers)
-        Node.getarguments(self, self.parser, self.subparsers)
-        Secrets.getarguments(self, self.parser, self.subparsers)
-        Service.getarguments(self, self.parser, self.subparsers)
-        Control.getarguments(self, self.parser, self.subparsers)
+        classes = [Cluster, Network, OSImage, BMCSetup, Switch, OtherDev, Group, Node, Secrets, Service, Control]
+        for clss in classes:
+            clss(parser=self.parser, subparsers =self.subparsers)
         self.args = vars(self.parser.parse_args())
         self.call_class()
         return True

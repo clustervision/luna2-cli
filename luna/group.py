@@ -25,7 +25,7 @@ class Group():
     add, remove information for the Group
     """
 
-    def __init__(self, args=None):
+    def __init__(self, args=None, parser=None, subparsers=None):
         self.logger = Log.get_logger()
         self.args = args
         self.table = "group"
@@ -34,7 +34,7 @@ class Group():
             self.logger.debug(f'Arguments Supplied => {self.args}')
             if self.args["action"] in ["update", "rename", "delete", "clone"]:
                 self.get_list = Rest().get_data(self.table)
-            if self.args["action"] in ["list", "show", "add", "update", "rename", "delete"]:
+            if self.args["action"] in ["list", "show", "add", "update", "rename", "delete", "clone"]:
                 call = methodcaller(f'{self.args["action"]}_group')
                 call(self)
             elif self.args["action"] == "interfaces":
@@ -47,8 +47,8 @@ class Group():
                 self.delete_interface()
             else:
                 Helper().show_error("Not a valid option.")
-        else:
-            Helper().show_error("Please pass -h to see help menu.")
+        if parser and subparsers:
+            self.getarguments(parser, subparsers)
 
 
     def getarguments(self, parser, subparsers):
@@ -64,29 +64,26 @@ class Group():
         group_show.add_argument('name', help='Name of the Group')
         Helper().common_list_args(group_show)
         group_add = group_args.add_parser('add', help='Add Group')
-        Helper().common_add_args(group_add, 'The Group')
+        Helper().common_add_args(group_add, 'Group')
         Helper().common_group_node_args(group_add)
-        group_add.add_argument('-b', '--setupbmc', help='BMC Setup')
         group_add.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         group_add.add_argument('-D', '--domain', help='Domain Name')
         group_update = group_args.add_parser('update', help='Update Group')
-        Helper().common_add_args(group_update, 'The Group')
+        Helper().common_add_args(group_update, 'Group')
         Helper().common_group_node_args(group_update)
-        group_update.add_argument('-b', '--setupbmc', action='store_true', help='BMC Setup True/False')
         group_update.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         group_update.add_argument('-D', '--domain', help='Domain Name')
         group_clone = group_args.add_parser('clone', help='Clone Group.')
-        Helper().common_add_args(group_clone, 'The Group')
+        Helper().common_add_args(group_clone, 'Group')
         Helper().common_group_node_args(group_clone)
         group_clone.add_argument('-nn', '--newgroupname', help='New Name for the Group')
-        group_clone.add_argument('-b', '--setupbmc', action='store_true', help='BMC Setup True/False')
         group_clone.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         group_clone.add_argument('-D', '--domain', help='Domain Name')
         group_rename = group_args.add_parser('rename', help='Rename Group.')
-        Helper().common_add_args(group_rename, 'The Group')
+        Helper().common_add_args(group_rename, 'Group')
         group_rename.add_argument('-nn', '--newgroupname', help='New Name for the Group')
         group_delete = group_args.add_parser('delete', help='Delete Group')
-        Helper().common_add_args(group_delete, 'The Group')
+        Helper().common_add_args(group_delete, 'Group')
         group_interfaces = group_args.add_parser('interfaces', help='List Group Interfaces')
         group_interfaces.add_argument('name', help='Name of the Group')
         Helper().common_list_args(group_interfaces)
@@ -95,11 +92,11 @@ class Group():
         group_interface.add_argument('interface', help='Name of the Group Interface')
         Helper().common_list_args(group_interface)
         group_updateinterface = group_args.add_parser('updateinterface', help='Update Group Interface')
-        Helper().common_add_args(group_updateinterface, 'The Group')
+        Helper().common_add_args(group_updateinterface, 'Group')
         group_updateinterface.add_argument('-if', '--interface', action='append', help='Group Interface')
         group_updateinterface.add_argument('-N', '--network', action='append', help='Network Name')
         group_deleteinterface = group_args.add_parser('deleteinterface', help='Delete Group Interface')
-        Helper().common_add_args(group_deleteinterface, 'The Group')
+        Helper().common_add_args(group_deleteinterface, 'Group')
         group_deleteinterface.add_argument('-if', '--interface', help='Name of the Group Interface')
         return parser
 

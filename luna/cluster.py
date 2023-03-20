@@ -12,7 +12,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-
+from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
@@ -24,23 +24,22 @@ class Cluster():
     and update information for the Cluster
     """
 
-    def __init__(self, args=None):
+    def __init__(self, args=None, parser=None, subparsers=None):
         self.logger = Log.get_logger()
         self.args = args
         self.table = "cluster"
+        self.get_list = None
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            if self.args["action"] == "list":
-                self.list_cluster()
-            elif self.args["action"] == "show":
-                self.show_cluster()
-            elif self.args["action"] == "update":
-                self.update_cluster()
+            actions = ["list", "show", "update"]
+            if self.args["action"] in actions:
+                self.get_list = Rest().get_data(self.table)
+                call = methodcaller(f'{self.args["action"]}_cluster')
+                call(self)
             else:
-                Helper().show_error("Not a valid option.")
-        else:
-            Helper().show_error("Please pass -h to see help menu.")
-
+                Helper().show_error(f"Kindly choose from {actions}.")
+        if parser and subparsers:
+            self.getarguments(parser, subparsers)
 
     def getarguments(self, parser, subparsers):
         """
@@ -100,10 +99,9 @@ class Cluster():
         """
         response = False
         fields, rows = [], []
-        get_list = Rest().get_data(self.table)
-        self.logger.debug(f'Get List Data from Helper => {get_list}')
-        if get_list:
-            data = get_list['config'][self.table]
+        self.logger.debug(f'Get List Data from Helper => {self.get_list}')
+        if self.get_list:
+            data = self.get_list['config'][self.table]
             if self.args['raw']:
                 response = Presenter().show_json(data)
             else:
@@ -123,10 +121,9 @@ class Cluster():
         """
         response = False
         fields, rows = [], []
-        get_list = Rest().get_data(self.table)
-        self.logger.debug(f'Get List Data from Helper => {get_list}')
-        if get_list:
-            data = get_list['config'][self.table]
+        self.logger.debug(f'Get List Data from Helper => {self.get_list}')
+        if self.get_list:
+            data = self.get_list['config'][self.table]
             if self.args['raw']:
                 response = Presenter().show_json(data)
             else:
@@ -145,20 +142,14 @@ class Cluster():
         Method to update cluster in Luna Configuration.
         """
         payload = {}
-        del self.args['debug']
-        del self.args['command']
-        del self.args['action']
+        for remove in ['debug', 'command', 'action']:
+            self.args.pop(remove, None)
         if self.args['clusterdebug']:
             self.args['debug'] = True
         del self.args['clusterdebug']
-        payload = self.args
-        filtered = {k: v for k, v in self.args.items() if v is not None}
-        payload.clear()
-        payload.update(filtered)
+        payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = payload
+            request_data = {'config': {self.table: payload}}
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, None, request_data)
             self.logger.debug(f'Response => {response}')

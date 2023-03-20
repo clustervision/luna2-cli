@@ -23,15 +23,16 @@ class Service(object):
     based actions for predefined services.
     """
 
-    def __init__(self, args=None):
+    def __init__(self, args=None, parser=None, subparsers=None):
         self.logger = Log.get_logger()
         self.args = args
         self.route = "service"
-        if self.args["service"] and self.args["action"]:
-            self.logger.debug(f'Arguments Supplied => {self.args}')
-            self.service_action()
-        else:
-            Helper().show_error("Select a service and action to be performed, See with -h.")
+        if self.args:
+            if self.args["service"] and self.args["action"]:
+                self.logger.debug(f'Arguments Supplied => {self.args}')
+                self.service_action()
+        if parser and subparsers:
+            self.getarguments(parser, subparsers)
 
 
     def getarguments(self, parser, subparsers):

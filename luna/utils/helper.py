@@ -131,6 +131,7 @@ class Helper(object):
         parser.add_argument('-pm', '--provision_method', help='Provision Method')
         parser.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
         parser.add_argument('-o', '--osimage', help='OS Image Name')
+        parser.add_argument('-b', '--setupbmc', action='store_true', help='BMC Setup')
         parser.add_argument('-nb', '--netboot', help='Network Boot')
         parser.add_argument('-li', '--localinstall', help='Local Install')
         parser.add_argument('-bm', '--bootmenu', help='Boot Menu')

@@ -26,21 +26,22 @@ class Control():
     operations on the Nodes.
     """
 
-    def __init__(self, args=None):
+    def __init__(self, args=None, parser=None, subparsers=None):
         self.logger = Log.get_logger()
         self.args = args
         self.route = "control"
         self.action = "power"
-        if self.args["power"] and self.args["action"]:
-            self.logger.debug(f'Arguments Supplied => {self.args}')
-            if self.args["action"] == "status":
-                self.power_status()
-            elif self.args["action"] in ["on", "off"]:
-                self.power_toggle()
-            else:
-                Helper().show_error("Not a valid option.")
-        else:
-            Helper().show_error("Select a service and action to be performed, See with -h.")
+        if self.args:
+            if self.args["power"] and self.args["action"]:
+                self.logger.debug(f'Arguments Supplied => {self.args}')
+                if self.args["action"] == "status":
+                    self.power_status()
+                elif self.args["action"] in ["on", "off"]:
+                    self.power_toggle()
+                else:
+                    Helper().show_error("Not a valid option.")
+        if parser and subparsers:
+            self.getarguments(parser, subparsers)
 
 
     def getarguments(self, parser, subparsers):
