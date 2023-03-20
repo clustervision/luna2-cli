@@ -30,11 +30,14 @@ class BMCSetup():
         self.args = args
         self.table = "bmcsetup"
         self.get_list = None
+        self.name_list = []
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "update", "rename", "delete", "clone"]
-            if self.args["action"] in ["list", "show", "add", "update", "rename", "delete", "clone"]:
+            actions = ["list", "show", "add", "update", "rename", "delete", "clone"]
+            if self.args["action"] in actions:
                 self.get_list = Rest().get_data(self.table)
+                if self.get_list:
+                    self.name_list = list(self.get_list['config'][self.table].keys())
                 call = methodcaller(f'{self.args["action"]}_bmcsetup')
                 call(self)
             else:
@@ -113,30 +116,36 @@ class BMCSetup():
         """
         payload = {}
         if self.args['init']:
-            payload['name'] = Inquiry().ask_text("BMC Setup Name:")
-            payload['userid'] = Inquiry().ask_number("User ID:", True)
-            payload['username'] = Inquiry().ask_text("Username:", True)
-            payload['password'] = Inquiry().ask_secret("Password:", True)
-            payload['netchannel'] = Inquiry().ask_number("Network Channel:", True)
-            payload['mgmtchannel'] = Inquiry().ask_number("Management Channel:", True)
-            payload['unmanaged_bmc_users'] = Inquiry().ask_text("Unmanaged BMC Users:", True)
-            comment = Inquiry().ask_confirm("Do you want to provide a comment?")
-            if comment:
-                payload['comment'] = Inquiry().ask_text("Comment:", True)
-            fields, rows  = Helper().filter_data_col(self.table, payload)
-            title = f'{self.table.capitalize()} Adding => {payload["name"]}'
-            Presenter().show_table_col(title, fields, rows)
-            confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
-            if not confirm:
-                Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+            payload['name'] = Helper().name_validate(0, 'BMC Setup', self.name_list)
+            if payload['name']:
+                payload['userid'] = Inquiry().ask_number("User ID:", True)
+                payload['username'] = Inquiry().ask_text("Username:", True)
+                payload['password'] = Inquiry().ask_secret("Password:", True)
+                payload['netchannel'] = Inquiry().ask_number("Network Channel:", True)
+                payload['mgmtchannel'] = Inquiry().ask_number("Management Channel:", True)
+                payload['unmanaged_bmc_users'] = Inquiry().ask_text("Unmanaged BMC Users:", True)
+                comment = Inquiry().ask_confirm("Do you want to provide a comment?")
+                if comment:
+                    payload['comment'] = Inquiry().ask_text("Comment:", True)
+                fields, rows  = Helper().filter_data_col(self.table, payload)
+                title = f'{self.table.capitalize()} Adding => {payload["name"]}'
+                Presenter().show_table_col(title, fields, rows)
+                confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
+                if not confirm:
+                    Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+                else:
+                    filtered = {k: v for k, v in payload.items() if v != ''}
+                    payload.clear()
+                    payload.update(filtered)
+            else:
+                payload = {}
         else:
             for remove in ['debug', 'command', 'action', 'init']:
                 self.args.pop(remove, None)
             if not self.args["name"]:
                 Helper().show_error('BMC Setup name is a Mandatory Key.')
             else:
-                bmc_names = list(self.get_list['config'][self.table].keys())
-                if self.args["name"] in bmc_names:
+                if self.args["name"] in self.name_list:
                     Helper().show_warning(f'BMC Setup {self.args["name"]} present already.')
                 else:
                     payload = {k: v for k, v in self.args.items() if v is not None}
@@ -147,8 +156,6 @@ class BMCSetup():
             self.logger.debug(f'Response => {response}')
             if response == 201:
                 Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
-            elif response == 204:
-                Helper().show_warning(f'{payload["name"]} present already.')
             else:
                 Helper().show_error(f'{self.table.capitalize()}, {payload["name"]} is not created.')
         return True

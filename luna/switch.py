@@ -30,11 +30,14 @@ class Switch():
         self.args = args
         self.table = "switch"
         self.get_list = None
+        self.name_list = []
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
             actions = ["list", "show", "add", "update", "rename", "clone", "delete"]
             if self.args["action"] in actions:
                 self.get_list = Rest().get_data(self.table)
+                if self.get_list:
+                    self.name_list = list(self.get_list['config'][self.table].keys())
                 call = methodcaller(f'{self.args["action"]}_switch')
                 call(self)
             else:
@@ -106,33 +109,42 @@ class Switch():
         """
         Method to add new switch in Luna Configuration.
         """
-        payload = {}
+        payload = {'oid': '.1.3.6.1.2.1.17.7.1.2.2.1.2', 'read': 'public', 'rw': 'private'}
         if self.args['init']:
-            payload['name'] = Inquiry().ask_text("Kindly provide Switch Name")
-            payload['network'] = Inquiry().ask_text("Kindly provide Switch Network")
-            payload['ipaddress'] = Inquiry().ask_text("Kindly provide Switch IP Address")
-            payload['oid'] = Inquiry().ask_text("Kindly provide Switch OID")
-            payload['read'] = Inquiry().ask_text("Kindly provide Read community")
-            payload['rw'] = Inquiry().ask_text("Kindly provide Write community")
-            comment = Inquiry().ask_confirm("Do you want to provide a comment?")
-            if comment:
-                payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)")
-            fields, rows  = Helper().filter_data_col(self.table, payload)
-            title = f'{self.table.capitalize()} Adding => {payload["name"]}'
-            Presenter().show_table_col(title, fields, rows)
-            confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
-            if not confirm:
-                Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+            payload['name'] = Helper().name_validate(0, 'Switch', self.name_list)
+            if payload['name']:
+                payload['network'] = Inquiry().ask_text("Kindly provide Switch Network")
+                payload['ipaddress'] = Inquiry().ask_text("Kindly provide Switch IP Address")
+                payload['oid'] = Inquiry().ask_text("Kindly provide Switch OID", True)
+                payload['read'] = Inquiry().ask_text("Kindly provide Read community", True)
+                payload['rw'] = Inquiry().ask_text("Kindly provide Write community", True)
+                comment = Inquiry().ask_confirm("Do you want to provide a comment?")
+                if comment:
+                    payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
+                fields, rows  = Helper().filter_data_col(self.table, payload)
+                title = f'{self.table.capitalize()} Adding => {payload["name"]}'
+                Presenter().show_table_col(title, fields, rows)
+                confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
+                if not confirm:
+                    Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+                else:
+                    filtered = {k: v for k, v in payload.items() if v != ''}
+                    payload.clear()
+                    payload.update(filtered)
+            else:
+                payload = {}
         else:
-            error = False
             for remove in ['debug', 'command', 'action', 'init']:
                 self.args.pop(remove, None)
-            payload = self.args
-            for key in payload:
-                if payload[key] is None:
-                    error = Helper().show_error(f'Kindly provide {key}.')
-            if error:
-                Helper().show_error(f'Adding {payload["name"]} in {self.table.capitalize()} Abort.')
+            if None in [self.args['name'], self.args['network'], self.args['ipaddress']]:
+                Helper().show_error('Switch name, network name and IP address are mandatory.')
+                payload = {}
+            else:
+                if self.args["name"] in self.name_list:
+                    Helper().show_warning(f'Switch {self.args["name"]} present already.')
+                    payload = {}
+                else:
+                    payload = {k: v for k, v in self.args.items() if v != None}
         if payload:
             request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
@@ -140,8 +152,6 @@ class Switch():
             self.logger.debug(f'Response => {response}')
             if response == 201:
                 Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
-            elif response == 204:
-                Helper().show_warning(f'{payload["name"]} present already.')
             else:
                 Helper().show_error(f'{self.table.capitalize()}, {payload["name"]} is not created.')
         return True

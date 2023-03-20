@@ -19,6 +19,7 @@ from termcolor import colored
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
+from luna.utils.inquiry import Inquiry
 
 class Helper(object):
     """
@@ -76,6 +77,22 @@ class Helper(object):
         else:
             response = self.show_error(f'{args["name"]} is not found in {table}.')
         return response
+
+
+    def name_validate(self, count=None, table=None,  name_list=None):
+        """
+        Recursive method to validate the name.
+        """
+        if count == 3:
+            self.show_error("You have lost all 3 attempts, Please try again.")
+        else:
+            name = Inquiry().ask_text(f"{table} Name:")
+            if name in name_list:
+                self.show_error(f'{table} {name} is already present, Kindly use a new name.')
+                count = count + 1
+                return self.name_validate(count, table, name_list)
+            else:
+                return name
 
 
     def get_hostlist(self, rawhosts=None):
