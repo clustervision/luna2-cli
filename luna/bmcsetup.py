@@ -161,7 +161,7 @@ class BMCSetup():
                 payload['password'] = Inquiry().ask_secret("Update Password", True)
                 payload['netchannel'] = Inquiry().ask_number("Update Network Channel", True)
                 payload['mgmtchannel'] = Inquiry().ask_number("Update Management Channel", True)
-                payload['unmanaged_bmc_users'] = Inquiry().ask_text("Update Unmanaged BMC Users", True)
+                payload['unmanaged_bmc_users'] = Inquiry().ask_text("Unmanaged BMC Users", True)
                 comment = Inquiry().ask_confirm("Do you want to provide a comment?")
                 if comment:
                     payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
@@ -171,9 +171,10 @@ class BMCSetup():
                 fields, rows  = Helper().filter_data_col(self.table, payload)
                 title = f'{self.table.capitalize()} Updating => {payload["name"]}'
                 Presenter().show_table_col(title, fields, rows)
-                confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
+                msg = f'Update {payload["name"]} in {self.table.capitalize()}'
+                confirm = Inquiry().ask_confirm(f'{msg}?')
                 if not confirm:
-                    Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+                    Helper().show_error(f'{msg} is Aborted')
                     payload = {}
             else:
                 for remove in ['debug', 'command', 'action', 'init']:
@@ -182,7 +183,8 @@ class BMCSetup():
                     Helper().show_error('BMC Setup name is a Mandatory Key.')
                 else:
                     if self.args["name"] not in bmc_names:
-                        Helper().show_error(f'{self.args["name"]} Not found in {self.table.capitalize()}.')
+                        msg = f'{self.args["name"]} Not found in {self.table.capitalize()}.'
+                        Helper().show_error(msg)
                     else:
                         payload = {k: v for k, v in self.args.items() if v is not None}
         else:
@@ -202,46 +204,40 @@ class BMCSetup():
         Method to rename a bmc setup in Luna Configuration.
         """
         payload = {}
-        if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config']['bmcsetup'].keys())
-                payload['name'] = Inquiry().ask_select("Select BMC Setup to update", names)
+        if self.get_list:
+            bmc_names = list(self.get_list['config']['bmcsetup'].keys())
+            if self.args['init']:
+                payload['name'] = Inquiry().ask_select("Select BMC Setup to update", bmc_names)
                 payload['newbmcname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
                 fields, rows  = Helper().filter_data_col(self.table, payload)
                 title = f'{self.table.capitalize()} Renaming => {payload["name"]}'
                 Presenter().show_table_col(title, fields, rows)
-                confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
+                msg = f'Rename {payload["name"]} to {payload["newbmcname"]}'
+                confirm = Inquiry().ask_confirm(f'{msg}?')
                 if not confirm:
-                    Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
-                    payload['newbmcname'] = None
+                    Helper().show_error(f'{msg} is Aborted.')
+                    payload = {}
             else:
-                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
-        else:
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
-            if self.args['name'] is None:
-                Helper().show_error('Kindly provide BMC Name.')
-            if self.args['newbmcname'] is None:
-                Helper().show_error('Kindly provide New BMC Name.')
-            payload = self.args
-        if payload['newbmcname'] and payload['name']:
-            request_data = {'config': {self.table: {payload['name']: payload}}}
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config']['bmcsetup'].keys())
-                if payload["name"] in names:
-                    self.logger.debug(f'Payload => {request_data}')
-                    response = Rest().post_data(self.table, payload['name'], request_data)
-                    self.logger.debug(f'Response => {response}')
-                    if response == 204:
-                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newbmcname"]}.')
+                for remove in ['debug', 'command', 'action', 'init']:
+                    self.args.pop(remove, None)
+                if self.args['name'] is None or self.args['newbmcname'] is None:
+                    Helper().show_error('BMC Name and New BMC name both are required.')
                 else:
-                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
-            else:
-                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+                    if self.args["name"] not in bmc_names:
+                        msg = f'{self.args["name"]} Not found in {self.table.capitalize()}.'
+                        Helper().show_error(msg)
+                    else:
+                        payload = self.args
+        else:
+            response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        if payload:
+            request_data = {'config': {self.table: {payload['name']: payload}}}
+            self.logger.debug(f'Payload => {request_data}')
+            response = Rest().post_data(self.table, payload['name'], request_data)
+            self.logger.debug(f'Response => {response}')
+            if response == 204:
+                msg = f'{payload["name"]} is renamed to {payload["newbmcname"]}'
+                Helper().show_success(f'{msg} in {self.table.capitalize()}.')
         return True
 
 
@@ -249,42 +245,37 @@ class BMCSetup():
         """
         Method to delete a bmc setup in Luna Configuration.
         """
-        abort = False
         payload = {}
-        if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
-                payload['name'] = Inquiry().ask_select("Select BMC Setup to delete", names)
+        if self.get_list:
+            bmc_names = list(self.get_list['config']['bmcsetup'].keys())
+            if self.args['init']:
+                payload['name'] = Inquiry().ask_select("Select BMC Setup to delete", bmc_names)
                 fields, rows  = Helper().filter_data_col(self.table, payload)
                 title = f'{self.table.capitalize()} Deleting => {payload["name"]}'
                 Presenter().show_table_col(title, fields, rows)
-                confirm = Inquiry().ask_confirm(f'Delete {payload["name"]} in {self.table.capitalize()}?')
+                msg = f'Delete {payload["name"]} from {self.table.capitalize()}'
+                confirm = Inquiry().ask_confirm(f'{msg}?')
                 if not confirm:
-                    abort = Helper().show_error(f'Deletion of {payload["name"]}, {self.table.capitalize()} is Aborted')
+                    Helper().show_error(f'{msg} is Aborted')
+                    payload = {}
             else:
-                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
-        else:
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
-            payload = self.args
-            if payload['name'] is None:
-                abort = Helper().show_error('Kindly provide BMC Name.')
-        if abort is False:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
-                if payload["name"] in names:
-                    response = Rest().get_delete(self.table, payload['name'])
-                    self.logger.debug(f'Response => {response}')
-                    if response == 204:
-                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
+                for remove in ['debug', 'command', 'action', 'init']:
+                    self.args.pop(remove, None)
+                if self.args['name'] is None:
+                    Helper().show_error('Kindly provide BMC Name or use -i.')
                 else:
-                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
-            else:
-                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+                    if self.args["name"] not in bmc_names:
+                        msg = f'{self.args["name"]} Not found in {self.table.capitalize()}.'
+                        Helper().show_error(msg)
+                    else:
+                        payload = self.args
+        else:
+            response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+        if payload:
+            response = Rest().get_delete(self.table, payload['name'])
+            self.logger.debug(f'Response => {response}')
+            if response == 204:
+                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
         return True
 
 
@@ -293,79 +284,69 @@ class BMCSetup():
         Method to rename a bmc setup in Luna Configuration.
         """
         payload = {}
-        if self.args['init']:
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config']['bmcsetup'].keys())
-                payload['name'] = Inquiry().ask_select("Select BMC Setup to update", names)
+        if self.get_list:
+            bmc_names = list(self.get_list['config']['bmcsetup'].keys())
+            if self.args['init']:
+                payload['name'] = Inquiry().ask_select("Select BMC Setup to update", bmc_names)
                 payload['newbmcname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
                 payload['userid'] = Inquiry().ask_number("Update BMC User ID", True)
                 payload['username'] = Inquiry().ask_text("Update BMC Username", True)
                 payload['password'] = Inquiry().ask_secret("Update BMC Password", True)
                 payload['netchannel'] = Inquiry().ask_number("Update NET Channel", True)
                 payload['mgmtchannel'] = Inquiry().ask_number("Update MGMT Channel", True)
-                payload['unmanaged_bmc_users'] = Inquiry().ask_text("Update Unmanaged BMC Users", True)
+                payload['unmanaged_bmc_users'] = Inquiry().ask_text("Unmanaged BMC Users", True)
                 comment = Inquiry().ask_confirm("Do you want to provide a comment?")
                 if comment:
                     payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
 
-                get_record = Rest().get_data(self.table, payload['name'])
-                if get_record:
-                    data = get_record['config'][self.table][payload["name"]]
-                    for key, value in payload.items():
-                        if value == '' and key in data:
-                            payload[key] = data[key]
-                    filtered = {k: v for k, v in payload.items() if v is not None}
-                    payload.clear()
-                    payload.update(filtered)
-
-                if len(payload) != 1:
-                    fields, rows  = Helper().filter_data_col(self.table, payload)
-                    title = f'{self.table.capitalize()} Cloning : {payload["name"]} => {payload["newbmcname"]}'
-                    Presenter().show_table_col(title, fields, rows)
-                    confirm = Inquiry().ask_confirm(f'Clone {payload["name"]} as {payload["newbmcname"]}?')
-                    if not confirm:
-                        Helper().show_error(f'Cloning of {payload["newbmcname"]} is Aborted')
-            else:
-                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
-        else:
-            del self.args['debug']
-            del self.args['command']
-            del self.args['action']
-            del self.args['init']
-            payload = self.args
-            get_record = Rest().get_data(self.table, payload['name'])
-            if get_record:
-                data = get_record['config'][self.table][payload["name"]]
+                data = self.get_list['config'][self.table][payload["name"]]
                 for key, value in payload.items():
-                    if (value == '' or value is None) and key in data:
+                    if value == '' and key in data:
                         payload[key] = data[key]
                 filtered = {k: v for k, v in payload.items() if v is not None}
                 payload.clear()
                 payload.update(filtered)
-        if len(payload) != 1:
-            request_data = {}
-            request_data['config'] = {}
-            request_data['config'][self.table] = {}
-            request_data['config'][self.table][payload['name']] = payload
-            get_list = Rest().get_data(self.table)
-            if get_list:
-                names = list(get_list['config'][self.table].keys())
-                if payload["name"] in names:
-                    if payload["newbmcname"] in names:
-                        Helper().show_error(f'{payload["newbmcname"]} is already present in {self.table.capitalize()}.')
-                    else:
-                        self.logger.debug(f'Payload => {request_data}')
-                        response = Rest().post_clone(self.table, payload['name'], request_data)
-                        self.logger.debug(f'Response => {response}')
-                        if response == 201:
-                            Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newbmcname"]}.')
-                        else:
-                            Helper().show_error(f'HTTP Error {response}.')
-                else:
-                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+
+                fields, rows  = Helper().filter_data_col(self.table, payload)
+                title = f'Clone {self.table.capitalize()} {payload["name"]} => {payload["newbmcname"]}'
+                Presenter().show_table_col(title, fields, rows)
+                confirm = Inquiry().ask_confirm(f'Clone {payload["name"]} as {payload["newbmcname"]}?')
+                if not confirm:
+                    Helper().show_error(f'Cloning of {payload["newbmcname"]} is Aborted')
+                    payload = {}
             else:
-                Helper().show_error(f'No {self.table.capitalize()} is available.')
+                for remove in ['debug', 'command', 'action', 'init']:
+                    self.args.pop(remove, None)
+                if None not in [self.args["name"], self.args["newbmcname"]]:
+                    payload = self.args
+                    if payload["name"] in bmc_names:
+                        data = self.get_list['config'][self.table][payload["name"]]
+                        for key, value in payload.items():
+                            if (value == '' or value is None) and key in data:
+                                payload[key] = data[key]
+                        filtered = {k: v for k, v in payload.items() if v is not None}
+                        payload.clear()
+                        payload.update(filtered)
+                    else:
+                        Helper().show_error(f'{payload["name"]} is not recognized.')
+                        payload = {}
+                else:
+                    Helper().show_error('Source & Destination BMC names are required.')
+                    payload = {}
+        else:
+            Helper().show_error(f'No {self.table.capitalize()} is available.')
+        if payload:
+            request_data = {'config': {self.table: {payload['name']: payload}}}
+            if payload["newbmcname"] in bmc_names:
+                Helper().show_error(f'{payload["newbmcname"]} is already present in {self.table.capitalize()}.')
+            else:
+                self.logger.debug(f'Payload => {request_data}')
+                response = Rest().post_clone(self.table, payload['name'], request_data)
+                self.logger.debug(f'Response => {response}')
+                if response == 201:
+                    Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloned as {payload["newbmcname"]}.')
+                else:
+                    Helper().show_error(f'HTTP Error {response}.')
         else:
             Helper().show_error(f'Nothing to update in {payload["name"]}.')
         return True

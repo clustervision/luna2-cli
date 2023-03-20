@@ -12,6 +12,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
+import sys
 from argparse import ArgumentParser
 from luna.utils.presenter import Presenter
 from luna.utils.log import Log
@@ -28,7 +29,7 @@ from luna.service import Service
 from luna.control import Control
 
 
-class Cli(object):
+class Cli():
     """
     Cli class use arguments to navigate further.
     """
@@ -39,6 +40,7 @@ class Cli(object):
         self.subparsers = None
         self.args = None
         Presenter().show_banner()
+
 
     def main(self):
         """
@@ -60,11 +62,11 @@ class Cli(object):
         Service.getarguments(self, self.parser, self.subparsers)
         Control.getarguments(self, self.parser, self.subparsers)
         self.args = vars(self.parser.parse_args())
-        self.callclass()
+        self.call_class()
         return True
 
 
-    def callclass(self):
+    def call_class(self):
         """
         Method to call the class for further
         operations.
@@ -73,31 +75,19 @@ class Cli(object):
             self.logger = Log.init_log('debug')
         else:
             self.logger = Log.init_log('info')
-        if self.args:
-            if self.args["command"] == "cluster":
-                Cluster(self.args)
-            elif self.args["command"] == "network":
-                Network(self.args)
-            elif self.args["command"] == "osimage":
-                OSImage(self.args)
+        if self.args["command"]:
+            if self.args["command"] == "osimage":
+                call = globals()["OSImage"]
             elif self.args["command"] == "bmcsetup":
-                BMCSetup(self.args)
-            elif self.args["command"] == "switch":
-                Switch(self.args)
+                call = globals()["BMCSetup"]
             elif self.args["command"] == "otherdev":
-                OtherDev(self.args)
-            elif self.args["command"] == "group":
-                Group(self.args)
-            elif self.args["command"] == "node":
-                Node(self.args)
-            elif self.args["command"] == "secrets":
-                Secrets(self.args)
-            elif self.args["command"] == "service":
-                Service(self.args)
-            elif self.args["command"] == "control":
-                Control(self.args)
+                call = globals()["OtherDev"]
+            else:
+                call = globals()[self.args["command"].capitalize()]
+            call(self.args)
         else:
-            print("Please pass -h to see help menu.")
+            self.parser.print_help(sys.stderr)
+            sys.exit(1)
 
 
 def run_tool():
