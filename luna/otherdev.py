@@ -30,12 +30,15 @@ class OtherDev():
         self.args = args
         self.table = "otherdev"
         self.get_list = None
+        self.name_list = []
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
             actions = ["list", "show", "add", "update", "rename", "clone", "delete"]
             if self.args["action"] in actions:
                 self.get_list = Rest().get_data(self.table)
-                call = methodcaller(f'{self.args["action"]}_otherdevices')
+                if self.get_list:
+                    self.name_list = list(self.get_list['config'][self.table].keys())
+                call = methodcaller(f'{self.args["action"]}_otherdev')
                 call(self)
             else:
                 Helper().show_error("Not a valid option.")
@@ -82,39 +85,46 @@ class OtherDev():
         return parser
 
 
-    def list_otherdevices(self):
+    def list_otherdev(self):
         """
         Method to list all other devices from Luna Configuration.
         """
         return Helper().get_list(self.table, self.args)
 
 
-    def show_otherdevices(self):
+    def show_otherdev(self):
         """
         Method to show a other devices in Luna Configuration.
         """
         return Helper().show_data(self.table, self.args)
 
 
-    def add_otherdevices(self):
+    def add_otherdev(self):
         """
         Method to add new other devices in Luna Configuration.
         """
         payload = {}
         if self.args['init']:
-            payload['name'] = Inquiry().ask_text("Kindly provide Device Name")
-            payload['network'] = Inquiry().ask_text("Kindly provide Device Network")
-            payload['ipaddress'] = Inquiry().ask_text("Kindly provide Device IP Address")
-            payload['macaddress'] = Inquiry().ask_text("Kindly provide Device MAC Address")
-            comment = Inquiry().ask_confirm("Do you want to provide a comment?")
-            if comment:
-                payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)")
-            fields, rows  = Helper().filter_data_col(self.table, payload)
-            title = f'{self.table.capitalize()} Adding => {payload["name"]}'
-            Presenter().show_table_col(title, fields, rows)
-            confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
-            if not confirm:
-                Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+            payload['name'] = Helper().name_validate(0, 'Other Device', self.name_list)
+            if payload['name']:
+                payload['network'] = Inquiry().ask_text(f"Network for {payload['name']}:", True)
+                payload['ipaddress'] = Inquiry().ask_text(f"IP Address for {payload['name']}:", True)
+                payload['macaddress'] = Inquiry().ask_text(f"MAC Address for {payload['name']}:")
+                comment = Inquiry().ask_confirm("Do you want to provide a comment?")
+                if comment:
+                    payload['comment'] = Inquiry().ask_text(f"Comment for {payload['name']}:")
+                fields, rows  = Helper().filter_data_col(self.table, payload)
+                title = f'{self.table.capitalize()} Adding => {payload["name"]}'
+                Presenter().show_table_col(title, fields, rows)
+                confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
+                if not confirm:
+                    Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+                else:
+                    filtered = {k: v for k, v in payload.items() if v != ''}
+                    payload.clear()
+                    payload.update(filtered)
+            else:
+                payload = {}
         else:
             error = False
             for remove in ['debug', 'command', 'action', 'init']:
@@ -139,7 +149,7 @@ class OtherDev():
         return True
 
 
-    def update_otherdevices(self):
+    def update_otherdev(self):
         """
         Method to update a other devices in Luna Configuration.
         """
@@ -192,7 +202,7 @@ class OtherDev():
         return True
 
 
-    def rename_otherdevices(self):
+    def rename_otherdev(self):
         """
         Method to rename a other devices in Luna Configuration.
         """
@@ -239,7 +249,7 @@ class OtherDev():
         return True
 
 
-    def delete_otherdevices(self):
+    def delete_otherdev(self):
         """
         Method to delete a other devices in Luna Configuration.
         """
@@ -279,7 +289,7 @@ class OtherDev():
         return True
 
 
-    def clone_otherdevices(self):
+    def clone_otherdev(self):
         """
         Method to rename a other devices in Luna Configuration.
         """

@@ -113,14 +113,14 @@ class Switch():
         if self.args['init']:
             payload['name'] = Helper().name_validate(0, 'Switch', self.name_list)
             if payload['name']:
-                payload['network'] = Inquiry().ask_text("Kindly provide Switch Network")
-                payload['ipaddress'] = Inquiry().ask_text("Kindly provide Switch IP Address")
-                payload['oid'] = Inquiry().ask_text("Kindly provide Switch OID", True)
-                payload['read'] = Inquiry().ask_text("Kindly provide Read community", True)
-                payload['rw'] = Inquiry().ask_text("Kindly provide Write community", True)
+                payload['network'] = Inquiry().ask_text(f"Network for {payload['name']}:")
+                payload['ipaddress'] = Inquiry().ask_text(f"IP Address for {payload['name']}:")
+                payload['oid'] = Inquiry().ask_text(f"OID for {payload['name']}:", True)
+                payload['read'] = Inquiry().ask_text(f"Read community for {payload['name']}:", True)
+                payload['rw'] = Inquiry().ask_text(f"Write community for {payload['name']}:", True)
                 comment = Inquiry().ask_confirm("Do you want to provide a comment?")
                 if comment:
-                    payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
+                    payload['comment'] = Inquiry().ask_text(f"Comment for {payload['name']}:", True)
                 fields, rows  = Helper().filter_data_col(self.table, payload)
                 title = f'{self.table.capitalize()} Adding => {payload["name"]}'
                 Presenter().show_table_col(title, fields, rows)

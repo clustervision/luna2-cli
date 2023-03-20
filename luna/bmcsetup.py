@@ -118,15 +118,15 @@ class BMCSetup():
         if self.args['init']:
             payload['name'] = Helper().name_validate(0, 'BMC Setup', self.name_list)
             if payload['name']:
-                payload['userid'] = Inquiry().ask_number("User ID:", True)
-                payload['username'] = Inquiry().ask_text("Username:", True)
-                payload['password'] = Inquiry().ask_secret("Password:", True)
-                payload['netchannel'] = Inquiry().ask_number("Network Channel:", True)
-                payload['mgmtchannel'] = Inquiry().ask_number("Management Channel:", True)
-                payload['unmanaged_bmc_users'] = Inquiry().ask_text("Unmanaged BMC Users:", True)
+                payload['userid'] = Inquiry().ask_number(f"User ID for {payload['name']}:", True)
+                payload['username'] = Inquiry().ask_text(f"Username for {payload['name']}:", True)
+                payload['password'] = Inquiry().ask_secret(f"Password for {payload['name']}:", True)
+                payload['netchannel'] = Inquiry().ask_number(f"Network Channel for {payload['name']}:", True)
+                payload['mgmtchannel'] = Inquiry().ask_number(f"Management Channel for {payload['name']}:", True)
+                payload['unmanaged_bmc_users'] = Inquiry().ask_text(f"Unmanaged BMC Users for {payload['name']}:", True)
                 comment = Inquiry().ask_confirm("Do you want to provide a comment?")
                 if comment:
-                    payload['comment'] = Inquiry().ask_text("Comment:", True)
+                    payload['comment'] = Inquiry().ask_text(f"Comment for {payload['name']}:", True)
                 fields, rows  = Helper().filter_data_col(self.table, payload)
                 title = f'{self.table.capitalize()} Adding => {payload["name"]}'
                 Presenter().show_table_col(title, fields, rows)
