@@ -31,11 +31,13 @@ class OtherDev():
         self.table = "otherdev"
         self.get_list = None
         self.name_list = []
+        self.networks = None
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
             actions = ["list", "show", "add", "update", "rename", "clone", "delete"]
             if self.args["action"] in actions:
                 self.get_list = Rest().get_data(self.table)
+                self.networks = Helper().network_list()
                 if self.get_list:
                     self.name_list = list(self.get_list['config'][self.table].keys())
                 call = methodcaller(f'{self.args["action"]}_otherdev')
@@ -62,20 +64,20 @@ class OtherDev():
         Helper().common_add_args(otherdev_add, 'Other Device')
         otherdev_add.add_argument('-N', '--network', help='Network Other Device belongs to')
         otherdev_add.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
-        otherdev_add.add_argument('-m', '--macaddress', default='public', help='MAC Address of the Other Device')
+        otherdev_add.add_argument('-m', '--macaddress', help='MAC Address of the Other Device')
         otherdev_add.add_argument('-c', '--comment', help='Comment for Other Device')
         otherdev_update = otherdev_args.add_parser('update', help='Update Other Devices')
         Helper().common_add_args(otherdev_update, 'Other Device')
         otherdev_update.add_argument('-N', '--network', help='Network Other Device belongs to')
         otherdev_update.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
-        otherdev_update.add_argument('-m', '--macaddress', default='public', help='MAC Address of the Other Device')
+        otherdev_update.add_argument('-m', '--macaddress', help='MAC Address of the Other Device')
         otherdev_update.add_argument('-c', '--comment', help='Comment for Other Device')
         otherdev_clone = otherdev_args.add_parser('clone', help='Clone Other Devices')
         Helper().common_add_args(otherdev_clone, 'Other Device')
         otherdev_clone.add_argument('-nn', '--newotherdevname', help='New name of the Other Device')
         otherdev_clone.add_argument('-N', '--network', help='Network Other Device belongs to')
         otherdev_clone.add_argument('-ip', '--ipaddress', help='IP of the Other Device')
-        otherdev_clone.add_argument('-m', '--macaddress', default='public', help='MAC Address of the Other Device')
+        otherdev_clone.add_argument('-m', '--macaddress', help='MAC Address of the Other Device')
         otherdev_clone.add_argument('-c', '--comment', help='Comment for Other Device')
         otherdev_rename = otherdev_args.add_parser('rename', help='Rename Other Devices')
         Helper().common_add_args(otherdev_rename, 'Other Device')
@@ -103,38 +105,44 @@ class OtherDev():
         """
         Method to add new other devices in Luna Configuration.
         """
-        payload = {}
-        if self.args['init']:
-            payload['name'] = Helper().name_validate(0, 'Other Device', self.name_list)
-            if payload['name']:
-                payload['network'] = Inquiry().ask_text(f"Network for {payload['name']}:", True)
-                payload['ipaddress'] = Inquiry().ask_text(f"IP Address for {payload['name']}:", True)
-                payload['macaddress'] = Inquiry().ask_text(f"MAC Address for {payload['name']}:")
-                comment = Inquiry().ask_confirm("Do you want to provide a comment?")
-                if comment:
-                    payload['comment'] = Inquiry().ask_text(f"Comment for {payload['name']}:")
-                fields, rows  = Helper().filter_data_col(self.table, payload)
-                title = f'{self.table.capitalize()} Adding => {payload["name"]}'
-                Presenter().show_table_col(title, fields, rows)
-                confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
-                if not confirm:
-                    Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
-                else:
-                    filtered = {k: v for k, v in payload.items() if v != ''}
-                    payload.clear()
-                    payload.update(filtered)
+        if self.networks:
+            payload = {}
+            if self.args['init']:
+                payload['name'] = Helper().name_validate(0, 'Other Device', self.name_list)
+                if payload['name']:
+                    payload['network'] = Inquiry().ask_select(f"Network for {payload['name']}:", self.networks)
+                    payload['ipaddress'] = Inquiry().ask_text(f"IP Address for {payload['name']}:")
+                    payload['macaddress'] = Inquiry().ask_text(f"MAC Address for {payload['name']}:", True)
+                    comment = Inquiry().ask_confirm("Do you want to provide a comment?")
+                    if comment:
+                        payload['comment'] = Inquiry().ask_text(f"Comment for {payload['name']}:", True)
+                    fields, rows  = Helper().filter_data_col(self.table, payload)
+                    title = f'{self.table.capitalize()} Adding => {payload["name"]}'
+                    Presenter().show_table_col(title, fields, rows)
+                    confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
+                    if not confirm:
+                        Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
+                    else:
+                        filtered = {k: v for k, v in payload.items() if v != ''}
+                        payload.clear()
+                        payload.update(filtered)
             else:
-                payload = {}
+                for remove in ['debug', 'command', 'action', 'init']:
+                    self.args.pop(remove, None)
+                if None in [self.args['name'], self.args['network'], self.args['ipaddress']]:
+                    Helper().show_error('Other Device name, network name and IP address are mandatory.')
+                    payload = {}
+                elif self.args["name"] in self.name_list:
+                    Helper().show_warning(f'Device {self.args["name"]} present already.')
+                    payload = {}
+                elif self.args["network"] not in self.networks:
+                    Helper().show_warning(f'Network {self.args["network"]} is undefined.')
+                    payload = {}
+                else:
+                    payload = {k: v for k, v in self.args.items() if v is not None}
         else:
-            error = False
-            for remove in ['debug', 'command', 'action', 'init']:
-                self.args.pop(remove, None)
-            payload = self.args
-            for key in payload:
-                if payload[key] is None:
-                    error = Helper().show_error(f'Kindly provide {key}.')
-            if error:
-                Helper().show_error(f'Adding {payload["name"]} in {self.table.capitalize()} Abort.')
+            payload = {}
+            Helper().show_error('Kindly create a network first.')
         if payload:
             request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')

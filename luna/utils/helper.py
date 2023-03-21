@@ -95,6 +95,17 @@ class Helper(object):
                 return name
 
 
+    def network_list(self):
+        """
+        This method will return the available network list.
+        """
+        network = []
+        self.get_list = Rest().get_data("network")
+        if self.get_list:
+            network = list(self.get_list["config"]["network"].keys())
+        return network
+
+
     def get_hostlist(self, rawhosts=None):
         """
         This method will perform power option on node.

@@ -14,9 +14,9 @@ __status__      = "Production"
 
 import os
 import sys
-LOG_FOLDER = '/var/log/luna'
 from setuptools import setup, find_packages
 
+LOG_FOLDER = '/var/log/luna'
 try: # for pip >= 10
     from pip._internal.req import parse_requirements
     install_reqs = list(parse_requirements('requirements.txt', session='hack'))

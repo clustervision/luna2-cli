@@ -12,7 +12,9 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-
+from time import sleep
+from multiprocessing import Process
+from termcolor import colored
 from luna.utils.helper import Helper
 from luna.utils.rest import Rest
 from luna.utils.log import Log
@@ -51,6 +53,10 @@ class Service(object):
         dhcp_start.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         dhcp_restart = dhcp_parser.add_parser('restart', help='Restart DHCP Service')
         dhcp_restart.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        dhcp_reload = dhcp_parser.add_parser('reload', help='Reload DHCP Service')
+        dhcp_reload.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        dhcp_status = dhcp_parser.add_parser('status', help='Status Of DHCP Service')
+        dhcp_status.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         ## >>>>>>> Service Command >>>>>>> dns
         dns = service_args.add_parser('dns', help='DNS Service')
         dns_parser = dns.add_subparsers(dest='action')
@@ -60,6 +66,10 @@ class Service(object):
         dns_start.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         dns_restart = dns_parser.add_parser('restart', help='Restart DNS Service')
         dns_restart.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        dns_reload = dhcp_parser.add_parser('reload', help='Reload DNS Service')
+        dns_reload.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        dns_status = dhcp_parser.add_parser('status', help='Status Of DNS Service')
+        dns_status.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         ## >>>>>>> Service Command >>>>>>> luna2
         daemon = service_args.add_parser('luna2', help='Luna Daemon Service')
         daemon_parser = daemon.add_subparsers(dest='action')
@@ -69,6 +79,10 @@ class Service(object):
         daemon_start.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         daemon_restart = daemon_parser.add_parser('restart', help='Restart Luna Daemon Service')
         daemon_restart.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        daemon_reload = dhcp_parser.add_parser('reload', help='Reload Luna Daemon Service')
+        daemon_reload.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        daemon_status = dhcp_parser.add_parser('status', help='Status Of Luna Daemon Service')
+        daemon_status.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         return parser
 
 
@@ -87,10 +101,11 @@ class Service(object):
             http_code = result.status_code
             result = result.json()
             result = result['service'][self.args["service"]]
-            if http_code == 200:
-                response = Helper().show_success(f'{self.args["action"]} performed on {self.args["service"]}')
-                Helper().show_success(f'{result}')
-            else:
-                Helper().show_error(f'HTTP error code is: {http_code} ')
-                Helper().show_error(f'{result}')
-        return response
+            print(result)
+        #     if http_code == 200:
+        #         response = Helper().show_success(f'{self.args["action"]} performed on {self.args["service"]}')
+        #         Helper().show_success(f'{result}')
+        #     else:
+        #         Helper().show_error(f'HTTP error code is: {http_code} ')
+        #         Helper().show_error(f'{result}')
+        # return response

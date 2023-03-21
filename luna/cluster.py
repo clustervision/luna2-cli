@@ -59,6 +59,7 @@ class Cluster():
         cluster_update.add_argument('-nn', '--name', help='New Name For Cluster')
         cluster_update.add_argument('-u', '--user', help='Cluster User')
         cluster_update.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='NTP IP')
+        cluster_update.add_argument('-o', '--createnode_ondemand', action='store_true', help='Create Nodes while PXE Boot')
         cluster_update.add_argument(
             '-ns', '--nameserver_ip', metavar='N.N.N.N', help='Name Server IP'
         )

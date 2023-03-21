@@ -144,11 +144,10 @@ class BMCSetup():
                 self.args.pop(remove, None)
             if not self.args["name"]:
                 Helper().show_error('BMC Setup name is a Mandatory Key.')
+            elif self.args["name"] in self.name_list:
+                Helper().show_warning(f'BMC Setup {self.args["name"]} present already.')
             else:
-                if self.args["name"] in self.name_list:
-                    Helper().show_warning(f'BMC Setup {self.args["name"]} present already.')
-                else:
-                    payload = {k: v for k, v in self.args.items() if v is not None}
+                payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
             request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
@@ -167,18 +166,17 @@ class BMCSetup():
         """
         payload = {}
         if self.get_list:
-            bmc_names = list(self.get_list['config']['bmcsetup'].keys())
             if self.args['init']:
-                payload['name'] = Inquiry().ask_select("Select BMC Setup to update:", bmc_names)
-                payload['userid'] = Inquiry().ask_number("Update User ID", True)
-                payload['username'] = Inquiry().ask_text("Update Username", True)
-                payload['password'] = Inquiry().ask_secret("Update Password", True)
-                payload['netchannel'] = Inquiry().ask_number("Update Network Channel", True)
-                payload['mgmtchannel'] = Inquiry().ask_number("Update Management Channel", True)
-                payload['unmanaged_bmc_users'] = Inquiry().ask_text("Unmanaged BMC Users", True)
+                payload['name'] = Inquiry().ask_select("Select BMC Setup to update:", self.name_list)
+                payload['userid'] = Inquiry().ask_number(f"User ID for {payload['name']}:", True)
+                payload['username'] = Inquiry().ask_text(f"Username for {payload['name']}:", True)
+                payload['password'] = Inquiry().ask_secret(f"Password for {payload['name']}:", True)
+                payload['netchannel'] = Inquiry().ask_number(f"Network Channel for {payload['name']}:", True)
+                payload['mgmtchannel'] = Inquiry().ask_number(f"Management Channel for {payload['name']}:", True)
+                payload['unmanaged_bmc_users'] = Inquiry().ask_text(f"Unmanaged BMC Users for {payload['name']}:", True)
                 comment = Inquiry().ask_confirm("Do you want to provide a comment?")
                 if comment:
-                    payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
+                    payload['comment'] = Inquiry().ask_text(f"Comment for {payload['name']}:", True)
                 filtered = {k: v for k, v in payload.items() if v != ''}
                 payload.clear()
                 payload.update(filtered)
@@ -195,12 +193,10 @@ class BMCSetup():
                     self.args.pop(remove, None)
                 if not self.args["name"]:
                     Helper().show_error('BMC Setup name is a Mandatory Key.')
+                elif self.args["name"] in self.name_list:
+                    Helper().show_warning(f'BMC Setup {self.args["name"]} present already.')
                 else:
-                    if self.args["name"] not in bmc_names:
-                        msg = f'{self.args["name"]} Not found in {self.table.capitalize()}.'
-                        Helper().show_error(msg)
-                    else:
-                        payload = {k: v for k, v in self.args.items() if v is not None}
+                    payload = {k: v for k, v in self.args.items() if v is not None}
         else:
             Helper().show_error(f'No {self.table.capitalize()} is available.')
         if payload:
