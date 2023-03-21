@@ -182,6 +182,18 @@ class Helper(object):
         return parser
 
 
+    def common_switch_device_args(self, parser=None, name=None):
+        """
+        This method will provide the common add, update and clone aguments
+        for switch and otherdevice.
+        """
+        parser.add_argument('-N', '--network', help=f'Network for {name}')
+        parser.add_argument('-ip', '--ipaddress', help=f'IP Address for {name}')
+        parser.add_argument('-m', '--macaddress', help=f'MAC Address for {name}')
+        parser.add_argument('-c', '--comment', help=f'Comment for {name}')
+        return parser
+
+
     def control_print(self, num=None, control_data=None):
         """
         This method will perform power option on node.

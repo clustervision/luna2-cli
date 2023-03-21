@@ -19,7 +19,7 @@ from luna.utils.helper import Helper
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 
-class Service(object):
+class Service():
     """
     Service Class responsible to perform service
     based actions for predefined services.
@@ -109,6 +109,9 @@ class Service(object):
                         print(colored(msg, 'green', attrs=['bold']))
                     else:
                         print(colored("[X ERROR X] Try Again!", 'red', attrs=['bold']))
+                else:
+                    process1.terminate()
+                    print(colored("[X ERROR X] Something is Wrong with Daemon.", 'red', attrs=['bold']))
         else:
             Helper().show_error(f'HTTP error code is: {http_code} ')
             Helper().show_error(f'{result}')
