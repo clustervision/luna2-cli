@@ -168,7 +168,18 @@ class Helper(object):
         parser.add_argument('-N', '--network', action='append', help='Interface Network Name')
         parser.add_argument('-c', '--comment', help='Comment')
         return parser
-    
+
+
+    def common_service_args(self, parser=None, service=None):
+        """
+        This method will return all common actions and arguments
+        parser for service module.
+        """
+        actions = ['start', 'stop', 'restart', 'reload', 'status']
+        for act in actions:
+            parser_args = parser.add_parser(act, help=f'{act.capitalize()} {service} Service')
+            parser_args.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        return parser
 
 
     def control_print(self, num=None, control_data=None):

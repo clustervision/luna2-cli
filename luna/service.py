@@ -44,45 +44,15 @@ class Service(object):
         """
         service_menu = subparsers.add_parser('service', help='Service operations.')
         service_args = service_menu.add_subparsers(dest='service')
-        ## >>>>>>> Service Command >>>>>>> dhcp
         dhcp = service_args.add_parser('dhcp', help='DHCP Service')
         dhcp_parser = dhcp.add_subparsers(dest='action')
-        dhcp_stop = dhcp_parser.add_parser('stop', help='Stop DHCP Service')
-        dhcp_stop.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        dhcp_start = dhcp_parser.add_parser('start', help='Start DHCP Service')
-        dhcp_start.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        dhcp_restart = dhcp_parser.add_parser('restart', help='Restart DHCP Service')
-        dhcp_restart.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        dhcp_reload = dhcp_parser.add_parser('reload', help='Reload DHCP Service')
-        dhcp_reload.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        dhcp_status = dhcp_parser.add_parser('status', help='Status Of DHCP Service')
-        dhcp_status.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        ## >>>>>>> Service Command >>>>>>> dns
+        Helper().common_service_args(dhcp_parser, 'DHCP')
         dns = service_args.add_parser('dns', help='DNS Service')
         dns_parser = dns.add_subparsers(dest='action')
-        dns_stop = dns_parser.add_parser('stop', help='Stop DNS Service')
-        dns_stop.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        dns_start = dns_parser.add_parser('start', help='Start DNS Service')
-        dns_start.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        dns_restart = dns_parser.add_parser('restart', help='Restart DNS Service')
-        dns_restart.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        dns_reload = dns_parser.add_parser('reload', help='Reload DNS Service')
-        dns_reload.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        dns_status = dns_parser.add_parser('status', help='Status Of DNS Service')
-        dns_status.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        ## >>>>>>> Service Command >>>>>>> luna2
+        Helper().common_service_args(dns_parser, 'DNS')
         daemon = service_args.add_parser('luna2', help='Luna Daemon Service')
         daemon_parser = daemon.add_subparsers(dest='action')
-        daemon_stop = daemon_parser.add_parser('stop', help='Stop Luna Daemon Service')
-        daemon_stop.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        daemon_start = daemon_parser.add_parser('start', help='Start Luna Daemon Service')
-        daemon_start.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        daemon_restart = daemon_parser.add_parser('restart', help='Restart Luna Daemon Service')
-        daemon_restart.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        daemon_reload = daemon_parser.add_parser('reload', help='Reload Luna Daemon Service')
-        daemon_reload.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        daemon_status = daemon_parser.add_parser('status', help='Status Of Luna Daemon Service')
-        daemon_status.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        Helper().common_service_args(daemon_parser, 'Luna Daemon')
         return parser
 
 
@@ -94,19 +64,52 @@ class Service(object):
         """
         response = False
         uri = f'{self.args["service"]}/{self.args["action"]}'
-        # self.logger.debug(f'Service URL => {uri}')
+        self.logger.debug(f'Service URL => {uri}')
         result = Rest().get_raw(self.route, uri)
-        print(result.status_code)
-        print(result.content)
-        # self.logger.debug(f'Response => {result}')
-        # if result:
-        #     http_code = result.status_code
-        #     result = result.json()
-        #     result = result['service'][self.args["service"]]
-        #     if http_code == 200:
-        #         response = Helper().show_success(f'{self.args["action"]} performed on {self.args["service"]}')
-        #         Helper().show_success(f'{result}')
-        #     else:
-        #         Helper().show_error(f'HTTP error code is: {http_code} ')
-        #         Helper().show_error(f'{result}')
-        # return response
+        self.logger.debug(f'Response => {result}')
+        http_code = result.status_code
+        result = result.json()
+        if http_code == 200:
+            if self.args["action"] == 'status':
+                print(colored(f'HTTP CODE :: {http_code}', 'yellow', attrs=['bold']))
+                print(colored(f'RESPONSE  :: {result}', 'yellow', attrs=['bold']))
+                ## TODO ->
+                ## Need to parse it, when daemon side is done
+                # result = result['service'][self.args["service"]]
+                # response = Helper().show_success(f'{self.args["action"]} performed on {self.args["service"]}')
+                # Helper().show_success(f'{result}')
+            else:
+                fetch_msg = f"{self.args['service']} {self.args['action']}..."
+                process1 = Process(target=Helper().loader, args=(fetch_msg,))
+                process1.start()
+                if 'request_id' in result.keys():
+                    uri = f'service/status/{result["request_id"]}'
+                    def dig_service_status(uri):
+                        result = Rest().get_raw(uri)
+                        if result.status_code == 400:
+                            process1.terminate()
+                            return True
+                        elif result.status_code == 200:
+                            http_response = result.json()
+                            if http_response['message']:
+                                message = http_response['message'].split(';;')
+                                for msg in message:
+                                    sleep(1)
+                                    if 'error' in msg.lower() or 'fail' in msg.lower():
+                                        print(colored(f'[X ERROR X] {msg}', 'red', attrs=['bold']))
+                                    else:
+                                        print(colored(f'[========] {msg}', 'yellow', attrs=['bold']))
+                            sleep(1)
+                            return dig_service_status(uri)
+                        else:
+                            return False
+                    response = dig_service_status(uri)
+                    if response:
+                        msg = f"[========] Service {self.args['service']} {self.args['action']} is finish."
+                        print(colored(msg, 'green', attrs=['bold']))
+                    else:
+                        print(colored("[X ERROR X] Try Again!", 'red', attrs=['bold']))
+        else:
+            Helper().show_error(f'HTTP error code is: {http_code} ')
+            Helper().show_error(f'{result}')
+        return response
