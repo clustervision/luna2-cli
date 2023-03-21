@@ -94,14 +94,15 @@ class Service(object):
         """
         response = False
         uri = f'{self.args["service"]}/{self.args["action"]}'
-        self.logger.debug(f'Service URL => {uri}')
+        # self.logger.debug(f'Service URL => {uri}')
         result = Rest().get_raw(self.route, uri)
-        self.logger.debug(f'Response => {result}')
-        if result:
-            http_code = result.status_code
-            result = result.json()
-            result = result['service'][self.args["service"]]
-            print(result)
+        print(result.status_code)
+        print(result.content)
+        # self.logger.debug(f'Response => {result}')
+        # if result:
+        #     http_code = result.status_code
+        #     result = result.json()
+        #     result = result['service'][self.args["service"]]
         #     if http_code == 200:
         #         response = Helper().show_success(f'{self.args["action"]} performed on {self.args["service"]}')
         #         Helper().show_success(f'{result}')
