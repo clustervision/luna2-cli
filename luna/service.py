@@ -66,9 +66,9 @@ class Service(object):
         dns_start.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         dns_restart = dns_parser.add_parser('restart', help='Restart DNS Service')
         dns_restart.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        dns_reload = dhcp_parser.add_parser('reload', help='Reload DNS Service')
+        dns_reload = dns_parser.add_parser('reload', help='Reload DNS Service')
         dns_reload.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        dns_status = dhcp_parser.add_parser('status', help='Status Of DNS Service')
+        dns_status = dns_parser.add_parser('status', help='Status Of DNS Service')
         dns_status.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         ## >>>>>>> Service Command >>>>>>> luna2
         daemon = service_args.add_parser('luna2', help='Luna Daemon Service')
@@ -79,9 +79,9 @@ class Service(object):
         daemon_start.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         daemon_restart = daemon_parser.add_parser('restart', help='Restart Luna Daemon Service')
         daemon_restart.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        daemon_reload = dhcp_parser.add_parser('reload', help='Reload Luna Daemon Service')
+        daemon_reload = daemon_parser.add_parser('reload', help='Reload Luna Daemon Service')
         daemon_reload.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        daemon_status = dhcp_parser.add_parser('status', help='Status Of Luna Daemon Service')
+        daemon_status = daemon_parser.add_parser('status', help='Status Of Luna Daemon Service')
         daemon_status.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         return parser
 
