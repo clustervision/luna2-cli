@@ -34,7 +34,7 @@ class Group():
             self.logger.debug(f'Arguments Supplied => {self.args}')
             if self.args["action"] in ["update", "rename", "delete", "clone"]:
                 self.get_list = Rest().get_data(self.table)
-            if self.args["action"] in ["list", "show", "add", "update", "rename", "delete", "clone"]:
+            if self.args["action"] in ["list", "show", "add", "update", "rename", "delete"]:
                 call = methodcaller(f'{self.args["action"]}_group')
                 call(self)
             elif self.args["action"] == "interfaces":

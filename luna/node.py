@@ -34,7 +34,7 @@ class Node():
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
             self.get_list = Rest().get_data(self.table)
-            if self.args["action"] in ["list", "show", "add", "update", "rename", "delete", "clone"]:
+            if self.args["action"] in ["list", "show", "add", "update", "rename", "delete"]:
                 call = methodcaller(f'{self.args["action"]}_node')
                 call(self)
 
