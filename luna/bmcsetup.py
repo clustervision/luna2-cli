@@ -59,7 +59,8 @@ class BMCSetup():
         bmcsetup_show.add_argument('name', help='Name of the BMC Setup')
         Helper().common_list_args(bmcsetup_show)
         bmcsetup_add = bmcsetup_args.add_parser('add', help='Add BMC Setup')
-        Helper().common_add_args(bmcsetup_add, 'BMC Setup')
+        bmcsetup_add.add_argument('name', help='Name of the BMC Setup')
+        bmcsetup_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         bmcsetup_add.add_argument('-id', '--userid', type=int, help='UserID for BMC Setup')
         bmcsetup_add.add_argument('-u', '--username', help='Username for BMC Setup')
         bmcsetup_add.add_argument('-p', '--password', help='Password for BMC Setup')
@@ -68,7 +69,8 @@ class BMCSetup():
         bmcsetup_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         bmcsetup_add.add_argument('-c', '--comment', help='Comment for BMC Setup')
         bmcsetup_update = bmcsetup_args.add_parser('update', help='Update a BMC Setup')
-        Helper().common_add_args(bmcsetup_update, 'BMC Setup')
+        bmcsetup_update.add_argument('name', help='Name of the BMC Setup')
+        bmcsetup_update.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         bmcsetup_update.add_argument('-id', '--userid', type=int, help='UserID for BMC Setup')
         bmcsetup_update.add_argument('-u', '--username', help='Username for BMC Setup')
         bmcsetup_update.add_argument('-p', '--password', help='Password for BMC Setup')
@@ -77,8 +79,9 @@ class BMCSetup():
         bmcsetup_update.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         bmcsetup_update.add_argument('-c', '--comment', help='Comment for BMC Setup')
         bmcsetup_clone = bmcsetup_args.add_parser('clone', help='Clone BMC Setup')
-        Helper().common_add_args(bmcsetup_clone, 'BMC Setup')
-        bmcsetup_clone.add_argument('-nn', '--newbmcname', help='New name of the BMC Setup')
+        bmcsetup_clone.add_argument('name', help='Name of the BMC Setup')
+        bmcsetup_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        bmcsetup_clone.add_argument('-nn', '--newbmcname', required=True, help='New name of the BMC Setup')
         bmcsetup_clone.add_argument('-id', '--userid', type=int, help='UserID for BMC Setup')
         bmcsetup_clone.add_argument('-u', '--username', help='Username for BMC Setup')
         bmcsetup_clone.add_argument('-p', '--password', help='Password for BMC Setup')
@@ -87,10 +90,12 @@ class BMCSetup():
         bmcsetup_clone.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         bmcsetup_clone.add_argument('-c', '--comment', help='Comment for BMC Setup')
         bmcsetup_rename = bmcsetup_args.add_parser('rename', help='Rename BMC Setup')
-        Helper().common_add_args(bmcsetup_rename, 'BMC Setup')
-        bmcsetup_rename.add_argument('-nn', '--newbmcname', help='New name of the BMC Setup')
+        bmcsetup_rename.add_argument('name', help='Name of the BMC Setup')
+        bmcsetup_rename.add_argument('newbmcname', help='New name of the BMC Setup')
+        bmcsetup_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         bmcsetup_delete = bmcsetup_args.add_parser('delete', help='Delete BMC Setup')
-        Helper().common_add_args(bmcsetup_delete, 'BMC Setup')
+        bmcsetup_delete.add_argument('name', help='Name of the BMC Setup')
+        bmcsetup_delete.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         return parser
 
 
@@ -115,39 +120,9 @@ class BMCSetup():
         Method to add new bmc setup in Luna Configuration.
         """
         payload = {}
-        if self.args['init']:
-            payload['name'] = Helper().name_validate(0, 'BMC Setup', self.name_list)
-            if payload['name']:
-                payload['userid'] = Inquiry().ask_number(f"User ID for {payload['name']}:", True)
-                payload['username'] = Inquiry().ask_text(f"Username for {payload['name']}:", True)
-                payload['password'] = Inquiry().ask_secret(f"Password for {payload['name']}:", True)
-                payload['netchannel'] = Inquiry().ask_number(f"Network Channel for {payload['name']}:", True)
-                payload['mgmtchannel'] = Inquiry().ask_number(f"Management Channel for {payload['name']}:", True)
-                payload['unmanaged_bmc_users'] = Inquiry().ask_text(f"Unmanaged BMC Users for {payload['name']}:", True)
-                comment = Inquiry().ask_confirm("Do you want to provide a comment?")
-                if comment:
-                    payload['comment'] = Inquiry().ask_text(f"Comment for {payload['name']}:", True)
-                fields, rows  = Helper().filter_data_col(self.table, payload)
-                title = f'{self.table.capitalize()} Adding => {payload["name"]}'
-                Presenter().show_table_col(title, fields, rows)
-                confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
-                if not confirm:
-                    Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
-                else:
-                    filtered = {k: v for k, v in payload.items() if v != ''}
-                    payload.clear()
-                    payload.update(filtered)
-            else:
-                payload = {}
-        else:
-            for remove in ['debug', 'command', 'action', 'init']:
-                self.args.pop(remove, None)
-            if not self.args["name"]:
-                Helper().show_error('BMC Setup name is a Mandatory Key.')
-            elif self.args["name"] in self.name_list:
-                Helper().show_warning(f'BMC Setup {self.args["name"]} present already.')
-            else:
-                payload = {k: v for k, v in self.args.items() if v is not None}
+        for remove in ['debug', 'command', 'action']:
+            self.args.pop(remove, None)
+            payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
             request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
@@ -166,37 +141,9 @@ class BMCSetup():
         """
         payload = {}
         if self.get_list:
-            if self.args['init']:
-                payload['name'] = Inquiry().ask_select("Select BMC Setup to update:", self.name_list)
-                payload['userid'] = Inquiry().ask_number(f"User ID for {payload['name']}:", True)
-                payload['username'] = Inquiry().ask_text(f"Username for {payload['name']}:", True)
-                payload['password'] = Inquiry().ask_secret(f"Password for {payload['name']}:", True)
-                payload['netchannel'] = Inquiry().ask_number(f"Network Channel for {payload['name']}:", True)
-                payload['mgmtchannel'] = Inquiry().ask_number(f"Management Channel for {payload['name']}:", True)
-                payload['unmanaged_bmc_users'] = Inquiry().ask_text(f"Unmanaged BMC Users for {payload['name']}:", True)
-                comment = Inquiry().ask_confirm("Do you want to provide a comment?")
-                if comment:
-                    payload['comment'] = Inquiry().ask_text(f"Comment for {payload['name']}:", True)
-                filtered = {k: v for k, v in payload.items() if v != ''}
-                payload.clear()
-                payload.update(filtered)
-                fields, rows  = Helper().filter_data_col(self.table, payload)
-                title = f'{self.table.capitalize()} Updating => {payload["name"]}'
-                Presenter().show_table_col(title, fields, rows)
-                msg = f'Update {payload["name"]} in {self.table.capitalize()}'
-                confirm = Inquiry().ask_confirm(f'{msg}?')
-                if not confirm:
-                    Helper().show_error(f'{msg} is Aborted')
-                    payload = {}
-            else:
-                for remove in ['debug', 'command', 'action', 'init']:
-                    self.args.pop(remove, None)
-                if not self.args["name"]:
-                    Helper().show_error('BMC Setup name is a Mandatory Key.')
-                elif self.args["name"] in self.name_list:
-                    Helper().show_warning(f'BMC Setup {self.args["name"]} present already.')
-                else:
-                    payload = {k: v for k, v in self.args.items() if v is not None}
+            for remove in ['debug', 'command', 'action']:
+                self.args.pop(remove, None)
+                payload = {k: v for k, v in self.args.items() if v is not None}
         else:
             Helper().show_error(f'No {self.table.capitalize()} is available.')
         if payload:
@@ -215,29 +162,9 @@ class BMCSetup():
         """
         payload = {}
         if self.get_list:
-            bmc_names = list(self.get_list['config']['bmcsetup'].keys())
-            if self.args['init']:
-                payload['name'] = Inquiry().ask_select("Select BMC Setup to update", bmc_names)
-                payload['newbmcname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
-                fields, rows  = Helper().filter_data_col(self.table, payload)
-                title = f'{self.table.capitalize()} Renaming => {payload["name"]}'
-                Presenter().show_table_col(title, fields, rows)
-                msg = f'Rename {payload["name"]} to {payload["newbmcname"]}'
-                confirm = Inquiry().ask_confirm(f'{msg}?')
-                if not confirm:
-                    Helper().show_error(f'{msg} is Aborted.')
-                    payload = {}
-            else:
-                for remove in ['debug', 'command', 'action', 'init']:
-                    self.args.pop(remove, None)
-                if self.args['name'] is None or self.args['newbmcname'] is None:
-                    Helper().show_error('BMC Name and New BMC name both are required.')
-                else:
-                    if self.args["name"] not in bmc_names:
-                        msg = f'{self.args["name"]} Not found in {self.table.capitalize()}.'
-                        Helper().show_error(msg)
-                    else:
-                        payload = self.args
+            for remove in ['debug', 'command', 'action']:
+                self.args.pop(remove, None)
+            payload = self.args
         else:
             response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         if payload:
@@ -257,28 +184,9 @@ class BMCSetup():
         """
         payload = {}
         if self.get_list:
-            bmc_names = list(self.get_list['config']['bmcsetup'].keys())
-            if self.args['init']:
-                payload['name'] = Inquiry().ask_select("Select BMC Setup to delete", bmc_names)
-                fields, rows  = Helper().filter_data_col(self.table, payload)
-                title = f'{self.table.capitalize()} Deleting => {payload["name"]}'
-                Presenter().show_table_col(title, fields, rows)
-                msg = f'Delete {payload["name"]} from {self.table.capitalize()}'
-                confirm = Inquiry().ask_confirm(f'{msg}?')
-                if not confirm:
-                    Helper().show_error(f'{msg} is Aborted')
-                    payload = {}
-            else:
-                for remove in ['debug', 'command', 'action', 'init']:
-                    self.args.pop(remove, None)
-                if self.args['name'] is None:
-                    Helper().show_error('Kindly provide BMC Name or use -i.')
-                else:
-                    if self.args["name"] not in bmc_names:
-                        msg = f'{self.args["name"]} Not found in {self.table.capitalize()}.'
-                        Helper().show_error(msg)
-                    else:
-                        payload = self.args
+            for remove in ['debug', 'command', 'action']:
+                self.args.pop(remove, None)
+            payload = self.args
         else:
             response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         if payload:
@@ -295,54 +203,9 @@ class BMCSetup():
         """
         payload = {}
         if self.get_list:
-            bmc_names = list(self.get_list['config']['bmcsetup'].keys())
-            if self.args['init']:
-                payload['name'] = Inquiry().ask_select("Select BMC Setup to update", bmc_names)
-                payload['newbmcname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
-                payload['userid'] = Inquiry().ask_number("Update BMC User ID", True)
-                payload['username'] = Inquiry().ask_text("Update BMC Username", True)
-                payload['password'] = Inquiry().ask_secret("Update BMC Password", True)
-                payload['netchannel'] = Inquiry().ask_number("Update NET Channel", True)
-                payload['mgmtchannel'] = Inquiry().ask_number("Update MGMT Channel", True)
-                payload['unmanaged_bmc_users'] = Inquiry().ask_text("Unmanaged BMC Users", True)
-                comment = Inquiry().ask_confirm("Do you want to provide a comment?")
-                if comment:
-                    payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
-
-                data = self.get_list['config'][self.table][payload["name"]]
-                for key, value in payload.items():
-                    if value == '' and key in data:
-                        payload[key] = data[key]
-                filtered = {k: v for k, v in payload.items() if v is not None}
-                payload.clear()
-                payload.update(filtered)
-
-                fields, rows  = Helper().filter_data_col(self.table, payload)
-                title = f'Clone {self.table.capitalize()} {payload["name"]} => {payload["newbmcname"]}'
-                Presenter().show_table_col(title, fields, rows)
-                confirm = Inquiry().ask_confirm(f'Clone {payload["name"]} as {payload["newbmcname"]}?')
-                if not confirm:
-                    Helper().show_error(f'Cloning of {payload["newbmcname"]} is Aborted')
-                    payload = {}
-            else:
-                for remove in ['debug', 'command', 'action', 'init']:
-                    self.args.pop(remove, None)
-                if None not in [self.args["name"], self.args["newbmcname"]]:
-                    payload = self.args
-                    if payload["name"] in bmc_names:
-                        data = self.get_list['config'][self.table][payload["name"]]
-                        for key, value in payload.items():
-                            if (value == '' or value is None) and key in data:
-                                payload[key] = data[key]
-                        filtered = {k: v for k, v in payload.items() if v is not None}
-                        payload.clear()
-                        payload.update(filtered)
-                    else:
-                        Helper().show_error(f'{payload["name"]} is not recognized.')
-                        payload = {}
-                else:
-                    Helper().show_error('Source & Destination BMC names are required.')
-                    payload = {}
+            for remove in ['debug', 'command', 'action']:
+                self.args.pop(remove, None)
+            payload = {k: v for k, v in self.args.items() if v is not None}
         else:
             Helper().show_error(f'No {self.table.capitalize()} is available.')
         if payload:

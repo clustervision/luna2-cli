@@ -30,14 +30,13 @@ class Cluster():
         self.table = "cluster"
         self.get_list = None
         if self.args:
-            self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "update"]
-            if self.args["action"] in actions:
-                self.get_list = Rest().get_data(self.table)
-                call = methodcaller(f'{self.args["action"]}_cluster')
-                call(self)
+            self.get_list = Rest().get_data(self.table)
+            if self.args["action"] is None:
+                self.cluster_info()
+            elif self.args["action"] == 'update':
+                self.update_cluster()
             else:
-                Helper().show_error(f"Kindly choose from {actions}.")
+                Helper().show_error("If you want to update then use update as an argument.")
         if parser and subparsers:
             self.getarguments(parser, subparsers)
 
@@ -47,19 +46,14 @@ class Cluster():
         related to the Cluster class.
         """
         cluster_menu = subparsers.add_parser('cluster', help='Cluster operations.')
+        cluster_menu.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         cluster_args = cluster_menu.add_subparsers(dest='action')
-        cluster_list = cluster_args.add_parser('list', help='List Cluster')
-        Helper().common_list_args(cluster_list)
-        cluster_show = cluster_args.add_parser('show', help='Show Cluster')
-        cluster_show.add_argument('name', help='Name of the Cluster')
-        Helper().common_list_args(cluster_show)
         cluster_update = cluster_args.add_parser('update', help='Update Cluster')
-        cluster_update.add_argument('name', help='Name of the Cluster')
         cluster_update.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        cluster_update.add_argument('-nn', '--name', help='New Name For Cluster')
+        cluster_update.add_argument('-n', '--name', help='New Name For Cluster')
         cluster_update.add_argument('-u', '--user', help='Cluster User')
         cluster_update.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='NTP IP')
-        cluster_update.add_argument('-o', '--createnode_ondemand', action='store_true', help='Create Nodes while PXE Boot')
+        cluster_update.add_argument('-o', '--createnode_ondemand', default=0, action='store_true', help='Create Nodes while PXE Boot')
         cluster_update.add_argument(
             '-ns', '--nameserver_ip', metavar='N.N.N.N', help='Name Server IP'
         )
@@ -94,29 +88,7 @@ class Cluster():
         return parser
 
 
-    def list_cluster(self):
-        """
-        Method to list all cluster from Luna Configuration.
-        """
-        response = False
-        fields, rows = [], []
-        self.logger.debug(f'Get List Data from Helper => {self.get_list}')
-        if self.get_list:
-            data = self.get_list['config'][self.table]
-            if self.args['raw']:
-                response = Presenter().show_json(data)
-            else:
-                fields, rows  = Helper().get_cluster(self.table, data)
-                self.logger.debug(f'Fields => {fields}')
-                self.logger.debug(f'Rows => {rows}')
-                title = f' << {self.table.capitalize()} & Controllers >>'
-                response = Presenter().show_table(title, fields, rows)
-        else:
-            response = Helper().show_error(f'{self.table} is not found.')
-        return response
-
-
-    def show_cluster(self):
+    def cluster_info(self):
         """
         Method to show a cluster in Luna Configuration.
         """
@@ -134,7 +106,7 @@ class Cluster():
                 title = f'{self.table.capitalize()} => {data["name"]}'
                 response = Presenter().show_table_col(title, fields, rows)
         else:
-            response = Helper().show_error(f'{self.args["name"]} is not found in {self.table}.')
+            response = Helper().show_error('No Cluster Found.')
         return response
 
 
@@ -143,7 +115,7 @@ class Cluster():
         Method to update cluster in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['debug', 'command', 'action', 'raw']:
             self.args.pop(remove, None)
         if self.args['clusterdebug']:
             self.args['debug'] = True
@@ -155,7 +127,7 @@ class Cluster():
             response = Rest().post_data(self.table, None, request_data)
             self.logger.debug(f'Response => {response}')
             if response == 204:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
+                Helper().show_success(f'{self.table.capitalize()} is updated.')
             else:
                 Helper().show_error(f'HTTP error code is: {response} ')
         return True
