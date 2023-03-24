@@ -14,6 +14,7 @@ __status__      = "Production"
 
 from time import sleep
 import numpy as np
+import base64
 import hostlist
 from termcolor import colored
 from luna.utils.rest import Rest
@@ -556,7 +557,8 @@ class Helper(object):
                 newrow.append(colored(key, 'blue'))
                 newrow.append(colored(value['name'], 'blue'))
                 newrow.append(colored(value['path'], 'blue'))
-                newrow.append(colored(value['content'], 'blue'))
+                content = base64.b64decode(value['content']).decode("utf-8")
+                newrow.append(colored(content[:30]+'...', 'blue'))
                 rows.append(newrow)
                 newrow = []
         for newfield in fields:
@@ -588,7 +590,8 @@ class Helper(object):
                 newrow.append(colored(key, 'blue'))
                 newrow.append(colored(value['name'], 'blue'))
                 newrow.append(colored(value['path'], 'blue'))
-                newrow.append(colored(value['content'], 'blue'))
+                content = base64.b64decode(value['content']).decode("utf-8")
+                newrow.append(colored(content[:30]+'...', 'blue'))
                 rows.append(newrow)
                 newrow = []
         for newfield in fields:
