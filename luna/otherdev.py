@@ -14,8 +14,6 @@ __status__      = "Production"
 
 from operator import methodcaller
 from luna.utils.helper import Helper
-from luna.utils.presenter import Presenter
-from luna.utils.inquiry import Inquiry
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 
@@ -29,17 +27,10 @@ class OtherDev():
         self.logger = Log.get_logger()
         self.args = args
         self.table = "otherdev"
-        self.get_list = None
-        self.name_list = []
-        self.networks = None
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "add", "update", "rename", "clone", "delete"]
+            actions = ["list", "show", "add", "change", "rename", "clone", "remove"]
             if self.args["action"] in actions:
-                self.get_list = Rest().get_data(self.table)
-                self.networks = Helper().network_list()
-                if self.get_list:
-                    self.name_list = list(self.get_list['config'][self.table].keys())
                 call = methodcaller(f'{self.args["action"]}_otherdev')
                 call(self)
             else:
@@ -61,20 +52,34 @@ class OtherDev():
         otherdev_show.add_argument('name', help='Name of the Other Devices')
         Helper().common_list_args(otherdev_show)
         otherdev_add = otherdev_args.add_parser('add', help='Add Other Devices')
-        Helper().common_add_args(otherdev_add, 'Other Device')
-        Helper().common_switch_device_args(otherdev_add, 'Other Device')
-        otherdev_update = otherdev_args.add_parser('update', help='Update Other Devices')
-        Helper().common_add_args(otherdev_update, 'Other Device')
-        Helper().common_switch_device_args(otherdev_update, 'Other Device')
+        otherdev_add.add_argument('name', help='Name of the Other Device')
+        otherdev_add.add_argument('-N', '--network', required=True, help='Network for Other Device')
+        otherdev_add.add_argument('-ip', '--ipaddress', required=True, help='IP Address for Other Device')
+        otherdev_add.add_argument('-m', '--macaddress', help='MAC Address for Other Device')
+        otherdev_add.add_argument('-c', '--comment', help='Comment for Other Device')
+        otherdev_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        otherdev_change = otherdev_args.add_parser('change', help='Change Other Devices')
+        otherdev_change.add_argument('name', help='Name of the Other Device')
+        otherdev_change.add_argument('-N', '--network', help='Network for Other Device')
+        otherdev_change.add_argument('-ip', '--ipaddress', help='IP Address for Other Device')
+        otherdev_change.add_argument('-m', '--macaddress', help='MAC Address for Other Device')
+        otherdev_change.add_argument('-c', '--comment', help='Comment for Other Device')
+        otherdev_change.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         otherdev_clone = otherdev_args.add_parser('clone', help='Clone Other Devices')
-        otherdev_clone.add_argument('-nn', '--newotherdevname', help='New name of the Other Device')
-        Helper().common_add_args(otherdev_clone, 'Other Device')
-        Helper().common_switch_device_args(otherdev_clone, 'Other Device')
+        otherdev_clone.add_argument('name', help='Name of the Other Device')
+        otherdev_clone.add_argument('newotherdevname', help='New name of the Other Device')
+        otherdev_clone.add_argument('-N', '--network', required=True, help='Network for Other Device')
+        otherdev_clone.add_argument('-ip', '--ipaddress', required=True, help='IP Address for Other Device')
+        otherdev_clone.add_argument('-m', '--macaddress', help='MAC Address for Other Device')
+        otherdev_clone.add_argument('-c', '--comment', help='Comment for Other Device')
+        otherdev_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         otherdev_rename = otherdev_args.add_parser('rename', help='Rename Other Devices')
-        Helper().common_add_args(otherdev_rename, 'Other Device')
-        otherdev_rename.add_argument('-nn', '--newotherdevname', help='New name of the Other Devices')
-        otherdev_delete = otherdev_args.add_parser('delete', help='Delete Other Devices')
-        Helper().common_add_args(otherdev_delete, 'Other Device')
+        otherdev_rename.add_argument('name', help='Name of the Other Device')
+        otherdev_rename.add_argument('newotherdevname', help='New name of the Other Devices')
+        otherdev_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        otherdev_remove = otherdev_args.add_parser('remove', help='Remove Other Devices')
+        otherdev_remove.add_argument('name', help='Name of the Other Device')
+        otherdev_remove.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         return parser
 
 
@@ -96,44 +101,9 @@ class OtherDev():
         """
         Method to add new other devices in Luna Configuration.
         """
-        if self.networks:
-            payload = {}
-            if self.args['init']:
-                payload['name'] = Helper().name_validate(0, 'Other Device', self.name_list)
-                if payload['name']:
-                    payload['network'] = Inquiry().ask_select(f"Network for {payload['name']}:", self.networks)
-                    payload['ipaddress'] = Inquiry().ask_text(f"IP Address for {payload['name']}:")
-                    payload['macaddress'] = Inquiry().ask_text(f"MAC Address for {payload['name']}:", True)
-                    comment = Inquiry().ask_confirm("Do you want to provide a comment?")
-                    if comment:
-                        payload['comment'] = Inquiry().ask_text(f"Comment for {payload['name']}:", True)
-                    fields, rows  = Helper().filter_data_col(self.table, payload)
-                    title = f'{self.table.capitalize()} Adding => {payload["name"]}'
-                    Presenter().show_table_col(title, fields, rows)
-                    confirm = Inquiry().ask_confirm(f'Add {payload["name"]} in {self.table.capitalize()}?')
-                    if not confirm:
-                        Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
-                    else:
-                        filtered = {k: v for k, v in payload.items() if v != ''}
-                        payload.clear()
-                        payload.update(filtered)
-            else:
-                for remove in ['debug', 'command', 'action', 'init']:
-                    self.args.pop(remove, None)
-                if None in [self.args['name'], self.args['network'], self.args['ipaddress']]:
-                    Helper().show_error('Other Device name, network name and IP address are mandatory.')
-                    payload = {}
-                elif self.args["name"] in self.name_list:
-                    Helper().show_warning(f'Device {self.args["name"]} present already.')
-                    payload = {}
-                elif self.args["network"] not in self.networks:
-                    Helper().show_warning(f'Network {self.args["network"]} is undefined.')
-                    payload = {}
-                else:
-                    payload = {k: v for k, v in self.args.items() if v is not None}
-        else:
-            payload = {}
-            Helper().show_error('Kindly create a network first.')
+        for remove in ['debug', 'command', 'action']:
+            self.args.pop(remove, None)
+        payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
             request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
@@ -141,150 +111,30 @@ class OtherDev():
             self.logger.debug(f'Response => {response}')
             if response == 201:
                 Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
-            elif response == 204:
-                Helper().show_warning(f'{payload["name"]} present already.')
             else:
-                Helper().show_error(f'{self.table.capitalize()}, {payload["name"]} is not created.')
+                Helper().show_error(f'HTTP Error {response}.')
         return True
 
 
-    def update_otherdev(self):
+    def change_otherdev(self):
         """
-        Method to update a other devices in Luna Configuration.
+        Method to change a other devices in Luna Configuration.
         """
         payload = {}
-        if self.args['init']:
-            if self.get_list:
-                names = list(self.get_list['config'][self.table].keys())
-                payload['name'] = Inquiry().ask_select("Select Device to update", names)
-                payload['network'] = Inquiry().ask_text("Kindly provide Device Network", True)
-                payload['ipaddress'] = Inquiry().ask_text("Kindly provide Device IP Address", True)
-                payload['macaddress'] = Inquiry().ask_text("Kindly provide MAC Address", True)
-                comment = Inquiry().ask_confirm("Do you want to provide a comment?")
-                if comment:
-                    payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
-                filtered = {k: v for k, v in payload.items() if v != ''}
-                payload.clear()
-                payload.update(filtered)
-                if len(payload) != 1:
-                    fields, rows  = Helper().filter_data_col(self.table, payload)
-                    title = f'{self.table.capitalize()} Updating => {payload["name"]}'
-                    Presenter().show_table_col(title, fields, rows)
-                    confirm = Inquiry().ask_confirm(f'update {payload["name"]} in {self.table.capitalize()}?')
-                    if not confirm:
-                        Helper().show_error(f'update {payload["name"]} into {self.table.capitalize()} Aborted')
-            else:
-                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
-        else:
-            for remove in ['debug', 'command', 'action', 'init']:
-                self.args.pop(remove, None)
-            payload = self.args
-            filtered = {k: v for k, v in payload.items() if v is not None}
-            payload.clear()
-            payload.update(filtered)
-        if (len(payload) != 1) and ('name' in payload):
+        for remove in ['debug', 'command', 'action']:
+            self.args.pop(remove, None)
+        payload = {k: v for k, v in self.args.items() if v is not None}
+        if payload:
             request_data = {'config':{self.table:{payload['name']: payload}}}
-            if self.get_list:
-                names = list(self.get_list['config'][self.table].keys())
-                if payload["name"] in names:
-                    self.logger.debug(f'Payload => {request_data}')
-                    response = Rest().post_data(self.table, payload['name'], request_data)
-                    self.logger.debug(f'Response => {response}')
-                    if response == 204:
-                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
-                else:
-                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            self.logger.debug(f'Payload => {request_data}')
+            response = Rest().post_data(self.table, payload['name'], request_data)
+            self.logger.debug(f'Response => {response}')
+            if response == 204:
+                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
             else:
-                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
+                Helper().show_error(f'HTTP Error {response}.')
         else:
             Helper().show_error('Nothing to update.')
-        return True
-
-
-    def rename_otherdev(self):
-        """
-        Method to rename a other devices in Luna Configuration.
-        """
-        payload = {}
-        if self.args['init']:
-            if self.get_list:
-                names = list(self.get_list['config'][self.table].keys())
-                payload['name'] = Inquiry().ask_select("Select Device to rename", names)
-                payload['newotherdevname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
-                fields, rows  = Helper().filter_data_col(self.table, payload)
-                title = f'{self.table.capitalize()} Renaming => {payload["name"]}'
-                Presenter().show_table_col(title, fields, rows)
-                confirm = Inquiry().ask_confirm(f'Rename {payload["name"]} in {self.table.capitalize()}?')
-                if not confirm:
-                    Helper().show_error(f'Add {payload["name"]} into {self.table.capitalize()} Aborted')
-                    payload['newotherdevname'] = None
-            else:
-                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
-        else:
-            error = False
-            for remove in ['debug', 'command', 'action', 'init']:
-                self.args.pop(remove, None)
-            payload = self.args
-            if payload['name'] is None:
-                error = Helper().show_error('Kindly provide Device Name.')
-            if payload['newotherdevname'] is None:
-                error = Helper().show_error('Kindly provide New Device Name.')
-            if error:
-                Helper().show_error(f'Renaming {payload["name"]} in {self.table.capitalize()} Abort.')
-        if payload['newotherdevname'] and payload['name']:
-            request_data = {'config':{self.table:{payload['name']: payload}}}
-            if self.get_list:
-                names = list(self.get_list['config'][self.table].keys())
-                if payload["name"] in names:
-                    self.logger.debug(f'Payload => {request_data}')
-                    response = Rest().post_data(self.table, payload['name'], request_data)
-                    self.logger.debug(f'Response => {response}')
-                    if response == 204:
-                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newotherdevname"]}.')
-                else:
-                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
-            else:
-                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
-        return True
-
-
-    def delete_otherdev(self):
-        """
-        Method to delete a other devices in Luna Configuration.
-        """
-        abort = False
-        payload = {}
-        if self.args['init']:
-            if self.get_list:
-                names = list(self.get_list['config'][self.table].keys())
-                payload['name'] = Inquiry().ask_select("Select Device to delete", names)
-                fields, rows  = Helper().filter_data_col(self.table, payload)
-                title = f'{self.table.capitalize()} Deleting => {payload["name"]}'
-                Presenter().show_table_col(title, fields, rows)
-                confirm = Inquiry().ask_confirm(f'Delete {payload["name"]} from {self.table.capitalize()}?')
-                if not confirm:
-                    abort = Helper().show_error(f'Deletion of {payload["name"]}, {self.table.capitalize()} is Aborted')
-            else:
-                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
-        else:
-            for remove in ['debug', 'command', 'action', 'init']:
-                self.args.pop(remove, None)
-            payload = self.args
-            if payload['name'] is None:
-                abort = Helper().show_error('Kindly provide Device Name.')
-        if abort is False:
-            if self.get_list:
-                names = list(self.get_list['config'][self.table].keys())
-                if payload["name"] in names:
-                    self.logger.debug(f'Payload => {payload}')
-                    response = Rest().get_delete(self.table, payload['name'])
-                    self.logger.debug(f'Response => {response}')
-                    if response == 204:
-                        Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
-                else:
-                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
-            else:
-                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
         return True
 
 
@@ -293,68 +143,55 @@ class OtherDev():
         Method to rename a other devices in Luna Configuration.
         """
         payload = {}
-        if self.args['init']:
-            if self.get_list:
-                names = list(self.get_list['config'][self.table].keys())
-                payload['name'] = Inquiry().ask_select("Select Device to clone", names)
-                payload['newotherdevname'] = Inquiry().ask_text(f'Write new name for {payload["name"]}')
-                payload['network'] = Inquiry().ask_text("Kindly provide Device Network", True)
-                payload['ipaddress'] = Inquiry().ask_text("Kindly provide Device IP Address", True)
-                payload['macaddress'] = Inquiry().ask_text("Kindly provide MAC Address", True)
-                comment = Inquiry().ask_confirm("Do you want to provide a comment?")
-                if comment:
-                    payload['comment'] = Inquiry().ask_text("Kindly provide comment(if any)", True)
-                get_record = Rest().get_data(self.table, payload['name'])
-                if get_record:
-                    data = get_record['config'][self.table][payload["name"]]
-                    for key, value in payload.items():
-                        if value == '' and key in data:
-                            payload[key] = data[key]
-                    filtered = {k: v for k, v in payload.items() if v is not None}
-                    payload.clear()
-                    payload.update(filtered)
-
-                if len(payload) != 1:
-                    fields, rows  = Helper().filter_data_col(self.table, payload)
-                    title = f'{self.table.capitalize()} Cloning : {payload["name"]} => {payload["newotherdevname"]}'
-                    Presenter().show_table_col(title, fields, rows)
-                    confirm = Inquiry().ask_confirm(f'Clone {payload["name"]} as {payload["newotherdevname"]}?')
-                    if not confirm:
-                        Helper().show_error(f'Cloning of {payload["newotherdevname"]} is Aborted')
-            else:
-                response = Helper().show_error(f'No {self.table.capitalize()} is available.')
-        else:
-            for remove in ['debug', 'command', 'action', 'init']:
-                self.args.pop(remove, None)
-            payload = self.args
-            get_record = Rest().get_data(self.table, payload['name'])
-            if get_record:
-                data = get_record['config'][self.table][payload["name"]]
-                for key, value in payload.items():
-                    if (value == '' or value is None) and key in data:
-                        payload[key] = data[key]
-                filtered = {k: v for k, v in payload.items() if v is not None}
-                payload.clear()
-                payload.update(filtered)
-        if len(payload) != 1:
+        for remove in ['debug', 'command', 'action']:
+            self.args.pop(remove, None)
+        payload = {k: v for k, v in self.args.items() if v is not None}
+        if payload:
             request_data = {'config':{self.table:{payload['name']: payload}}}
-            if self.get_list:
-                names = list(self.get_list['config'][self.table].keys())
-                if payload["name"] in names:
-                    if payload["newotherdevname"] in names:
-                        Helper().show_error(f'{payload["newotherdevname"]} is already present in {self.table.capitalize()}.')
-                    else:
-                        self.logger.debug(f'Payload => {request_data}')
-                        response = Rest().post_clone(self.table, payload['name'], request_data)
-                        self.logger.debug(f'Response => {response}')
-                        if response == 201:
-                            Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newotherdevname"]}.')
-                        else:
-                            Helper().show_error(f'HTTP Error {response}.')
-                else:
-                    Helper().show_error(f'{payload["name"]} Not found in {self.table.capitalize()}.')
+            self.logger.debug(f'Payload => {request_data}')
+            response = Rest().post_clone(self.table, payload['name'], request_data)
+            self.logger.debug(f'Response => {response}')
+            if response == 201:
+                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newotherdevname"]}.')
             else:
-                Helper().show_error(f'No {self.table.capitalize()} is available.')
+                Helper().show_error(f'HTTP Error {response}.')
         else:
             Helper().show_error(f'Nothing to update in {payload["name"]}.')
+        return True
+
+
+    def rename_otherdev(self):
+        """
+        Method to rename a other devices in Luna Configuration.
+        """
+        for remove in ['debug', 'command', 'action']:
+            self.args.pop(remove, None)
+        payload = self.args
+        if payload:
+            request_data = {'config':{self.table:{payload['name']: payload}}}
+            self.logger.debug(f'Payload => {request_data}')
+            response = Rest().post_data(self.table, payload['name'], request_data)
+            self.logger.debug(f'Response => {response}')
+            if response == 204:
+                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newotherdevname"]}.')
+            else:
+                Helper().show_error(f'HTTP Error {response}.')
+        return True
+
+
+    def remove_otherdev(self):
+        """
+        Method to remove a other devices in Luna Configuration.
+        """
+        for remove in ['debug', 'command', 'action']:
+            self.args.pop(remove, None)
+        payload = self.args
+        if payload:
+            self.logger.debug(f'Payload => {payload}')
+            response = Rest().get_delete(self.table, payload['name'])
+            self.logger.debug(f'Response => {response}')
+            if response == 204:
+                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
+            else:
+                Helper().show_error(f'HTTP Error {response}.')
         return True

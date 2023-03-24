@@ -15,7 +15,6 @@ __status__      = "Production"
 from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
-from luna.utils.inquiry import Inquiry
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 
@@ -31,7 +30,7 @@ class Secrets(object):
         self.route = "secrets"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "update", "clone", "delete"]
+            actions = ["list", "show", "change", "clone", "remove"]
             if self.args["action"] in actions:
                 call = methodcaller(f'{self.args["action"]}_secrets')
                 call(self)
@@ -54,77 +53,71 @@ class Secrets(object):
         list_secrets.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         list_parser = list_secrets.add_subparsers(dest='entity')
         list_node = list_parser.add_parser('node', help='List Node Secrets')
-        list_node.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         list_node.add_argument('name', help='Name of the Node')
-        list_node.add_argument('--secret', '-s', help='Name of the Secret')
+        list_node.add_argument('secret', help='Name of the Secret')
         list_node.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        list_node.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         list_group = list_parser.add_parser('group', help='List Group Secrets')
-        list_group.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         list_group.add_argument('name', help='Name of the Group')
-        list_group.add_argument('--secret', '-s', help='Name of the Secret')
+        list_group.add_argument('secret', help='Name of the Secret')
         list_group.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        list_group.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         ## >>>>>>> Secrets Command >>>>>>> show
         show_secrets = secrets_args.add_parser('show', help='Show Secrets')
         show_parser = show_secrets.add_subparsers(dest='entity')
         show_node = show_parser.add_parser('node', help='Show Node Secrets')
-        show_node.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         show_node.add_argument('name', help='Name of the Node')
-        show_node.add_argument('--secret', '-s', help='Name of the Secret')
+        show_node.add_argument('secret', help='Name of the Secret')
         show_node.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        show_node.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         show_group = show_parser.add_parser('group', help='Show Group Secrets')
-        show_group.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         show_group.add_argument('name', help='Name of the Group')
-        show_group.add_argument('--secret', '-s', help='Name of the Secret')
+        show_group.add_argument('secret', help='Name of the Secret')
         show_group.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        show_group.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         ## >>>>>>> Secrets Command >>>>>>> update
-        update_secrets = secrets_args.add_parser('update', help='Update Secrets')
-        update_parser = update_secrets.add_subparsers(dest='entity')
-        update_node = update_parser.add_parser('node', help='Update Node Secrets')
-        update_node.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        update_node.add_argument('-i', '--init', action='store_true', help='Secret Interactive Mode')
-        update_node.add_argument('-n', '--name', help='Name of the Node')
-        update_node.add_argument('--secret', '-s', action='append', help='Name of the Secret')
-        update_node.add_argument('--content', '-c', action='append', help='Content of the Secret')
-        update_node.add_argument('--path', '-p', action='append', help='Path of the Secret')
-        update_group = update_parser.add_parser('group', help='Update Group Secrets')
-        update_group.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        update_group.add_argument('-i', '--init', action='store_true', help='Secret Interactive Mode')
-        update_group.add_argument('-n', '--name', help='Name of the Group')
-        update_group.add_argument('--secret', '-s', action='append', help='Name of the Secret')
-        update_group.add_argument('--content', '-c', action='append', help='Content of the Secret')
-        update_group.add_argument('--path', '-p', action='append', help='Path of the Secret')
+        change_secrets = secrets_args.add_parser('change', help='Change Secrets')
+        change_parser = change_secrets.add_subparsers(dest='entity')
+        change_node = change_parser.add_parser('node', help='Update Node Secrets')
+        change_node.add_argument('name', help='Name of the Node')
+        change_node.add_argument('--secret', '-s', action='append', help='Name of the Secret')
+        change_node.add_argument('--content', '-c', action='append', help='Content of the Secret')
+        change_node.add_argument('--path', '-p', action='append', help='Path of the Secret')
+        change_node.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        change_group = change_parser.add_parser('group', help='Update Group Secrets')
+        change_group.add_argument('name', help='Name of the Group')
+        change_group.add_argument('--secret', '-s', action='append', help='Name of the Secret')
+        change_group.add_argument('--content', '-c', action='append', help='Content of the Secret')
+        change_group.add_argument('--path', '-p', action='append', help='Path of the Secret')
+        change_group.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         ## >>>>>>> Secrets Command >>>>>>> clone
         clone_secrets = secrets_args.add_parser('clone', help='Clone Secrets')
         clone_parser = clone_secrets.add_subparsers(dest='entity')
         clone_node = clone_parser.add_parser('node', help='Clone Node Secrets')
-        clone_node.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        clone_node.add_argument('-i', '--init', action='store_true', help='Secret Interactive Mode')
-        clone_node.add_argument('-n', '--name', help='Name of the Node')
+        clone_node.add_argument('name', help='Name of the Node')
         clone_node.add_argument('--secret', '-s', help='Name of the Secret')
         clone_node.add_argument('--newsecretname', '-nn', help='New name for the Secret')
         clone_node.add_argument('--content', '-c', help='Content of the Secret')
         clone_node.add_argument('--path', '-p', help='Path of the Secret')
+        clone_node.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         clone_group = clone_parser.add_parser('group', help='Clone Group Secrets')
-        clone_group.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        clone_group.add_argument('-i', '--init', action='store_true', help='Secret Interactive Mode')
-        clone_group.add_argument('-n', '--name', help='Name of the Group')
+        clone_group.add_argument('name', help='Name of the Group')
         clone_group.add_argument('--secret', '-s', help='Name of the Secret')
         clone_group.add_argument('--newsecretname', '-nn', help='New name for the Secret')
         clone_group.add_argument('--content', '-c', help='Content of the Secret')
         clone_group.add_argument('--path', '-p', help='Path of the Secret')
+        clone_group.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         ## >>>>>>> Secrets Command >>>>>>> delete
-        delete_secrets = secrets_args.add_parser('delete', help='Delete Secrets')
-        delete_parser = delete_secrets.add_subparsers(dest='entity')
-        delete_node = delete_parser.add_parser('node', help='Delete Node Secrets')
-        delete_node.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        delete_node.add_argument('-i', '--init', action='store_true', help='Secret Interactive Mode')
-        delete_node.add_argument('-n', '--name', help='Name of the Node')
-        delete_node.add_argument('--secret', '-s', help='Name of the Secret')
-        delete_group = delete_parser.add_parser('group', help='Delete Group Secrets')
-        delete_group.add_argument('-d', '--debug', action='store_true', help='Get debug log')
-        delete_group.add_argument('-i', '--init', action='store_true', help='Secret Interactive Mode')
-        delete_group.add_argument('-n', '--name', help='Name of the Group')
-        delete_group.add_argument('--secret', '-s', help='Name of the Secret')
+        remove_secrets = secrets_args.add_parser('remove', help='Remove Secrets')
+        remove_parser = remove_secrets.add_subparsers(dest='entity')
+        remove_node = remove_parser.add_parser('node', help='Remove Node Secrets')
+        remove_node.add_argument('name', help='Name of the Node')
+        remove_node.add_argument('secret', help='Name of the Secret')
+        remove_node.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        remove_group = remove_parser.add_parser('group', help='Remove Group Secrets')
+        remove_group.add_argument('name', help='Name of the Group')
+        remove_group.add_argument('secret', help='Name of the Secret')
+        remove_group.add_argument('-d', '--debug', action='store_true', help='Get debug log')
         return parser
 
 
@@ -220,70 +213,24 @@ class Secrets(object):
             entity = self.args['entity']
             del self.args['entity']
             entity_name = self.args['name']
-            del self.args['name']
-            if self.args['init']:
-                get_list = Rest().get_data(entity)
-                self.logger.debug(f'Get List Data from Helper => {get_list}')
-                if get_list:
-                    names = list(get_list['config'][entity].keys())
-                    entity_name = Inquiry().ask_select(f'Select {entity}', names)
-                    def secrets(secret):
-                        if len(secret):
-                            confirm_text = "Add one more Secret?"
-                        else:
-                            confirm_text = "Add Secret?"
-                        ifc = Inquiry().ask_confirm(confirm_text)
-                        if ifc:
-                            secret_name = Inquiry().ask_text("Write Secret Name")
-                            content = Inquiry().ask_text("Write Secret Content")
-                            path = Inquiry().ask_text("Write Secret Path")
-                            if secret_name and content and path:
-                                secret.append({
-                                    'name': secret_name,
-                                    'content': content,
-                                    'path': path
-                                })
-                            return secrets(secret)
-                        else:
-                            return secret
-                    secret = []
-                    payload[entity_name] = secrets(secret)
-                    if secret:
-                        table = f'{entity}{self.route}'
-                        fields, rows  =  Helper().get_secrets(table, payload)
-                        title = f' << {entity.capitalize()} {entity_name} Secret >>'
-                        Presenter().show_table(title, fields, rows)
-                        confirm = Inquiry().ask_confirm(f'Update {entity} => {entity_name.capitalize()} Secrets?')
-                        if not confirm:
-                            Helper().show_error(f'Update {entity} => {entity_name.capitalize()} Secrets Aborted')
-                    else:
-                        Helper().show_error('Nothing to update, Aborted')
-            else:
-                del self.args['debug']
-                del self.args['command']
-                del self.args['action']
-                del self.args['init']
-                if len(self.args['secret']) == len(self.args['content']) == len(self.args['path']):
-                    self.args[entity_name] = []
+            for remove in ['debug', 'command', 'action', 'name']:
+                self.args.pop(remove, None)
+            if len(self.args['secret']) == len(self.args['content']) == len(self.args['path']):
+                self.args[entity_name] = []
+                temp_dict = {}
+                for secret, content, path in zip(self.args['secret'], self.args['content'], self.args['path']):
+                    temp_dict['name'] = secret
+                    temp_dict['content'] = content
+                    temp_dict['path'] = path
+                    self.args[entity_name].append(temp_dict)
                     temp_dict = {}
-                    for secret, content, path in zip(self.args['secret'], self.args['content'], self.args['path']):
-                        temp_dict['name'] = secret
-                        temp_dict['content'] = content
-                        temp_dict['path'] = path
-                        self.args[entity_name].append(temp_dict)
-                        temp_dict = {}
-                    del self.args['secret']
-                    del self.args['content']
-                    del self.args['path']
-                else:
-                    response = Helper().show_error('Each Secret should have Secret Name, Content and Path')
-                payload = self.args
+                for remove in ['secret', 'content', 'path']:
+                    self.args.pop(remove, None)
+            else:
+                response = Helper().show_error('Each Secret should have Secret Name, Content and Path')
+            payload = self.args
             if payload:
-                request_data = {}
-                request_data['config'] = {}
-                request_data['config'][self.route] = {}
-                request_data['config'][self.route][entity] = {}
-                request_data['config'][self.route][entity]= payload
+                request_data = {'config': {self.route: {entity: payload}}}
                 self.logger.debug(f'Payload => {request_data}')
                 response = Rest().post_data(self.route, uri, request_data)
                 self.logger.debug(f'Response => {response}')
@@ -304,9 +251,7 @@ class Secrets(object):
         depending on the arguments.
         """
         response = False
-        secrets = []
         secret = {}
-        old_secret_content, old_secret_path = '', ''
         if self.args['entity'] is not None:
             uri = f'{self.args["entity"]}/{self.args["name"]}/{self.args["secret"]}'
             self.logger.debug(f'Secret URI => {uri}')
@@ -314,68 +259,24 @@ class Secrets(object):
             entity = self.args['entity']
             del self.args['entity']
             entity_name = self.args['name']
-            del self.args['name']
-            if self.args['init']:
-                get_list = Rest().get_data(entity)
-                self.logger.debug(f'Get List Data from Helper => {get_list}')
-                if get_list:
-                    names = list(get_list['config'][entity].keys())
-                    entity_name = Inquiry().ask_select(f'Select {entity}', names)
-                    get_list = Rest().get_data(self.route+'/'+entity+'/'+entity_name)
-                    for sec in get_list['config'][self.route][entity][entity_name]:
-                        secrets.append(sec['name'])
-                        old_secret_content = sec['content']
-                        old_secret_path = sec['path']
-                    secret['name'] = Inquiry().ask_select('Select Secret to Clone', secrets)
-                    secret['newsecretname'] = Inquiry().ask_text("Write a New Secret Name to Clone")
-                    content = Inquiry().ask_text("Write Secret Content", True)
-                    if content:
-                        secret['content'] = content
-                    else:
-                        secret['content'] = old_secret_content
-                    path = Inquiry().ask_text("Write Secret Content", True)
-                    if path:
-                        secret['path'] = path
-                    else:
-                        secret['path'] = old_secret_path
-                    payload[entity_name] = [secret]
-                    if secret:
-                        table = f'{entity}{self.route}'
-                        fields, rows  =  Helper().get_secrets(table, payload)
-                        title = f' << {entity.capitalize()} {entity_name} Secret >>'
-                        Presenter().show_table(title, fields, rows)
-                        confirm = Inquiry().ask_confirm(f'Update {entity} => {entity_name.capitalize()} Secrets?')
-                        if not confirm:
-                            Helper().show_error(f'Update {entity} => {entity_name.capitalize()} Secrets Aborted')
-                    else:
-                        Helper().show_error('Nothing to Clone, Aborted')
+            for remove in ['debug', 'command', 'action', 'name']:
+                self.args.pop(remove, None)
+            if len(self.args['secret']) == len(self.args['content']) == len(self.args['path']):
+                self.args[entity_name] = []
+                temp_dict = {}
+                for secret, content, path in zip(self.args['secret'], self.args['content'], self.args['path']):
+                    temp_dict['name'] = secret
+                    temp_dict['content'] = content
+                    temp_dict['path'] = path
+                    self.args[entity_name].append(temp_dict)
+                    temp_dict = {}
+                for remove in ['secret', 'content', 'path']:
+                    self.args.pop(remove, None)
             else:
-                del self.args['debug']
-                del self.args['command']
-                del self.args['action']
-                del self.args['init']
-                get_list = Rest().get_data(self.route+'/'+entity+'/'+entity_name)
-                for sec in get_list['config'][self.route][entity][entity_name]:
-                    old_secret_content = sec['content']
-                    old_secret_path = sec['path']
-                secret = {}
-                secret['name'] = self.args['secret']
-                secret['newsecretname'] = self.args['newsecretname']
-                if self.args['content']:
-                    secret['content'] = self.args['content']
-                else:
-                    secret['content'] = old_secret_content
-                if self.args['path']:
-                    secret['path'] = self.args['path']
-                else:
-                    secret['path'] = old_secret_path
-                payload[entity_name] = [secret]
+                response = Helper().show_error('Each Secret should have Secret Name, Content and Path')
+            payload = self.args
             if payload:
-                request_data = {}
-                request_data['config'] = {}
-                request_data['config'][self.route] = {}
-                request_data['config'][self.route][entity] = {}
-                request_data['config'][self.route][entity]= payload
+                request_data = {'config': {self.route: {entity: payload}}}
                 self.logger.debug(f'Payload => {request_data}')
                 response = Rest().post_clone(self.route, uri, request_data)
                 self.logger.debug(f'Response => {response}')
@@ -395,41 +296,19 @@ class Secrets(object):
         """
         response = False
         abort = False
-        secrets = []
         if self.args['entity'] is not None:
             payload = {}
             entity = self.args['entity']
             del self.args['entity']
             entity_name = self.args['name']
             del self.args['name']
-            if self.args['init']:
-                get_list = Rest().get_data(entity)
-                self.logger.debug(f'Get List Data from Helper => {get_list}')
-                if get_list:
-                    names = list(get_list['config'][entity].keys())
-                    entity_name = Inquiry().ask_select(f'Select {entity}', names)
-                    get_list = Rest().get_data(self.route+'/'+entity+'/'+entity_name)
-                    for sec in get_list['config'][self.route][entity][entity_name]:
-                        secrets.append(sec['name'])
-                    payload['name'] = Inquiry().ask_select('Select Secret to Delete', secrets)
-                    table = f'{entity}{self.route}'
-                    uri = f'{entity}/{entity_name}/{payload["name"]}'
-                    fields, rows  = Helper().filter_data_col(table, payload)
-                    title = f'{table.capitalize()} Deleting => {payload["name"]}'
-                    Presenter().show_table_col(title, fields, rows)
-                    confirm = Inquiry().ask_confirm(f'Delete {payload["name"]} from {table.capitalize()}?')
-                    if not confirm:
-                        abort = Helper().show_error(f'Deletion of {payload["name"]}, {table.capitalize()} is Aborted')
-                else:
-                    response = Helper().show_error(f'No {table.capitalize()} is available.')
+            if entity and self.args['secret']:
+                payload['name'] = entity
+                payload['secret'] = self.args['secret']
+                uri = f'{entity}/{entity_name}/{payload["secret"]}'
+                self.logger.debug(f'Delete URI => {uri}')
             else:
-                if entity and self.args['secret']:
-                    payload['name'] = entity
-                    payload['secret'] = self.args['secret']
-                    uri = f'{entity}/{entity_name}/{payload["secret"]}'
-                    self.logger.debug(f'Delete URI => {uri}')
-                else:
-                    abort = Helper().show_error('Kindly Provide the Node/Group name and the secret name')
+                abort = Helper().show_error('Kindly Provide the Node/Group name and the secret name')
             if abort is False:
                 response = Rest().get_delete(self.route, uri)
                 self.logger.debug(f'Response => {response}')

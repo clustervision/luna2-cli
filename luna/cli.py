@@ -71,7 +71,6 @@ class Cli():
         command[0] = 'luna'
         command = ' '.join(command)
         self.logger.info(f'Command Supplied => {command}')
-        self.logger.info(f'Command Supplied as dictionary => {self.args}')
         if self.args["command"]:
             if self.args["command"] == "osimage":
                 call = globals()["OSImage"]

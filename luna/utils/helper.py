@@ -19,7 +19,7 @@ from termcolor import colored
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
-from luna.utils.inquiry import Inquiry
+# from luna.utils.inquiry import Inquiry
 
 class Helper(object):
     """

@@ -12,7 +12,6 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
@@ -53,38 +52,14 @@ class Cluster():
         cluster_update.add_argument('-n', '--name', help='New Name For Cluster')
         cluster_update.add_argument('-u', '--user', help='Cluster User')
         cluster_update.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='NTP IP')
-        cluster_update.add_argument('-o', '--createnode_ondemand', default=0, action='store_true', help='Create Nodes while PXE Boot')
-        cluster_update.add_argument(
-            '-ns', '--nameserver_ip', metavar='N.N.N.N', help='Name Server IP'
-        )
-        cluster_update.add_argument(
-            '-fs', '--forwardserver_ip', metavar='N.N.N.N', help='Forward Server IP'
-        )
-        cluster_update.add_argument(
-            '-c', '--technical_contacts',
-            default=Helper().default_values('cluster', 'technical_contacts'),
-            help='Technical Contact'
-        )
-        cluster_update.add_argument(
-            '-pm', '--provision_method',
-            default=Helper().default_values('cluster', 'provision_method'),
-            help='Provision Method'
-        )
-        cluster_update.add_argument(
-            '-pf', '--provision_fallback',
-            default=Helper().default_values('cluster', 'provision_fallback'),
-            help='Provision Fallback'
-        )
-        cluster_update.add_argument(
-            '-s', '--security',
-            default=Helper().default_values('cluster', 'security'),
-            help='Security'
-        )
-        cluster_update.add_argument(
-            '-D', '--clusterdebug',
-            default=Helper().default_values('cluster', 'debug'),
-            help='Debug Mode'
-        )
+        cluster_update.add_argument('-o', '--createnode_ondemand', help='Create Nodes while PXE Boot')
+        cluster_update.add_argument('-ns', '--nameserver_ip', help='Name Server IP')
+        cluster_update.add_argument('-fs', '--forwardserver_ip', help='Forward Server IP')
+        cluster_update.add_argument('-c', '--technical_contacts',  help='Technical Contact')
+        cluster_update.add_argument('-pm', '--provision_method', help='Provision Method')
+        cluster_update.add_argument('-pf', '--provision_fallback', help='Provision Fallback')
+        cluster_update.add_argument('-s', '--security',  help='Security')
+        cluster_update.add_argument('-D', '--clusterdebug', help='Debug Mode')
         return parser
 
 
