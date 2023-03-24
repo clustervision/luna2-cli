@@ -31,7 +31,7 @@ class Node():
         self.interface = "nodeinterface"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            if self.args["action"] in ["list", "show", "add", "change", "rename", "remove"]:
+            if self.args["action"] in ["list", "show", "add", "change", "rename", "remove", "clone"]:
                 call = methodcaller(f'{self.args["action"]}_node')
                 call(self)
 
@@ -92,7 +92,7 @@ class Node():
         node_add.add_argument('-N', '--network', action='append', help='Interface Network Name')
         node_add.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
         node_add.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
-        node_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        node_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_change = node_args.add_parser('change', help='Change Node')
         node_change.add_argument('name', help='Name of the Node')
         node_change.add_argument('-host', '--hostname',help='Hostname')
@@ -123,13 +123,13 @@ class Node():
         node_change.add_argument('-N', '--network', action='append', help='Interface Network Name')
         node_change.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
         node_change.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
-        node_change.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        node_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         ## >>>>>>> Node Command >>>>>>> clone
         node_clone = node_args.add_parser('clone', help='Clone Node')
         node_clone.add_argument('name', help='Name of the Node')
         node_clone.add_argument('newnodename', help='New Name for the Node')
         node_clone.add_argument('-host', '--hostname',help='Hostname')
-        node_clone.add_argument('-g', '--group', required=True, help='Group Name')
+        node_clone.add_argument('-g', '--group', help='Group Name')
         node_clone.add_argument('-o', '--osimage', help='OS Image Name')
         node_clone.add_argument('-b', '--setupbmc', action='store_true', help='BMC Setup')
         node_clone.add_argument('-bmc', '--bmcsetup', action='store_true', help='BMC Setup')
@@ -156,14 +156,14 @@ class Node():
         node_clone.add_argument('-N', '--network', action='append', help='Interface Network Name')
         node_clone.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
         node_clone.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
-        node_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        node_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_rename = node_args.add_parser('rename', help='Rename Node')
         node_rename.add_argument('name', help='Name of the Node')
         node_rename.add_argument('newnodename', help='New Name for the Node')
-        node_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        node_rename.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_remove = node_args.add_parser('remove', help='Remove Node')
         node_remove.add_argument('name', help='Name of the Node')
-        node_remove.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        node_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_interfaces = node_args.add_parser('interfaces', help='List Node Interfaces')
         node_interfaces.add_argument('name', help='Name of the Node')
         Helper().common_list_args(node_interfaces)
@@ -177,11 +177,11 @@ class Node():
         node_changeinterface.add_argument('network', action='append', help='Network Name')
         node_changeinterface.add_argument('ipaddress', action='append', help='IP Address')
         node_changeinterface.add_argument('macaddress', action='append', help='MAC Address')
-        node_changeinterface.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        node_changeinterface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_removeinterface = node_args.add_parser('removeinterface', help='Remove Node Interface')
         node_removeinterface.add_argument('name', help='Name of the Node')
         node_removeinterface.add_argument('interface', help='Name of the Node Interface')
-        node_removeinterface.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        node_removeinterface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         return parser
 
 
@@ -204,7 +204,7 @@ class Node():
         Method to add new node in Luna Configuration.
         """
         error = False
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         iface = [self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']]
         ifacecount = sum(x is not None for x in iface)
@@ -228,10 +228,11 @@ class Node():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 201:
+            if response.status_code == 201:
                 Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -240,7 +241,7 @@ class Node():
         Method to update a node in Luna Configuration.
         """
         error = False
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         iface = [self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']]
         ifacecount = sum(x is not None for x in iface)
@@ -264,10 +265,11 @@ class Node():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         else:
             Helper().show_error('Nothing to update.')
         return True
@@ -277,7 +279,7 @@ class Node():
         """
         Method to rename a node in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
@@ -285,10 +287,11 @@ class Node():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newnodename"]}.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -297,17 +300,18 @@ class Node():
         Method to delete a node in Luna Configuration.
         """
        
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
             self.logger.debug(f'Payload => {payload}')
             response = Rest().get_delete(self.table, payload['name'])
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -315,8 +319,9 @@ class Node():
         """
         Method to rename a node in Luna Configuration.
         """
+        
         error = False
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         iface = [self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']]
         ifacecount = sum(x is not None for x in iface)
@@ -340,10 +345,11 @@ class Node():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_clone(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 201:
+            if response.status_code == 201:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newnodename"]}.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         else:
             Helper().show_error(f'Nothing to update in {payload["name"]}.')
         return True
@@ -401,7 +407,7 @@ class Node():
         """
         Method to change a node interfaces in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         self.args['interfaces'] = {'interface': self.args['interface'], 'network': self.args['network'], 'ipaddress': self.args['ipaddress'], 'macaddress': self.args['macaddress']}
         for remove in ['interface', 'network', 'ipaddress', 'macaddress']:
@@ -414,7 +420,7 @@ class Node():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, node_name+'/interfaces', request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'Interfaces updated in {self.table.capitalize()} {payload["name"]}.')
             else:
                 Helper().show_error(f'HTTP Error Code {response}.')
@@ -427,14 +433,14 @@ class Node():
         """
         Method to remove a node interfaces in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload is False:
             self.logger.debug(f'Payload => {payload}')
             response = Rest().get_delete(self.table, payload['name']+'/interfaces/'+payload['interface'])
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'Interface {payload["interface"]} Deleted from {self.table.capitalize()} {payload["name"]}.')
             else:
                 Helper().show_error(f'HTTP Error Code: {response}.')

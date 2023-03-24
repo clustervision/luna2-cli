@@ -61,7 +61,7 @@ class Network():
         network_add.add_argument('-ds', '--dhcp_range_begin', metavar='N.N.N.N', help='DHCP Range Start for the Network')
         network_add.add_argument('-de', '--dhcp_range_end', metavar='N.N.N.N', help='DHCP Range End for the Network')
         network_add.add_argument('-c', '--comment', help='Comment for Network')
-        network_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        network_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         network_change = network_args.add_parser('change', help='Change Network')
         network_change.add_argument('name', help='Name of the Network')
         network_change.add_argument('-N', '--network', help='Network')
@@ -72,7 +72,7 @@ class Network():
         network_change.add_argument('-ds', '--dhcp_range_begin', metavar='N.N.N.N', help='DHCP Range Start for the Network')
         network_change.add_argument('-de', '--dhcp_range_end', metavar='N.N.N.N', help='DHCP Range End for the Network')
         network_change.add_argument('-c', '--comment', help='Comment for Network')
-        network_change.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        network_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         network_clone = network_args.add_parser('clone', help='Clone Network')
         network_clone.add_argument('name', help='Name of the Network')
         network_clone.add_argument('newnetname', help='New name of the Network')
@@ -84,21 +84,21 @@ class Network():
         network_clone.add_argument('-ds', '--dhcp_range_begin', metavar='N.N.N.N', help='DHCP Range Start for the Network')
         network_clone.add_argument('-de', '--dhcp_range_end', metavar='N.N.N.N', help='DHCP Range End for the Network')
         network_clone.add_argument('-c', '--comment', help='Comment for Network')
-        network_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        network_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         network_rename = network_args.add_parser('rename', help='Rename Network')
         network_rename.add_argument('name', help='Name of the Network')
         network_rename.add_argument('newnetname', help='New name of the Network')
-        network_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        network_rename.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         network_remove = network_args.add_parser('remove', help='Remove Network')
         network_remove.add_argument('name', help='Name of the Network')
-        network_remove.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        network_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         network_ipinfo = network_args.add_parser('ipinfo', help='Show Network IP Information')
         network_ipinfo.add_argument('name', help='Name of the Network')
         network_ipinfo.add_argument('ipaddress', help='IP Address from the Network')
-        network_ipinfo.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        network_ipinfo.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         network_nextip = network_args.add_parser('nextip', help='Show Next Available IP Address on the Network')
         network_nextip.add_argument('name', help='Name of the Network')
-        network_nextip.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        network_nextip.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         return parser
 
 
@@ -120,7 +120,7 @@ class Network():
         """
         Method to add new network in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
@@ -128,10 +128,11 @@ class Network():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 201:
+            if response.status_code == 201:
                 Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -139,7 +140,7 @@ class Network():
         """
         Method to change a network in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
@@ -147,10 +148,11 @@ class Network():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         else:
             Helper().show_error('Nothing to update.')
         return True
@@ -160,7 +162,7 @@ class Network():
         """
         Method to rename a network in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
@@ -168,10 +170,11 @@ class Network():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newnetname"]}.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -179,17 +182,18 @@ class Network():
         """
         Method to remove a network in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
             self.logger.debug(f'Payload => {payload}')
             response = Rest().get_delete(self.table, payload['name'])
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')        
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')        
         return True
 
 
@@ -197,7 +201,7 @@ class Network():
         """
         Method to rename a network in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
@@ -205,10 +209,11 @@ class Network():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_clone(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 201:
+            if response.status_code == 201:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newnetname"]}.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         else:
             Helper().show_error(f'Nothing to update in {payload["name"]}.')
         return True

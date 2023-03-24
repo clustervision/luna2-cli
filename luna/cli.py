@@ -48,7 +48,7 @@ class Cli():
         for each class.
         """
         self.parser = ArgumentParser(prog='luna', description='Manage Luna Cluster')
-        self.parser.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        self.parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
         classes = [Cluster, Network, OSImage, BMCSetup, Switch, OtherDev, Group, Node, Secrets, Service, Control]
         for clss in classes:
@@ -63,7 +63,7 @@ class Cli():
         Method to call the class for further
         operations.
         """
-        if self.args["debug"]:
+        if self.args["verbose"]:
             self.logger = Log.init_log('debug')
         else:
             self.logger = Log.init_log('info')

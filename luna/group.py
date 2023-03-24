@@ -79,7 +79,7 @@ class Group():
         group_add.add_argument('-if', '--interface', action='append', help='Interface Name')
         group_add.add_argument('-N', '--network', action='append', help='Interface Network Name')
         group_add.add_argument('-c', '--comment', help='Comment')
-        group_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        group_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_change = group_args.add_parser('change', help='Change Group')
         group_change.add_argument('name', help='Name of the Group')
         group_change.add_argument('-b', '--setupbmc', help='BMC Setup')
@@ -99,7 +99,7 @@ class Group():
         group_change.add_argument('-if', '--interface', action='append', help='Interface Name')
         group_change.add_argument('-N', '--network', action='append', help='Interface Network Name')
         group_change.add_argument('-c', '--comment', help='Comment')
-        group_change.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        group_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_clone = group_args.add_parser('clone', help='Clone Group.')
         group_clone.add_argument('name', help='Name of the Group')
         group_clone.add_argument('newgroupname', help='New Name for the Group')
@@ -120,14 +120,14 @@ class Group():
         group_clone.add_argument('-if', '--interface', action='append', help='Interface Name')
         group_clone.add_argument('-N', '--network', action='append', help='Interface Network Name')
         group_clone.add_argument('-c', '--comment', help='Comment')
-        group_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        group_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_rename = group_args.add_parser('rename', help='Rename Group.')
         group_rename.add_argument('name', help='Name of the Group')
         group_rename.add_argument('newgroupname', help='New Name for the Group')
-        group_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        group_rename.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_remove = group_args.add_parser('remove', help='Remove Group')
         group_remove.add_argument('name', help='Name of the Group')
-        group_remove.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        group_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_interfaces = group_args.add_parser('interfaces', help='List Group Interfaces')
         group_interfaces.add_argument('name', help='Name of the Group')
         Helper().common_list_args(group_interfaces)
@@ -139,11 +139,11 @@ class Group():
         group_changeinterface.add_argument('name', help='Name of the Group')
         group_changeinterface.add_argument('interface', help='Group Interface Name')
         group_changeinterface.add_argument('network', help='Network Name')
-        group_changeinterface.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        group_changeinterface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_removeinterface = group_args.add_parser('removeinterface', help='Remove Group Interface')
         group_removeinterface.add_argument('name', help='Name of the Group')
         group_removeinterface.add_argument('interface', help='Name of the Group Interface')
-        group_removeinterface.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        group_removeinterface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         return parser
 
 
@@ -166,7 +166,7 @@ class Group():
         Method to add new group in Luna Configuration.
         """
         error = False
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         iface = [self.args['interface'], self.args['network']]
         ifacecount = sum(x is not None for x in iface)
@@ -191,10 +191,11 @@ class Group():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 201:
+            if response.status_code == 201:
                 Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -204,7 +205,7 @@ class Group():
         """
         payload = {}
         error = False
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         iface = [self.args['interface'], self.args['network']]
         ifacecount = sum(x is not None for x in iface)
@@ -228,10 +229,11 @@ class Group():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         else:
             Helper().show_error('Nothing to update.')
         return True
@@ -241,7 +243,7 @@ class Group():
         """
         Method to rename a group in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
@@ -249,10 +251,11 @@ class Group():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newgroupname"]}.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -260,17 +263,18 @@ class Group():
         """
         Method to remove a group in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
             self.logger.debug(f'Payload => {payload}')
             response = Rest().get_delete(self.table, payload['name'])
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -279,7 +283,7 @@ class Group():
         Method to rename a group in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         iface = [self.args['interface'], self.args['network']]
         ifacecount = sum(x is not None for x in iface)
@@ -303,10 +307,11 @@ class Group():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_clone(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 201:
+            if response.status_code == 201:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newgroupname"]}.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         else:
             Helper().show_error(f'Nothing to update in {payload["name"]}.')
         return True
@@ -364,7 +369,7 @@ class Group():
         """
         Method to change a Group interfaces in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         self.args['interfaces'] = {'interface': self.args['interface'], 'network': self.args['network']}
         del self.args['interface']
@@ -377,7 +382,7 @@ class Group():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, group_name+'/interfaces', request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'Interfaces updated in {self.table.capitalize()} {group_name}.')
             else:
                 Helper().show_error(f'HTTP Error Code {response}.')
@@ -390,14 +395,14 @@ class Group():
         """
         Method to list a Group interfaces in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
             self.logger.debug(f"URI {payload['name']}/interfaces/{payload['interface']}")
             response = Rest().get_delete(self.table, payload['name']+'/interfaces/'+payload['interface'])
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'Interface {payload["interface"]} Deleted from {self.table.capitalize()} {payload["name"]}.')
             else:
                 Helper().show_error(f'HTTP Error Code: {response}.')

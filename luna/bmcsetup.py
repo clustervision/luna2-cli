@@ -60,7 +60,7 @@ class BMCSetup():
         bmcsetup_add.add_argument('-mt', '--mgmtchannel', type=int, help='Management Channel')
         bmcsetup_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         bmcsetup_add.add_argument('-c', '--comment', help='Comment for BMC Setup')
-        bmcsetup_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        bmcsetup_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         bmcsetup_change = bmcsetup_args.add_parser('change', help='Change a BMC Setup')
         bmcsetup_change.add_argument('name', help='Name of the BMC Setup')
         bmcsetup_change.add_argument('-uid', '--userid', type=int, help='UserID for BMC Setup')
@@ -70,7 +70,7 @@ class BMCSetup():
         bmcsetup_change.add_argument('-mt', '--mgmtchannel', type=int, help='Management Channel')
         bmcsetup_change.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         bmcsetup_change.add_argument('-c', '--comment', help='Comment for BMC Setup')
-        bmcsetup_change.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        bmcsetup_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         bmcsetup_clone = bmcsetup_args.add_parser('clone', help='Clone BMC Setup')
         bmcsetup_clone.add_argument('name', help='Name of the BMC Setup')
         bmcsetup_clone.add_argument('newbmcname', help='New Name for BMC Setup')
@@ -81,14 +81,14 @@ class BMCSetup():
         bmcsetup_clone.add_argument('-mt', '--mgmtchannel', type=int, help='Management Channel')
         bmcsetup_clone.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         bmcsetup_clone.add_argument('-c', '--comment', help='Comment for BMC Setup')
-        bmcsetup_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        bmcsetup_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         bmcsetup_rename = bmcsetup_args.add_parser('rename', help='Rename BMC Setup')
         bmcsetup_rename.add_argument('name', help='Name of the BMC Setup')
         bmcsetup_rename.add_argument('newbmcname', help='New name of the BMC Setup')
-        bmcsetup_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        bmcsetup_rename.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         bmcsetup_remove = bmcsetup_args.add_parser('remove', help='Remove BMC Setup')
         bmcsetup_remove.add_argument('name', help='Name of the BMC Setup')
-        bmcsetup_remove.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        bmcsetup_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         return parser
 
 
@@ -113,7 +113,7 @@ class BMCSetup():
         Method to add new bmc setup in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
             payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
@@ -121,10 +121,11 @@ class BMCSetup():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 201:
+            if response.status_code == 201:
                 Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -133,7 +134,7 @@ class BMCSetup():
         Method to update a bmc setup in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
             payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
@@ -141,10 +142,11 @@ class BMCSetup():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -153,7 +155,7 @@ class BMCSetup():
         Method to rename a bmc setup in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
@@ -161,10 +163,11 @@ class BMCSetup():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_clone(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 201:
+            if response.status_code == 201:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloned as {payload["newbmcname"]}.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         else:
             Helper().show_error(f'Nothing to update in {payload["name"]}.')
         return True
@@ -175,7 +178,7 @@ class BMCSetup():
         Method to rename a bmc setup in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
@@ -183,11 +186,12 @@ class BMCSetup():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 msg = f'{payload["name"]} is renamed to {payload["newbmcname"]}'
                 Helper().show_success(f'{msg} in {self.table.capitalize()}.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -196,14 +200,15 @@ class BMCSetup():
         Method to remove a bmc setup in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
             response = Rest().get_delete(self.table, payload['name'])
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True

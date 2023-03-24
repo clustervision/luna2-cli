@@ -34,7 +34,7 @@ class Switch():
                 call = methodcaller(f'{self.args["action"]}_switch')
                 call(self)
             else:
-                print("Not a valid option.")
+                Helper().show_error(f"Kindly choose from {actions}.")
         if parser and subparsers:
             self.getarguments(parser, subparsers)
 
@@ -60,7 +60,7 @@ class Switch():
         switch_add.add_argument('-w', '--rw', help='Write community')
         switch_add.add_argument('-o', '--oid', help='OID of the Switch')
         switch_add.add_argument('-c', '--comment', help='Comment for Switch')
-        switch_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        switch_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         switch_change = switch_args.add_parser('change', help='Change Switch')
         switch_change.add_argument('name', help='Name of the Switch')
         switch_change.add_argument('-N', '--network', help='Network for Switch')
@@ -70,7 +70,7 @@ class Switch():
         switch_change.add_argument('-w', '--rw', help='Write community')
         switch_change.add_argument('-o', '--oid', help='OID of the Switch')
         switch_change.add_argument('-c', '--comment', help='Comment for Switch')
-        switch_change.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        switch_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         switch_clone = switch_args.add_parser('clone', help='Clone Switch')
         switch_clone.add_argument('name', help='Name of the Switch')
         switch_clone.add_argument('newswitchname', help='New name of the Switch')
@@ -81,14 +81,14 @@ class Switch():
         switch_clone.add_argument('-w', '--rw', help='Write community')
         switch_clone.add_argument('-o', '--oid', help='OID of the Switch')
         switch_clone.add_argument('-c', '--comment', help='Comment for Switch')
-        switch_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        switch_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         switch_rename = switch_args.add_parser('rename', help='Rename Switch')
         switch_rename.add_argument('name', help='Name of the Switch')
         switch_rename.add_argument('newswitchname', help='New name of the Switch')
-        switch_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        switch_rename.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         switch_remove = switch_args.add_parser('remove', help='Remove Switch')
         switch_remove.add_argument('name', help='Name of the Switch')
-        switch_remove.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        switch_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         return parser
 
 
@@ -111,7 +111,7 @@ class Switch():
         Method to add new switch in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
@@ -119,10 +119,11 @@ class Switch():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 201:
+            if response.status_code == 201:
                 Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -131,7 +132,7 @@ class Switch():
         Method to change a switch in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
@@ -139,10 +140,11 @@ class Switch():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         else:
             Helper().show_error('Nothing to update.')
         return True
@@ -152,7 +154,7 @@ class Switch():
         Method to rename a switch in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
@@ -160,10 +162,11 @@ class Switch():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_clone(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 201:
+            if response.status_code == 201:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newswitchname"]}.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         else:
             Helper().show_error(f'Nothing to update in {payload["name"]}.')
         return True
@@ -174,7 +177,7 @@ class Switch():
         Method to rename a switch in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
@@ -182,10 +185,11 @@ class Switch():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newswitchname"]}.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -194,15 +198,16 @@ class Switch():
         Method to remove a switch in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
             self.logger.debug(f'Payload => {payload}')
             response = Rest().get_delete(self.table, payload['name'])
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
