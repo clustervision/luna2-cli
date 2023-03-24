@@ -98,9 +98,8 @@ class Rest(object):
         if name:
             daemon_url = f'{daemon_url}/{name}'
         self.logger.debug(f'POST URL => {daemon_url}')
-        call = requests.post(url=daemon_url, data=json.dumps(data), headers=headers, timeout=5)
-        self.logger.debug(f'Response Content => {call.content}, and HTTP Code {call.status_code}')
-        response = call.status_code
+        response = requests.post(url=daemon_url, data=json.dumps(data), headers=headers, timeout=5)
+        self.logger.debug(f'Response Content => {response.content}, and HTTP Code {response.status_code}')
         return response
 
 
@@ -114,9 +113,8 @@ class Rest(object):
         headers = {'x-access-tokens': self.get_token()}
         daemon_url = f'http://{self.daemon}/config/{table}/{name}/_delete'
         self.logger.debug(f'GET URL => {daemon_url}')
-        call = requests.get(url=daemon_url, headers=headers, timeout=5)
-        self.logger.debug(f'Response Content => {call.content}, and HTTP Code {call.status_code}')
-        response = call.status_code
+        response = requests.get(url=daemon_url, headers=headers, timeout=5)
+        self.logger.debug(f'Response Content => {response.content}, and HTTP Code {response.status_code}')
         return response
 
 
@@ -130,9 +128,8 @@ class Rest(object):
         headers = {'x-access-tokens': self.get_token()}
         daemon_url = f'http://{self.daemon}/config/{table}/{name}/_clone'
         self.logger.debug(f'Clone URL => {daemon_url}')
-        call = requests.post(url=daemon_url, data=json.dumps(data), headers=headers, timeout=5)
-        self.logger.debug(f'Response Content => {call.content}, and HTTP Code {call.status_code}')
-        response = call.status_code
+        response = requests.post(url=daemon_url, data=json.dumps(data), headers=headers, timeout=5)
+        self.logger.debug(f'Response Content => {response.content}, and HTTP Code {response.status_code}')
         return response
 
 

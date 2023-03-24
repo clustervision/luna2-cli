@@ -63,13 +63,13 @@ class OSImage():
         osimage_add.add_argument('-k', '--kernelfile', help='Kernel File')
         osimage_add.add_argument('-m', '--kernelmodules', help='Kernel Modules')
         osimage_add.add_argument('-o', '--kerneloptions', help='Kernel Options')
-        osimage_add.add_argument('-v', '--kernelversion', help='Kernel Version')
+        osimage_add.add_argument('-ver', '--kernelversion', help='Kernel Version')
         osimage_add.add_argument('-p', '--path', required=True, help='Path of image')
         osimage_add.add_argument('-tar', '--tarball', help='Tarball UUID')
         osimage_add.add_argument('-t', '--torrent', help='Torrent UUID')
         osimage_add.add_argument('-D', '--distribution', help='Distribution From')
         osimage_add.add_argument('-c', '--comment', help='Comment for OSImage')
-        osimage_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        osimage_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         osimage_change = osimage_args.add_parser('change', help='Change OSImage')
         osimage_change.add_argument('name', help='Name of the OSImage')
         osimage_change.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
@@ -79,13 +79,13 @@ class OSImage():
         osimage_change.add_argument('-k', '--kernelfile', help='Kernel File')
         osimage_change.add_argument('-m', '--kernelmodules', help='Kernel Modules')
         osimage_change.add_argument('-o', '--kerneloptions', help='Kernel Options')
-        osimage_change.add_argument('-v', '--kernelversion', help='Kernel Version')
+        osimage_change.add_argument('-ver', '--kernelversion', help='Kernel Version')
         osimage_change.add_argument('-p', '--path', help='Path of image')
         osimage_change.add_argument('-tar', '--tarball', help='Tarball UUID')
         osimage_change.add_argument('-t', '--torrent', help='Torrent UUID')
         osimage_change.add_argument('-D', '--distribution', default='redhat', help='Distribution From')
         osimage_change.add_argument('-c', '--comment', help='Comment for OSImage')
-        osimage_change.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        osimage_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         osimage_clone = osimage_args.add_parser('clone', help='Clone OSImage')
         osimage_clone.add_argument('name', help='Name of the OSImage')
         osimage_clone.add_argument('-nn', '--newosimage', help='New Name of the OSImage')
@@ -96,29 +96,29 @@ class OSImage():
         osimage_clone.add_argument('-k', '--kernelfile', help='Kernel File')
         osimage_clone.add_argument('-m', '--kernelmodules', help='Kernel Modules')
         osimage_clone.add_argument('-o', '--kerneloptions', help='Kernel Options')
-        osimage_clone.add_argument('-v', '--kernelversion', help='Kernel Version')
+        osimage_clone.add_argument('-ver', '--kernelversion', help='Kernel Version')
         osimage_clone.add_argument('-p', '--path', required=True, help='Path of image')
         osimage_clone.add_argument('-tar', '--tarball', help='Tarball UUID')
         osimage_clone.add_argument('-t', '--torrent', help='Torrent UUID')
         osimage_clone.add_argument('-D', '--distribution', help='Distribution From')
         osimage_clone.add_argument('-c', '--comment', help='Comment for OSImage')
-        osimage_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        osimage_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         osimage_rename = osimage_args.add_parser('rename', help='Rename OSImage')
         osimage_rename.add_argument('name', help='Name of the OSImage')
         osimage_rename.add_argument('newosimage', help='New Name of the OSImage')
-        osimage_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        osimage_rename.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         osimage_remove = osimage_args.add_parser('remove', help='Remove OSImage')
         osimage_remove.add_argument('name', help='Name of the OS Image')
-        osimage_remove.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        osimage_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         osimage_pack = osimage_args.add_parser('pack', help='Pack OSImage')
         osimage_pack.add_argument('name', help='Name of the OS Image')
-        osimage_pack.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        osimage_pack.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         osimage_kernel = osimage_args.add_parser('kernel', help='Chnage Kernel Version in OS Image')
         osimage_kernel.add_argument('name', help='Name of the OS Image')
         osimage_kernel.add_argument('-rd', '--initrdfile', help='INIT RD File')
         osimage_kernel.add_argument('-k', '--kernelfile', help='Kernel File')
-        osimage_kernel.add_argument('-v', '--kernelversion', help='Kernel Version')
-        osimage_kernel.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        osimage_kernel.add_argument('-ver', '--kernelversion', help='Kernel Version')
+        osimage_kernel.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         return parser
 
 
@@ -141,7 +141,7 @@ class OSImage():
         Method to add new osimage in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
@@ -149,10 +149,11 @@ class OSImage():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 201:
+            if response.status_code == 201:
                 Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -161,7 +162,7 @@ class OSImage():
         Method to change a osimage in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         payload = {k: v for k, v in self.args.items() if v is not None}
@@ -170,10 +171,11 @@ class OSImage():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         else:
             Helper().show_error('Nothing to update.')
         return True
@@ -183,7 +185,7 @@ class OSImage():
         """
         Method to rename a osimage in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
@@ -191,10 +193,11 @@ class OSImage():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newosimage"]}.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -202,17 +205,18 @@ class OSImage():
         """
         Method to remove a osimage in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
             self.logger.debug(f'Payload => {payload}')
             response = Rest().get_delete(self.table, payload['name'])
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -221,7 +225,7 @@ class OSImage():
         Method to rename a osimage in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
@@ -229,10 +233,11 @@ class OSImage():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_clone(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 201:
+            if response.status_code == 201:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newosimage"]}.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         else:
             Helper().show_error(f'Nothing to update in {payload["name"]}.')
         return True
@@ -281,7 +286,7 @@ class OSImage():
         OS Image
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
@@ -290,7 +295,7 @@ class OSImage():
             self.logger.debug(f'Change Kernel URI => {payload["name"]}/_kernel')
             response = Rest().post_data(self.table, payload['name']+'/_kernel', request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'OS Image {self.args["name"]} Kernel updated.')
             else:
                 Helper().show_error(f'HTTP Error Code: {response}.')

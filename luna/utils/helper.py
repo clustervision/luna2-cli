@@ -124,7 +124,7 @@ class Helper(object):
         """
         This method will provide the common list and show arguments..
         """
-        parser.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         parser.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         return parser
 
@@ -133,7 +133,7 @@ class Helper(object):
         """
         This method will provide the common add, update, clone, and rename arguments..
         """
-        parser.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         parser.add_argument('-i', '--init', action='store_true', help='Interactive Mode')
         parser.add_argument('-n', '--name', help=f'Name of the {name}')
         return parser
@@ -143,7 +143,7 @@ class Helper(object):
         """
         This method will provide the control arguments..
         """
-        parser.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         parser.add_argument('node', help='Node Name or Node Hostlist')
         return parser
 
@@ -178,7 +178,7 @@ class Helper(object):
         actions = ['start', 'stop', 'restart', 'reload', 'status']
         for act in actions:
             parser_args = parser.add_parser(act, help=f'{act.capitalize()} {service} Service')
-            parser_args.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+            parser_args.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         return parser
 
 
@@ -713,7 +713,7 @@ class Helper(object):
         """
         response = False
         static = {
-            'cluster': ['name', 'ns_ip','ntp_server', 'provision_fallback', 'provision_method', 'security', 'technical_contacts', 'user', 'debug'],
+            'cluster': ['name', 'ns_ip','ntp_server', 'provision_fallback', 'provision_method', 'security', 'technical_contacts', 'user', 'verbose'],
             'controller': ['hostname', 'ipaddress','luna_config', 'srverport', 'status'],
             'node': ['name', 'hostname', 'group', 'osimage', 'interfaces', 'localboot', 'macaddress', 'switch', 'switchport', 'setupbmc', 'status', 'service',
                        'prescript', 'partscript', 'postscript', 'netboot', 'localinstall', 'bootmenu', 'provisionmethod', 'provisioninterface', 'provisionfallback', 'tpmuuid'

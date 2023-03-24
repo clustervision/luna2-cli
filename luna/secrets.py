@@ -49,19 +49,19 @@ class Secrets(object):
         secrets_args = secrets_menu.add_subparsers(dest='action')
         ## >>>>>>> Secrets Command >>>>>>> list
         list_secrets = secrets_args.add_parser('list', help='List Secrets')
-        list_secrets.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        list_secrets.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         list_secrets.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         list_parser = list_secrets.add_subparsers(dest='entity')
         list_node = list_parser.add_parser('node', help='List Node Secrets')
         list_node.add_argument('name', help='Name of the Node')
         list_node.add_argument('secret', help='Name of the Secret')
         list_node.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        list_node.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        list_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         list_group = list_parser.add_parser('group', help='List Group Secrets')
         list_group.add_argument('name', help='Name of the Group')
         list_group.add_argument('secret', help='Name of the Secret')
         list_group.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        list_group.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        list_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> show
         show_secrets = secrets_args.add_parser('show', help='Show Secrets')
         show_parser = show_secrets.add_subparsers(dest='entity')
@@ -69,12 +69,12 @@ class Secrets(object):
         show_node.add_argument('name', help='Name of the Node')
         show_node.add_argument('secret', help='Name of the Secret')
         show_node.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        show_node.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        show_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         show_group = show_parser.add_parser('group', help='Show Group Secrets')
         show_group.add_argument('name', help='Name of the Group')
         show_group.add_argument('secret', help='Name of the Secret')
         show_group.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        show_group.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        show_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> update
         change_secrets = secrets_args.add_parser('change', help='Change Secrets')
         change_parser = change_secrets.add_subparsers(dest='entity')
@@ -83,13 +83,13 @@ class Secrets(object):
         change_node.add_argument('--secret', '-s', action='append', help='Name of the Secret')
         change_node.add_argument('--content', '-c', action='append', help='Content of the Secret')
         change_node.add_argument('--path', '-p', action='append', help='Path of the Secret')
-        change_node.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        change_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         change_group = change_parser.add_parser('group', help='Update Group Secrets')
         change_group.add_argument('name', help='Name of the Group')
         change_group.add_argument('--secret', '-s', action='append', help='Name of the Secret')
         change_group.add_argument('--content', '-c', action='append', help='Content of the Secret')
         change_group.add_argument('--path', '-p', action='append', help='Path of the Secret')
-        change_group.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        change_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> clone
         clone_secrets = secrets_args.add_parser('clone', help='Clone Secrets')
         clone_parser = clone_secrets.add_subparsers(dest='entity')
@@ -99,25 +99,25 @@ class Secrets(object):
         clone_node.add_argument('--newsecretname', '-nn', help='New name for the Secret')
         clone_node.add_argument('--content', '-c', help='Content of the Secret')
         clone_node.add_argument('--path', '-p', help='Path of the Secret')
-        clone_node.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        clone_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         clone_group = clone_parser.add_parser('group', help='Clone Group Secrets')
         clone_group.add_argument('name', help='Name of the Group')
         clone_group.add_argument('--secret', '-s', help='Name of the Secret')
         clone_group.add_argument('--newsecretname', '-nn', help='New name for the Secret')
         clone_group.add_argument('--content', '-c', help='Content of the Secret')
         clone_group.add_argument('--path', '-p', help='Path of the Secret')
-        clone_group.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        clone_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> delete
         remove_secrets = secrets_args.add_parser('remove', help='Remove Secrets')
         remove_parser = remove_secrets.add_subparsers(dest='entity')
         remove_node = remove_parser.add_parser('node', help='Remove Node Secrets')
         remove_node.add_argument('name', help='Name of the Node')
         remove_node.add_argument('secret', help='Name of the Secret')
-        remove_node.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        remove_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         remove_group = remove_parser.add_parser('group', help='Remove Group Secrets')
         remove_group.add_argument('name', help='Name of the Group')
         remove_group.add_argument('secret', help='Name of the Secret')
-        remove_group.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        remove_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         return parser
 
 
@@ -197,9 +197,9 @@ class Secrets(object):
         return response
 
 
-    def update_secrets(self):
+    def change_secrets(self):
         """
-        Method to update Secrets for node or group
+        Method to change Secrets for node or group
         depending on the arguments.
         """
         response = False
@@ -213,7 +213,7 @@ class Secrets(object):
             entity = self.args['entity']
             del self.args['entity']
             entity_name = self.args['name']
-            for remove in ['debug', 'command', 'action', 'name']:
+            for remove in ['verbose', 'command', 'action', 'name']:
                 self.args.pop(remove, None)
             if len(self.args['secret']) == len(self.args['content']) == len(self.args['path']):
                 self.args[entity_name] = []
@@ -234,9 +234,9 @@ class Secrets(object):
                 self.logger.debug(f'Payload => {request_data}')
                 response = Rest().post_data(self.route, uri, request_data)
                 self.logger.debug(f'Response => {response}')
-                if response == 201:
+                if response.status_code == 201:
                     Helper().show_success(f'Secret for {entity} is created.')
-                elif response == 204:
+                elif response.status_code == 204:
                     Helper().show_success(f'Secret for {entity} is update.')
                 else:
                     Helper().show_error(f'HTTP ERROR: {response}.')
@@ -259,7 +259,7 @@ class Secrets(object):
             entity = self.args['entity']
             del self.args['entity']
             entity_name = self.args['name']
-            for remove in ['debug', 'command', 'action', 'name']:
+            for remove in ['verbose', 'command', 'action', 'name']:
                 self.args.pop(remove, None)
             if len(self.args['secret']) == len(self.args['content']) == len(self.args['path']):
                 self.args[entity_name] = []
@@ -280,7 +280,7 @@ class Secrets(object):
                 self.logger.debug(f'Payload => {request_data}')
                 response = Rest().post_clone(self.route, uri, request_data)
                 self.logger.debug(f'Response => {response}')
-                if response == 204:
+                if response.status_code == 204:
                     Helper().show_success('Secret is Cloned.')
                 else:
                     Helper().show_error(f'HTTP ERROR: {response}.')
@@ -289,9 +289,9 @@ class Secrets(object):
         return response
 
 
-    def delete_secrets(self):
+    def remove_secrets(self):
         """
-        Method to Delete a Secrets for node or group
+        Method to remove a Secrets for node or group
         depending on the arguments.
         """
         response = False
@@ -312,7 +312,7 @@ class Secrets(object):
             if abort is False:
                 response = Rest().get_delete(self.route, uri)
                 self.logger.debug(f'Response => {response}')
-                if response == 204:
+                if response.status_code == 204:
                     Helper().show_success('Secret is Deleted.')
                 else:
                     Helper().show_error(f'HTTP ERROR: {response}.')

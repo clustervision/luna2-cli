@@ -46,9 +46,10 @@ class Cluster():
         """
         cluster_menu = subparsers.add_parser('cluster', help='Cluster operations.')
         cluster_menu.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        cluster_menu.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         cluster_args = cluster_menu.add_subparsers(dest='action')
         cluster_update = cluster_args.add_parser('update', help='Update Cluster')
-        cluster_update.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        cluster_update.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         cluster_update.add_argument('-n', '--name', help='New Name For Cluster')
         cluster_update.add_argument('-u', '--user', help='Cluster User')
         cluster_update.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='NTP IP')
@@ -59,7 +60,7 @@ class Cluster():
         cluster_update.add_argument('-pm', '--provision_method', help='Provision Method')
         cluster_update.add_argument('-pf', '--provision_fallback', help='Provision Fallback')
         cluster_update.add_argument('-s', '--security',  help='Security')
-        cluster_update.add_argument('-D', '--clusterdebug', help='Debug Mode')
+        cluster_update.add_argument('-d', '--debug', help='Debug Mode')
         return parser
 
 
@@ -90,19 +91,19 @@ class Cluster():
         Method to update cluster in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action', 'raw']:
+        for remove in ['verbose', 'command', 'action', 'raw']:
             self.args.pop(remove, None)
-        if self.args['clusterdebug']:
-            self.args['debug'] = True
-        del self.args['clusterdebug']
         payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
             request_data = {'config': {self.table: payload}}
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, None, request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()} is updated.')
             else:
-                Helper().show_error(f'HTTP error code is: {response} ')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
+        else:
+            Helper().show_warning(f'Provide Something to update.')
         return True

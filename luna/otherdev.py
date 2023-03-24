@@ -57,14 +57,14 @@ class OtherDev():
         otherdev_add.add_argument('-ip', '--ipaddress', required=True, help='IP Address for Other Device')
         otherdev_add.add_argument('-m', '--macaddress', help='MAC Address for Other Device')
         otherdev_add.add_argument('-c', '--comment', help='Comment for Other Device')
-        otherdev_add.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        otherdev_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         otherdev_change = otherdev_args.add_parser('change', help='Change Other Devices')
         otherdev_change.add_argument('name', help='Name of the Other Device')
         otherdev_change.add_argument('-N', '--network', help='Network for Other Device')
         otherdev_change.add_argument('-ip', '--ipaddress', help='IP Address for Other Device')
         otherdev_change.add_argument('-m', '--macaddress', help='MAC Address for Other Device')
         otherdev_change.add_argument('-c', '--comment', help='Comment for Other Device')
-        otherdev_change.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        otherdev_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         otherdev_clone = otherdev_args.add_parser('clone', help='Clone Other Devices')
         otherdev_clone.add_argument('name', help='Name of the Other Device')
         otherdev_clone.add_argument('newotherdevname', help='New name of the Other Device')
@@ -72,14 +72,14 @@ class OtherDev():
         otherdev_clone.add_argument('-ip', '--ipaddress', required=True, help='IP Address for Other Device')
         otherdev_clone.add_argument('-m', '--macaddress', help='MAC Address for Other Device')
         otherdev_clone.add_argument('-c', '--comment', help='Comment for Other Device')
-        otherdev_clone.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        otherdev_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         otherdev_rename = otherdev_args.add_parser('rename', help='Rename Other Devices')
         otherdev_rename.add_argument('name', help='Name of the Other Device')
         otherdev_rename.add_argument('newotherdevname', help='New name of the Other Devices')
-        otherdev_rename.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        otherdev_rename.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         otherdev_remove = otherdev_args.add_parser('remove', help='Remove Other Devices')
         otherdev_remove.add_argument('name', help='Name of the Other Device')
-        otherdev_remove.add_argument('-d', '--debug', action='store_true', help='Get debug log')
+        otherdev_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         return parser
 
 
@@ -101,7 +101,7 @@ class OtherDev():
         """
         Method to add new other devices in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
@@ -109,10 +109,11 @@ class OtherDev():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 201:
+            if response.status_code == 201:
                 Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -121,7 +122,7 @@ class OtherDev():
         Method to change a other devices in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
@@ -129,10 +130,11 @@ class OtherDev():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         else:
             Helper().show_error('Nothing to update.')
         return True
@@ -143,7 +145,7 @@ class OtherDev():
         Method to rename a other devices in Luna Configuration.
         """
         payload = {}
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = {k: v for k, v in self.args.items() if v is not None}
         if payload:
@@ -151,10 +153,11 @@ class OtherDev():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_clone(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 201:
+            if response.status_code == 201:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newotherdevname"]}.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         else:
             Helper().show_error(f'Nothing to update in {payload["name"]}.')
         return True
@@ -164,7 +167,7 @@ class OtherDev():
         """
         Method to rename a other devices in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
@@ -172,10 +175,11 @@ class OtherDev():
             self.logger.debug(f'Payload => {request_data}')
             response = Rest().post_data(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newotherdevname"]}.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
@@ -183,15 +187,16 @@ class OtherDev():
         """
         Method to remove a other devices in Luna Configuration.
         """
-        for remove in ['debug', 'command', 'action']:
+        for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
         if payload:
             self.logger.debug(f'Payload => {payload}')
             response = Rest().get_delete(self.table, payload['name'])
             self.logger.debug(f'Response => {response}')
-            if response == 204:
+            if response.status_code == 204:
                 Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
             else:
-                Helper().show_error(f'HTTP Error {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
