@@ -239,7 +239,8 @@ class Secrets(object):
                 elif response.status_code == 204:
                     Helper().show_success(f'Secret for {entity} is update.')
                 else:
-                    Helper().show_error(f'HTTP ERROR: {response}.')
+                    Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                    Helper().show_error(f'HTTP Error {response.content}.')
         else:
             response = Helper().show_error('Either select node or group')
         return response
@@ -283,7 +284,8 @@ class Secrets(object):
                 if response.status_code == 204:
                     Helper().show_success('Secret is Cloned.')
                 else:
-                    Helper().show_error(f'HTTP ERROR: {response}.')
+                    Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                    Helper().show_error(f'HTTP Error {response.content}.')
         else:
             response = Helper().show_error('Either select node or group')
         return response
@@ -315,7 +317,8 @@ class Secrets(object):
                 if response.status_code == 204:
                     Helper().show_success('Secret is Deleted.')
                 else:
-                    Helper().show_error(f'HTTP ERROR: {response}.')
+                    Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                    Helper().show_error(f'HTTP Error {response.content}.')
         else:
             response = Helper().show_error('Either select node or group')
         return response
