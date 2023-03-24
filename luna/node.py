@@ -423,7 +423,8 @@ class Node():
             if response.status_code == 204:
                 Helper().show_success(f'Interfaces updated in {self.table.capitalize()} {payload["name"]}.')
             else:
-                Helper().show_error(f'HTTP Error Code {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         else:
             Helper().show_error('Nothing to update.')
         return True
@@ -443,5 +444,6 @@ class Node():
             if response.status_code == 204:
                 Helper().show_success(f'Interface {payload["interface"]} Deleted from {self.table.capitalize()} {payload["name"]}.')
             else:
-                Helper().show_error(f'HTTP Error Code: {response}.')
+                Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                Helper().show_error(f'HTTP Error {response.content}.')
         return True
