@@ -67,8 +67,8 @@ class Node():
         node_add.add_argument('-host', '--hostname',help='Hostname')
         node_add.add_argument('-g', '--group', required=True, help='Group Name')
         node_add.add_argument('-o', '--osimage', help='OS Image Name')
-        node_add.add_argument('-b', '--setupbmc', action='store_true', help='BMC Setup')
-        node_add.add_argument('-bmc', '--bmcsetup', action='store_true', help='BMC Setup')
+        node_add.add_argument('-b', '--setupbmc', help='BMC Setup')
+        node_add.add_argument('-bmc', '--bmcsetup', help='BMC Setup')
         node_add.add_argument('-sw', '--switch', help='Switch Name')
         node_add.add_argument('-sp', '--switchport', help='Switch Port')
         node_add.add_argument('-pre', '--prescript', help='Pre Script')
@@ -98,8 +98,8 @@ class Node():
         node_change.add_argument('-host', '--hostname',help='Hostname')
         node_change.add_argument('-g', '--group', help='Group Name')
         node_change.add_argument('-o', '--osimage', help='OS Image Name')
-        node_change.add_argument('-b', '--setupbmc', action='store_true', help='BMC Setup')
-        node_change.add_argument('-bmc', '--bmcsetup', action='store_true', help='BMC Setup')
+        node_change.add_argument('-b', '--setupbmc', help='BMC Setup')
+        node_change.add_argument('-bmc', '--bmcsetup', help='BMC Setup')
         node_change.add_argument('-sw', '--switch', help='Switch Name')
         node_change.add_argument('-sp', '--switchport', help='Switch Port')
         node_change.add_argument('-pre', '--prescript', help='Pre Script')
@@ -131,8 +131,8 @@ class Node():
         node_clone.add_argument('-host', '--hostname',help='Hostname')
         node_clone.add_argument('-g', '--group', help='Group Name')
         node_clone.add_argument('-o', '--osimage', help='OS Image Name')
-        node_clone.add_argument('-b', '--setupbmc', action='store_true', help='BMC Setup')
-        node_clone.add_argument('-bmc', '--bmcsetup', action='store_true', help='BMC Setup')
+        node_clone.add_argument('-b', '--setupbmc', help='BMC Setup')
+        node_clone.add_argument('-bmc', '--bmcsetup', help='BMC Setup')
         node_clone.add_argument('-sw', '--switch', help='Switch Name')
         node_clone.add_argument('-sp', '--switchport', help='Switch Port')
         node_clone.add_argument('-pre', '--prescript', help='Pre Script')
@@ -236,9 +236,9 @@ class Node():
         return True
 
 
-    def update_node(self):
+    def change_node(self):
         """
-        Method to update a node in Luna Configuration.
+        Method to chagne a node in Luna Configuration.
         """
         error = False
         for remove in ['verbose', 'command', 'action']:
@@ -295,9 +295,9 @@ class Node():
         return True
 
 
-    def delete_node(self):
+    def remove_node(self):
         """
-        Method to delete a node in Luna Configuration.
+        Method to remove a node in Luna Configuration.
         """
        
         for remove in ['verbose', 'command', 'action']:
