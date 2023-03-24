@@ -98,6 +98,7 @@ class Rest(object):
         if name:
             daemon_url = f'{daemon_url}/{name}'
         self.logger.debug(f'POST URL => {daemon_url}')
+        self.logger.debug(f'POST DATA => {data}')
         response = requests.post(url=daemon_url, data=json.dumps(data), headers=headers, timeout=5)
         self.logger.debug(f'Response Content => {response.content}, and HTTP Code {response.status_code}')
         return response
