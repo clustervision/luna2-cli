@@ -185,7 +185,7 @@ class Group():
             Helper().show_error('Operation Aborted.')
             payload = {}
         else:
-            payload = {k: v for k, v in self.args.items() if v is not None}
+            payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config': {self.table: {payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
@@ -223,7 +223,7 @@ class Group():
         if error:
             Helper().show_error('Operation Aborted.')
             self.args.clear()
-        payload = {k: v for k, v in self.args.items() if v is not None}
+        payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config': {self.table: {payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
@@ -301,7 +301,7 @@ class Group():
         if error:
             Helper().show_error('Operation Aborted.')
             self.args.clear()
-        payload = {k: v for k, v in self.args.items() if v is not None}
+        payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config': {self.table: {payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
@@ -376,7 +376,7 @@ class Group():
         self.args['interfaces'] = {'interface': self.args['interface'], 'network': self.args['network']}
         del self.args['interface']
         del self.args['network']
-        payload = {k: v for k, v in self.args.items() if v is not None}
+        payload = Helper().prepare_payload(self.args)
         if payload:
             group_name = payload['name']
             del payload['name']

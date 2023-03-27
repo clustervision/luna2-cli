@@ -12,18 +12,24 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
-from time import sleep
-import numpy as np
+import os
+# import time
+from time import time, sleep
 import base64
 import binascii
+import subprocess
+from random import randint
+from os import getpid
+import numpy as np
 import hostlist
 from termcolor import colored
+from nested_lookup import nested_lookup, nested_update
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
-from nested_lookup import nested_lookup, nested_update
 
-class Helper(object):
+
+class Helper():
     """
     All kind of helper methods.
     """
@@ -33,6 +39,42 @@ class Helper(object):
         Constructor - As of now, nothing have to initialize.
         """
         self.logger = Log.get_logger()
+
+
+    def prepare_payload(self, raw_data=None):
+        """
+        This method will prepare the payload.
+        """
+        payload = {k: v for k, v in raw_data.items() if v is not None}
+        editor_keys = ['content', 'comment', 'prescript', 'partscript', 'postscript']
+        for enkey in editor_keys:
+            content = nested_lookup(enkey, payload)
+            if content:
+                content = self.open_editor(enkey)
+                payload = nested_update(payload, key=enkey, value=content)
+        return payload
+
+
+    def open_editor(self, key=None):
+        """
+        This Method will open a default text editor to
+        write the multiline text for keys such as comment,
+        prescript, postscript, partscript, content etc. but
+        not limited to them only.
+        """
+        response = ''
+        editor = str(os.path.abspath(__file__)).replace('helper.py', 'editor.sh')
+        random_path = str(time())+str(randint(1001,9999))+str(getpid())
+        tmp_folder = f'/tmp/lunatmp-{random_path}'
+        os.mkdir(tmp_folder)
+        filename = f'/tmp/lunatmp-{random_path}/{key}'
+        open(filename, "x")
+        subprocess.call([editor, filename])
+        with open(filename, 'rb') as file_data:
+            response = self.base64_encode(file_data.read())
+        os.remove(filename)
+        os.rmdir(tmp_folder)
+        return response
 
 
     def get_list(self, table=None, args=None):
@@ -543,6 +585,19 @@ class Helper(object):
             num = num + 1
         # Adding Serial Numbers to the dataset
         return fields, rows
+
+
+    def base64_encode(self, content=None):
+        """
+        This method will encode a base 64 string.
+        """
+        try:
+            if content is not None:
+                content = str(content).encode("utf-8")
+                content = base64.b64encode(content).decode("utf-8")
+        except binascii.Error:
+            self.logger.debug(f'Base64 Encode Error => {content}')
+        return content
 
 
     def base64_decode(self, content=None):
