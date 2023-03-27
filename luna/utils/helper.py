@@ -41,21 +41,61 @@ class Helper():
         self.logger = Log.get_logger()
 
 
+    def boolean(self):
+        """
+        This method will provide boolean choices
+        for argument parser.
+        """
+        # yes_choices = ['y', 'yes', 'true', 'Y', 'YES', 'True', 1]
+        # no_choices = ['n', 'no', 'false', 'N', 'NO', 'False', 0]
+        # choices = yes_choices + no_choices
+        choices = ['y', 'yes', 'n', 'no']
+        return choices
+
+
+    def choice_to_bool(self, raw_data=None):
+        """
+        This method will convert string choices to
+        boolean
+        """
+        bool_keys = [
+            'debug',
+            'security',
+            'createnode_ondemand',
+            'dhcp',
+            'setupbmc',
+            'netboot',
+            'localinstall',
+            'bootmenu',
+            'localboot',
+            'service'
+        ]
+        for enkey in bool_keys:
+            content = nested_lookup(enkey, raw_data)
+            if content:
+                if content[0] is not None:
+                    if content[0].lower() in ['y', 'yes', 'true']:
+                        raw_data = nested_update(raw_data, key=enkey, value=True)
+                    else:
+                        raw_data = nested_update(raw_data, key=enkey, value=False)
+        return raw_data
+
     def prepare_payload(self, raw_data=None):
         """
         This method will prepare the payload.
         """
+        raw_data = self.choice_to_bool(raw_data)
         payload = {k: v for k, v in raw_data.items() if v is not None}
         editor_keys = ['content', 'comment', 'prescript', 'partscript', 'postscript']
         for enkey in editor_keys:
             content = nested_lookup(enkey, payload)
             if content:
-                content = self.open_editor(enkey)
+                content = self.open_editor(enkey, payload)
                 payload = nested_update(payload, key=enkey, value=content)
         return payload
 
 
-    def open_editor(self, key=None):
+    def open_editor(self, key=None, payload=None):
         """
         This Method will open a default text editor to
         write the multiline text for keys such as comment,
@@ -67,7 +107,10 @@ class Helper():
         random_path = str(time())+str(randint(1001,9999))+str(getpid())
         tmp_folder = f'/tmp/lunatmp-{random_path}'
         os.mkdir(tmp_folder)
-        filename = f'/tmp/lunatmp-{random_path}/{key}'
+        if key == 'content':
+            filename = f'/tmp/lunatmp-{random_path}/{payload["name"]}{key}'
+        else:
+            filename = f'/tmp/lunatmp-{random_path}/{key}'
         open(filename, "x")
         subprocess.call([editor, filename])
         with open(filename, 'rb') as file_data:
@@ -198,9 +241,9 @@ class Helper():
         """
         This method will provide the control arguments..
         """
-        parser.add_argument('-pre', '--prescript', help='Pre Script')
-        parser.add_argument('-part', '--partscript', help='Part Script')
-        parser.add_argument('-post', '--postscript', help='Post Script')
+        parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
+        parser.add_argument('-part', '--partscript', action='store_true', help='Part Script')
+        parser.add_argument('-post', '--postscript', action='store_true', help='Post Script')
         parser.add_argument('-pi', '--provision_interface', help='Provision Interface')
         parser.add_argument('-pm', '--provision_method', help='Provision Method')
         parser.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
@@ -212,7 +255,7 @@ class Helper():
         parser.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         parser.add_argument('-if', '--interface', action='append', help='Interface Name')
         parser.add_argument('-N', '--network', action='append', help='Interface Network Name')
-        parser.add_argument('-c', '--comment', help='Comment')
+        parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         return parser
 
 
@@ -236,7 +279,7 @@ class Helper():
         parser.add_argument('-N', '--network', help=f'Network for {name}')
         parser.add_argument('-ip', '--ipaddress', help=f'IP Address for {name}')
         parser.add_argument('-m', '--macaddress', help=f'MAC Address for {name}')
-        parser.add_argument('-c', '--comment', help=f'Comment for {name}')
+        parser.add_argument('-c', '--comment', action='store_true', help=f'Comment for {name}')
         return parser
 
 

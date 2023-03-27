@@ -20,7 +20,7 @@ from luna.utils.log import Log
 class Cluster():
     """
     Cluster Class responsible to show, list,
-    and update information for the Cluster
+    and change information for the Cluster
     """
 
     def __init__(self, args=None, parser=None, subparsers=None):
@@ -35,7 +35,7 @@ class Cluster():
             elif self.args["action"] == 'change':
                 self.change_cluster()
             else:
-                Helper().show_error("If you want to update then use update as an argument.")
+                Helper().show_error("If you want to change then use change as an argument.")
         if parser and subparsers:
             self.getarguments(parser, subparsers)
 
@@ -44,7 +44,7 @@ class Cluster():
         Method will provide all the arguments
         related to the Cluster class.
         """
-        cluster_menu = subparsers.add_parser('cluster', help='Cluster operations.')
+        cluster_menu = subparsers.add_parser('cluster', help='Cluster Information.')
         cluster_menu.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         cluster_menu.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         cluster_args = cluster_menu.add_subparsers(dest='action')
@@ -53,14 +53,14 @@ class Cluster():
         cluster_change.add_argument('-n', '--name', help='New Name For Cluster')
         cluster_change.add_argument('-u', '--user', help='Cluster User')
         cluster_change.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='NTP IP')
-        cluster_change.add_argument('-o', '--createnode_ondemand', help='Create Nodes while PXE Boot')
+        cluster_change.add_argument('-o', '--createnode_ondemand', choices=Helper().boolean(), help='On Demand Nodes')
         cluster_change.add_argument('-ns', '--nameserver_ip', help='Name Server IP')
         cluster_change.add_argument('-fs', '--forwardserver_ip', help='Forward Server IP')
         cluster_change.add_argument('-c', '--technical_contacts',  help='Technical Contact')
         cluster_change.add_argument('-pm', '--provision_method', help='Provision Method')
         cluster_change.add_argument('-pf', '--provision_fallback', help='Provision Fallback')
-        cluster_change.add_argument('-s', '--security',  help='Security')
-        cluster_change.add_argument('-d', '--debug', help='Debug Mode')
+        cluster_change.add_argument('-s', '--security', choices=Helper().boolean(),  help='Security')
+        cluster_change.add_argument('-d', '--debug', choices=Helper().boolean(), help='Debug Mode')
         return parser
 
 
@@ -106,5 +106,5 @@ class Cluster():
                 Helper().show_error(f'HTTP Error Code {response.status_code}.')
                 Helper().show_error(f'HTTP Error {response.content}.')
         else:
-            Helper().show_warning(f'Provide Something to update.')
+            Helper().show_warning('Provide Something to update.')
         return True

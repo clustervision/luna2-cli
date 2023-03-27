@@ -75,36 +75,36 @@ class Secrets(object):
         show_group.add_argument('secret', help='Name of the Secret')
         show_group.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         show_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
-        ## >>>>>>> Secrets Command >>>>>>> update
+        ## >>>>>>> Secrets Command >>>>>>> change
         change_secrets = secrets_args.add_parser('change', help='Change Secrets')
         change_parser = change_secrets.add_subparsers(dest='entity')
         change_node = change_parser.add_parser('node', help='Change Node Secrets')
-        change_node.add_argument('-n', '--name', help='Name of the Node')
-        change_node.add_argument('--secret', '-s', action='append', help='Name of the Secret')
-        change_node.add_argument('--content', '-c', action='append', help='Content of the Secret')
-        change_node.add_argument('--path', '-p', action='append', help='Path of the Secret')
+        change_node.add_argument('name', help='Name of the Node')
+        change_node.add_argument('--secret', '-s', required=True, action='append', help='Name of the Secret')
+        change_node.add_argument('--content', '-c', required=True, action='store_true', help='Content of the Secret')
+        change_node.add_argument('--path', '-p', required=True, action='append', help='Path of the Secret')
         change_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         change_group = change_parser.add_parser('group', help='Change Group Secrets')
-        change_group.add_argument('-n', '--name', help='Name of the Group')
-        change_group.add_argument('--secret', '-s', action='append', help='Name of the Secret')
-        change_group.add_argument('--content', '-c', action='append', help='Content of the Secret')
-        change_group.add_argument('--path', '-p', action='append', help='Path of the Secret')
+        change_group.add_argument('name', help='Name of the Group')
+        change_group.add_argument('--secret', '-s', required=True, action='append', help='Name of the Secret')
+        change_group.add_argument('--content', '-c', required=True, action='store_true', help='Content of the Secret')
+        change_group.add_argument('--path', '-p', required=True, action='append', help='Path of the Secret')
         change_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> clone
         clone_secrets = secrets_args.add_parser('clone', help='Clone Secrets')
         clone_parser = clone_secrets.add_subparsers(dest='entity')
         clone_node = clone_parser.add_parser('node', help='Clone Node Secrets')
-        clone_node.add_argument('-n', '--name', help='Name of the Node')
-        clone_node.add_argument('--secret', '-s', help='Name of the Secret')
-        clone_node.add_argument('--newsecretname', '-nn', help='New name for the Secret')
-        clone_node.add_argument('--content', '-c', help='Content of the Secret')
+        clone_node.add_argument('name', help='Name of the Node')
+        clone_node.add_argument('secret', help='Name of the Secret')
+        clone_node.add_argument('newsecretname', help='New name for the Secret')
+        clone_node.add_argument('--content', '-c', action='store_true', help='Content of the Secret')
         clone_node.add_argument('--path', '-p', help='Path of the Secret')
         clone_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         clone_group = clone_parser.add_parser('group', help='Clone Group Secrets')
-        clone_group.add_argument('-n', '--name', help='Name of the Group')
-        clone_group.add_argument('--secret', '-s', help='Name of the Secret')
-        clone_group.add_argument('--newsecretname', '-nn', help='New name for the Secret')
-        clone_group.add_argument('--content', '-c', help='Content of the Secret')
+        clone_group.add_argument('name', help='Name of the Group')
+        clone_group.add_argument('secret', help='Name of the Secret')
+        clone_group.add_argument('newsecretname', help='New name for the Secret')
+        clone_group.add_argument('--content', '-c', action='store_true', help='Content of the Secret')
         clone_group.add_argument('--path', '-p', help='Path of the Secret')
         clone_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> delete
@@ -227,13 +227,15 @@ class Secrets(object):
             entity_name = self.args['name']
             for remove in ['verbose', 'command', 'action', 'name']:
                 self.args.pop(remove, None)
-            if len(self.args['secret']) == len(self.args['content']) == len(self.args['path']):
+            if len(self.args['secret']) == len(self.args['path']):
                 self.args[entity_name] = []
                 temp_dict = {}
-                for secret, content, path in zip(self.args['secret'], self.args['content'], self.args['path']):
+                for secret, path in zip(self.args['secret'], self.args['path']):
                     temp_dict['name'] = secret
-                    temp_dict['content'] = content
                     temp_dict['path'] = path
+                    temp_dict['content'] = ''
+                    content_dict = Helper().prepare_payload(temp_dict)
+                    temp_dict['content'] = content_dict['content']
                     self.args[entity_name].append(temp_dict)
                     temp_dict = {}
                 for remove in ['secret', 'content', 'path']:
@@ -264,7 +266,6 @@ class Secrets(object):
         depending on the arguments.
         """
         response = False
-        secret = {}
         if self.args['entity'] is not None:
             uri = f'{self.args["entity"]}/{self.args["name"]}/{self.args["secret"]}'
             self.logger.debug(f'Secret URI => {uri}')
@@ -274,20 +275,14 @@ class Secrets(object):
             entity_name = self.args['name']
             for remove in ['verbose', 'command', 'action', 'name']:
                 self.args.pop(remove, None)
-            if len(self.args['secret']) == len(self.args['content']) == len(self.args['path']):
-                self.args[entity_name] = []
-                temp_dict = {}
-                for secret, content, path in zip(self.args['secret'], self.args['content'], self.args['path']):
-                    temp_dict['name'] = secret
-                    temp_dict['content'] = content
-                    temp_dict['path'] = path
-                    self.args[entity_name].append(temp_dict)
-                    temp_dict = {}
-                for remove in ['secret', 'content', 'path']:
-                    self.args.pop(remove, None)
-            else:
-                response = Helper().show_error('Each Secret should have Secret Name, Content and Path')
-            payload = self.args
+            tmp_payload = self.args
+            if tmp_payload['content']:
+                tmp_payload['name'] = tmp_payload['newsecretname']
+                content = Helper().prepare_payload(tmp_payload)
+                tmp_payload['content'] = content['content']
+            tmp_payload['name'] = tmp_payload['secret']
+            del tmp_payload['secret']
+            payload[entity_name] = [tmp_payload]
             if payload:
                 request_data = {'config': {self.route: {entity: payload}}}
                 self.logger.debug(f'Payload => {request_data}')
