@@ -103,7 +103,7 @@ class OtherDev():
         """
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        payload = {k: v for k, v in self.args.items() if v is not None}
+        payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
@@ -124,7 +124,7 @@ class OtherDev():
         payload = {}
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        payload = {k: v for k, v in self.args.items() if v is not None}
+        payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
@@ -147,7 +147,7 @@ class OtherDev():
         payload = {}
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        payload = {k: v for k, v in self.args.items() if v is not None}
+        payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')

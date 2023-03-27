@@ -59,7 +59,7 @@ class Switch():
         switch_add.add_argument('-r', '--read', help='Read community')
         switch_add.add_argument('-w', '--rw', help='Write community')
         switch_add.add_argument('-o', '--oid', help='OID of the Switch')
-        switch_add.add_argument('-c', '--comment', help='Comment for Switch')
+        switch_add.add_argument('-c', '--comment', action='store_true', help='Comment for Switch')
         switch_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         switch_change = switch_args.add_parser('change', help='Change Switch')
         switch_change.add_argument('name', help='Name of the Switch')
@@ -69,7 +69,7 @@ class Switch():
         switch_change.add_argument('-r', '--read', help='Read community')
         switch_change.add_argument('-w', '--rw', help='Write community')
         switch_change.add_argument('-o', '--oid', help='OID of the Switch')
-        switch_change.add_argument('-c', '--comment', help='Comment for Switch')
+        switch_change.add_argument('-c', '--comment', action='store_true', help='Comment for Switch')
         switch_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         switch_clone = switch_args.add_parser('clone', help='Clone Switch')
         switch_clone.add_argument('name', help='Name of the Switch')
@@ -80,7 +80,7 @@ class Switch():
         switch_clone.add_argument('-r', '--read', help='Read community')
         switch_clone.add_argument('-w', '--rw', help='Write community')
         switch_clone.add_argument('-o', '--oid', help='OID of the Switch')
-        switch_clone.add_argument('-c', '--comment', help='Comment for Switch')
+        switch_clone.add_argument('-c', '--comment', action='store_true', help='Comment for Switch')
         switch_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         switch_rename = switch_args.add_parser('rename', help='Rename Switch')
         switch_rename.add_argument('name', help='Name of the Switch')
@@ -110,10 +110,12 @@ class Switch():
         """
         Method to add new switch in Luna Configuration.
         """
+        
         payload = {}
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        payload = {k: v for k, v in self.args.items() if v is not None}
+        payload = Helper().prepare_payload(self.args)
+        payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
@@ -134,7 +136,7 @@ class Switch():
         payload = {}
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        payload = {k: v for k, v in self.args.items() if v is not None}
+        payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
@@ -156,7 +158,7 @@ class Switch():
         payload = {}
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        payload = {k: v for k, v in self.args.items() if v is not None}
+        payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config':{self.table:{payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')

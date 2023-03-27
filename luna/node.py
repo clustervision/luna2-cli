@@ -222,7 +222,7 @@ class Node():
         if error:
             Helper().show_error('Operation Aborted.')
             self.args.clear()
-        payload = {k: v for k, v in self.args.items() if v is not None}
+        payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config': {self.table: {payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
@@ -259,7 +259,7 @@ class Node():
         if error:
             Helper().show_error('Operation Aborted.')
             self.args.clear()
-        payload = {k: v for k, v in self.args.items() if v is not None}
+        payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config': {self.table: {payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
@@ -339,7 +339,7 @@ class Node():
         if error:
             Helper().show_error('Operation Aborted.')
             self.args.clear()
-        payload = {k: v for k, v in self.args.items() if v is not None}
+        payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config': {self.table: {payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
@@ -414,7 +414,7 @@ class Node():
         self.args['interfaces'] = {'interface': self.args['interface'], 'network': self.args['network'], 'ipaddress': self.args['ipaddress'], 'macaddress': self.args['macaddress']}
         for remove in ['interface', 'network', 'ipaddress', 'macaddress']:
             self.args.pop(remove, None)
-        payload = {k: v for k, v in self.args.items() if v is not None}
+        payload = Helper().prepare_payload(self.args)
         if payload:
             node_name = payload['name']
             del payload['name']
