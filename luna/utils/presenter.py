@@ -19,7 +19,7 @@ import pyfiglet
 from termcolor import colored
 from luna.utils.log import Log
 
-class Presenter(object):
+class Presenter():
     """
     All kind of display methods.
     """
@@ -51,7 +51,6 @@ class Presenter(object):
         pretty = json.dumps(jsondata, indent=4)
         print_json(pretty)
         return True
-
 
 
     def show_table(self, title=None, fields=None, rows=None):

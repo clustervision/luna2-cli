@@ -14,12 +14,14 @@ __status__      = "Production"
 
 from time import sleep
 import numpy as np
+import base64
+import binascii
 import hostlist
 from termcolor import colored
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
-# from luna.utils.inquiry import Inquiry
+from nested_lookup import nested_lookup, nested_update
 
 class Helper(object):
     """
@@ -44,7 +46,8 @@ class Helper(object):
         if get_list:
             data = get_list['config'][table]
             if args['raw']:
-                response = Presenter().show_json(data)
+                json_data = Helper().prepare_json(data)
+                response = Presenter().show_json(json_data)
             else:
                 fields, rows  = self.filter_data(table, data)
                 self.logger.debug(f'Fields => {fields}')
@@ -67,7 +70,8 @@ class Helper(object):
         if get_list:
             data = get_list['config'][table][args["name"]]
             if args['raw']:
-                response = Presenter().show_json(data)
+                json_data = Helper().prepare_json(data)
+                response = Presenter().show_json(json_data)
             else:
                 fields, rows  = self.filter_data_col(table, data)
                 self.logger.debug(f'Fields => {fields}')
@@ -541,6 +545,32 @@ class Helper(object):
         return fields, rows
 
 
+    def base64_decode(self, content=None):
+        """
+        This method will decode the base 64 string.
+        """
+        try:
+            if content is not None:
+                content = base64.b64decode(content).decode("utf-8")
+        except binascii.Error:
+            self.logger.debug(f'Base64 Decode Error => {content}')
+        return content
+
+
+    def prepare_json(self, jsondata=None):
+        """
+        This method will decode the base 64 string.
+        """
+        encoded_keys = ['content', 'comment', 'prescript', 'partscript', 'postscript']
+        for enkey in encoded_keys:
+            content = nested_lookup(enkey, jsondata)
+            if content:
+                content = self.base64_decode(content[0])
+                if content is not None:
+                    jsondata = nested_update(jsondata, key=enkey, value=content[:30]+'...')
+        return jsondata
+
+
     def get_secrets(self, table=None, data=None):
         """
         This method will filter data for Secrets
@@ -556,7 +586,8 @@ class Helper(object):
                 newrow.append(colored(key, 'blue'))
                 newrow.append(colored(value['name'], 'blue'))
                 newrow.append(colored(value['path'], 'blue'))
-                newrow.append(colored(value['content'], 'blue'))
+                content = self.base64_decode(value['content'])
+                newrow.append(colored(content[:30]+'...', 'blue'))
                 rows.append(newrow)
                 newrow = []
         for newfield in fields:
@@ -588,7 +619,8 @@ class Helper(object):
                 newrow.append(colored(key, 'blue'))
                 newrow.append(colored(value['name'], 'blue'))
                 newrow.append(colored(value['path'], 'blue'))
-                newrow.append(colored(value['content'], 'blue'))
+                content = self.base64_decode(value['content'])
+                newrow.append(colored(content[:30]+'...', 'blue'))
                 rows.append(newrow)
                 newrow = []
         for newfield in fields:

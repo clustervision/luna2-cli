@@ -329,7 +329,8 @@ class Group():
         if get_list:
             data = get_list['config'][self.table][self.args["name"]]['interfaces']
             if self.args['raw']:
-                response = Presenter().show_json(data)
+                json_data = Helper().prepare_json(data)
+                response = Presenter().show_json(json_data)
             else:
                 fields, rows  = Helper().filter_interface(self.interface, data)
                 self.logger.debug(f'Fields => {fields}')
@@ -353,7 +354,8 @@ class Group():
         if get_list:
             data = get_list['config'][self.table][self.args["name"]]['interfaces'][0]
             if self.args['raw']:
-                response = Presenter().show_json(data)
+                json_data = Helper().prepare_json(data)
+                response = Presenter().show_json(json_data)
             else:
                 fields, rows  = Helper().filter_data_col(self.interface, data)
                 self.logger.debug(f'Fields => {fields}')

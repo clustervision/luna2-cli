@@ -5,7 +5,7 @@ netaddr==0.8.0
 cryptography==38.0.4
 configparser==5.3.0
 pyfiglet==0.8.post1
-InquirerPy==0.3.4
+nested_lookup==0.2.25
 prettytable==3.6.0
 rich==13.3.1
 termcolor==2.2.0
