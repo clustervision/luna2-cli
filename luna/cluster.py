@@ -74,7 +74,8 @@ class Cluster():
         if self.get_list:
             data = self.get_list['config'][self.table]
             if self.args['raw']:
-                response = Presenter().show_json(data)
+                json_data = Helper().prepare_json(data)
+                response = Presenter().show_json(json_data)
             else:
                 fields, rows  = Helper().filter_data_col(self.table, data)
                 self.logger.debug(f'Fields => {fields}')

@@ -19,7 +19,7 @@ import pyfiglet
 from termcolor import colored
 from luna.utils.log import Log
 
-class Presenter(object):
+class Presenter():
     """
     All kind of display methods.
     """
@@ -42,46 +42,15 @@ class Presenter(object):
         return True
 
 
-    def func1(self, data, response):
-        for key,value in data.items():
-            if key == 'content':
-                value = 'AWSWSWSWSWS'
-            print (str(key)+'----------->'+str(value))
-            if isinstance(value, dict):
-                response[key] = value
-                # print(response)
-                self.func1(value, response)
-            elif type(value) == type(list()):
-                for val in value:
-                    if type(val) == type(str()):
-                        pass
-                    elif type(val) == type(list()):
-                        pass
-                    else:
-                        response[key] = val
-                        self.func1(val, response)
-        return response
-
-
     def show_json(self, jsondata=None):
         """
         This method will fetch all records from
         the Luna 2 Daemon Database
         """
-        res = self.func1(jsondata, {})
-        print(res)
-        # print(jsondata.items())
-        # for key,item in jsondata.items():
-        #     if 'content' in item:
-        #         print(item)
-            # if item['prop1'] == 'name1' or item['prop2'] == 'name1':
-            #     print 'found one'
         self.logger.debug(f'Jason Data => {jsondata}')
         pretty = json.dumps(jsondata, indent=4)
         print_json(pretty)
-
         return True
-
 
 
     def show_table(self, title=None, fields=None, rows=None):

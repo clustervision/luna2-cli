@@ -142,7 +142,8 @@ class Secrets(object):
             if get_list:
                 data = get_list['config']['secrets']
                 if self.args['raw']:
-                    Presenter().show_json(data)
+                    json_data = Helper().prepare_json(data)
+                    Presenter().show_json(json_data)
                 else:
                     if 'group' in data:
                         table = f'group{self.route}'
@@ -185,7 +186,8 @@ class Secrets(object):
             if get_list:
                 data = get_list['config']['secrets']
                 if self.args['raw']:
-                    response = Presenter().show_json(data)
+                    json_data = Helper().prepare_json(data)
+                    response = Presenter().show_json(json_data)
                 else:
                     if 'group' in data:
                         table = f'group{self.route}'
