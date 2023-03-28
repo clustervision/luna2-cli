@@ -10,7 +10,7 @@ __license__     = "GPL"
 __version__     = "2.0"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
-__status__      = "Production"
+__status__      = "Development"
 
 import sys
 from argparse import ArgumentParser
@@ -27,7 +27,19 @@ from luna.otherdev import OtherDev
 from luna.secrets import Secrets
 from luna.service import Service
 from luna.control import Control
-
+classes = [
+    Cluster,
+    Network,
+    OSImage,
+    BMCSetup,
+    Switch,
+    OtherDev,
+    Group,
+    Node,
+    Secrets,
+    Service,
+    Control
+]
 
 class Cli():
     """
@@ -50,7 +62,6 @@ class Cli():
         self.parser = ArgumentParser(prog='luna', description='Manage Luna Cluster')
         self.parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
-        classes = [Cluster, Network, OSImage, BMCSetup, Switch, OtherDev, Group, Node, Secrets, Service, Control]
         for clss in classes:
             clss(parser=self.parser, subparsers =self.subparsers)
         self.args = vars(self.parser.parse_args())
