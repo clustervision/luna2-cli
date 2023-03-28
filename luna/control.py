@@ -10,7 +10,7 @@ __license__     = "GPL"
 __version__     = "2.0"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
-__status__      = "Production"
+__status__      = "Development"
 
 from multiprocessing import Process
 from termcolor import colored
@@ -40,7 +40,7 @@ class Control():
                     self.power_toggle()
                 else:
                     Helper().show_error("Not a valid option.")
-        if parser and subparsers:
+        else:
             self.getarguments(parser, subparsers)
 
 

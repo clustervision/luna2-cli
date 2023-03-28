@@ -36,7 +36,7 @@ class Secrets(object):
                 call(self)
             else:
                 Helper().show_error(f"Kindly choose from {actions}.")
-        if parser and subparsers:
+        else:
             self.getarguments(parser, subparsers)
 
 

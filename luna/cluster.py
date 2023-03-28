@@ -36,7 +36,7 @@ class Cluster():
                 self.change_cluster()
             else:
                 Helper().show_error("If you want to change then use change as an argument.")
-        if parser and subparsers:
+        else:
             self.getarguments(parser, subparsers)
 
     def getarguments(self, parser, subparsers):

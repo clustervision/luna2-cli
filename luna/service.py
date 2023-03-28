@@ -33,7 +33,7 @@ class Service():
             if self.args["service"] and self.args["action"]:
                 self.logger.debug(f'Arguments Supplied => {self.args}')
                 self.service_action()
-        if parser and subparsers:
+        else:
             self.getarguments(parser, subparsers)
 
 

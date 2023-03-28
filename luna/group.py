@@ -10,7 +10,7 @@ __license__     = "GPL"
 __version__     = "2.0"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
-__status__      = "Production"
+__status__      = "Development"
 
 from operator import methodcaller
 from luna.utils.helper import Helper
@@ -31,20 +31,16 @@ class Group():
         self.interface = "groupinterface"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            if self.args["action"] in ["list", "show", "add", "change", "rename", "remove", "clone"]:
-                call = methodcaller(f'{self.args["action"]}_group')
+            actions = ["list", "show", "add", "change", "rename", "remove", "clone", "listinterface", "showinterface", "changeinterface", "removeinterface"]
+            if self.args["action"] in actions:
+                if 'interface' in self.args["action"]:
+                    call = methodcaller(f'{self.args["action"]}')
+                else:
+                    call = methodcaller(f'{self.args["action"]}_group')
                 call(self)
-            elif self.args["action"] == "interfaces":
-                self.list_interfaces()
-            elif self.args["action"] == "interface":
-                self.show_interface()
-            elif self.args["action"] == "changeinterface":
-                self.change_interface()
-            elif self.args["action"] == "removeinterface":
-                self.remove_interface()
             else:
-                Helper().show_error("Not a valid option.")
-        if parser and subparsers:
+                Helper().show_error(f"Kindly choose from {actions}.")
+        else:
             self.getarguments(parser, subparsers)
 
 
@@ -128,10 +124,10 @@ class Group():
         group_remove = group_args.add_parser('remove', help='Remove Group')
         group_remove.add_argument('name', help='Name of the Group')
         group_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
-        group_interfaces = group_args.add_parser('interfaces', help='List Group Interfaces')
+        group_interfaces = group_args.add_parser('listinterface', help='List Group Interfaces')
         group_interfaces.add_argument('name', help='Name of the Group')
         Helper().common_list_args(group_interfaces)
-        group_interface = group_args.add_parser('interface', help='Show Group Interface')
+        group_interface = group_args.add_parser('showinterface', help='Show Group Interface')
         group_interface.add_argument('name', help='Name of the Group')
         group_interface.add_argument('interface', help='Name of the Group Interface')
         Helper().common_list_args(group_interface)
@@ -308,7 +304,7 @@ class Group():
             response = Rest().post_clone(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
             if response.status_code == 201:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newgroupname"]}.')
+                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} clone as {payload["newgroupname"]}.')
             else:
                 Helper().show_error(f'HTTP Error Code {response.status_code}.')
                 Helper().show_error(f'HTTP Error {response.content}.')
@@ -317,7 +313,7 @@ class Group():
         return True
 
 
-    def list_interfaces(self):
+    def listinterface(self):
         """
         Method to list a Group interfaces in Luna Configuration.
         """
@@ -342,7 +338,7 @@ class Group():
         return response
 
 
-    def show_interface(self):
+    def showinterface(self):
         """
         Method to list a Group interfaces in Luna Configuration.
         """
@@ -367,7 +363,7 @@ class Group():
         return response
 
 
-    def change_interface(self):
+    def changeinterface(self):
         """
         Method to change a Group interfaces in Luna Configuration.
         """
@@ -394,7 +390,7 @@ class Group():
         return response
 
 
-    def remove_interface(self):
+    def removeinterface(self):
         """
         Method to list a Group interfaces in Luna Configuration.
         """

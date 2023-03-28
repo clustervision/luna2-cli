@@ -91,7 +91,7 @@ class Cli():
                 call = globals()["OtherDev"]
             else:
                 call = globals()[self.args["command"].capitalize()]
-            call(self.args)
+            call(self.args, self.parser, self.subparsers)
         else:
             self.parser.print_help(sys.stderr)
             sys.exit(1)

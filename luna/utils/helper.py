@@ -13,7 +13,6 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Production"
 
 import os
-# import time
 from time import time, sleep
 import base64
 import binascii
@@ -86,7 +85,6 @@ class Helper():
         """
         raw_data = self.choice_to_bool(raw_data)
         payload = {k: v for k, v in raw_data.items() if v is not None}
-        print(payload)
         editor_keys = ['content', 'comment', 'prescript', 'partscript', 'postscript']
         for enkey in editor_keys:
             content = nested_lookup(enkey, payload)
@@ -113,7 +111,7 @@ class Helper():
             filename = f'/tmp/lunatmp-{random_path}/{payload["name"]}{key}'
         else:
             filename = f'/tmp/lunatmp-{random_path}/{key}'
-        open(filename, "x")
+        open(filename, "x", encoding='utf-8')
         subprocess.call([editor, filename])
         with open(filename, 'rb') as file_data:
             response = self.base64_encode(file_data.read())
@@ -170,33 +168,6 @@ class Helper():
         return response
 
 
-    def name_validate(self, count=None, table=None,  name_list=None):
-        """
-        Recursive method to validate the name.
-        """
-        if count == 3:
-            self.show_error("You have lost all 3 attempts, Please try again.")
-        else:
-            name = Inquiry().ask_text(f"{table} Name:")
-            if name in name_list:
-                self.show_error(f'{table} {name} is already present, Kindly use a new name.')
-                count = count + 1
-                return self.name_validate(count, table, name_list)
-            else:
-                return name
-
-
-    def network_list(self):
-        """
-        This method will return the available network list.
-        """
-        network = []
-        self.get_list = Rest().get_data("network")
-        if self.get_list:
-            network = list(self.get_list["config"]["network"].keys())
-        return network
-
-
     def get_hostlist(self, rawhosts=None):
         """
         This method will perform power option on node.
@@ -220,44 +191,12 @@ class Helper():
         return parser
 
 
-    def common_add_args(self, parser=None, name=None):
-        """
-        This method will provide the common add, update, clone, and rename arguments..
-        """
-        parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
-        parser.add_argument('-i', '--init', action='store_true', help='Interactive Mode')
-        parser.add_argument('-n', '--name', help=f'Name of the {name}')
-        return parser
-
-
     def common_control_args(self, parser=None):
         """
         This method will provide the control arguments..
         """
         parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         parser.add_argument('node', help='Node Name or Node Hostlist')
-        return parser
-
-
-    def common_group_node_args(self, parser=None):
-        """
-        This method will provide the control arguments..
-        """
-        parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
-        parser.add_argument('-part', '--partscript', action='store_true', help='Part Script')
-        parser.add_argument('-post', '--postscript', action='store_true', help='Post Script')
-        parser.add_argument('-pi', '--provision_interface', help='Provision Interface')
-        parser.add_argument('-pm', '--provision_method', help='Provision Method')
-        parser.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        parser.add_argument('-o', '--osimage', help='OS Image Name')
-        parser.add_argument('-b', '--setupbmc', action='store_true', help='BMC Setup')
-        parser.add_argument('-nb', '--netboot', help='Network Boot')
-        parser.add_argument('-li', '--localinstall', help='Local Install')
-        parser.add_argument('-bm', '--bootmenu', help='Boot Menu')
-        parser.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        parser.add_argument('-if', '--interface', action='append', help='Interface Name')
-        parser.add_argument('-N', '--network', action='append', help='Interface Network Name')
-        parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         return parser
 
 
@@ -270,18 +209,6 @@ class Helper():
         for act in actions:
             parser_args = parser.add_parser(act, help=f'{act.capitalize()} {service} Service')
             parser_args.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
-        return parser
-
-
-    def common_switch_device_args(self, parser=None, name=None):
-        """
-        This method will provide the common add, update and clone aguments
-        for switch and otherdevice.
-        """
-        parser.add_argument('-N', '--network', help=f'Network for {name}')
-        parser.add_argument('-ip', '--ipaddress', help=f'IP Address for {name}')
-        parser.add_argument('-m', '--macaddress', help=f'MAC Address for {name}')
-        parser.add_argument('-c', '--comment', action='store_true', help=f'Comment for {name}')
         return parser
 
 
@@ -388,64 +315,6 @@ class Helper():
             return False
 
 
-    def add_record(self, table=None, data=None):
-        """
-        This method will add a new records into
-        the Luna 2 Daemon Database
-        """
-        ## Call Rest API Class method
-        print(table)
-        print(data)
-        return True
-
-
-    def delete_record(self, table=None, data=None):
-        """
-        This method will delete a records from
-        the Luna 2 Daemon Database
-        """
-        ## Call Rest API Class method
-        print(table)
-        print(data)
-        return True
-
-
-    def update_record(self, table=None, data=None, where=None):
-        """
-        This method will update a records in
-        the Luna 2 Daemon Database
-        """
-        ## Call Rest API Class method
-        print(table)
-        print(data)
-        print(where)
-        return True
-
-
-    def rename_record(self, table=None, name=None):
-        """
-        This method will rename a records in
-        the Luna 2 Daemon Database
-        """
-        ## Call Rest API Class method
-        print(table)
-        print(name)
-        return True
-
-
-    def clone_record(self, table=None, source=None, destination=None, data=None):
-        """
-        This method will clone a records in
-        the Luna 2 Daemon Database
-        """
-        ## Call Rest API Class method
-        print(table)
-        print(source)
-        print(destination)
-        print(data)
-        return True
-
-
     def show_error(self, message=None):
         """
         This method will add a new records into
@@ -510,35 +379,6 @@ class Helper():
         return fields, rows
 
 
-    def list_to_dict(self, lst):
-        """
-        This method will iterate the list of strings
-        which have colon(:) for split purpose.
-        """
-        self.logger.debug(f'List to Convert => {lst}')
-        response = []
-        dictionary = {}
-        for keyval in lst:
-            if '|' in keyval:
-                keyvalspl = keyval.split('|')
-                self.logger.debug(f'Length After Split with | => {len(keyvalspl)}')
-                if len(keyvalspl) == 4:
-                    if keyvalspl[0] != '' and keyvalspl[1] != '' and keyvalspl[2] != '' and keyvalspl[3] != '':
-                        dictionary['interface'] = keyvalspl[0]
-                        dictionary['network'] = keyvalspl[1]
-                        dictionary['ipaddress'] = keyvalspl[2]
-                        dictionary['macaddress'] = keyvalspl[3]
-                elif len(keyvalspl) == 2:
-                    if keyvalspl[0] != '' and keyvalspl[1] != '':
-                        dictionary['interface'] = keyvalspl[0]
-                        dictionary['network'] = keyvalspl[1]
-            if dictionary:
-                response.append(dictionary)
-                dictionary = {}
-        self.logger.debug(f'Dict after Convert => {response}')
-        return response
-
-
     def filter_data(self, table=None, data=None):
         """
         This method will generate the data as for
@@ -557,7 +397,8 @@ class Helper():
                         newlist = []
                         for internal in data[ele][fieldkey]:
                             for internal_val in internal:
-                                self.logger.debug(f'Key => {internal_val} and Value => {internal[internal_val]}')
+                                self.logger.debug(f'Key => {internal_val}')
+                                self.logger.debug(f'Value => {internal[internal_val]}')
                                 inkey = colored(internal_val, 'cyan')
                                 inval = colored(internal[internal_val], 'magenta')
                                 newlist.append(f'{inkey} = {inval} ')
@@ -580,49 +421,6 @@ class Helper():
         fields = coloredfields
         rows = np.array(rows).T.tolist()
         # Adding Serial Numbers to the dataset
-        fields.insert(0, colored('S. No.', 'yellow', attrs=['bold']))
-        num = 1
-        for outer in rows:
-            outer.insert(0, colored(num, 'blue'))
-            num = num + 1
-        # Adding Serial Numbers to the dataset
-        return fields, rows
-
-
-    def get_cluster(self, table=None, data=None):
-        """
-        This method will filter data for cluster
-        """
-        self.logger.debug(f'Table => {table} and Data => {data}')
-        fields, rows, coloredfields = [], [], []
-        fields = self.filter_columns(table)
-        self.logger.debug(f'Fields => {fields}')
-        for key in data:
-            if isinstance(data[key], dict):
-                newrow = []
-                for fieldkey in fields:
-                    if fieldkey in data[key]:
-                        self.logger.debug(f'Value => {data[key][fieldkey]}')
-                        if data[key][fieldkey] is True:
-                            newrow.append(colored(data[key][fieldkey], 'green'))
-                        elif data[key][fieldkey] is False:
-                            newrow.append(colored(data[key][fieldkey], 'red'))
-                        else:
-                            newrow.append(colored(data[key][fieldkey], 'blue'))
-                    elif fieldkey in data:
-                        self.logger.debug(f'Value => {data[fieldkey]}')
-                        if data[fieldkey] is True:
-                            newrow.append(colored(data[fieldkey], 'green'))
-                        elif data[fieldkey] is False:
-                            newrow.append(colored(data[fieldkey], 'red'))
-                        else:
-                            newrow.append(colored(data[fieldkey], 'blue'))
-                rows.append(newrow)
-                newrow = []
-        for newfield in fields:
-            coloredfields.append(colored(newfield, 'yellow', attrs=['bold']))
-        fields = coloredfields
-        # # Adding Serial Numbers to the dataset
         fields.insert(0, colored('S. No.', 'yellow', attrs=['bold']))
         num = 1
         for outer in rows:
@@ -763,7 +561,8 @@ class Helper():
                 newlist = []
                 for internal in key[1]:
                     for internal_val in internal:
-                        self.logger.debug(f'Key => {internal_val} and Value => {internal[internal_val]}')
+                        self.logger.debug(f'Key => {internal_val}')
+                        self.logger.debug(f'Value => {internal[internal_val]}')
                         inkey = colored(internal_val, 'cyan')
                         inval = colored(internal[internal_val], 'magenta')
                         newlist.append(f'{inkey} = {inval} ')
@@ -790,24 +589,6 @@ class Helper():
         return fields, rows
 
 
-    # def filter_keys(self, dictionary=None):
-    #     """
-    #     This method will arrange all key value into a
-    #     single dictionary with a recursive call.
-    #     """
-    #     response = {}
-    #     if dictionary:
-    #         def recursive_items(dictionary):
-    #             for key, value in dictionary.items():
-    #                 if type(value) is dict:
-    #                     yield from recursive_items(value)
-    #                 else:
-    #                     yield (key, value)
-    #         for key, value in recursive_items(dictionary):
-    #             response[key] = value
-    #     return response
-
-
     def filter_columns(self, table=None):
         """
         This method remove the unnessasry fields from
@@ -819,7 +600,7 @@ class Helper():
             'cluster': ['name', 'hostname','ipaddress', 'technical_contacts', 'provision_method', 'security'],
             'controller': ['id', 'clusterid', 'hostname', 'status', 'ipaddress', 'serverport'],
             'group': ['name', 'bmcsetup', 'domain', 'provisionfallback', 'interfaces'],
-            'groupinterface': ['interfacename', 'network'],
+            'groupinterface': ['interface', 'network'],
             'groupsecrets': ['Group', 'name', 'path', 'content'],
             'ipaddress': ['id', 'ipaddress', 'subnet', 'network'],
             'monitor': ['id', 'nodeid', 'status', 'state'],
@@ -864,160 +645,4 @@ class Helper():
             'network': ['name', 'network', 'ns_hostname', 'ns_ip', 'ntp_server', 'gateway','dhcp','dhcp_range_begin','dhcp_range_end','comment']
         }
         response = list(static[table])
-        return response
-
-
-    def default_values(self, table=None, key=None):
-        """
-        This method will provide the all default
-        values for each key of every table from luna
-        database. It will be called from the getarguments
-        method for the default values.
-        """
-        response = False
-        database = {
-            'cluster': {
-                'name': True,
-                'ns_ip': True,
-                'ntp_server': True,
-                'provision_fallback': 'http',
-                'provision_method': 'torrent',
-                'security': 1,
-                'technical_contacts': ['root@localhost'],
-                'user': True,
-                'debug': False
-            },
-            'controller': {
-                'hostname': True,
-                'ipaddress': True,
-                'luna_config': True,
-                'srverport': True,
-                'status': True
-            },
-            'node': {
-                'name': True,
-                'hostname': True,
-                'group': True,
-                'osimage': True,
-                'interfaces': True,
-                'localboot': True,
-                'macaddress': True,
-                'switch': True,
-                'switchport': True,
-                'setupbmc': True,
-                'status': True,
-                'service': True,
-                'prescript': True,
-                'partscript': True,
-                'postscript': True,
-                'netboot': True,
-                'localinstall': True,
-                'bootmenu': True,
-                'provisionmethod': True,
-                'provisioninterface': True,
-                'provisionfallback': True,
-                'tpmuuid': True,
-                'tpmpubkey': True,
-                'tpmsha256': True, 
-                'unmanaged_bmc_users': True,
-                'comment': True
-            },
-            'group': {
-                'name': True,
-                'bmcsetup': True,
-                'bmcsetupname': True,
-                'domain': True,
-                'interfaces': True,
-                'osimage': True,
-                'prescript': True,
-                'partscript': True,
-                'postscript': True,
-                'netboot': True,
-                'localinstall': True,
-                'bootmenu': True,
-                'provisionmethod': True,
-                'provisioninterface': True,
-                'provisionfallback': True,
-                'unmanaged_bmc_users': True,
-                'comment': True
-            },
-            'bmcsetup': {
-                'name': True,
-                'userid': True,
-                'username': True,
-                'password': True,
-                'netchannel': True,
-                'mgmtchannel': True,
-                'unmanaged_bmc_users': True,
-                'comment': True
-            },
-            'osimage': {
-                'name': True,
-                'dracutmodules': True,
-                'grab_filesystems': True,
-                'grab_exclude': True,
-                'initrdfile': True,
-                'kernelversion': True,
-                'kernelfile': True,
-                'kernelmodules': True,
-                'kerneloptions': True,
-                'path': True,
-                'tarball': True,
-                'torrent': True,
-                'distribution': True,
-                'comment': True
-            },
-            'switch': {
-                'name': True,
-                'network': True,
-                'oid': True,
-                'read': True,
-                'rw': True,
-                'ipaddress': True,
-                'comment': True
-            },
-            'otherdev': {
-                'name': True,
-                'network': True,
-                'ipaddress': True,
-                'macaddress': True,
-                'comment': True
-            },
-            'nodeinterface': {
-                'interface': True,
-                'ipaddress': True,
-                'macaddress': True,
-                'network': True
-            },
-            'groupinterface': {
-                'interfacename': True,
-                'network': True,
-                'ipaddress': True
-            },
-            'groupsecrets': {
-                'Group': True,
-                'name': True,
-                'path': True,
-                'content': True
-            },
-            'nodesecrets': {
-                'Node': True,
-                'name': True,
-                'path': True,
-                'content': True
-            },
-            'network': {
-                'name': True,
-                'network': True,
-                'ns_hostname': True,
-                'ns_ip': True,
-                'ntp_server': True,
-                'gateway': True,
-                'dhcp': True,
-                'dhcp_range_begin': True,
-                'dhcp_range_end': True,
-                'comment': True
-            }
-        }
-        response = database[table][key]
         return response
