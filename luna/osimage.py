@@ -10,7 +10,7 @@ __license__     = "GPL"
 __version__     = "2.0"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
-__status__      = "Production"
+__status__      = "Development"
 
 from operator import methodcaller
 from time import sleep
@@ -22,8 +22,8 @@ from luna.utils.log import Log
 
 class OSImage():
     """
-    OSImage Class responsible to show, list,
-    add, remove information for the osimage
+    OSImage Class responsible to show, list, add, change,
+    remove, rename, clone, pack and kernel update for the OSImage.
     """
 
     def __init__(self, args=None, parser=None, subparsers=None):
@@ -37,8 +37,8 @@ class OSImage():
                 call = methodcaller(f'{self.args["action"]}_osimage')
                 call(self)
             else:
-                Helper().show_error("Not a valid option.")
-        if parser and subparsers:
+                Helper().show_error(f"Kindly choose from {actions}.")
+        else:
             self.getarguments(parser, subparsers)
 
 
@@ -52,10 +52,10 @@ class OSImage():
         osimage_list = osimage_args.add_parser('list', help='List OSImages')
         Helper().common_list_args(osimage_list)
         osimage_show = osimage_args.add_parser('show', help='Show a OSImage')
-        osimage_show.add_argument('name', help='Name of the OSImage')
+        osimage_show.add_argument('name', help='OSImage Name')
         Helper().common_list_args(osimage_show)
         osimage_add = osimage_args.add_parser('add', help='Add OSImage')
-        osimage_add.add_argument('name', help='Name of the OSImage')
+        osimage_add.add_argument('name', help='OSImage Name')
         osimage_add.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
         osimage_add.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
         osimage_add.add_argument('-ge', '--grab_exclude', help='Grab Excludes')
@@ -67,11 +67,11 @@ class OSImage():
         osimage_add.add_argument('-p', '--path', required=True, help='Path of image')
         osimage_add.add_argument('-tar', '--tarball', help='Tarball UUID')
         osimage_add.add_argument('-t', '--torrent', help='Torrent UUID')
-        osimage_add.add_argument('-D', '--distribution', help='Distribution From')
-        osimage_add.add_argument('-c', '--comment', action='store_true', help='Comment for OSImage')
+        osimage_add.add_argument('-D', '--distribution', help='Distribution')
+        osimage_add.add_argument('-c', '--comment', action='store_true', help='Comment')
         osimage_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         osimage_change = osimage_args.add_parser('change', help='Change OSImage')
-        osimage_change.add_argument('name', help='Name of the OSImage')
+        osimage_change.add_argument('name', help='OSImage Name')
         osimage_change.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
         osimage_change.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
         osimage_change.add_argument('-ge', '--grab_exclude', help='Grab Excludes')
@@ -83,12 +83,12 @@ class OSImage():
         osimage_change.add_argument('-p', '--path', help='Path of image')
         osimage_change.add_argument('-tar', '--tarball', help='Tarball UUID')
         osimage_change.add_argument('-t', '--torrent', help='Torrent UUID')
-        osimage_change.add_argument('-D', '--distribution', default='redhat', help='Distribution From')
-        osimage_change.add_argument('-c', '--comment', action='store_true', help='Comment for OSImage')
+        osimage_change.add_argument('-D', '--distribution', help='Distribution')
+        osimage_change.add_argument('-c', '--comment', action='store_true', help='Comment')
         osimage_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         osimage_clone = osimage_args.add_parser('clone', help='Clone OSImage')
-        osimage_clone.add_argument('name', help='Name of the OSImage')
-        osimage_clone.add_argument('-nn', '--newosimage', help='New Name of the OSImage')
+        osimage_clone.add_argument('name', help='OSImage Name')
+        osimage_clone.add_argument('-nn', '--newosimage', help='New OSImage Name')
         osimage_clone.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
         osimage_clone.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
         osimage_clone.add_argument('-ge', '--grab_exclude', help='Grab Excludes')
@@ -100,12 +100,12 @@ class OSImage():
         osimage_clone.add_argument('-p', '--path', required=True, help='Path of image')
         osimage_clone.add_argument('-tar', '--tarball', help='Tarball UUID')
         osimage_clone.add_argument('-t', '--torrent', help='Torrent UUID')
-        osimage_clone.add_argument('-D', '--distribution', help='Distribution From')
-        osimage_clone.add_argument('-c', '--comment', action='store_true', help='Comment for OSImage')
+        osimage_clone.add_argument('-D', '--distribution', help='Distribution')
+        osimage_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
         osimage_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         osimage_rename = osimage_args.add_parser('rename', help='Rename OSImage')
-        osimage_rename.add_argument('name', help='Name of the OSImage')
-        osimage_rename.add_argument('newosimage', help='New Name of the OSImage')
+        osimage_rename.add_argument('name', help='OSImage Name')
+        osimage_rename.add_argument('newosimage', help='New OSImage Name')
         osimage_rename.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         osimage_remove = osimage_args.add_parser('remove', help='Remove OSImage')
         osimage_remove.add_argument('name', help='Name of the OS Image')
@@ -124,128 +124,113 @@ class OSImage():
 
     def list_osimage(self):
         """
-        Method to list all osimages from Luna Configuration.
+        This method list all osimages.
         """
         return Helper().get_list(self.table, self.args)
 
 
     def show_osimage(self):
         """
-        Method to show a osimage in Luna Configuration.
+        This method show a specific osimage.
         """
         return Helper().show_data(self.table, self.args)
 
 
     def add_osimage(self):
         """
-        Method to add new osimage in Luna Configuration.
+        This method add a osimage.
         """
-        payload = {}
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        payload = self.args
-        if payload:
-            request_data = {'config':{self.table:{payload['name']: payload}}}
-            self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_data(self.table, payload['name'], request_data)
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 201:
-                Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
+        payload = Helper().prepare_payload(self.args)
+        request_data = {'config':{self.table:{payload['name']: payload}}}
+        self.logger.debug(f'Payload => {request_data}')
+        response = Rest().post_data(self.table, payload['name'], request_data)
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 201:
+            Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
+        else:
+            Helper().show_error(f'HTTP Error Code {response.status_code}.')
+            Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
     def change_osimage(self):
         """
-        Method to change a osimage in Luna Configuration.
+        This method update a osimage.
         """
-        payload = {}
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        payload = self.args
         payload = Helper().prepare_payload(self.args)
-        if payload:
-            request_data = {'config':{self.table:{payload['name']: payload}}}
-            self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_data(self.table, payload['name'], request_data)
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 204:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
+        request_data = {'config':{self.table:{payload['name']: payload}}}
+        self.logger.debug(f'Payload => {request_data}')
+        response = Rest().post_data(self.table, payload['name'], request_data)
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 204:
+            Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
         else:
-            Helper().show_error('Nothing to update.')
+            Helper().show_error(f'HTTP Error Code {response.status_code}.')
+            Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
     def rename_osimage(self):
         """
-        Method to rename a osimage in Luna Configuration.
+        This method rename a osimage.
         """
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        payload = self.args
-        if payload:
-            request_data = {'config':{self.table:{payload['name']: payload}}}
-            self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_data(self.table, payload['name'], request_data)
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 204:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newosimage"]}.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
+        request_data = {'config':{self.table:{self.args['name']: self.args}}}
+        self.logger.debug(f'Payload => {request_data}')
+        response = Rest().post_data(self.table, self.args['name'], request_data)
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 204:
+            Helper().show_success(f'{self.args["name"]} renamed to {self.args["newosimage"]}.')
+        else:
+            Helper().show_error(f'HTTP Error Code {response.status_code}.')
+            Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
     def remove_osimage(self):
         """
-        Method to remove a osimage in Luna Configuration.
+        This method remove a osimage.
         """
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        payload = self.args
-        if payload:
-            self.logger.debug(f'Payload => {payload}')
-            response = Rest().get_delete(self.table, payload['name'])
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 204:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
+        self.logger.debug(f'Payload => {self.args}')
+        response = Rest().get_delete(self.table, self.args['name'])
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 204:
+            Helper().show_success(f'{self.table.capitalize()}, {self.args["name"]} is deleted.')
+        else:
+            Helper().show_error(f'HTTP Error Code {response.status_code}.')
+            Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
     def clone_osimage(self):
         """
-        Method to rename a osimage in Luna Configuration.
+        This method clone a osimage.
         """
-        payload = {}
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = Helper().prepare_payload(self.args)
-        if payload:
-            request_data = {'config':{self.table:{payload['name']: payload}}}
-            self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_clone(self.table, payload['name'], request_data)
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 201:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newosimage"]}.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
+        request_data = {'config':{self.table:{payload['name']: payload}}}
+        self.logger.debug(f'Payload => {request_data}')
+        response = Rest().post_clone(self.table, payload['name'], request_data)
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 201:
+            Helper().show_success(f'{payload["name"]} clone as {payload["newosimage"]}.')
         else:
-            Helper().show_error(f'Nothing to update in {payload["name"]}.')
+            Helper().show_error(f'HTTP Error Code {response.status_code}.')
+            Helper().show_error(f'HTTP Error {response.content}.')
         return True
 
 
     def pack_osimage(self):
         """
-        Method to pack the OS Image
+        This method pack a osimage.
         """
         process1 = Process(target=Helper().loader, args=("OS Image Packing...",))
         process1.start()
@@ -274,7 +259,7 @@ class OSImage():
                         return False
                 response = dig_packing_status(uri)
         if response:
-            print(colored(f'[========] OS Image {self.args["name"]} Packed.', 'green', attrs=['bold']))
+            print(colored(f'[========] Image {self.args["name"]} Packed.', 'green', attrs=['bold']))
         else:
             print(colored("[X ERROR X] Try Again!", 'red', attrs=['bold']))
         return response
@@ -282,22 +267,20 @@ class OSImage():
 
     def kernel_osimage(self):
         """
-        Method to change kernel version from an
-        OS Image
+        This method change kernel version and pack
+        a osimage again.
         """
-        payload = {}
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = Helper().prepare_payload(self.args)
-        if payload:
-            request_data = {'config':{self.table:{payload['name']: payload}}}
-            self.logger.debug(f'Payload => {request_data}')
-            self.logger.debug(f'Change Kernel URI => {payload["name"]}/_kernel')
-            response = Rest().post_data(self.table, payload['name']+'/_kernel', request_data)
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 204:
-                Helper().show_success(f'OS Image {self.args["name"]} Kernel updated.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
+        request_data = {'config':{self.table:{payload['name']: payload}}}
+        self.logger.debug(f'Payload => {request_data}')
+        self.logger.debug(f'Change Kernel URI => {payload["name"]}/_kernel')
+        response = Rest().post_data(self.table, payload['name']+'/_kernel', request_data)
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 204:
+            Helper().show_success(f'OS Image {self.args["name"]} Kernel updated.')
+        else:
+            Helper().show_error(f'HTTP Error Code {response.status_code}.')
+            Helper().show_error(f'HTTP Error {response.content}.')
         return True

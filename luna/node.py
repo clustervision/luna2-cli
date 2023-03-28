@@ -31,21 +31,16 @@ class Node():
         self.interface = "nodeinterface"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            if self.args["action"] in ["list", "show", "add", "change", "rename", "remove", "clone"]:
-                call = methodcaller(f'{self.args["action"]}_node')
+            actions = ["list", "show", "add", "change", "rename", "remove", "clone", "listinterface", "showinterface", "changeinterface", "removeinterface"]
+            if self.args["action"] in actions:
+                if 'interface' in self.args["action"]:
+                    call = methodcaller(f'{self.args["action"]}')
+                else:
+                    call = methodcaller(f'{self.args["action"]}_node')
                 call(self)
-
-            elif self.args["action"] == "interfaces":
-                self.list_interfaces()
-            elif self.args["action"] == "interface":
-                self.show_interface()
-            elif self.args["action"] == "changeinterface":
-                self.change_interface()
-            elif self.args["action"] == "removeinterface":
-                self.remove_interface()
             else:
-                Helper().show_error("Not a valid option.")
-        if parser and subparsers:
+                Helper().show_error(f"Kindly choose from {actions}.")
+        else:
             self.getarguments(parser, subparsers)
 
 
@@ -164,10 +159,10 @@ class Node():
         node_remove = node_args.add_parser('remove', help='Remove Node')
         node_remove.add_argument('name', help='Name of the Node')
         node_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
-        node_interfaces = node_args.add_parser('interfaces', help='List Node Interfaces')
+        node_interfaces = node_args.add_parser('listinterface', help='List Node Interfaces')
         node_interfaces.add_argument('name', help='Name of the Node')
         Helper().common_list_args(node_interfaces)
-        node_interface = node_args.add_parser('interface', help='Show Node Interface')
+        node_interface = node_args.add_parser('showinterface', help='Show Node Interface')
         node_interface.add_argument('name', help='Name of the Node')
         node_interface.add_argument('interface', help='Name of the Node Interface')
         Helper().common_list_args(node_interface)
@@ -346,7 +341,7 @@ class Node():
             response = Rest().post_clone(self.table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
             if response.status_code == 201:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} cloneed as {payload["newnodename"]}.')
+                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} clone as {payload["newnodename"]}.')
             else:
                 Helper().show_error(f'HTTP Error Code {response.status_code}.')
                 Helper().show_error(f'HTTP Error {response.content}.')
@@ -355,7 +350,7 @@ class Node():
         return True
 
 
-    def list_interfaces(self):
+    def listinterface(self):
         """
         Method to list a node interfaces in Luna Configuration.
         """
@@ -380,7 +375,7 @@ class Node():
         return True
 
 
-    def show_interface(self):
+    def showinterface(self):
         """
         Method to show a node interfaces in Luna Configuration.
         """

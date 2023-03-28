@@ -19,8 +19,8 @@ from luna.utils.log import Log
 
 class Switch():
     """
-    Switch Class responsible to show, list,
-    add, remove information for the Switch
+    Switch Class responsible to show, list, add, change,
+    remove, rename and clone information for the Switch.
     """
 
     def __init__(self, args=None, parser=None, subparsers=None):
@@ -35,7 +35,7 @@ class Switch():
                 call(self)
             else:
                 Helper().show_error(f"Kindly choose from {actions}.")
-        if parser and subparsers:
+        else:
             self.getarguments(parser, subparsers)
 
 
@@ -49,45 +49,45 @@ class Switch():
         switch_list = switch_args.add_parser('list', help='List Switch')
         Helper().common_list_args(switch_list)
         switch_show = switch_args.add_parser('show', help='Show Switch')
-        switch_show.add_argument('name', help='Name of the Switch')
+        switch_show.add_argument('name', help='Switch Name')
         Helper().common_list_args(switch_show)
         switch_add = switch_args.add_parser('add', help='Add Switch')
-        switch_add.add_argument('name', help='Name of the Switch')
-        switch_add.add_argument('-N', '--network', required=True, help='Network for Switch')
-        switch_add.add_argument('-ip', '--ipaddress', required=True, help='IP Address for Switch')
-        switch_add.add_argument('-m', '--macaddress', help='MAC Address for Switch')
+        switch_add.add_argument('name', help='Switch Name')
+        switch_add.add_argument('-N', '--network', required=True, help='Network')
+        switch_add.add_argument('-ip', '--ipaddress', required=True, help='IP Address')
+        switch_add.add_argument('-m', '--macaddress', help='MAC Address')
         switch_add.add_argument('-r', '--read', help='Read community')
         switch_add.add_argument('-w', '--rw', help='Write community')
-        switch_add.add_argument('-o', '--oid', help='OID of the Switch')
-        switch_add.add_argument('-c', '--comment', action='store_true', help='Comment for Switch')
+        switch_add.add_argument('-o', '--oid', help='OID')
+        switch_add.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         switch_change = switch_args.add_parser('change', help='Change Switch')
-        switch_change.add_argument('name', help='Name of the Switch')
-        switch_change.add_argument('-N', '--network', help='Network for Switch')
-        switch_change.add_argument('-ip', '--ipaddress', help='IP Address for Switch')
-        switch_change.add_argument('-m', '--macaddress', help='MAC Address for Switch')
+        switch_change.add_argument('name', help='Switch Name')
+        switch_change.add_argument('-N', '--network', help='Network')
+        switch_change.add_argument('-ip', '--ipaddress', help='IP Address')
+        switch_change.add_argument('-m', '--macaddress', help='MAC Address')
         switch_change.add_argument('-r', '--read', help='Read community')
         switch_change.add_argument('-w', '--rw', help='Write community')
-        switch_change.add_argument('-o', '--oid', help='OID of the Switch')
+        switch_change.add_argument('-o', '--oid', help='OID')
         switch_change.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         switch_clone = switch_args.add_parser('clone', help='Clone Switch')
-        switch_clone.add_argument('name', help='Name of the Switch')
-        switch_clone.add_argument('newswitchname', help='New name of the Switch')
-        switch_clone.add_argument('-N', '--network', required=True, help='Network for Switch')
-        switch_clone.add_argument('-ip', '--ipaddress', required=True, help='IP Address for Switch')
-        switch_clone.add_argument('-m', '--macaddress', help='MAC Address for Switch')
+        switch_clone.add_argument('name', help='Switch Name')
+        switch_clone.add_argument('newswitchname', help='New Switch Name')
+        switch_clone.add_argument('-N', '--network', required=True, help='Network')
+        switch_clone.add_argument('-ip', '--ipaddress', required=True, help='IP Address')
+        switch_clone.add_argument('-m', '--macaddress', help='MAC Address')
         switch_clone.add_argument('-r', '--read', help='Read community')
         switch_clone.add_argument('-w', '--rw', help='Write community')
-        switch_clone.add_argument('-o', '--oid', help='OID of the Switch')
-        switch_clone.add_argument('-c', '--comment', action='store_true', help='Comment for Switch')
+        switch_clone.add_argument('-o', '--oid', help='OID')
+        switch_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         switch_rename = switch_args.add_parser('rename', help='Rename Switch')
-        switch_rename.add_argument('name', help='Name of the Switch')
-        switch_rename.add_argument('newswitchname', help='New name of the Switch')
+        switch_rename.add_argument('name', help='Switch Name')
+        switch_rename.add_argument('newswitchname', help='New Switch Name')
         switch_rename.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         switch_remove = switch_args.add_parser('remove', help='Remove Switch')
-        switch_remove.add_argument('name', help='Name of the Switch')
+        switch_remove.add_argument('name', help='Switch Name')
         switch_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         return parser
 
