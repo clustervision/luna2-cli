@@ -154,9 +154,9 @@ class Helper():
         self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config'][table][args["name"]]
+            data = Helper().prepare_json(data)
             if args['raw']:
-                json_data = Helper().prepare_json(data)
-                response = Presenter().show_json(json_data)
+                response = Presenter().show_json(data)
             else:
                 fields, rows  = self.filter_data_col(table, data)
                 self.logger.debug(f'Fields => {fields}')
@@ -166,6 +166,99 @@ class Helper():
         else:
             response = self.show_error(f'{args["name"]} is not found in {table}.')
         return response
+
+
+    def add_record(self, table=None, data=None):
+        """
+        This method will add a new record.
+        """
+        for remove in ['verbose', 'command', 'action']:
+            data.pop(remove, None)
+        payload = self.prepare_payload(data)
+        request_data = {'config':{table:{payload['name']: payload}}}
+        self.logger.debug(f'Payload => {request_data}')
+        response = Rest().post_data(table, payload['name'], request_data)
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 201:
+            self.show_success(f'New {table.capitalize()}, {payload["name"]} created.')
+        else:
+            self.show_error(f'HTTP Error Code {response.status_code}.')
+            self.show_error(f'HTTP Error {response.content}.')
+        return True
+
+
+    def update_record(self, table=None, data=None):
+        """
+        This method will update a record.
+        """
+        for remove in ['verbose', 'command', 'action']:
+            data.pop(remove, None)
+        payload = self.prepare_payload(data)
+        request_data = {'config':{table:{payload['name']: payload}}}
+        self.logger.debug(f'Payload => {request_data}')
+        response = Rest().post_data(table, payload['name'], request_data)
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 204:
+            self.show_success(f'{table.capitalize()}, {payload["name"]} updated.')
+        else:
+            self.show_error(f'HTTP Error Code {response.status_code}.')
+            self.show_error(f'HTTP Error {response.content}.')
+        return True
+
+
+    def delete_record(self, table=None, data=None):
+        """
+        This method will delete a record.
+        """
+        for remove in ['verbose', 'command', 'action']:
+            data.pop(remove, None)
+        self.logger.debug(f'Payload => {data}')
+        response = Rest().get_delete(table, data['name'])
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 204:
+            self.show_success(f'{table.capitalize()}, {data["name"]} is deleted.')
+        else:
+            self.show_error(f'HTTP Error Code {response.status_code}.')
+            self.show_error(f'HTTP Error {response.content}.')
+        return True
+
+
+    def rename_record(self, table=None, data=None, newname=None):
+        """
+        This method will rename a record.
+        """
+        for remove in ['verbose', 'command', 'action']:
+            data.pop(remove, None)
+        request_data = {'config':{table:{data['name']: data}}}
+        self.logger.debug(f'Payload => {request_data}')
+        response = Rest().post_data(table, data['name'], request_data)
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 204:
+            self.show_success(f'{data["name"]} renamed to {newname}.')
+        else:
+            self.show_error(f'HTTP Error Code {response.status_code}.')
+            self.show_error(f'HTTP Error {response.content}.')
+        return True
+
+
+    def clone_record(self, table=None, data=None, newname=None):
+        """
+        This method will clone a record.
+        """
+        for remove in ['verbose', 'command', 'action']:
+            data.pop(remove, None)
+        payload = self.prepare_payload(data)
+        request_data = {'config':{table:{payload['name']: payload}}}
+        self.logger.debug(f'Payload => {request_data}')
+        response = Rest().post_clone(table, payload['name'], request_data)
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 201:
+            self.show_success(f'{payload["name"]} cloneed as {newname}.')
+        else:
+            self.show_error(f'HTTP Error Code {response.status_code}.')
+            self.show_error(f'HTTP Error {response.content}.')
+        return True
+
 
 
     def get_hostlist(self, rawhosts=None):
@@ -436,7 +529,6 @@ class Helper():
         """
         try:
             if content is not None:
-                content = str(content).encode("utf-8")
                 content = base64.b64encode(content).decode("utf-8")
         except binascii.Error:
             self.logger.debug(f'Base64 Encode Error => {content}')
@@ -449,7 +541,8 @@ class Helper():
         """
         try:
             if content is not None:
-                content = base64.b64decode(content).decode("utf-8")
+                content = base64.b64decode(content)
+                content = content.decode("utf-8")
         except binascii.Error:
             self.logger.debug(f'Base64 Decode Error => {content}')
         return content
@@ -465,7 +558,7 @@ class Helper():
             if content:
                 content = self.base64_decode(content[0])
                 if content is not None:
-                    jsondata = nested_update(jsondata, key=enkey, value=content[:30]+'...')
+                    jsondata = nested_update(jsondata, key=enkey, value=content)
         return jsondata
 
 
@@ -518,7 +611,7 @@ class Helper():
                 newrow.append(colored(value['name'], 'blue'))
                 newrow.append(colored(value['path'], 'blue'))
                 content = self.base64_decode(value['content'])
-                newrow.append(colored(content[:30]+'...', 'blue'))
+                newrow.append(colored(content, 'blue'))
                 rows.append(newrow)
                 newrow = []
         for newfield in fields:
@@ -573,6 +666,8 @@ class Helper():
                 newlist = []
                 for internal in key[1]:
                     self.logger.debug(f'Key => {internal} and Value => {key[1][internal]}')
+                    print(f'Key => {internal}')
+                    print(f'Value => {key[1][internal]}')
                     inkey = colored(internal, 'cyan')
                     inval = colored(key[1][internal], 'magenta')
                     newlist.append(f'{inkey} = {inval} ')
