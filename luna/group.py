@@ -31,7 +31,7 @@ class Group():
         self.interface = "groupinterface"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "add", "change", "rename", "remove", "clone", "listinterface", "showinterface", "changeinterface", "removeinterface"]
+            actions = ["list", "show", "member", "add", "change", "rename", "remove", "clone", "listinterface", "showinterface", "changeinterface", "removeinterface"]
             if self.args["action"] in actions:
                 if 'interface' in self.args["action"]:
                     call = methodcaller(f'{self.args["action"]}')
@@ -56,6 +56,8 @@ class Group():
         group_show = group_args.add_parser('show', help='Show Group')
         group_show.add_argument('name', help='Name of the Group')
         Helper().common_list_args(group_show)
+        group_member = group_args.add_parser('member', help='Group Used by Nodes')
+        group_member.add_argument('name', help='Name of the Group')
         group_add = group_args.add_parser('add', help='Add Group')
         group_add.add_argument('name', help='Name of the Group')
         group_add.add_argument('-b', '--setupbmc', choices=Helper().boolean(), help='BMC Setup')
@@ -152,9 +154,17 @@ class Group():
 
     def show_group(self):
         """
-        Method to show a network in Luna Configuration.
+        Method to show a group in Luna Configuration.
         """
         return Helper().show_data(self.table, self.args)
+
+
+    def member_group(self):
+        """
+        This method will show all Nodes tied with the group.
+        """
+        print(f"Selected Group Name :: {self.args['name']}.")
+        print("Under Development :: Will Show all Nodes tied with the group.")
 
 
     def add_group(self):
