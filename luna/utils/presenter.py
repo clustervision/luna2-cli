@@ -10,7 +10,7 @@ __license__     = "GPL"
 __version__     = "2.0"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
-__status__      = "Production"
+__status__      = "Development"
 
 import json
 from prettytable import PrettyTable
