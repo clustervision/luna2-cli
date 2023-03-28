@@ -32,7 +32,7 @@ class OSImage():
         self.table = "osimage"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "add", "change", "rename", "clone", "remove", "pack", "kernel"]
+            actions = ["list", "show", "member", "add", "change", "rename", "clone", "remove", "pack", "kernel"]
             if self.args["action"] in actions:
                 call = methodcaller(f'{self.args["action"]}_osimage')
                 call(self)
@@ -54,6 +54,8 @@ class OSImage():
         osimage_show = osimage_args.add_parser('show', help='Show a OSImage')
         osimage_show.add_argument('name', help='OSImage Name')
         Helper().common_list_args(osimage_show)
+        osimage_member = osimage_args.add_parser('member', help='OS Image Used by Nodes')
+        osimage_member.add_argument('name', help='OS Image Name')
         osimage_add = osimage_args.add_parser('add', help='Add OSImage')
         osimage_add.add_argument('name', help='OSImage Name')
         osimage_add.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
@@ -134,6 +136,14 @@ class OSImage():
         This method show a specific osimage.
         """
         return Helper().show_data(self.table, self.args)
+
+
+    def member_osimage(self):
+        """
+        This method will show all Nodes boots with the OSimage.
+        """
+        print(f"Selected OS Image Name :: {self.args['name']}.")
+        print("Under Development :: Will Show all Nodes boots with the OS Image.")
 
 
     def add_osimage(self):
