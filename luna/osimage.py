@@ -140,92 +140,35 @@ class OSImage():
         """
         This method add a osimage.
         """
-        for remove in ['verbose', 'command', 'action']:
-            self.args.pop(remove, None)
-        payload = Helper().prepare_payload(self.args)
-        request_data = {'config':{self.table:{payload['name']: payload}}}
-        self.logger.debug(f'Payload => {request_data}')
-        response = Rest().post_data(self.table, payload['name'], request_data)
-        self.logger.debug(f'Response => {response}')
-        if response.status_code == 201:
-            Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
-        else:
-            Helper().show_error(f'HTTP Error Code {response.status_code}.')
-            Helper().show_error(f'HTTP Error {response.content}.')
-        return True
+        return Helper().add_record(self.table, self.args)
 
 
     def change_osimage(self):
         """
         This method update a osimage.
         """
-        for remove in ['verbose', 'command', 'action']:
-            self.args.pop(remove, None)
-        payload = Helper().prepare_payload(self.args)
-        request_data = {'config':{self.table:{payload['name']: payload}}}
-        self.logger.debug(f'Payload => {request_data}')
-        response = Rest().post_data(self.table, payload['name'], request_data)
-        self.logger.debug(f'Response => {response}')
-        if response.status_code == 204:
-            Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
-        else:
-            Helper().show_error(f'HTTP Error Code {response.status_code}.')
-            Helper().show_error(f'HTTP Error {response.content}.')
-        return True
+        return Helper().update_record(self.table, self.args)
 
 
     def rename_osimage(self):
         """
         This method rename a osimage.
         """
-        for remove in ['verbose', 'command', 'action']:
-            self.args.pop(remove, None)
-        request_data = {'config':{self.table:{self.args['name']: self.args}}}
-        self.logger.debug(f'Payload => {request_data}')
-        response = Rest().post_data(self.table, self.args['name'], request_data)
-        self.logger.debug(f'Response => {response}')
-        if response.status_code == 204:
-            Helper().show_success(f'{self.args["name"]} renamed to {self.args["newosimage"]}.')
-        else:
-            Helper().show_error(f'HTTP Error Code {response.status_code}.')
-            Helper().show_error(f'HTTP Error {response.content}.')
-        return True
+        return Helper().rename_record(self.table, self.args, self.args["newosimage"])
 
 
     def remove_osimage(self):
         """
         This method remove a osimage.
         """
-        for remove in ['verbose', 'command', 'action']:
-            self.args.pop(remove, None)
-        self.logger.debug(f'Payload => {self.args}')
-        response = Rest().get_delete(self.table, self.args['name'])
-        self.logger.debug(f'Response => {response}')
-        if response.status_code == 204:
-            Helper().show_success(f'{self.table.capitalize()}, {self.args["name"]} is deleted.')
-        else:
-            Helper().show_error(f'HTTP Error Code {response.status_code}.')
-            Helper().show_error(f'HTTP Error {response.content}.')
-        return True
+        return Helper().delete_record(self.table, self.args)
 
 
     def clone_osimage(self):
         """
         This method clone a osimage.
         """
-        for remove in ['verbose', 'command', 'action']:
-            self.args.pop(remove, None)
-        payload = Helper().prepare_payload(self.args)
-        request_data = {'config':{self.table:{payload['name']: payload}}}
-        self.logger.debug(f'Payload => {request_data}')
-        response = Rest().post_clone(self.table, payload['name'], request_data)
-        self.logger.debug(f'Response => {response}')
-        if response.status_code == 201:
-            Helper().show_success(f'{payload["name"]} clone as {payload["newosimage"]}.')
-        else:
-            Helper().show_error(f'HTTP Error Code {response.status_code}.')
-            Helper().show_error(f'HTTP Error {response.content}.')
-        return True
+        return Helper().clone_record(self.table, self.args, self.args["newosimage"])
 
 
     def pack_osimage(self):
