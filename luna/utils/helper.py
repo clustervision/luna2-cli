@@ -86,12 +86,14 @@ class Helper():
         """
         raw_data = self.choice_to_bool(raw_data)
         payload = {k: v for k, v in raw_data.items() if v is not None}
+        print(payload)
         editor_keys = ['content', 'comment', 'prescript', 'partscript', 'postscript']
         for enkey in editor_keys:
             content = nested_lookup(enkey, payload)
             if content:
-                content = self.open_editor(enkey, payload)
-                payload = nested_update(payload, key=enkey, value=content)
+                if content[0] is True:
+                    content = self.open_editor(enkey, payload)
+                    payload = nested_update(payload, key=enkey, value=content)
         return payload
 
 
