@@ -22,7 +22,7 @@ from os import getpid
 import numpy as np
 import hostlist
 from termcolor import colored
-from nested_lookup import nested_lookup, nested_update
+from nested_lookup import nested_lookup, nested_update, nested_delete
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
@@ -92,6 +92,8 @@ class Helper():
                 if content[0] is True:
                     content = self.open_editor(enkey, payload)
                     payload = nested_update(payload, key=enkey, value=content)
+                elif content[0] is False:
+                    payload = nested_delete(payload, enkey)
         return payload
 
 
@@ -693,8 +695,6 @@ class Helper():
                 newlist = []
                 for internal in key[1]:
                     self.logger.debug(f'Key => {internal} and Value => {key[1][internal]}')
-                    print(f'Key => {internal}')
-                    print(f'Value => {key[1][internal]}')
                     inkey = colored(internal, 'cyan')
                     inval = colored(key[1][internal], 'magenta')
                     newlist.append(f'{inkey} = {inval} ')

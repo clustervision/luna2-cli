@@ -400,7 +400,7 @@ class Node():
         return True
 
 
-    def change_interface(self):
+    def changeinterface(self):
         """
         Method to change a node interfaces in Luna Configuration.
         """
@@ -427,7 +427,7 @@ class Node():
         return True
 
 
-    def remove_interface(self):
+    def removeinterface(self):
         """
         Method to remove a node interfaces in Luna Configuration.
         """
