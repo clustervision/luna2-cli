@@ -83,10 +83,11 @@ class Node():
         node_add.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
         node_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         node_add.add_argument('-c', '--comment', action='store_true', help='Comment')
-        node_add.add_argument('-if', '--interface', action='append', help='Interface Name')
-        node_add.add_argument('-N', '--network', action='append', help='Interface Network Name')
-        node_add.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
-        node_add.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
+        node_add.add_argument('-if', '--interfaces', action='append', metavar='InterfaceName,NetworkName,IPAddress,MACAddress', help='Interface Name')
+        # node_add.add_argument('-if', '--interface', action='append', help='Interface Name')
+        # node_add.add_argument('-N', '--network', action='append', help='Interface Network Name')
+        # node_add.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
+        # node_add.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
         node_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_change = node_args.add_parser('change', help='Change Node')
         node_change.add_argument('name', help='Name of the Node')
@@ -201,34 +202,39 @@ class Node():
         error = False
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        iface = [self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']]
-        ifacecount = sum(x is not None for x in iface)
-        if ifacecount:
-            if ifacecount == 4:
-                if len(self.args['interface']) == len(self.args['network']) == len(self.args['ipaddress']) == len(self.args['macaddress']):
-                    interface_data = {'interface': self.args['interface'], 'network': self.args['network'], 'ipaddress': self.args['ipaddress'], 'macaddress': self.args['macaddress']}
-                    self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
-                else:
-                    error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
-            else:
-                error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
-        for remove in ['interface', 'network', 'ipaddress', 'macaddress']:
-            self.args.pop(remove, None)
-        if error:
-            Helper().show_error('Operation Aborted.')
-            self.args.clear()
-        payload = Helper().prepare_payload(self.args)
-        if payload:
-            request_data = {'config': {self.table: {payload['name']: payload}}}
-            self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_data(self.table, payload['name'], request_data)
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 201:
-                Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
-        return True
+        if 'interfaces' in self.args:
+            self.args['interfaces'] = Helper().interface_dict(self.args['interfaces'])
+        payload = {k: v for k, v in self.args.items() if v is not None}
+        print(payload)
+        
+        # iface = [self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']]
+        # ifacecount = sum(x is not None for x in iface)
+        # if ifacecount:
+        #     if ifacecount == 4:
+        #         if len(self.args['interface']) == len(self.args['network']) == len(self.args['ipaddress']) == len(self.args['macaddress']):
+        #             interface_data = {'interface': self.args['interface'], 'network': self.args['network'], 'ipaddress': self.args['ipaddress'], 'macaddress': self.args['macaddress']}
+        #             self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
+        #         else:
+        #             error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
+        #     else:
+        #         error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
+        # for remove in ['interface', 'network', 'ipaddress', 'macaddress']:
+        #     self.args.pop(remove, None)
+        # if error:
+        #     Helper().show_error('Operation Aborted.')
+        #     self.args.clear()
+        # payload = Helper().prepare_payload(self.args)
+        # if payload:
+        #     request_data = {'config': {self.table: {payload['name']: payload}}}
+        #     self.logger.debug(f'Payload => {request_data}')
+        #     response = Rest().post_data(self.table, payload['name'], request_data)
+        #     self.logger.debug(f'Response => {response}')
+        #     if response.status_code == 201:
+        #         Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
+        #     else:
+        #         Helper().show_error(f'HTTP Error Code {response.status_code}.')
+        #         Helper().show_error(f'HTTP Error {response.content}.')
+        # return True
 
 
     def change_node(self):
