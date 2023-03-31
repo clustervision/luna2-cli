@@ -168,6 +168,33 @@ class Helper():
         return response
 
 
+    def member_record(self, table=None, args=None):
+        """
+        This method fetch the nodes to the provided entity.
+        """
+        response = False
+        get_list = Rest().get_data(table, args['name']+'/_list')
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
+        if get_list:
+            data = get_list['config'][table][args["name"]]['members']
+            data = Helper().prepare_json(data)
+            if args['raw']:
+                response = Presenter().show_json(data)
+            else:
+                num = 1
+                fields = [colored('S.No.', 'yellow'), colored('Nodes', 'yellow')]
+                rows = []
+                for member in data:
+                    newrow = [colored(num, 'blue'), colored(member, 'blue')]
+                    rows.append(newrow)
+                    num = num + 1
+                title = f'<< {table.capitalize()} {args["name"]} Member Nodes >>'
+                response = Presenter().show_table(title, fields, rows)
+        else:
+            response = self.show_error(f'{table} {args["name"]} not have any node.')
+        return response
+
+
     def add_record(self, table=None, data=None):
         """
         This method will add a new record.

@@ -28,7 +28,7 @@ class BMCSetup():
         self.table = "bmcsetup"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "add", "change", "rename", "clone", "remove"]
+            actions = ["list", "show", "member", "add", "change", "rename", "clone", "remove"]
             if self.args["action"] in actions:
                 call = methodcaller(f'{self.args["action"]}_bmcsetup')
                 call(self)
@@ -48,8 +48,11 @@ class BMCSetup():
         bmcsetup_list = bmcsetup_args.add_parser('list', help='List BMC Setups')
         Helper().common_list_args(bmcsetup_list)
         bmcsetup_show = bmcsetup_args.add_parser('show', help='Show BMC Setup')
-        bmcsetup_show.add_argument('name', help='Name of the BMC Setup')
+        bmcsetup_show.add_argument('name', help='BMC Setup Name')
         Helper().common_list_args(bmcsetup_show)
+        bmcsetup_member = bmcsetup_args.add_parser('member', help='OS Image Used by Nodes')
+        bmcsetup_member.add_argument('name', help='BMC Setup Name')
+        Helper().common_list_args(bmcsetup_member)
         bmcsetup_add = bmcsetup_args.add_parser('add', help='Add BMC Setup')
         bmcsetup_add.add_argument('name', help='BMC Setup Name')
         bmcsetup_add.add_argument('-uid', '--userid', type=int, help='UserID')
@@ -103,6 +106,13 @@ class BMCSetup():
         This method show a specific bmcsetup.
         """
         return Helper().show_data(self.table, self.args)
+
+
+    def member_bmcsetup(self):
+        """
+        This method will show all Nodes boots with the BMC Setup.
+        """
+        return Helper().member_record(self.table, self.args)
 
 
     def add_bmcsetup(self):

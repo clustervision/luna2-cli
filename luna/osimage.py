@@ -56,6 +56,7 @@ class OSImage():
         Helper().common_list_args(osimage_show)
         osimage_member = osimage_args.add_parser('member', help='OS Image Used by Nodes')
         osimage_member.add_argument('name', help='OS Image Name')
+        Helper().common_list_args(osimage_member)
         osimage_add = osimage_args.add_parser('add', help='Add OSImage')
         osimage_add.add_argument('name', help='OSImage Name')
         osimage_add.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
@@ -142,8 +143,7 @@ class OSImage():
         """
         This method will show all Nodes boots with the OSimage.
         """
-        print(f"Selected OS Image Name :: {self.args['name']}.")
-        print("Under Development :: Will Show all Nodes boots with the OS Image.")
+        return Helper().member_record(self.table, self.args)
 
 
     def add_osimage(self):

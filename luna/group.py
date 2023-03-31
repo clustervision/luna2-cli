@@ -58,6 +58,7 @@ class Group():
         Helper().common_list_args(group_show)
         group_member = group_args.add_parser('member', help='Group Used by Nodes')
         group_member.add_argument('name', help='Name of the Group')
+        Helper().common_list_args(group_member)
         group_add = group_args.add_parser('add', help='Add Group')
         group_add.add_argument('name', help='Name of the Group')
         group_add.add_argument('-b', '--setupbmc', choices=Helper().boolean(), help='BMC Setup')
@@ -163,8 +164,7 @@ class Group():
         """
         This method will show all Nodes tied with the group.
         """
-        print(f"Selected Group Name :: {self.args['name']}.")
-        print("Under Development :: Will Show all Nodes tied with the group.")
+        return Helper().member_record(self.table, self.args)
 
 
     def add_group(self):
