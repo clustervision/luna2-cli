@@ -83,10 +83,12 @@ class Node():
         node_add.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
         node_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         node_add.add_argument('-c', '--comment', action='store_true', help='Comment')
+        # node_add.add_argument('-if', '--interfaces', action='append', metavar='InterfaceName,NetworkName,IPAddress,MACAddress', help='Interface Name')
         node_add.add_argument('-if', '--interface', action='append', help='Interface Name')
         node_add.add_argument('-N', '--network', action='append', help='Interface Network Name')
         node_add.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
         node_add.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
+        node_add.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
         node_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_change = node_args.add_parser('change', help='Change Node')
         node_change.add_argument('name', help='Name of the Node')
@@ -118,6 +120,7 @@ class Node():
         node_change.add_argument('-N', '--network', action='append', help='Interface Network Name')
         node_change.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
         node_change.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
+        node_change.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
         node_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         ## >>>>>>> Node Command >>>>>>> clone
         node_clone = node_args.add_parser('clone', help='Clone Node')
@@ -151,6 +154,7 @@ class Node():
         node_clone.add_argument('-N', '--network', action='append', help='Interface Network Name')
         node_clone.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
         node_clone.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
+        node_clone.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
         node_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_rename = node_args.add_parser('rename', help='Rename Node')
         node_rename.add_argument('name', help='Name of the Node')
@@ -172,6 +176,7 @@ class Node():
         node_changeinterface.add_argument('network', action='append', help='Network Name')
         node_changeinterface.add_argument('ipaddress', action='append', help='IP Address')
         node_changeinterface.add_argument('macaddress', action='append', help='MAC Address')
+        node_changeinterface.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
         node_changeinterface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_removeinterface = node_args.add_parser('removeinterface', help='Remove Node Interface')
         node_removeinterface.add_argument('name', help='Name of the Node')
@@ -201,6 +206,11 @@ class Node():
         error = False
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
+        # if 'interfaces' in self.args:
+        #     self.args['interfaces'] = Helper().interface_dict(self.args['interfaces'])
+        # payload = {k: v for k, v in self.args.items() if v is not None}
+        # print(payload)
+        
         iface = [self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']]
         ifacecount = sum(x is not None for x in iface)
         if ifacecount:

@@ -60,6 +60,7 @@ class Cli():
         for each class.
         """
         self.parser = ArgumentParser(prog='luna', description='Manage Luna Cluster')
+        self.parser.add_argument('-V', '--version', action='version', version='%(prog)s 2.0')
         self.parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
         for clss in classes:
