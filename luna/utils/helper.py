@@ -85,7 +85,7 @@ class Helper():
         """
         raw_data = self.choice_to_bool(raw_data)
         payload = {k: v for k, v in raw_data.items() if v is not None}
-        editor_keys = ['content', 'comment', 'prescript', 'partscript', 'postscript']
+        editor_keys = ['options', 'content', 'comment', 'prescript', 'partscript', 'postscript']
         for enkey in editor_keys:
             content = nested_lookup(enkey, payload)
             if content:
@@ -636,6 +636,8 @@ class Helper():
                 content = content.decode("utf-8")
         except binascii.Error:
             self.logger.debug(f'Base64 Decode Error => {content}')
+        except UnicodeDecodeError:
+            self.logger.debug(f'Base64 Unicode Decode Error => {content}')
         return content
 
 
@@ -643,7 +645,7 @@ class Helper():
         """
         This method will decode the base 64 string.
         """
-        encoded_keys = ['content', 'comment', 'prescript', 'partscript', 'postscript']
+        encoded_keys = ['options', 'content', 'comment', 'prescript', 'partscript', 'postscript']
         for enkey in encoded_keys:
             content = nested_lookup(enkey, jsondata)
             if content:
