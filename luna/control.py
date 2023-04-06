@@ -13,7 +13,6 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 from multiprocessing import Process
-from termcolor import colored
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
@@ -74,18 +73,9 @@ class Control():
             http_response = result.json()
             if 'control' in http_response.keys():
                 title = "<< Power Control Status Of Node >>"
-                fields = [
-                    colored("Node Name", 'yellow', attrs=['bold']),
-                    colored("Status", 'yellow', attrs=['bold'])
-                ]
+                fields = ["Node Name", "Status"]
                 status = http_response['control']['status']
-                if status == 'on':
-                    status = colored(status, 'green', attrs=['bold'])
-                elif status == 'off':
-                    status = colored(status, 'red', attrs=['bold'])
-                else:
-                    status = colored(status, 'yellow', attrs=['bold'])
-                rows = [colored(self.args['node'], 'blue', attrs=['bold']), status]
+                rows = [self.args['node'], status]
                 response = Presenter().show_table_col(title, fields, rows)
             else:
                 response = Helper().show_error(http_response['message'])
@@ -104,9 +94,9 @@ class Control():
                 check = Helper().dig_data(result.status_code, request_id, count, 0)
                 process1.terminate()
                 if check:
-                    print(colored("[========] Process Completed", 'green', attrs=['bold']))
+                    print("[========] Process Completed")
                 else:
-                    print(colored("[X ERROR X] Try Again!", 'red', attrs=['bold']))
+                    print("[X ERROR X] Try Again!")
         else:
             Helper().show_error("Incorrect host list")
         return response
@@ -126,18 +116,9 @@ class Control():
             http_code = result.status_code
             if http_code == 204:
                 title = "<< Power Control Status Of Node >>"
-                fields = [
-                    colored("Node Name", 'yellow', attrs=['bold']),
-                    colored("Status", 'yellow', attrs=['bold'])
-                ]
+                fields = ["Node Name", "Status"]
                 status = self.args["action"]
-                if status == 'on':
-                    status = colored(status.capitalize(), 'green', attrs=['bold'])
-                elif status == 'off':
-                    status = colored(status.capitalize(), 'red', attrs=['bold'])
-                else:
-                    status = colored(status.capitalize(), 'yellow', attrs=['bold'])
-                rows = [colored(self.args['node'], 'blue', attrs=['bold']), status]
+                rows = [self.args['node'], status]
                 response = Presenter().show_table_col(title, fields, rows)
             else:
                 http_response = result.json()
@@ -160,9 +141,9 @@ class Control():
                 check = Helper().dig_data(result.status_code, request_id, count, 0)
                 process1.terminate()
                 if check:
-                    print(colored("[========] Process Completed", 'green', attrs=['bold']))
+                    print("[========] Process Completed")
                 else:
-                    print(colored("[X ERROR X] Try Again!", 'red', attrs=['bold']))
+                    print("[X ERROR X] Try Again!")
         else:
             Helper().show_error("Incorrect host list")
         return response

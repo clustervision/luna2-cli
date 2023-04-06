@@ -14,9 +14,7 @@ __status__      = "Development"
 
 import json
 from prettytable import PrettyTable
-from rich import print_json
 import pyfiglet
-from termcolor import colored
 from luna.utils.log import Log
 
 class Presenter():
@@ -37,7 +35,6 @@ class Presenter():
         This method will show the banner
         """
         banner = pyfiglet.figlet_format('Luna 2 CLI', font = "digital")
-        banner = colored(banner, 'green', attrs=['bold'])
         print(banner)
         return True
 
@@ -48,8 +45,8 @@ class Presenter():
         the Luna 2 Daemon Database
         """
         self.logger.debug(f'Jason Data => {jsondata}')
-        pretty = json.dumps(jsondata, indent=4)
-        print_json(pretty)
+        pretty = json.dumps(jsondata, indent=2)
+        print(pretty)
         return True
 
 
@@ -60,7 +57,7 @@ class Presenter():
         """
         self.logger.debug(f'Fields => {fields}')
         self.logger.debug(f'Rows => {rows}')
-        self.table.title = colored(title, 'cyan', attrs=['bold'])
+        self.table.title = title
         self.table.field_names = fields
         if '\\n' in str(rows):
             self.table.align = "l"
@@ -76,7 +73,7 @@ class Presenter():
         """
         self.logger.debug(f'Fields => {field}')
         self.logger.debug(f'Rows => {rows}')
-        self.table.title = colored(title, 'cyan', attrs=['bold'])
+        self.table.title = title
         self.table.add_column("Field", field)
         self.table.add_column("Values", rows)
         self.table.header = False
