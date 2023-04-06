@@ -292,6 +292,7 @@ class Group():
         """
         Method to rename a group in Luna Configuration.
         """
+        error = False
         payload = {}
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
