@@ -14,7 +14,6 @@ __status__      = "Development"
 
 from time import sleep
 from multiprocessing import Process
-from termcolor import colored
 from luna.utils.helper import Helper
 from luna.utils.rest import Rest
 from luna.utils.log import Log
@@ -71,8 +70,8 @@ class Service():
         result = result.json()
         if http_code == 200:
             if self.args["action"] == 'status':
-                print(colored(f'HTTP CODE :: {http_code}', 'yellow', attrs=['bold']))
-                print(colored(f'RESPONSE  :: {result}', 'yellow', attrs=['bold']))
+                print(f'HTTP CODE :: {http_code}')
+                print(f'RESPONSE  :: {result}')
                 ## TODO ->
                 ## Need to parse it, when daemon side is done
                 # result = result['service'][self.args["service"]]
@@ -96,9 +95,9 @@ class Service():
                                 for msg in message:
                                     sleep(1)
                                     if 'error' in msg.lower() or 'fail' in msg.lower():
-                                        print(colored(f'[X ERROR X] {msg}', 'red', attrs=['bold']))
+                                        print(f'[X ERROR X] {msg}')
                                     else:
-                                        print(colored(f'[========] {msg}', 'yellow', attrs=['bold']))
+                                        print(f'[========] {msg}')
                             sleep(1)
                             return dig_service_status(uri)
                         else:
@@ -106,12 +105,12 @@ class Service():
                     response = dig_service_status(uri)
                     if response:
                         msg = f"[========] Service {self.args['service']} {self.args['action']} is finish."
-                        print(colored(msg, 'green', attrs=['bold']))
+                        print(msg)
                     else:
-                        print(colored("[X ERROR X] Try Again!", 'red', attrs=['bold']))
+                        print("[X ERROR X] Try Again!")
                 else:
                     process1.terminate()
-                    print(colored("[X ERROR X] Something is Wrong with Daemon.", 'red', attrs=['bold']))
+                    print("[X ERROR X] Something is Wrong with Daemon.")
         else:
             Helper().show_error(f'HTTP error code is: {http_code} ')
             Helper().show_error(f'{result}')

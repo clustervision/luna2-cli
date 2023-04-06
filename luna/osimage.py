@@ -15,7 +15,6 @@ __status__      = "Development"
 from operator import methodcaller
 from time import sleep
 from multiprocessing import Process
-from termcolor import colored
 from luna.utils.helper import Helper
 from luna.utils.rest import Rest
 from luna.utils.log import Log
@@ -205,16 +204,16 @@ class OSImage():
                             message = http_response['message'].split(';;')
                             for msg in message:
                                 sleep(2)
-                                print(colored(msg, 'yellow', attrs=['bold']))
+                                print(msg)
                         sleep(2)
                         return dig_packing_status(uri)
                     else:
                         return False
                 response = dig_packing_status(uri)
         if response:
-            print(colored(f'[========] Image {self.args["name"]} Packed.', 'green', attrs=['bold']))
+            print(f'[========] Image {self.args["name"]} Packed.')
         else:
-            print(colored("[X ERROR X] Try Again!", 'red', attrs=['bold']))
+            print("[X ERROR X] Try Again!")
         return response
 
 

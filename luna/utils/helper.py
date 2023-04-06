@@ -21,7 +21,6 @@ from random import randint
 from os import getpid
 import numpy as np
 import hostlist
-from termcolor import colored
 from nested_lookup import nested_lookup, nested_update, nested_delete
 from luna.utils.rest import Rest
 from luna.utils.log import Log
@@ -137,6 +136,7 @@ class Helper():
                 response = Presenter().show_json(json_data)
             else:
                 fields, rows  = self.filter_data(table, data)
+                fields = list(map(lambda x: x.replace('tpm_uuid', 'tpm_present'), fields))
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
                 title = f' << {table.capitalize()} >>'
@@ -184,10 +184,10 @@ class Helper():
                 response = Presenter().show_json(data)
             else:
                 num = 1
-                fields = [colored('S.No.', 'yellow'), colored('Nodes', 'yellow')]
+                fields = ['S.No.', 'Nodes']
                 rows = []
                 for member in data:
-                    newrow = [colored(num, 'blue'), colored(member, 'blue')]
+                    newrow = [num, member]
                     rows.append(newrow)
                     num = num + 1
                 title = f'<< {table.capitalize()} {args["name"]} Member Nodes >>'
@@ -400,14 +400,8 @@ class Helper():
         """
         This method will perform power option on node.
         """
-        header = f"{colored('|', 'yellow')} {colored('S.No.', 'cyan')} {colored('|', 'yellow')}"
-        header = f"{header}     {colored('Node Name', 'cyan')}      {colored('|', 'yellow')}       "
-        header = f"{header}{colored('Status', 'cyan')}       {colored('|', 'yellow')}"
-        hr_line = colored(
-            'X-------------------------------------------------X',
-            'yellow',
-            attrs=['bold']
-        )
+        header = "| S.No. |     Node Name      |       Status       |"
+        hr_line = 'X-------------------------------------------------X'
         rows = []
         power_status = ['failed', 'off', 'on']
         if 'control' in control_data:
@@ -425,14 +419,14 @@ class Helper():
                     print(hr_line)
                     print(header)
                     print(hr_line)
-                row[0] = colored(f'{row[0]}'.ljust(6), 'blue')
-                row[1] = colored(f'{row[1]}'.ljust(19), 'blue')
+                row[0] = f'{row[0]}'.ljust(6)
+                row[1] = f'{row[1]}'.ljust(19)
                 if row[2] in ['Failed', 'Off', 'off']:
-                    row[2] = colored(row[2].ljust(19), 'red')
+                    row[2] = row[2].ljust(19)
                 if row[2] in ['on', 'On']:
-                    row[2] = colored(row[2].ljust(19), 'green')
+                    row[2] = row[2].ljust(19)
                 line = f'| {row[0]}| {row[1]}| {row[2]}|'
-                line = line.replace('|', colored('|', 'yellow'))
+                # line = line.replace('|', colored('|', 'yellow'))
                 print(line)
         return num
 
@@ -442,23 +436,22 @@ class Helper():
         This method is a loader, will run while transactions happens.
         """
         animation = [
-        colored(f"[=       ] {message}", 'yellow', attrs=['bold']),
-        colored(f"[===     ] {message}", 'yellow', attrs=['bold']),
-        colored(f"[====    ] {message}", 'yellow', attrs=['bold']),
-        colored(f"[=====   ] {message}", 'yellow', attrs=['bold']),
-        colored(f"[======  ] {message}", 'yellow', attrs=['bold']),
-        colored(f"[======= ] {message}", 'yellow', attrs=['bold']),
-        colored(f"[========] {message}", 'yellow', attrs=['bold']),
-        colored(f"[ =======] {message}", 'yellow', attrs=['bold']),
-        colored(f"[  ======] {message}", 'yellow', attrs=['bold']),
-        colored(f"[   =====] {message}", 'yellow', attrs=['bold']),
-        colored(f"[    ====] {message}", 'yellow', attrs=['bold']),
-        colored(f"[     ===] {message}", 'yellow', attrs=['bold']),
-        colored(f"[      ==] {message}", 'yellow', attrs=['bold']),
-        colored(f"[       =] {message}", 'yellow', attrs=['bold']),
-        colored(f"[        ] {message}", 'yellow', attrs=['bold']),
-        colored(f"[        ] {message}", 'yellow', attrs=['bold'])
-        ]
+        f"[=       ] {message}",
+        f"[===     ] {message}",
+        f"[====    ] {message}",
+        f"[=====   ] {message}",
+        f"[======  ] {message}",
+        f"[======= ] {message}",
+        f"[========] {message}",
+        f"[ =======] {message}",
+        f"[  ======] {message}",
+        f"[   =====] {message}",
+        f"[    ====] {message}",
+        f"[     ===] {message}",
+        f"[      ==] {message}",
+        f"[       =] {message}",
+        f"[        ] {message}",
+        f"[        ] {message}",        ]
         notcomplete = True
         i = 0
         while notcomplete:
@@ -487,12 +480,7 @@ class Helper():
             elif bad_count > 10:
                 Helper().show_error("Too Many Bad Response, Try Again!")
             else:
-                hr_line = colored(
-                    'X-------------------------------------------------X',
-                    'yellow',
-                    attrs=['bold']
-                )
-                print(hr_line)
+                print('X-------------------------------------------------X')
                 return True
         else:
             Helper().show_error(f"Something Went Wrong {code}")
@@ -505,7 +493,7 @@ class Helper():
         the Luna 2 Daemon Database
         """
         self.logger.debug(f'Message => {message}')
-        print(colored(message, 'red', attrs=['bold']))
+        print(message)
         return True
 
 
@@ -515,7 +503,7 @@ class Helper():
         the Luna 2 Daemon Database
         """
         self.logger.debug(f'Message => {message}')
-        print(colored(message, 'green', attrs=['bold']))
+        print(message)
         return True
 
 
@@ -525,7 +513,7 @@ class Helper():
         the Luna 2 Daemon Database
         """
         self.logger.debug(f'Message => {message}')
-        print(colored(message, 'yellow', attrs=['bold']))
+        print(message)
         return True
 
 
@@ -543,21 +531,21 @@ class Helper():
             valrow = []
             for ele in data:
                 if fieldkey in list(ele.keys()):
-                    valrow.append(colored(ele[fieldkey], 'blue'))
+                    valrow.append(ele[fieldkey])
                 else:
-                    valrow.append(colored("--NA--", 'red'))
+                    valrow.append("--NA--")
                 self.logger.debug(f'Element => {ele}')
             rows.append(valrow)
             valrow = []
-            coloredfields.append(colored(fieldkey, 'yellow', attrs=['bold']))
+            coloredfields.append(fieldkey)
         fields = coloredfields
         self.logger.debug(f'Rows before Swapping => {rows}')
         rows = np.array(rows).T.tolist()
         # Adding Serial Numbers to the dataset
-        fields.insert(0, colored('S. No.', 'yellow', attrs=['bold']))
+        fields.insert(0, 'S. No.')
         num = 1
         for outer in rows:
-            outer.insert(0, colored(num, 'blue'))
+            outer.insert(0, num)
             num = num + 1
         # Adding Serial Numbers to the dataset
         return fields, rows
@@ -583,32 +571,27 @@ class Helper():
                             for internal_val in internal:
                                 self.logger.debug(f'Key => {internal_val}')
                                 self.logger.debug(f'Value => {internal[internal_val]}')
-                                inkey = colored(internal_val, 'cyan')
-                                inval = colored(internal[internal_val], 'magenta')
+                                inkey = internal_val
+                                inval = internal[internal_val]
                                 newlist.append(f'{inkey} = {inval} ')
                         newlist = '\n'.join(newlist)
-                        valrow.append(colored(newlist, 'blue'))
+                        valrow.append(newlist)
                         newlist = []
                     else:
-                        if data[ele][fieldkey] is True:
-                            valrow.append(colored(data[ele][fieldkey], 'green'))
-                        elif data[ele][fieldkey] is False:
-                            valrow.append(colored(data[ele][fieldkey], 'red'))
-                        else:
-                            valrow.append(colored(data[ele][fieldkey], 'blue'))
+                        valrow.append(data[ele][fieldkey])
                 else:
-                    valrow.append(colored("--NA--", 'red'))
+                    valrow.append("--NA--")
             rows.append(valrow)
             self.logger.debug(f'Each Row => {valrow}')
             valrow = []
-            coloredfields.append(colored(fieldkey, 'yellow', attrs=['bold']))
+            coloredfields.append(fieldkey)
         fields = coloredfields
         rows = np.array(rows).T.tolist()
         # Adding Serial Numbers to the dataset
-        fields.insert(0, colored('S. No.', 'yellow', attrs=['bold']))
+        fields.insert(0, 'S. No.')
         num = 1
         for outer in rows:
-            outer.insert(0, colored(num, 'blue'))
+            outer.insert(0, num)
             num = num + 1
         # Adding Serial Numbers to the dataset
         return fields, rows
@@ -667,21 +650,21 @@ class Helper():
             newrow = []
             for value in data[key]:
                 self.logger.debug(f'Key => {key} and Value => {value}')
-                newrow.append(colored(key, 'blue'))
-                newrow.append(colored(value['name'], 'blue'))
-                newrow.append(colored(value['path'], 'blue'))
+                newrow.append(key)
+                newrow.append(value['name'])
+                newrow.append(value['path'])
                 content = self.base64_decode(value['content'])
-                newrow.append(colored(content[:30]+'...', 'blue'))
+                newrow.append(content[:30]+'...')
                 rows.append(newrow)
                 newrow = []
         for newfield in fields:
-            coloredfields.append(colored(newfield, 'yellow', attrs=['bold']))
+            coloredfields.append(newfield)
         fields = coloredfields
         # Adding Serial Numbers to the dataset
-        fields.insert(0, colored('S. No.', 'yellow', attrs=['bold']))
+        fields.insert(0, 'S. No.')
         num = 1
         for outer in rows:
-            outer.insert(0, colored(num, 'blue'))
+            outer.insert(0, num)
             num = num + 1
         # Adding Serial Numbers to the dataset
         return fields, rows
@@ -700,21 +683,21 @@ class Helper():
             newrow = []
             for value in data[key]:
                 self.logger.debug(f'Key => {key} and Value => {value}')
-                newrow.append(colored(key, 'blue'))
-                newrow.append(colored(value['name'], 'blue'))
-                newrow.append(colored(value['path'], 'blue'))
+                newrow.append(key)
+                newrow.append(value['name'])
+                newrow.append(value['path'])
                 content = self.base64_decode(value['content'])
-                newrow.append(colored(content, 'blue'))
+                newrow.append(content)
                 rows.append(newrow)
                 newrow = []
         for newfield in fields:
-            coloredfields.append(colored(newfield, 'yellow', attrs=['bold']))
+            coloredfields.append(newfield)
         fields = coloredfields
         # Adding Serial Numbers to the dataset
-        fields.insert(0, colored('S. No.', 'yellow', attrs=['bold']))
+        fields.insert(0, 'S. No.')
         num = 1
         for outer in rows:
-            outer.insert(0, colored(num, 'blue'))
+            outer.insert(0, num)
             num = num + 1
         # Adding Serial Numbers to the dataset
         newfiels, newrows = [], []
@@ -742,36 +725,31 @@ class Helper():
         self.logger.debug(f'Sorted Data => {data}')
         fields, rows = [], []
         for key in data:
-            fields.append(colored(key[0], 'yellow', attrs=['bold']))
+            fields.append(key[0])
             if isinstance(key[1], list):
                 newlist = []
                 for internal in key[1]:
                     for internal_val in internal:
                         self.logger.debug(f'Key => {internal_val}')
                         self.logger.debug(f'Value => {internal[internal_val]}')
-                        inkey = colored(internal_val, 'cyan')
-                        inval = colored(internal[internal_val], 'magenta')
+                        inkey = internal_val
+                        inval = internal[internal_val]
                         newlist.append(f'{inkey} = {inval} ')
                 newlist = '\n'.join(newlist)
-                rows.append(colored(newlist, 'blue'))
+                rows.append(newlist)
                 newlist = []
             elif isinstance(key[1], dict):
                 newlist = []
                 for internal in key[1]:
                     self.logger.debug(f'Key => {internal} and Value => {key[1][internal]}')
-                    inkey = colored(internal, 'cyan')
-                    inval = colored(key[1][internal], 'magenta')
+                    inkey = internal
+                    inval = key[1][internal]
                     newlist.append(f'{inkey} = {inval} ')
                 newlist = '\n'.join(newlist)
-                rows.append(colored(newlist, 'blue'))
+                rows.append(newlist)
                 newlist = []
             else:
-                if key[1] is True:
-                    rows.append(colored(key[1], 'green'))
-                elif key[1] is False:
-                    rows.append(colored(key[1], 'red'))
-                else:
-                    rows.append(colored(key[1], 'blue'))
+                rows.append(key[1])
         return fields, rows
 
 
