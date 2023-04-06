@@ -90,7 +90,7 @@ class OSImage():
         osimage_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         osimage_clone = osimage_args.add_parser('clone', help='Clone OSImage')
         osimage_clone.add_argument('name', help='OSImage Name')
-        osimage_clone.add_argument('-nn', '--newosimage', help='New OSImage Name')
+        osimage_clone.add_argument('newosimage', help='New OSImage Name')
         osimage_clone.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
         osimage_clone.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
         osimage_clone.add_argument('-ge', '--grab_exclude', help='Grab Excludes')
