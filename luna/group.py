@@ -75,8 +75,8 @@ class Group():
         group_add.add_argument('-li', '--localinstall', choices=Helper().boolean(), help='Local Install')
         group_add.add_argument('-bm', '--bootmenu', choices=Helper().boolean(), help='Boot Menu')
         group_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        group_add.add_argument('-if', '--interface', action='append', help='Interface Name')
-        group_add.add_argument('-N', '--network', action='append', help='Interface Network Name')
+        group_add.add_argument('-if', '--interface', help='Interface Name')
+        group_add.add_argument('-N', '--network', help='Interface Network Name')
         group_add.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
         group_add.add_argument('-c', '--comment', action='store_true', help='Comment')
         group_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
@@ -96,8 +96,8 @@ class Group():
         group_change.add_argument('-li', '--localinstall', choices=Helper().boolean(), help='Local Install')
         group_change.add_argument('-bm', '--bootmenu', choices=Helper().boolean(), help='Boot Menu')
         group_change.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        group_change.add_argument('-if', '--interface', action='append', help='Interface Name')
-        group_change.add_argument('-N', '--network', action='append', help='Interface Network Name')
+        group_change.add_argument('-if', '--interface', help='Interface Name')
+        group_change.add_argument('-N', '--network', help='Interface Network Name')
         group_change.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
         group_change.add_argument('-c', '--comment', action='store_true', help='Comment')
         group_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
@@ -118,8 +118,8 @@ class Group():
         group_clone.add_argument('-li', '--localinstall', help='Local Install')
         group_clone.add_argument('-bm', '--bootmenu', help='Boot Menu')
         group_clone.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        group_clone.add_argument('-if', '--interface', action='append', help='Interface Name')
-        group_clone.add_argument('-N', '--network', action='append', help='Interface Network Name')
+        group_clone.add_argument('-if', '--interface', help='Interface Name')
+        group_clone.add_argument('-N', '--network', help='Interface Network Name')
         group_clone.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
         group_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
         group_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
@@ -140,7 +140,7 @@ class Group():
         group_changeinterface = group_args.add_parser('changeinterface', help='Change Group Interface')
         group_changeinterface.add_argument('name', help='Name of the Group')
         group_changeinterface.add_argument('interface', help='Group Interface Name')
-        group_changeinterface.add_argument('network', help='Network Name')
+        group_changeinterface.add_argument('-N', '--network', help='Network Name')
         group_changeinterface.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
         group_changeinterface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_removeinterface = group_args.add_parser('removeinterface', help='Remove Group Interface')
@@ -175,27 +175,20 @@ class Group():
         """
         Method to add new group in Luna Configuration.
         """
-        error = False
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        iface = [self.args['interface'], self.args['network']]
-        ifacecount = sum(x is not None for x in iface)
-        if ifacecount:
-            if ifacecount == 2:
-                if len(self.args['interface']) == len(self.args['network']):
-                    interface_data = {'interface': self.args['interface'], 'network': self.args['network']}
-                    self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
-                else:
-                    error = Helper().show_warning('Each Interface should have Interface Name and Network Name.')
-            else:
-                error = Helper().show_warning('Each Interface should have Interface Name and Network Name.')
-        del self.args['interface']
-        del self.args['network']
-        if error:
-            Helper().show_error('Operation Aborted.')
-            payload = {}
-        else:
-            payload = Helper().prepare_payload(self.args)
+        interface = {}
+        if self.args['interface']:
+            interface['interface'] = self.args['interface']
+            if self.args['network']:
+                interface['network'] = self.args['network']
+            if self.args['options']:
+                interface['options'] = self.args['options']
+        if interface:
+            self.args['interfaces'] = [interface]
+            for remove in ['interface', 'network', 'options']:
+                self.args.pop(remove, None)
+        payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config': {self.table: {payload['name']: payload}}}
             self.logger.debug(f'Payload => {request_data}')
@@ -213,26 +206,19 @@ class Group():
         """
         Method to change a group in Luna Configuration.
         """
-        payload = {}
-        error = False
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        iface = [self.args['interface'], self.args['network']]
-        ifacecount = sum(x is not None for x in iface)
-        if ifacecount:
-            if ifacecount == 2:
-                if len(self.args['interface']) == len(self.args['network']):
-                    interface_data = {'interface': self.args['interface'], 'network': self.args['network']}
-                    self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
-                else:
-                    error = Helper().show_warning('Each Interface should have Interface Name and Network Name.')
-            else:
-                error = Helper().show_warning('Each Interface should have Interface Name and Network Name.')
-        del self.args['interface']
-        del self.args['network']
-        if error:
-            Helper().show_error('Operation Aborted.')
-            self.args.clear()
+        interface = {}
+        if self.args['interface']:
+            interface['interface'] = self.args['interface']
+            if self.args['network']:
+                interface['network'] = self.args['network']
+            if self.args['options']:
+                interface['options'] = self.args['options']
+        if interface:
+            self.args['interfaces'] = [interface]
+            for remove in ['interface', 'network', 'options']:
+                self.args.pop(remove, None)
         payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config': {self.table: {payload['name']: payload}}}
@@ -296,22 +282,17 @@ class Group():
         payload = {}
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        iface = [self.args['interface'], self.args['network']]
-        ifacecount = sum(x is not None for x in iface)
-        if ifacecount:
-            if ifacecount == 2:
-                if len(self.args['interface']) == len(self.args['network']):
-                    interface_data = {'interface': self.args['interface'], 'network': self.args['network']}
-                    self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
-                else:
-                    error = Helper().show_warning('Each Interface should have Interface Name and Network Name.')
-            else:
-                error = Helper().show_warning('Each Interface should have Interface Name and Network Name.')
-        del self.args['interface']
-        del self.args['network']
-        if error:
-            Helper().show_error('Operation Aborted.')
-            self.args.clear()
+        interface = {}
+        if self.args['interface']:
+            interface['interface'] = self.args['interface']
+            if self.args['network']:
+                interface['network'] = self.args['network']
+            if self.args['options']:
+                interface['options'] = self.args['options']
+        if interface:
+            self.args['interfaces'] = [interface]
+            for remove in ['interface', 'network', 'options']:
+                self.args.pop(remove, None)
         payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config': {self.table: {payload['name']: payload}}}
@@ -384,9 +365,17 @@ class Group():
         """
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        self.args['interfaces'] = {'interface': self.args['interface'], 'network': self.args['network']}
-        del self.args['interface']
-        del self.args['network']
+        interface = {}
+        if self.args['interface']:
+            interface['interface'] = self.args['interface']
+            if self.args['network']:
+                interface['network'] = self.args['network']
+            if self.args['options']:
+                interface['options'] = self.args['options']
+        if interface:
+            self.args['interfaces'] = [interface]
+            for remove in ['interface', 'network', 'options']:
+                self.args.pop(remove, None)
         payload = Helper().prepare_payload(self.args)
         if payload:
             group_name = payload['name']
