@@ -137,6 +137,7 @@ class Helper():
             else:
                 fields, rows  = self.filter_data(table, data)
                 fields = list(map(lambda x: x.replace('tpm_uuid', 'tpm_present'), fields))
+                fields = list(map(lambda x: x.replace('ns_ip', 'nameserver'), fields))
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
                 title = f' << {table.capitalize()} >>'
@@ -577,6 +578,11 @@ class Helper():
                         newlist = '\n'.join(newlist)
                         valrow.append(newlist)
                         newlist = []
+                    elif fieldkey == 'tpm_uuid':
+                        if data[ele][fieldkey]:
+                            valrow.append(True)
+                        else:
+                            valrow.append(False)
                     else:
                         valrow.append(data[ele][fieldkey])
                 else:
@@ -768,7 +774,7 @@ class Helper():
             'groupsecrets': ['Group', 'name', 'path', 'content'],
             'ipaddress': ['id', 'ipaddress', 'subnet', 'network'],
             'monitor': ['id', 'nodeid', 'status', 'state'],
-            'network': ['name', 'network', 'ns_ip', 'ns_hostname', 'dhcp'],
+            'network': ['name', 'network', 'ns_ip', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end'],
             'node': ['name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_uuid'],
             'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network'],
             'nodesecrets': ['Node', 'name', 'path', 'content'],
