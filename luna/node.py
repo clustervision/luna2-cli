@@ -83,11 +83,10 @@ class Node():
         node_add.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
         node_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         node_add.add_argument('-c', '--comment', action='store_true', help='Comment')
-        # node_add.add_argument('-if', '--interfaces', action='append', metavar='InterfaceName,NetworkName,IPAddress,MACAddress', help='Interface Name')
-        node_add.add_argument('-if', '--interface', action='append', help='Interface Name')
-        node_add.add_argument('-N', '--network', action='append', help='Interface Network Name')
-        node_add.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
-        node_add.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
+        node_add.add_argument('-if', '--interface', help='Interface Name')
+        node_add.add_argument('-N', '--network', help='Interface Network Name')
+        node_add.add_argument('-I', '--ipaddress', help='Interfaces IP Address')
+        node_add.add_argument('-M', '--macaddress', help='Interfaces MAC Address')
         node_add.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
         node_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_change = node_args.add_parser('change', help='Change Node')
@@ -116,10 +115,10 @@ class Node():
         node_change.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
         node_change.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         node_change.add_argument('-c', '--comment', action='store_true', help='Comment')
-        node_change.add_argument('-if', '--interface', action='append', help='Interface Name')
-        node_change.add_argument('-N', '--network', action='append', help='Interface Network Name')
-        node_change.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
-        node_change.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
+        node_change.add_argument('-if', '--interface', help='Interface Name')
+        node_change.add_argument('-N', '--network', help='Interface Network Name')
+        node_change.add_argument('-I', '--ipaddress', help='Interfaces IP Address')
+        node_change.add_argument('-M', '--macaddress', help='Interfaces MAC Address')
         node_change.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
         node_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         ## >>>>>>> Node Command >>>>>>> clone
@@ -150,10 +149,10 @@ class Node():
         node_clone.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
         node_clone.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         node_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
-        node_clone.add_argument('-if', '--interface', action='append', help='Interface Name')
-        node_clone.add_argument('-N', '--network', action='append', help='Interface Network Name')
-        node_clone.add_argument('-I', '--ipaddress', action='append', help='Interfaces IP Address')
-        node_clone.add_argument('-M', '--macaddress', action='append', help='Interfaces MAC Address')
+        node_clone.add_argument('-if', '--interface', help='Interface Name')
+        node_clone.add_argument('-N', '--network', help='Interface Network Name')
+        node_clone.add_argument('-I', '--ipaddress', help='Interfaces IP Address')
+        node_clone.add_argument('-M', '--macaddress', help='Interfaces MAC Address')
         node_clone.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
         node_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_rename = node_args.add_parser('rename', help='Rename Node')
@@ -173,9 +172,9 @@ class Node():
         node_changeinterface = node_args.add_parser('changeinterface', help='Change Node Interface')
         node_changeinterface.add_argument('name', help='Name of the Node')
         node_changeinterface.add_argument('interface', help='Name of the Node Interface')
-        node_changeinterface.add_argument('network', action='append', help='Network Name')
-        node_changeinterface.add_argument('ipaddress', action='append', help='IP Address')
-        node_changeinterface.add_argument('macaddress', action='append', help='MAC Address')
+        node_changeinterface.add_argument('-N', '--network', help='Network Name')
+        node_changeinterface.add_argument('-I', '--ipaddress', help='IP Address')
+        node_changeinterface.add_argument('-M', '--macaddress', help='MAC Address')
         node_changeinterface.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
         node_changeinterface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_removeinterface = node_args.add_parser('removeinterface', help='Remove Node Interface')
@@ -203,30 +202,23 @@ class Node():
         """
         Method to add new node in Luna Configuration.
         """
-        error = False
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        # if 'interfaces' in self.args:
-        #     self.args['interfaces'] = Helper().interface_dict(self.args['interfaces'])
-        # payload = {k: v for k, v in self.args.items() if v is not None}
-        # print(payload)
-        
-        iface = [self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']]
-        ifacecount = sum(x is not None for x in iface)
-        if ifacecount:
-            if ifacecount == 4:
-                if len(self.args['interface']) == len(self.args['network']) == len(self.args['ipaddress']) == len(self.args['macaddress']):
-                    interface_data = {'interface': self.args['interface'], 'network': self.args['network'], 'ipaddress': self.args['ipaddress'], 'macaddress': self.args['macaddress']}
-                    self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
-                else:
-                    error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
-            else:
-                error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
-        for remove in ['interface', 'network', 'ipaddress', 'macaddress']:
-            self.args.pop(remove, None)
-        if error:
-            Helper().show_error('Operation Aborted.')
-            self.args.clear()
+        interface = {}
+        if self.args['interface']:
+            interface['interface'] = self.args['interface']
+            if self.args['network']:
+                interface['network'] = self.args['network']
+            if self.args['ipaddress']:
+                interface['ipaddress'] = self.args['ipaddress']
+            if self.args['macaddress']:
+                interface['macaddress'] = self.args['macaddress']
+            if self.args['options']:
+                interface['options'] = self.args['options']
+        if interface:
+            self.args['interfaces'] = [interface]
+            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options']:
+                self.args.pop(remove, None)
         payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config': {self.table: {payload['name']: payload}}}
@@ -245,25 +237,23 @@ class Node():
         """
         Method to chagne a node in Luna Configuration.
         """
-        error = False
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        iface = [self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']]
-        ifacecount = sum(x is not None for x in iface)
-        if ifacecount:
-            if ifacecount == 4:
-                if len(self.args['interface']) == len(self.args['network']) == len(self.args['ipaddress']) == len(self.args['macaddress']):
-                    interface_data = {'interface': self.args['interface'], 'network': self.args['network'], 'ipaddress': self.args['ipaddress'], 'macaddress': self.args['macaddress']}
-                    self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
-                else:
-                    error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
-            else:
-                error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
-        for remove in ['interface', 'network', 'ipaddress', 'macaddress']:
-            self.args.pop(remove, None)
-        if error:
-            Helper().show_error('Operation Aborted.')
-            self.args.clear()
+        interface = {}
+        if self.args['interface']:
+            interface['interface'] = self.args['interface']
+            if self.args['network']:
+                interface['network'] = self.args['network']
+            if self.args['ipaddress']:
+                interface['ipaddress'] = self.args['ipaddress']
+            if self.args['macaddress']:
+                interface['macaddress'] = self.args['macaddress']
+            if self.args['options']:
+                interface['options'] = self.args['options']
+        if interface:
+            self.args['interfaces'] = [interface]
+            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options']:
+                self.args.pop(remove, None)
         payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config': {self.table: {payload['name']: payload}}}
@@ -324,26 +314,23 @@ class Node():
         """
         Method to rename a node in Luna Configuration.
         """
-        
-        error = False
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        iface = [self.args['interface'], self.args['network'], self.args['ipaddress'], self.args['macaddress']]
-        ifacecount = sum(x is not None for x in iface)
-        if ifacecount:
-            if ifacecount == 4:
-                if len(self.args['interface']) == len(self.args['network']) == len(self.args['ipaddress']) == len(self.args['macaddress']):
-                    interface_data = {'interface': self.args['interface'], 'network': self.args['network'], 'ipaddress': self.args['ipaddress'], 'macaddress': self.args['macaddress']}
-                    self.args['interfaces'] = [{key : value[i] for key, value in interface_data.items()} for i in range(len(interface_data['interface']))]
-                else:
-                    error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
-            else:
-                error = Helper().show_warning('Each Interface should have Interface Name, Network Name, IP Address, and MAC Address.')
-        for remove in ['interface', 'network', 'ipaddress', 'macaddress']:
-            self.args.pop(remove, None)
-        if error:
-            Helper().show_error('Operation Aborted.')
-            self.args.clear()
+        interface = {}
+        if self.args['interface']:
+            interface['interface'] = self.args['interface']
+            if self.args['network']:
+                interface['network'] = self.args['network']
+            if self.args['ipaddress']:
+                interface['ipaddress'] = self.args['ipaddress']
+            if self.args['macaddress']:
+                interface['macaddress'] = self.args['macaddress']
+            if self.args['options']:
+                interface['options'] = self.args['options']
+        if interface:
+            self.args['interfaces'] = [interface]
+            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options']:
+                self.args.pop(remove, None)
         payload = Helper().prepare_payload(self.args)
         if payload:
             request_data = {'config': {self.table: {payload['name']: payload}}}
@@ -364,8 +351,6 @@ class Node():
         """
         Method to list a node interfaces in Luna Configuration.
         """
-        response = False
-        fields, rows = [], []
         self.logger.debug(f'Table => {self.table} and URI => {self.args["name"]}/interfaces')
         get_list = Rest().get_data(self.table, self.args['name']+'/interfaces')
         self.logger.debug(f'List Interfaces => {get_list}')
@@ -373,15 +358,15 @@ class Node():
             data = get_list['config'][self.table][self.args["name"]]['interfaces']
             if self.args['raw']:
                 json_data = Helper().prepare_json(data)
-                response = Presenter().show_json(json_data)
+                Presenter().show_json(json_data)
             else:
                 fields, rows  = Helper().filter_interface(self.interface, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
                 title = f' << {self.table.capitalize()} {self.args["name"]} Interfaces >>'
-                response = Presenter().show_table(title, fields, rows)
+                Presenter().show_table(title, fields, rows)
         else:
-            response = Helper().show_error(f'{self.args["name"]} is not found in {self.table}.')
+            Helper().show_error(f'{self.args["name"]} is not found in {self.table}.')
         return True
 
 
@@ -389,8 +374,6 @@ class Node():
         """
         Method to show a node interfaces in Luna Configuration.
         """
-        response = False
-        fields, rows = [], []
         self.logger.debug(f'Table => {self.table} and URI => {self.args["name"]}/interfaces{self.args["interface"]}')
         get_list = Rest().get_data(self.table, self.args['name']+'/interfaces/'+self.args['interface'])
         self.logger.debug(f'List Interfaces => {get_list}')
@@ -398,15 +381,15 @@ class Node():
             data = get_list['config'][self.table][self.args["name"]]['interfaces'][0]
             if self.args['raw']:
                 json_data = Helper().prepare_json(data)
-                response = Presenter().show_json(json_data)
+                Presenter().show_json(json_data)
             else:
                 fields, rows  = Helper().filter_data_col(self.interface, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
                 title = f'{self.table.capitalize()} [{self.args["name"]}] => Interface {self.args["interface"]}'
-                response = Presenter().show_table_col(title, fields, rows)
+                Presenter().show_table_col(title, fields, rows)
         else:
-            response = Helper().show_error(f'Interface {self.args["interface"]} not found in {self.table} {self.args["name"]} OR {self.args["name"]} is unavailable.')
+            Helper().show_error(f'Interface {self.args["interface"]} not found in {self.table} {self.args["name"]} OR {self.args["name"]} is unavailable.')
         return True
 
 
@@ -416,9 +399,21 @@ class Node():
         """
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        self.args['interfaces'] = {'interface': self.args['interface'], 'network': self.args['network'], 'ipaddress': self.args['ipaddress'], 'macaddress': self.args['macaddress']}
-        for remove in ['interface', 'network', 'ipaddress', 'macaddress']:
-            self.args.pop(remove, None)
+        interface = {}
+        if self.args['interface']:
+            interface['interface'] = self.args['interface']
+            if self.args['network']:
+                interface['network'] = self.args['network']
+            if self.args['ipaddress']:
+                interface['ipaddress'] = self.args['ipaddress']
+            if self.args['macaddress']:
+                interface['macaddress'] = self.args['macaddress']
+            if self.args['options']:
+                interface['options'] = self.args['options']
+        if interface:
+            self.args['interfaces'] = [interface]
+            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options']:
+                self.args.pop(remove, None)
         payload = Helper().prepare_payload(self.args)
         if payload:
             node_name = payload['name']
