@@ -322,6 +322,7 @@ class Group():
                 json_data = Helper().prepare_json(data)
                 response = Presenter().show_json(json_data)
             else:
+                data = Helper().prepare_json(data, True)
                 fields, rows  = Helper().filter_interface(self.interface, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
@@ -347,6 +348,7 @@ class Group():
                 json_data = Helper().prepare_json(data)
                 response = Presenter().show_json(json_data)
             else:
+                data = Helper().prepare_json(data, True)
                 fields, rows  = Helper().filter_data_col(self.interface, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
