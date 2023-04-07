@@ -642,7 +642,7 @@ class Helper():
                 content = self.base64_decode(content[0])
                 if content is not None:
                     if limit:
-                        content = content[:30]
+                        content = content[:60]
                         if '\n' in content:
                             content = content.removesuffix('\n')
                         content = f'{content}...'
@@ -666,7 +666,7 @@ class Helper():
                 newrow.append(value['name'])
                 newrow.append(value['path'])
                 content = self.base64_decode(value['content'])
-                newrow.append(content[:30]+'...')
+                newrow.append(content[:60]+'...')
                 rows.append(newrow)
                 newrow = []
         for newfield in fields:
