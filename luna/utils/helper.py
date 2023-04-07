@@ -642,7 +642,10 @@ class Helper():
                 content = self.base64_decode(content[0])
                 if content is not None:
                     if limit:
-                        content = content[:30].removesuffix('\n')
+                        content = content[:30]
+                        if '\n' in content:
+                            content = content.removesuffix('\n')
+                        content = f'{content}...'
                     jsondata = nested_update(jsondata, key=enkey, value=content)
         return jsondata
 
