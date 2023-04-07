@@ -157,9 +157,9 @@ class Helper():
         self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config'][table][args["name"]]
-            data = Helper().prepare_json(data)
+            json_data = Helper().prepare_json(data)
             if args['raw']:
-                response = Presenter().show_json(data)
+                response = Presenter().show_json(json_data)
             else:
                 data = Helper().prepare_json(data, True)
                 fields, rows  = self.filter_data_col(table, data)
