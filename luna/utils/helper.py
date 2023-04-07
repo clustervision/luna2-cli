@@ -161,6 +161,7 @@ class Helper():
             if args['raw']:
                 response = Presenter().show_json(data)
             else:
+                data = Helper().prepare_json(data, True)
                 fields, rows  = self.filter_data_col(table, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
@@ -630,7 +631,7 @@ class Helper():
         return content
 
 
-    def prepare_json(self, jsondata=None):
+    def prepare_json(self, jsondata=None, limit=False):
         """
         This method will decode the base 64 string.
         """
@@ -640,6 +641,8 @@ class Helper():
             if content:
                 content = self.base64_decode(content[0])
                 if content is not None:
+                    if limit:
+                        content = content[:30].removesuffix('\n')
                     jsondata = nested_update(jsondata, key=enkey, value=content)
         return jsondata
 
@@ -770,13 +773,13 @@ class Helper():
             'cluster': ['name', 'hostname','ipaddress', 'technical_contacts', 'provision_method', 'security'],
             'controller': ['id', 'clusterid', 'hostname', 'status', 'ipaddress', 'serverport'],
             'group': ['name', 'bmcsetupname', 'domain', 'provision_fallback', 'interfaces'],
-            'groupinterface': ['interface', 'network'],
+            'groupinterface': ['interface', 'network', 'options'],
             'groupsecrets': ['Group', 'name', 'path', 'content'],
             'ipaddress': ['id', 'ipaddress', 'subnet', 'network'],
             'monitor': ['id', 'nodeid', 'status', 'state'],
             'network': ['name', 'network', 'ns_ip', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end'],
             'node': ['name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_uuid'],
-            'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network'],
+            'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options'],
             'nodesecrets': ['Node', 'name', 'path', 'content'],
             'osimage': ['name', 'kernelfile', 'path', 'tarball', 'distribution'],
             'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
