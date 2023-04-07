@@ -338,7 +338,6 @@ class Group():
         Method to list a Group interfaces in Luna Configuration.
         """
         response = False
-        fields, rows = [], []
         self.logger.debug(f'Table => {self.table} and URI => {self.args["name"]}/interfaces{self.args["interface"]}')
         get_list = Rest().get_data(self.table, self.args['name']+'/interfaces/'+self.args['interface'])
         self.logger.debug(f'List Interfaces => {get_list}')
