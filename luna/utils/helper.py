@@ -778,7 +778,7 @@ class Helper():
             'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
             'cluster': ['name', 'hostname','ipaddress', 'technical_contacts', 'provision_method', 'security'],
             'controller': ['id', 'clusterid', 'hostname', 'status', 'ipaddress', 'serverport'],
-            'group': ['name', 'bmcsetupname', 'domain', 'provision_fallback', 'interfaces'],
+            'group': ['name', 'bmcsetupname', 'osimage', 'provision_fallback', 'interfaces'],
             'groupinterface': ['interface', 'network', 'options'],
             'groupsecrets': ['Group', 'name', 'path', 'content'],
             'ipaddress': ['id', 'ipaddress', 'subnet', 'network'],
