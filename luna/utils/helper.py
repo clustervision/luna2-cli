@@ -47,7 +47,7 @@ class Helper():
         # yes_choices = ['y', 'yes', 'true', 'Y', 'YES', 'True', 1]
         # no_choices = ['n', 'no', 'false', 'N', 'NO', 'False', 0]
         # choices = yes_choices + no_choices
-        choices = ['y', 'yes', 'n', 'no']
+        choices = ['y', 'yes', 'n', 'no', '']
         return choices
 
 
@@ -72,7 +72,9 @@ class Helper():
             content = nested_lookup(enkey, raw_data)
             if content:
                 if content[0] is not None:
-                    if content[0].lower() in ['y', 'yes', 'true']:
+                    if content[0] == '':
+                        raw_data = nested_update(raw_data, key=enkey, value='')
+                    elif content[0].lower() in ['y', 'yes', 'true']:
                         raw_data = nested_update(raw_data, key=enkey, value=True)
                     else:
                         raw_data = nested_update(raw_data, key=enkey, value=False)

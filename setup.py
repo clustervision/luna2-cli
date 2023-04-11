@@ -29,7 +29,7 @@ except ImportError: # for pip <= 9.0.3
 if os.path.exists(LOG_FOLDER) is False:
     try:
         os.makedirs(LOG_FOLDER)
-        print(f'ERROR :: {LOG_FOLDER} is created.')
+        print(f'PASS :: {LOG_FOLDER} is created.')
     except PermissionError:
         print("ERROR :: Install this tool as a super user.")
         sys.exit(1)
