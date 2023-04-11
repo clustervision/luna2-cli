@@ -19,7 +19,7 @@ import sys
 import requests
 from luna.utils.log import Log
 
-class Rest(object):
+class Rest():
     """
     All kind of REST Call methods.
     """
@@ -45,7 +45,6 @@ class Rest(object):
                 self.password = configparser.get('API', 'PASSWORD')
             if configparser.has_option('API', 'ENDPOINT'):
                 self.daemon = configparser.get('API', 'ENDPOINT')
-            self.logger.debug(f'INI File Username => {self.username}, Password {self.password} and Endpoint {self.daemon}')
         else:
             print(f'{ini_file} is not found on this machine.')
 
@@ -67,7 +66,7 @@ class Rest(object):
             self.logger.debug(f'Token URL => {daemon_url}')
             try:
                 call = requests.post(url = daemon_url, json=data, timeout=5)
-                self.logger.debug(f'Response Content => {call.content}, and HTTP Code {call.status_code}')
+                self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
                 data = call.json()
                 if 'token' in data:
                     response = data['token']
@@ -75,7 +74,7 @@ class Rest(object):
                         file_data.write(response)
             except requests.exceptions.ConnectionError:
                 print(f'ERROR :: Unable to Coonect Luna Daemon => http://{self.daemon}.')
-                self.logger.debug(f'ERROR :: Unable to connect Luna Daemon => http://{self.daemon}.')
+                self.logger.debug(f'ERROR :: Unable to connect Luna Daemon http://{self.daemon}.')
                 sys.exit(1)
         return response
 
@@ -92,7 +91,7 @@ class Rest(object):
         self.logger.debug(f'Token URL => {daemon_url}')
         try:
             call = requests.post(url = daemon_url, json=data, timeout=5)
-            self.logger.debug(f'Response Content => {call.content}, and HTTP Code {call.status_code}')
+            self.logger.debug(f'Response {call.content}& HTTP Code {call.status_code}')
             data = call.json()
             if 'token' in data:
                 response = data['token']
@@ -122,7 +121,7 @@ class Rest(object):
         self.logger.debug(f'GET URL => {daemon_url}')
         try:
             call = requests.get(url=daemon_url, params=data, headers=headers, timeout=5)
-            self.logger.debug(f'Response Content => {call.content}, and HTTP Code {call.status_code}')
+            self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
             if call:
                 response = call.json()
         except ValueError:
@@ -145,8 +144,9 @@ class Rest(object):
         self.logger.debug(f'POST URL => {daemon_url}')
         self.logger.debug(f'POST DATA => {data}')
         try:
-            response = requests.post(url=daemon_url, data=json.dumps(data), headers=headers, timeout=5)
-            self.logger.debug(f'Response Content => {response.content}, and HTTP Code {response.status_code}')
+            data=json.dumps(data)
+            response = requests.post(url=daemon_url, data=data, headers=headers, timeout=5)
+            self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except ValueError:
             self.reset_token()
             response = self.post_data(table, name, data)
@@ -165,7 +165,7 @@ class Rest(object):
         self.logger.debug(f'GET URL => {daemon_url}')
         try:
             response = requests.get(url=daemon_url, headers=headers, timeout=5)
-            self.logger.debug(f'Response Content => {response.content}, and HTTP Code {response.status_code}')
+            self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except ValueError:
             self.reset_token()
             response = self.get_delete(table, name)
@@ -183,8 +183,9 @@ class Rest(object):
         daemon_url = f'http://{self.daemon}/config/{table}/{name}/_clone'
         self.logger.debug(f'Clone URL => {daemon_url}')
         try:
-            response = requests.post(url=daemon_url, data=json.dumps(data), headers=headers, timeout=5)
-            self.logger.debug(f'Response Content => {response.content}, and HTTP Code {response.status_code}')
+            data=json.dumps(data)
+            response = requests.post(url=daemon_url, data=data, headers=headers, timeout=5)
+            self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except ValueError:
             self.reset_token()
             response = self.post_clone(table, name, data)
@@ -205,7 +206,7 @@ class Rest(object):
         self.logger.debug(f'Status URL => {daemon_url}')
         try:
             call = requests.get(url=daemon_url, params=data, headers=headers, timeout=5)
-            self.logger.debug(f'Response Content => {call.content}, and HTTP Code {call.status_code}')
+            self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
             response = call.status_code
         except ValueError:
             self.reset_token()
@@ -227,7 +228,7 @@ class Rest(object):
         self.logger.debug(f'RAW URL => {daemon_url}')
         try:
             response = requests.get(url=daemon_url, headers=headers, timeout=5)
-            self.logger.debug(f'Response Content => {response.content}, and HTTP Code {response.status_code}')
+            self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except ValueError:
             self.reset_token()
             response = self.get_raw(route, uri)
@@ -245,8 +246,9 @@ class Rest(object):
         daemon_url = f'http://{self.daemon}/{route}'
         self.logger.debug(f'Clone URL => {daemon_url}')
         try:
-            response = requests.post(url=daemon_url, data=json.dumps(payload), headers=headers, timeout=5)
-            self.logger.debug(f'Response Content => {response.content}, and HTTP Code {response.status_code}')
+            data=json.dumps(payload)
+            response = requests.post(url=daemon_url, data=data, headers=headers, timeout=5)
+            self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except ValueError:
             self.reset_token()
             response = self.post_raw(route, payload)

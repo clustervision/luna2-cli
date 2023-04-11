@@ -294,69 +294,6 @@ class Helper():
         return True
 
 
-    def interface_dict(self, interface_list=None):
-        """
-        This method will iterate the list of strings
-        which have colon(:) for split purpose.
-        """
-        dictionary = {}
-        print(interface_list)
-        for interface in interface_list:
-            interface = interface.split(',')
-            print(self.check_ip_address(interface[0]))
-            print(self.check_mac_address(interface[0]))
-            # print(interface[5])
-            # print(len(interface))
-            # for ifc in interface_group:
-            #     print(interface_group[0])
-
-        response = []
-        # dictionary = {}
-        # for keyval in lst:
-        #     if '|' in keyval:
-        #         keyvalspl = keyval.split('|')
-        #         if len(keyvalspl) == 4:
-        #             if keyvalspl[0] != '' and keyvalspl[1] != '' and keyvalspl[2] != '' and keyvalspl[3] != '':
-        #                 dictionary['interface'] = keyvalspl[0]
-        #                 dictionary['network'] = keyvalspl[1]
-        #                 dictionary['ipaddress'] = keyvalspl[2]
-        #                 dictionary['macaddress'] = keyvalspl[3]
-        #         elif len(keyvalspl) == 2:
-        #             if keyvalspl[0] != '' and keyvalspl[1] != '':
-        #                 dictionary['interface'] = keyvalspl[0]
-        #                 dictionary['network'] = keyvalspl[1]
-        #     if dictionary:
-        #         response.append(dictionary)
-        #         dictionary = {}
-        return response
-
-
-    def check_mac_address(self, mac=None):
-        """
-        This method validate the mac address
-        """
-        response = False
-        import re
-        if re.match("[0-9a-f]{2}([-:]?)[0-9a-f]{2}(\\1[0-9a-f]{2}){4}$", mac.lower()):
-            response = True
-        return response
-
-
-    def check_ip_address(self, ip=None):
-        """
-        This method validate the mac address
-        """
-        response = False
-        import ipaddress
-        try:
-            ipaddress.ip_address(ip)
-            response = True
-        except ValueError:
-            print(' ')
-            # print(f"The IP address '{ip}' is not valid")
-        return response
-
-
     def get_hostlist(self, rawhosts=None):
         """
         This method will perform power option on node.
