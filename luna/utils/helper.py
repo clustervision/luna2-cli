@@ -137,6 +137,7 @@ class Helper():
                 json_data = Helper().prepare_json(data)
                 response = Presenter().show_json(json_data)
             else:
+                data = Helper().prepare_json(data, True)
                 fields, rows  = self.filter_data(table, data)
                 fields = list(map(lambda x: x.replace('tpm_uuid', 'tpm_present'), fields))
                 fields = list(map(lambda x: x.replace('ns_ip', 'nameserver'), fields))
@@ -641,17 +642,18 @@ class Helper():
         for enkey in encoded_keys:
             content = nested_lookup(enkey, jsondata)
             if content:
-                try:
-                    content = self.base64_decode(content[0])
-                    if content is not None:
+                if content[0] is not None:
+                    try:
+                        content = self.base64_decode(content[0])
                         if limit:
-                            content = content[:60]
-                            if '\n' in content:
-                                content = content.removesuffix('\n')
-                            content = f'{content}...'
+                            if len(content) and '<empty>' not in content:
+                                content = content[:60]
+                                if '\n' in content:
+                                    content = content.removesuffix('\n')
+                                content = f'{content}...'
                         jsondata = nested_update(jsondata, key=enkey, value=content)
-                except TypeError:
-                    self.logger.debug(f"Without any reason {content} is coming from api.")
+                    except TypeError:
+                        self.logger.debug(f"Without any reason {content} is coming from api.")
         return jsondata
 
 
