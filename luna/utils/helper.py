@@ -639,14 +639,17 @@ class Helper():
         for enkey in encoded_keys:
             content = nested_lookup(enkey, jsondata)
             if content:
-                content = self.base64_decode(content[0])
-                if content is not None:
-                    if limit:
-                        content = content[:60]
-                        if '\n' in content:
-                            content = content.removesuffix('\n')
-                        content = f'{content}...'
-                    jsondata = nested_update(jsondata, key=enkey, value=content)
+                try:
+                    content = self.base64_decode(content[0])
+                    if content is not None:
+                        if limit:
+                            content = content[:60]
+                            if '\n' in content:
+                                content = content.removesuffix('\n')
+                            content = f'{content}...'
+                        jsondata = nested_update(jsondata, key=enkey, value=content)
+                except TypeError:
+                    self.logger.debug(f"Without any reason {content} is coming from api.")
         return jsondata
 
 
