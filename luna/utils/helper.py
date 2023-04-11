@@ -745,11 +745,11 @@ class Helper():
                 newlist = []
                 for internal in key[1]:
                     for internal_val in internal:
-                        self.logger.debug(f'Key => {internal_val}')
-                        self.logger.debug(f'Value => {internal[internal_val]}')
-                        inkey = internal_val
-                        inval = internal[internal_val]
-                        newlist.append(f'{inkey} = {inval} ')
+                        self.logger.debug(f'Key => {internal_val} and Value => {internal[internal_val]}')
+                        if internal_val == "interface":
+                            newlist.append(f'{internal_val} = {internal[internal_val]}')
+                        else:
+                            newlist.append(f'  {internal_val} = {internal[internal_val]}')
                 newlist = '\n'.join(newlist)
                 rows.append(newlist)
                 newlist = []
