@@ -12,6 +12,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
+import os
 import sys
 from argparse import ArgumentParser
 from luna.utils.presenter import Presenter
@@ -59,6 +60,7 @@ class Cli():
         Main method to fetch and provide the arguments
         for each class.
         """
+        log_checker()
         self.parser = ArgumentParser(prog='luna', description='Manage Luna Cluster')
         self.parser.add_argument('-V', '--version', action='version', version='%(prog)s 2.0')
         self.parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
@@ -97,6 +99,20 @@ class Cli():
             self.parser.print_help(sys.stderr)
             sys.exit(1)
 
+
+def log_checker():
+    """
+    This method will check if the log file is in place or not.
+    If not then will create it.
+    """
+    log_folder = '/var/log/luna'
+    if os.path.exists(log_folder) is False:
+        try:
+            os.makedirs(log_folder)
+            print(f'PASS :: {log_folder} is created.')
+        except PermissionError:
+            print("ERROR :: Run this tool once as a super user.")
+            sys.exit(1)
 
 def run_tool():
     """

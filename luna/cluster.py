@@ -53,16 +53,16 @@ class Cluster():
         cluster_change.add_argument('-n', '--name', help='New Name For Cluster')
         cluster_change.add_argument('-u', '--user', help='Cluster User')
         cluster_change.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='NTP IP')
-        cluster_change.add_argument('-o', '--createnode_ondemand', choices=Helper().boolean(),
+        cluster_change.add_argument('-o', '--createnode_ondemand', choices=Helper().boolean(), metavar="{y,yes,n,no,''}",
                                     help='On Demand Nodes')
         cluster_change.add_argument('-ns', '--nameserver_ip', help='Name Server IP')
         cluster_change.add_argument('-fs', '--forwardserver_ip', help='Forward Server IP')
         cluster_change.add_argument('-c', '--technical_contacts',  help='Technical Contact')
         cluster_change.add_argument('-pm', '--provision_method', help='Provision Method')
         cluster_change.add_argument('-pf', '--provision_fallback', help='Provision Fallback')
-        cluster_change.add_argument('-s', '--security', choices=Helper().boolean(),
+        cluster_change.add_argument('-s', '--security', choices=Helper().boolean(), metavar="{y,yes,n,no,''}",
                                     help='Security')
-        cluster_change.add_argument('-d', '--debug', choices=Helper().boolean(), help='Debug Mode')
+        cluster_change.add_argument('-d', '--debug', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Debug Mode')
         return parser
 
 
