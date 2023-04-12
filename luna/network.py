@@ -29,7 +29,8 @@ class Network():
         self.table = "network"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "add", "change", "rename", "clone", "remove", "ipinfo", "nextip"]
+            actions = ["list", "show", "add", "change", "rename", "clone", "remove",
+                       "ipinfo", "nextip"]
             if self.args["action"] in actions:
                 call = methodcaller(f'{self.args["action"]}_network')
                 call(self)
@@ -57,7 +58,8 @@ class Network():
         network_add.add_argument('-g', '--gateway', help='Gateway')
         network_add.add_argument('-nsip', '--nameserver_ip', help='NameServer IP')
         network_add.add_argument('-ntp', '--ntp_server', help='NTP Server')
-        network_add.add_argument('-dhcp', '--dhcp', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='DHCP')
+        network_add.add_argument('-dhcp', '--dhcp', choices=Helper().boolean(),
+                                 metavar="{y,yes,n,no,''}", help='DHCP')
         network_add.add_argument('-ds', '--dhcp_range_begin', help='DHCP Range Start')
         network_add.add_argument('-de', '--dhcp_range_end', help='DHCP Range End')
         network_add.add_argument('-c', '--comment', action='store_true', help='Comment')
@@ -68,7 +70,8 @@ class Network():
         network_change.add_argument('-g', '--gateway', help='Gateway')
         network_change.add_argument('-nsip', '--nameserver_ip', help='Name server IP')
         network_change.add_argument('-ntp', '--ntp_server', help='NTP Server')
-        network_change.add_argument('-dhcp', '--dhcp', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='DHCP')
+        network_change.add_argument('-dhcp', '--dhcp', choices=Helper().boolean(),
+                                    metavar="{y,yes,n,no,''}", help='DHCP')
         network_change.add_argument('-ds', '--dhcp_range_begin', help='DHCP Range Start')
         network_change.add_argument('-de', '--dhcp_range_end', help='DHCP Range End')
         network_change.add_argument('-c', '--comment', action='store_true', help='Comment')
@@ -80,7 +83,8 @@ class Network():
         network_clone.add_argument('-g', '--gateway', help='Gateway')
         network_clone.add_argument('-nsip', '--nameserver_ip', help='Name server IP')
         network_clone.add_argument('-ntp', '--ntp_server', help='NTP Server')
-        network_clone.add_argument('-dhcp', '--dhcp', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='DHCP')
+        network_clone.add_argument('-dhcp', '--dhcp', choices=Helper().boolean(),
+                                   metavar="{y,yes,n,no,''}", help='DHCP')
         network_clone.add_argument('-ds', '--dhcp_range_begin', help='DHCP Range Start')
         network_clone.add_argument('-de', '--dhcp_range_end', help='DHCP Range End')
         network_clone.add_argument('-c', '--comment', action='store_true', help='Comment')

@@ -18,7 +18,7 @@ from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 
-class Secrets(object):
+class Secrets():
     """
     Secrets Class responsible to show, list,
     and update information for all Secrets
@@ -80,15 +80,21 @@ class Secrets(object):
         change_parser = change_secrets.add_subparsers(dest='entity')
         change_node = change_parser.add_parser('node', help='Change Node Secrets')
         change_node.add_argument('name', help='Name of the Node')
-        change_node.add_argument('--secret', '-s', required=True, action='append', help='Name of the Secret')
-        change_node.add_argument('--content', '-c', required=True, action='store_true', help='Content of the Secret')
-        change_node.add_argument('--path', '-p', required=True, action='append', help='Path of the Secret')
+        change_node.add_argument('--secret', '-s', required=True, action='append',
+                                 help='Name of the Secret')
+        change_node.add_argument('--content', '-c', required=True, action='store_true',
+                                 help='Content of the Secret')
+        change_node.add_argument('--path', '-p', required=True, action='append',
+                                 help='Path of the Secret')
         change_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         change_group = change_parser.add_parser('group', help='Change Group Secrets')
         change_group.add_argument('name', help='Name of the Group')
-        change_group.add_argument('--secret', '-s', required=True, action='append', help='Name of the Secret')
-        change_group.add_argument('--content', '-c', required=True, action='store_true', help='Content of the Secret')
-        change_group.add_argument('--path', '-p', required=True, action='append', help='Path of the Secret')
+        change_group.add_argument('--secret', '-s', required=True, action='append',
+                                  help='Name of the Secret')
+        change_group.add_argument('--content', '-c', required=True, action='store_true',
+                                  help='Content of the Secret')
+        change_group.add_argument('--path', '-p', required=True, action='append',
+                                  help='Path of the Secret')
         change_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> clone
         clone_secrets = secrets_args.add_parser('clone', help='Clone Secrets')
@@ -97,14 +103,16 @@ class Secrets(object):
         clone_node.add_argument('name', help='Name of the Node')
         clone_node.add_argument('secret', help='Name of the Secret')
         clone_node.add_argument('newsecretname', help='New name for the Secret')
-        clone_node.add_argument('--content', '-c', action='store_true', help='Content of the Secret')
+        clone_node.add_argument('--content', '-c', action='store_true',
+                                help='Content of the Secret')
         clone_node.add_argument('--path', '-p', help='Path of the Secret')
         clone_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         clone_group = clone_parser.add_parser('group', help='Clone Group Secrets')
         clone_group.add_argument('name', help='Name of the Group')
         clone_group.add_argument('secret', help='Name of the Secret')
         clone_group.add_argument('newsecretname', help='New name for the Secret')
-        clone_group.add_argument('--content', '-c', action='store_true', help='Content of the Secret')
+        clone_group.add_argument('--content', '-c', action='store_true',
+                                 help='Content of the Secret')
         clone_group.add_argument('--path', '-p', help='Path of the Secret')
         clone_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> delete
@@ -241,7 +249,7 @@ class Secrets(object):
                 for remove in ['secret', 'content', 'path']:
                     self.args.pop(remove, None)
             else:
-                response = Helper().show_error('Each Secret should have Secret Name, Content and Path')
+                response = Helper().show_error('Secret should have Secret Name, Content and Path')
             payload = self.args
             if payload:
                 request_data = {'config': {self.route: {entity: payload}}}
@@ -317,7 +325,7 @@ class Secrets(object):
                 uri = f'{entity}/{entity_name}/{payload["secret"]}'
                 self.logger.debug(f'Delete URI => {uri}')
             else:
-                abort = Helper().show_error('Kindly Provide the Node/Group name and the secret name')
+                abort = Helper().show_error('Provide Node/Group name and the secret name')
             if abort is False:
                 response = Rest().get_delete(self.route, uri)
                 self.logger.debug(f'Response => {response}')

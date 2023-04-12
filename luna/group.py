@@ -28,10 +28,12 @@ class Group():
         self.logger = Log.get_logger()
         self.args = args
         self.table = "group"
+        self.table_cap = self.table.capitalize()
         self.interface = "groupinterface"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "member", "add", "change", "rename", "remove", "clone", "listinterface", "showinterface", "changeinterface", "removeinterface"]
+            actions = ["list", "show", "member", "add", "change", "rename", "remove", "clone",
+                       "listinterface", "showinterface", "changeinterface", "removeinterface"]
             if self.args["action"] in actions:
                 if 'interface' in self.args["action"]:
                     call = methodcaller(f'{self.args["action"]}')
@@ -61,7 +63,8 @@ class Group():
         Helper().common_list_args(group_member)
         group_add = group_args.add_parser('add', help='Add Group')
         group_add.add_argument('name', help='Name of the Group')
-        group_add.add_argument('-b', '--setupbmc', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='BMC Setup')
+        group_add.add_argument('-b', '--setupbmc', choices=Helper().boolean(),
+                               metavar="{y,yes,n,no,''}", help='BMC Setup')
         group_add.add_argument('-o', '--osimage', help='OS Image Name')
         group_add.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         group_add.add_argument('-D', '--domain', help='Domain Name')
@@ -71,9 +74,12 @@ class Group():
         group_add.add_argument('-pi', '--provision_interface', help='Provision Interface')
         group_add.add_argument('-pm', '--provision_method', help='Provision Method')
         group_add.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        group_add.add_argument('-nb', '--netboot', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Network Boot')
-        group_add.add_argument('-li', '--localinstall', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Local Install')
-        group_add.add_argument('-bm', '--bootmenu', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Boot Menu')
+        group_add.add_argument('-nb', '--netboot', choices=Helper().boolean(),
+                               metavar="{y,yes,n,no,''}", help='Network Boot')
+        group_add.add_argument('-li', '--localinstall', choices=Helper().boolean(),
+                               metavar="{y,yes,n,no,''}", help='Local Install')
+        group_add.add_argument('-bm', '--bootmenu', choices=Helper().boolean(),
+                               metavar="{y,yes,n,no,''}", help='Boot Menu')
         group_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         group_add.add_argument('-if', '--interface', help='Interface Name')
         group_add.add_argument('-N', '--network', help='Interface Network Name')
@@ -82,7 +88,8 @@ class Group():
         group_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_change = group_args.add_parser('change', help='Change Group')
         group_change.add_argument('name', help='Name of the Group')
-        group_change.add_argument('-b', '--setupbmc', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='BMC Setup')
+        group_change.add_argument('-b', '--setupbmc', choices=Helper().boolean(),
+                                  metavar="{y,yes,n,no,''}", help='BMC Setup')
         group_change.add_argument('-o', '--osimage', help='OS Image Name')
         group_change.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         group_change.add_argument('-D', '--domain', help='Domain Name')
@@ -92,9 +99,12 @@ class Group():
         group_change.add_argument('-pi', '--provision_interface', help='Provision Interface')
         group_change.add_argument('-pm', '--provision_method', help='Provision Method')
         group_change.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        group_change.add_argument('-nb', '--netboot', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Network Boot')
-        group_change.add_argument('-li', '--localinstall', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Local Install')
-        group_change.add_argument('-bm', '--bootmenu', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Boot Menu')
+        group_change.add_argument('-nb', '--netboot', choices=Helper().boolean(),
+                                  metavar="{y,yes,n,no,''}", help='Network Boot')
+        group_change.add_argument('-li', '--localinstall', choices=Helper().boolean(),
+                                  metavar="{y,yes,n,no,''}", help='Local Install')
+        group_change.add_argument('-bm', '--bootmenu', choices=Helper().boolean(),
+                                  metavar="{y,yes,n,no,''}", help='Boot Menu')
         group_change.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         group_change.add_argument('-if', '--interface', help='Interface Name')
         group_change.add_argument('-N', '--network', help='Interface Network Name')
@@ -104,7 +114,8 @@ class Group():
         group_clone = group_args.add_parser('clone', help='Clone Group.')
         group_clone.add_argument('name', help='Name of the Group')
         group_clone.add_argument('newgroupname', help='New Name for the Group')
-        group_clone.add_argument('-b', '--setupbmc', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='BMC Setup')
+        group_clone.add_argument('-b', '--setupbmc', choices=Helper().boolean(),
+                                 metavar="{y,yes,n,no,''}", help='BMC Setup')
         group_clone.add_argument('-o', '--osimage', help='OS Image Name')
         group_clone.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         group_clone.add_argument('-D', '--domain', help='Domain Name')
@@ -137,16 +148,17 @@ class Group():
         group_interface.add_argument('name', help='Name of the Group')
         group_interface.add_argument('interface', help='Name of the Group Interface')
         Helper().common_list_args(group_interface)
-        group_changeinterface = group_args.add_parser('changeinterface', help='Change Group Interface')
-        group_changeinterface.add_argument('name', help='Name of the Group')
-        group_changeinterface.add_argument('interface', help='Group Interface Name')
-        group_changeinterface.add_argument('-N', '--network', help='Network Name')
-        group_changeinterface.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
-        group_changeinterface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
-        group_removeinterface = group_args.add_parser('removeinterface', help='Remove Group Interface')
-        group_removeinterface.add_argument('name', help='Name of the Group')
-        group_removeinterface.add_argument('interface', help='Name of the Group Interface')
-        group_removeinterface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        change_interface = group_args.add_parser('changeinterface', help='Change Group Interface')
+        change_interface.add_argument('name', help='Name of the Group')
+        change_interface.add_argument('interface', help='Group Interface Name')
+        change_interface.add_argument('-N', '--network', help='Network Name')
+        change_interface.add_argument('-O', '--options', action='store_true',
+                                      help='Interfaces Options')
+        change_interface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        remove_interface = group_args.add_parser('removeinterface', help='Remove Group Interface')
+        remove_interface.add_argument('name', help='Name of the Group')
+        remove_interface.add_argument('interface', help='Name of the Group Interface')
+        remove_interface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         return parser
 
 
@@ -175,8 +187,6 @@ class Group():
         """
         Method to add new group in Luna Configuration.
         """
-        for remove in ['verbose', 'command', 'action']:
-            self.args.pop(remove, None)
         interface = {}
         if self.args['interface']:
             interface['interface'] = self.args['interface']
@@ -188,26 +198,13 @@ class Group():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'options']:
                 self.args.pop(remove, None)
-        payload = Helper().prepare_payload(self.args)
-        if payload:
-            request_data = {'config': {self.table: {payload['name']: payload}}}
-            self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_data(self.table, payload['name'], request_data)
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 201:
-                Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
-        return True
+        return Helper().add_record(self.table, self.args)
 
 
     def change_group(self):
         """
         Method to change a group in Luna Configuration.
         """
-        for remove in ['verbose', 'command', 'action']:
-            self.args.pop(remove, None)
         interface = {}
         if self.args['interface']:
             interface['interface'] = self.args['interface']
@@ -219,69 +216,27 @@ class Group():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'options']:
                 self.args.pop(remove, None)
-        payload = Helper().prepare_payload(self.args)
-        if payload:
-            request_data = {'config': {self.table: {payload['name']: payload}}}
-            self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_data(self.table, payload['name'], request_data)
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 204:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
-        else:
-            Helper().show_error('Nothing to update.')
-        return True
+        return Helper().update_record(self.table, self.args)
 
 
     def rename_group(self):
         """
         Method to rename a group in Luna Configuration.
         """
-        for remove in ['verbose', 'command', 'action']:
-            self.args.pop(remove, None)
-        payload = self.args
-        if payload:
-            request_data = {'config': {self.table: {payload['name']: payload}}}
-            self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_data(self.table, payload['name'], request_data)
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 204:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newgroupname"]}.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
-        return True
+        return Helper().rename_record(self.table, self.args, self.args["newgroupname"])
 
 
     def remove_group(self):
         """
         Method to remove a group in Luna Configuration.
         """
-        for remove in ['verbose', 'command', 'action']:
-            self.args.pop(remove, None)
-        payload = self.args
-        if payload:
-            self.logger.debug(f'Payload => {payload}')
-            response = Rest().get_delete(self.table, payload['name'])
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 204:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
-        return True
+        return Helper().delete_record(self.table, self.args)
 
 
     def clone_group(self):
         """
         Method to rename a group in Luna Configuration.
         """
-        error = False
-        payload = {}
-        for remove in ['verbose', 'command', 'action']:
-            self.args.pop(remove, None)
         interface = {}
         if self.args['interface']:
             interface['interface'] = self.args['interface']
@@ -293,20 +248,7 @@ class Group():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'options']:
                 self.args.pop(remove, None)
-        payload = Helper().prepare_payload(self.args)
-        if payload:
-            request_data = {'config': {self.table: {payload['name']: payload}}}
-            self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_clone(self.table, payload['name'], request_data)
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 201:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} clone as {payload["newgroupname"]}.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
-        else:
-            Helper().show_error(f'Nothing to update in {payload["name"]}.')
-        return True
+        return Helper().clone_record(self.table, self.args, self.args["newgroupname"])
 
 
     def listinterface(self):
@@ -328,7 +270,7 @@ class Group():
                 fields, rows  = Helper().filter_interface(self.interface, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
-                title = f' << {self.table.capitalize()} {self.args["name"]} Interfaces >>'
+                title = f' << {self.table_cap} {self.args["name"]} Interfaces >>'
                 response = Presenter().show_table(title, fields, rows)
         else:
             response = Helper().show_error(f'{self.args["name"]} is not found in {self.table}.')
@@ -340,8 +282,9 @@ class Group():
         Method to list a Group interfaces in Luna Configuration.
         """
         response = False
-        self.logger.debug(f'Table => {self.table} and URI => {self.args["name"]}/interfaces{self.args["interface"]}')
-        get_list = Rest().get_data(self.table, self.args['name']+'/interfaces/'+self.args['interface'])
+        uri = self.args['name']+'/interfaces/'+self.args['interface']
+        self.logger.debug(f'Table => {self.table} and URI => {uri}')
+        get_list = Rest().get_data(self.table, uri)
         self.logger.debug(f'List Interfaces => {get_list}')
         if get_list:
             data = get_list['config'][self.table][self.args["name"]]['interfaces'][0]
@@ -353,10 +296,12 @@ class Group():
                 fields, rows  = Helper().filter_data_col(self.interface, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
-                title = f'{self.table.capitalize()} [{self.args["name"]}] => Interface {self.args["interface"]}'
+                title = f'{self.table_cap} {self.args["name"]} Interface [{self.args["interface"]}]'
                 response = Presenter().show_table_col(title, fields, rows)
         else:
-            response = Helper().show_error(f'Interface {self.args["interface"]} not found in {self.table} {self.args["name"]} OR {self.args["name"]} is unavailable.')
+            msg = f'{self.args["interface"]} not found in {self.table} {self.args["name"]}'
+            msg = f'{msg} OR {self.args["name"]} is unavailable.'
+            response = Helper().show_error(msg)
         return response
 
 
@@ -386,7 +331,7 @@ class Group():
             response = Rest().post_data(self.table, group_name+'/interfaces', request_data)
             self.logger.debug(f'Response => {response}')
             if response.status_code == 204:
-                Helper().show_success(f'Interfaces updated in {self.table.capitalize()} {group_name}.')
+                Helper().show_success(f'Interfaces updated in {self.table_cap} {group_name}.')
             else:
                 Helper().show_error(f'HTTP Error Code {response.status_code}.')
                 Helper().show_error(f'HTTP Error {response.content}.')
@@ -403,11 +348,13 @@ class Group():
             self.args.pop(remove, None)
         payload = self.args
         if payload:
-            self.logger.debug(f"URI {payload['name']}/interfaces/{payload['interface']}")
-            response = Rest().get_delete(self.table, payload['name']+'/interfaces/'+payload['interface'])
+            uri = payload['name']+'/interfaces/'+payload['interface']
+            self.logger.debug(f"URI {uri}")
+            response = Rest().get_delete(self.table, uri)
             self.logger.debug(f'Response => {response}')
             if response.status_code == 204:
-                Helper().show_success(f'Interface {payload["interface"]} Deleted from {self.table.capitalize()} {payload["name"]}.')
+                msg = f'{payload["interface"]} removed from {self.table_cap} {payload["name"]}.'
+                Helper().show_success(msg)
             else:
                 Helper().show_error(f'HTTP Error Code {response.status_code}.')
                 Helper().show_error(f'HTTP Error {response.content}.')

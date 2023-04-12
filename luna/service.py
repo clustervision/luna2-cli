@@ -75,7 +75,7 @@ class Service():
                 ## TODO ->
                 ## Need to parse it, when daemon side is done
                 # result = result['service'][self.args["service"]]
-                # response = Helper().show_success(f'{self.args["action"]} performed on {self.args["service"]}')
+                # response = Helper().show_success(f'{self.args["action"]} {self.args["service"]}')
                 # Helper().show_success(f'{result}')
             else:
                 fetch_msg = f"{self.args['service']} {self.args['action']}..."
@@ -104,7 +104,9 @@ class Service():
                             return False
                     response = dig_service_status(uri)
                     if response:
-                        msg = f"[========] Service {self.args['service']} {self.args['action']} is finish."
+                        service = self.args['service']
+                        action = self.args['action']
+                        msg = f"[========] Service {service} {action} is finish."
                         print(msg)
                     else:
                         print("[X ERROR X] Try Again!")
