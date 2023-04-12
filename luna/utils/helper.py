@@ -44,9 +44,6 @@ class Helper():
         This method will provide boolean choices
         for argument parser.
         """
-        # yes_choices = ['y', 'yes', 'true', 'Y', 'YES', 'True', 1]
-        # no_choices = ['n', 'no', 'false', 'N', 'NO', 'False', 0]
-        # choices = yes_choices + no_choices
         choices = ['y', 'yes', 'n', 'no', '']
         return choices
 
@@ -303,7 +300,7 @@ class Helper():
         try:
             response = hostlist.expand_hostlist(rawhosts)
             self.logger.debug(f'Expanded hostlist: {response}.')
-        except Exception:
+        except hostlist.BadHostlist:
             self.logger.debug(f'Hostlist is incorrect: {rawhosts}.')
         return response
 
@@ -686,7 +683,7 @@ class Helper():
                 newlist = []
                 for internal in key[1]:
                     for internal_val in internal:
-                        self.logger.debug(f'Key => {internal_val} and Value => {internal[internal_val]}')
+                        self.logger.debug(f'Key: {internal_val} Value: {internal[internal_val]}')
                         if internal_val == "interface":
                             newlist.append(f'{internal_val} = {internal[internal_val]}')
                         else:
@@ -717,7 +714,8 @@ class Helper():
         response = False
         static = {
             'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
-            'cluster': ['name', 'hostname','ipaddress', 'technical_contacts', 'provision_method', 'security'],
+            'cluster': ['name', 'hostname','ipaddress', 'technical_contacts', 'provision_method',
+                        'security'],
             'controller': ['id', 'clusterid', 'hostname', 'status', 'ipaddress', 'serverport'],
             'group': ['name', 'bmcsetupname', 'osimage', 'provision_fallback', 'interfaces'],
             'groupinterface': ['interface', 'network', 'options'],
@@ -732,7 +730,7 @@ class Helper():
             'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
             'roles': ['id', 'name', 'modules'],
             'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],
-            'tracker': ['id', 'infohash', 'peer', 'ipaddress', 'port', 'download', 'upload', 'left', 'updated', 'status'],
+            'tracker': ['infohash', 'peer', 'ipaddress', 'port', 'status'],
             'user': ['id', 'username', 'password', 'roleid', 'createdby', 'lastlogin', 'created']
         }
         response = list(static[table])
@@ -746,23 +744,31 @@ class Helper():
         """
         response = False
         static = {
-            'cluster': ['name', 'ns_ip','ntp_server', 'provision_fallback', 'provision_method', 'security', 'technical_contacts', 'user', 'verbose'],
+            'cluster': ['name', 'ns_ip','ntp_server', 'provision_fallback', 'provision_method',
+                        'security', 'technical_contacts', 'user', 'debug'],
             'controller': ['hostname', 'ipaddress','luna_config', 'srverport', 'status'],
-            'node': ['name', 'hostname', 'group', 'osimage', 'interfaces', 'localboot', 'macaddress', 'switch', 'switchport', 'setupbmc', 'status', 'service',
-                       'prescript', 'partscript', 'postscript', 'netboot', 'localinstall', 'bootmenu', 'provisionmethod', 'provisioninterface', 'provisionfallback', 'tpmuuid'
-                       , 'tpmpubkey', 'tpmsha256',  'unmanaged_bmc_users', 'comment'],
-            'group': ['name', 'bmcsetup', 'bmcsetupname', 'domain', 'interfaces', 'osimage', 'prescript', 'partscript', 'postscript', 'netboot', 'localinstall',
-                    'bootmenu', 'provisionmethod', 'provisioninterface', 'provisionfallback', 'unmanaged_bmc_users','comment'],
-            'bmcsetup': ['name', 'userid', 'username', 'password', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users', 'comment'],
-            'osimage': ['name', 'dracutmodules', 'grab_filesystems', 'grab_exclude', 'initrdfile', 'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions',
-                        'path', 'tarball', 'torrent', 'distribution', 'comment'],
+            'node': ['name', 'hostname', 'group', 'osimage', 'interfaces', 'localboot',
+                     'macaddress', 'switch', 'switchport', 'setupbmc', 'status', 'service',
+                     'prescript', 'partscript', 'postscript', 'netboot', 'localinstall',
+                     'bootmenu', 'provisionmethod', 'provisioninterface', 'provisionfallback',
+                     'tpmuuid', 'tpmpubkey', 'tpmsha256', 'unmanaged_bmc_users', 'comment'],
+            'group': ['name', 'bmcsetup', 'bmcsetupname', 'domain', 'interfaces', 'osimage',
+                      'prescript', 'partscript', 'postscript', 'netboot', 'localinstall',
+                      'bootmenu', 'provisionmethod', 'provisioninterface', 'provisionfallback',
+                      'unmanaged_bmc_users','comment'],
+            'bmcsetup': ['name', 'userid', 'username', 'password', 'netchannel', 'mgmtchannel',
+                         'unmanaged_bmc_users', 'comment'],
+            'osimage': ['name', 'dracutmodules', 'grab_filesystems', 'grab_exclude', 'initrdfile',
+                        'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions', 'path',
+                        'tarball', 'torrent', 'distribution', 'comment'],
             'switch': ['name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'comment'],
             'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
             'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network'],
             'groupinterface': ['interfacename', 'network'],
             'groupsecrets': ['Group', 'name', 'path', 'content'],
             'nodesecrets': ['Node', 'name', 'path', 'content'],
-            'network': ['name', 'network', 'ns_hostname', 'ns_ip', 'ntp_server', 'gateway','dhcp','dhcp_range_begin','dhcp_range_end','comment']
+            'network': ['name', 'network', 'ns_hostname', 'ns_ip', 'ntp_server', 'gateway', 'dhcp',
+                        'dhcp_range_begin', 'dhcp_range_end', 'comment']
         }
         response = list(static[table])
         return response

@@ -28,10 +28,12 @@ class Node():
         self.logger = Log.get_logger()
         self.args = args
         self.table = "node"
+        self.table_cap = self.table.capitalize()
         self.interface = "nodeinterface"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "add", "change", "rename", "remove", "clone", "listinterface", "showinterface", "changeinterface", "removeinterface"]
+            actions = ["list", "show", "add", "change", "rename", "remove", "clone",
+                       "listinterface", "showinterface", "changeinterface", "removeinterface"]
             if self.args["action"] in actions:
                 if 'interface' in self.args["action"]:
                     call = methodcaller(f'{self.args["action"]}')
@@ -62,7 +64,8 @@ class Node():
         node_add.add_argument('-host', '--hostname',help='Hostname')
         node_add.add_argument('-g', '--group', required=True, help='Group Name')
         node_add.add_argument('-o', '--osimage', help='OS Image Name')
-        node_add.add_argument('-b', '--setupbmc', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='BMC Setup')
+        node_add.add_argument('-b', '--setupbmc', choices=Helper().boolean(),
+                              metavar="{y,yes,n,no,''}", help='BMC Setup')
         node_add.add_argument('-bmc', '--bmcsetup', help='BMC Setup')
         node_add.add_argument('-sw', '--switch', help='Switch Name')
         node_add.add_argument('-sp', '--switchport', help='Switch Port')
@@ -72,11 +75,16 @@ class Node():
         node_add.add_argument('-pi', '--provision_interface', help='Provision Interface')
         node_add.add_argument('-pm', '--provision_method', help='Provision Method')
         node_add.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        node_add.add_argument('-nb', '--netboot', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Network Boot')
-        node_add.add_argument('-li', '--localinstall', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Local Install')
-        node_add.add_argument('-bm', '--bootmenu', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Boot Menu')
-        node_add.add_argument('-lb', '--localboot', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Local Boot')
-        node_add.add_argument('-ser', '--service', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Service')
+        node_add.add_argument('-nb', '--netboot', choices=Helper().boolean(),
+                              metavar="{y,yes,n,no,''}", help='Network Boot')
+        node_add.add_argument('-li', '--localinstall', choices=Helper().boolean(),
+                              metavar="{y,yes,n,no,''}", help='Local Install')
+        node_add.add_argument('-bm', '--bootmenu', choices=Helper().boolean(),
+                              metavar="{y,yes,n,no,''}", help='Boot Menu')
+        node_add.add_argument('-lb', '--localboot', choices=Helper().boolean(),
+                              metavar="{y,yes,n,no,''}", help='Local Boot')
+        node_add.add_argument('-ser', '--service', choices=Helper().boolean(),
+                              metavar="{y,yes,n,no,''}", help='Service')
         node_add.add_argument('-s', '--status', help='Status')
         node_add.add_argument('-tid', '--tpm_uuid', help='TPM UUID')
         node_add.add_argument('-tkey', '--tpm_pubkey', help='TPM Public Key')
@@ -94,7 +102,8 @@ class Node():
         node_change.add_argument('-host', '--hostname',help='Hostname')
         node_change.add_argument('-g', '--group', help='Group Name')
         node_change.add_argument('-o', '--osimage', help='OS Image Name')
-        node_change.add_argument('-b', '--setupbmc', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='BMC Setup')
+        node_change.add_argument('-b', '--setupbmc', choices=Helper().boolean(),
+                                 metavar="{y,yes,n,no,''}", help='BMC Setup')
         node_change.add_argument('-bmc', '--bmcsetup', help='BMC Setup')
         node_change.add_argument('-sw', '--switch', help='Switch Name')
         node_change.add_argument('-sp', '--switchport', help='Switch Port')
@@ -104,11 +113,16 @@ class Node():
         node_change.add_argument('-pi', '--provision_interface', help='Provision Interface')
         node_change.add_argument('-pm', '--provision_method', help='Provision Method')
         node_change.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        node_change.add_argument('-nb', '--netboot', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Network Boot')
-        node_change.add_argument('-li', '--localinstall', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Local Install')
-        node_change.add_argument('-bm', '--bootmenu', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Boot Menu')
-        node_change.add_argument('-lb', '--localboot', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Local Boot')
-        node_change.add_argument('-ser', '--service', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Service')
+        node_change.add_argument('-nb', '--netboot', choices=Helper().boolean(),
+                                 metavar="{y,yes,n,no,''}", help='Network Boot')
+        node_change.add_argument('-li', '--localinstall', choices=Helper().boolean(),
+                                 metavar="{y,yes,n,no,''}", help='Local Install')
+        node_change.add_argument('-bm', '--bootmenu', choices=Helper().boolean(),
+                                 metavar="{y,yes,n,no,''}", help='Boot Menu')
+        node_change.add_argument('-lb', '--localboot', choices=Helper().boolean(),
+                                 metavar="{y,yes,n,no,''}", help='Local Boot')
+        node_change.add_argument('-ser', '--service', choices=Helper().boolean(),
+                                 metavar="{y,yes,n,no,''}", help='Service')
         node_change.add_argument('-s', '--status', help='Status')
         node_change.add_argument('-tid', '--tpm_uuid', help='TPM UUID')
         node_change.add_argument('-tkey', '--tpm_pubkey', help='TPM Public Key')
@@ -128,7 +142,8 @@ class Node():
         node_clone.add_argument('-host', '--hostname',help='Hostname')
         node_clone.add_argument('-g', '--group', help='Group Name')
         node_clone.add_argument('-o', '--osimage', help='OS Image Name')
-        node_clone.add_argument('-b', '--setupbmc', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='BMC Setup')
+        node_clone.add_argument('-b', '--setupbmc', choices=Helper().boolean(),
+                                metavar="{y,yes,n,no,''}", help='BMC Setup')
         node_clone.add_argument('-bmc', '--bmcsetup', help='BMC Setup')
         node_clone.add_argument('-sw', '--switch', help='Switch Name')
         node_clone.add_argument('-sp', '--switchport', help='Switch Port')
@@ -138,11 +153,16 @@ class Node():
         node_clone.add_argument('-pi', '--provision_interface', help='Provision Interface')
         node_clone.add_argument('-pm', '--provision_method', help='Provision Method')
         node_clone.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        node_clone.add_argument('-nb', '--netboot', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Network Boot')
-        node_clone.add_argument('-li', '--localinstall', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Local Install')
-        node_clone.add_argument('-bm', '--bootmenu', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Boot Menu')
-        node_clone.add_argument('-lb', '--localboot', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Local Boot')
-        node_clone.add_argument('-ser', '--service', choices=Helper().boolean(), metavar="{y,yes,n,no,''}", help='Service')
+        node_clone.add_argument('-nb', '--netboot', choices=Helper().boolean(),
+                                metavar="{y,yes,n,no,''}", help='Network Boot')
+        node_clone.add_argument('-li', '--localinstall', choices=Helper().boolean(),
+                                metavar="{y,yes,n,no,''}", help='Local Install')
+        node_clone.add_argument('-bm', '--bootmenu', choices=Helper().boolean(),
+                                metavar="{y,yes,n,no,''}", help='Boot Menu')
+        node_clone.add_argument('-lb', '--localboot', choices=Helper().boolean(),
+                                metavar="{y,yes,n,no,''}", help='Local Boot')
+        node_clone.add_argument('-ser', '--service', choices=Helper().boolean(),
+                                metavar="{y,yes,n,no,''}", help='Service')
         node_clone.add_argument('-s', '--status', help='Status')
         node_clone.add_argument('-tid', '--tpm_uuid', help='TPM UUID')
         node_clone.add_argument('-tkey', '--tpm_pubkey', help='TPM Public Key')
@@ -169,18 +189,19 @@ class Node():
         node_interface.add_argument('name', help='Name of the Node')
         node_interface.add_argument('interface', help='Name of the Node Interface')
         Helper().common_list_args(node_interface)
-        node_changeinterface = node_args.add_parser('changeinterface', help='Change Node Interface')
-        node_changeinterface.add_argument('name', help='Name of the Node')
-        node_changeinterface.add_argument('interface', help='Name of the Node Interface')
-        node_changeinterface.add_argument('-N', '--network', help='Network Name')
-        node_changeinterface.add_argument('-I', '--ipaddress', help='IP Address')
-        node_changeinterface.add_argument('-M', '--macaddress', help='MAC Address')
-        node_changeinterface.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
-        node_changeinterface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
-        node_removeinterface = node_args.add_parser('removeinterface', help='Remove Node Interface')
-        node_removeinterface.add_argument('name', help='Name of the Node')
-        node_removeinterface.add_argument('interface', help='Name of the Node Interface')
-        node_removeinterface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        change_interface = node_args.add_parser('changeinterface', help='Change Node Interface')
+        change_interface.add_argument('name', help='Name of the Node')
+        change_interface.add_argument('interface', help='Name of the Node Interface')
+        change_interface.add_argument('-N', '--network', help='Network Name')
+        change_interface.add_argument('-I', '--ipaddress', help='IP Address')
+        change_interface.add_argument('-M', '--macaddress', help='MAC Address')
+        change_interface.add_argument('-O', '--options', action='store_true',
+                                      help='Interfaces Options')
+        change_interface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        remove_interface = node_args.add_parser('removeinterface', help='Remove Node Interface')
+        remove_interface.add_argument('name', help='Name of the Node')
+        remove_interface.add_argument('interface', help='Name of the Node Interface')
+        remove_interface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         return parser
 
 
@@ -202,8 +223,6 @@ class Node():
         """
         Method to add new node in Luna Configuration.
         """
-        for remove in ['verbose', 'command', 'action']:
-            self.args.pop(remove, None)
         interface = {}
         if self.args['interface']:
             interface['interface'] = self.args['interface']
@@ -219,26 +238,13 @@ class Node():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options']:
                 self.args.pop(remove, None)
-        payload = Helper().prepare_payload(self.args)
-        if payload:
-            request_data = {'config': {self.table: {payload['name']: payload}}}
-            self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_data(self.table, payload['name'], request_data)
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 201:
-                Helper().show_success(f'New {self.table.capitalize()}, {payload["name"]} created.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
-        return True
+        return Helper().add_record(self.table, self.args)
 
 
     def change_node(self):
         """
         Method to chagne a node in Luna Configuration.
         """
-        for remove in ['verbose', 'command', 'action']:
-            self.args.pop(remove, None)
         interface = {}
         if self.args['interface']:
             interface['interface'] = self.args['interface']
@@ -254,68 +260,27 @@ class Node():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options']:
                 self.args.pop(remove, None)
-        payload = Helper().prepare_payload(self.args)
-        if payload:
-            request_data = {'config': {self.table: {payload['name']: payload}}}
-            self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_data(self.table, payload['name'], request_data)
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 204:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} updated.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
-        else:
-            Helper().show_error('Nothing to update.')
-        return True
+        return Helper().update_record(self.table, self.args)
 
 
     def rename_node(self):
         """
         Method to rename a node in Luna Configuration.
         """
-        for remove in ['verbose', 'command', 'action']:
-            self.args.pop(remove, None)
-        payload = self.args
-        if payload:
-            request_data = {'config': {self.table: {payload['name']: payload}}}
-            self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_data(self.table, payload['name'], request_data)
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 204:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} renamed to {payload["newnodename"]}.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
-        return True
+        return Helper().rename_record(self.table, self.args, self.args["newnodename"])
 
 
     def remove_node(self):
         """
         Method to remove a node in Luna Configuration.
         """
-       
-        for remove in ['verbose', 'command', 'action']:
-            self.args.pop(remove, None)
-        payload = self.args
-        if payload:
-            self.logger.debug(f'Payload => {payload}')
-            response = Rest().get_delete(self.table, payload['name'])
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 204:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} is deleted.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
-        return True
+        return Helper().delete_record(self.table, self.args)
 
 
     def clone_node(self):
         """
         Method to rename a node in Luna Configuration.
         """
-        for remove in ['verbose', 'command', 'action']:
-            self.args.pop(remove, None)
         interface = {}
         if self.args['interface']:
             interface['interface'] = self.args['interface']
@@ -331,20 +296,7 @@ class Node():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options']:
                 self.args.pop(remove, None)
-        payload = Helper().prepare_payload(self.args)
-        if payload:
-            request_data = {'config': {self.table: {payload['name']: payload}}}
-            self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_clone(self.table, payload['name'], request_data)
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 201:
-                Helper().show_success(f'{self.table.capitalize()}, {payload["name"]} clone as {payload["newnodename"]}.')
-            else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
-        else:
-            Helper().show_error(f'Nothing to update in {payload["name"]}.')
-        return True
+        return Helper().clone_record(self.table, self.args, self.args["newnodename"])
 
 
     def listinterface(self):
@@ -364,7 +316,7 @@ class Node():
                 fields, rows  = Helper().filter_interface(self.interface, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
-                title = f' << {self.table.capitalize()} {self.args["name"]} Interfaces >>'
+                title = f' << {self.table_cap} {self.args["name"]} Interfaces >>'
                 Presenter().show_table(title, fields, rows)
         else:
             Helper().show_error(f'{self.args["name"]} is not found in {self.table}.')
@@ -375,8 +327,9 @@ class Node():
         """
         Method to show a node interfaces in Luna Configuration.
         """
-        self.logger.debug(f'Table => {self.table} and URI => {self.args["name"]}/interfaces{self.args["interface"]}')
-        get_list = Rest().get_data(self.table, self.args['name']+'/interfaces/'+self.args['interface'])
+        uri = self.args['name']+'/interfaces/'+self.args['interface']
+        self.logger.debug(f'Table => {self.table} and URI => {uri}')
+        get_list = Rest().get_data(self.table, uri)
         self.logger.debug(f'List Interfaces => {get_list}')
         if get_list:
             data = get_list['config'][self.table][self.args["name"]]['interfaces'][0]
@@ -388,10 +341,12 @@ class Node():
                 fields, rows  = Helper().filter_data_col(self.interface, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
-                title = f'{self.table.capitalize()} [{self.args["name"]}] => Interface {self.args["interface"]}'
+                title = f'{self.table_cap} {self.args["name"]} Interface [{self.args["interface"]}]'
                 Presenter().show_table_col(title, fields, rows)
         else:
-            Helper().show_error(f'Interface {self.args["interface"]} not found in {self.table} {self.args["name"]} OR {self.args["name"]} is unavailable.')
+            msg = f'{self.args["interface"]} not found in {self.table} {self.args["name"]}'
+            msg = f'{msg} OR {self.args["name"]} is unavailable.'
+            Helper().show_error(msg)
         return True
 
 
@@ -425,7 +380,7 @@ class Node():
             response = Rest().post_data(self.table, node_name+'/interfaces', request_data)
             self.logger.debug(f'Response => {response}')
             if response.status_code == 204:
-                Helper().show_success(f'Interfaces updated in {self.table.capitalize()} {payload["name"]}.')
+                Helper().show_success(f'Interfaces updated in {self.table_cap} {payload["name"]}.')
             else:
                 Helper().show_error(f'HTTP Error Code {response.status_code}.')
                 Helper().show_error(f'HTTP Error {response.content}.')
@@ -443,10 +398,12 @@ class Node():
         payload = self.args
         if payload is False:
             self.logger.debug(f'Payload => {payload}')
-            response = Rest().get_delete(self.table, payload['name']+'/interfaces/'+payload['interface'])
+            uri = payload['name']+'/interfaces/'+payload['interface']
+            response = Rest().get_delete(self.table, uri)
             self.logger.debug(f'Response => {response}')
             if response.status_code == 204:
-                Helper().show_success(f'Interface {payload["interface"]} Deleted from {self.table.capitalize()} {payload["name"]}.')
+                msg = f'{payload["interface"]} Deleted from {self.table_cap} {payload["name"]}.'
+                Helper().show_success(msg)
             else:
                 Helper().show_error(f'HTTP Error Code {response.status_code}.')
                 Helper().show_error(f'HTTP Error {response.content}.')

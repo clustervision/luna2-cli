@@ -31,7 +31,8 @@ class OSImage():
         self.table = "osimage"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "member", "add", "change", "rename", "clone", "remove", "pack", "kernel"]
+            actions = ["list", "show", "member", "add", "change", "rename", "clone", "remove",
+                       "pack", "kernel"]
             if self.args["action"] in actions:
                 call = methodcaller(f'{self.args["action"]}_osimage')
                 call(self)
