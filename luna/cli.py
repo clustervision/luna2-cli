@@ -14,7 +14,8 @@ __status__      = "Development"
 
 import os
 import sys
-from argparse import ArgumentParser
+from textwrap import dedent
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from luna.utils.presenter import Presenter
 from luna.utils.log import Log
 from luna.network import Network
@@ -61,7 +62,16 @@ class Cli():
         for each class.
         """
         log_checker()
-        self.parser = ArgumentParser(prog='luna', description='Manage Luna Cluster')
+        self.parser = ArgumentParser(
+            prog = 'luna',
+            formatter_class = RawDescriptionHelpFormatter,
+            description = dedent('''\
+                Manage Luna Cluster
+                --------------------------------
+                    - This tool will be helpful to communicate with the luna daemon.
+                    - use -h or --help at any point where you are not sure what to use.
+            '''),
+        epilog = '© 2023 ClusterVision')
         self.parser.add_argument('-V', '--version', action='version', version='%(prog)s 2.0')
         self.parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
@@ -97,7 +107,7 @@ class Cli():
             call(self.args, self.parser, self.subparsers)
         else:
             self.parser.print_help(sys.stderr)
-            sys.exit(1)
+            sys.exit(0)
 
 
 def log_checker():
