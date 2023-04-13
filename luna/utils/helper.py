@@ -251,26 +251,6 @@ class Helper():
         return True
 
 
-    # def change_cluster(self):
-    #     """
-    #     This method update the luna cluster.
-    #     """
-    #     for remove in ['verbose', 'command', 'action', 'raw']:
-    #         self.args.pop(remove, None)
-    #     # payload = Helper().prepare_payload(args)
-    #     # request_data = {'config': {table: payload}}
-    #     # self.logger.debug(f'Payload => {request_data}')
-    #     response = Rest().post_data(table, None, request_data)
-    #     # self.logger.debug(f'Response => {response}')
-    #     if response.status_code == 204:
-    #         Helper().show_success(f'{table.capitalize()} is updated.')
-    #     else:
-    #         Helper().show_error(f'HTTP Error Code {response.status_code}.')
-    #         Helper().show_error(f'HTTP Error {response.content}.')
-
-    #     return True
-
-
     def delete_record(self, table=None, data=None):
         """
         This method will delete a record.
