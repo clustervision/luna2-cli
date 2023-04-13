@@ -122,8 +122,13 @@ class Rest():
         try:
             call = requests.get(url=daemon_url, params=data, headers=headers, timeout=5)
             self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
-            if call.content:
-                response = call.json()
+            response_json = call.json()
+            if 'message' in response_json:
+                print(f'{response_json["message"]}.')
+            else:
+                response = response_json
+        except requests.exceptions.JSONDecodeError:
+            response = False
         except ValueError:
             self.reset_token()
             response = self.get_data(table, name, data)
