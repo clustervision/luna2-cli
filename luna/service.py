@@ -28,10 +28,17 @@ class Service():
         self.logger = Log.get_logger()
         self.args = args
         self.route = "service"
+        self.actions = ['start', 'stop', 'restart', 'reload', 'status']
+        self.service = ['dhcp', 'dns', 'luna2']
         if self.args:
-            if self.args["service"] and self.args["action"]:
-                self.logger.debug(f'Arguments Supplied => {self.args}')
-                self.service_action()
+            if self.args["service"]:
+                if self.args["action"]:
+                    self.logger.debug(f'Arguments Supplied => {self.args}')
+                    self.service_action()
+                else:
+                    Helper().show_error(f"Kindly choose action from {self.actions}.")
+            else:
+                Helper().show_error(f"Kindly choose service {self.service}.")
         else:
             self.getarguments(parser, subparsers)
 
