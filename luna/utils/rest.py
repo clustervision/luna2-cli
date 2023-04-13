@@ -122,7 +122,7 @@ class Rest():
         try:
             call = requests.get(url=daemon_url, params=data, headers=headers, timeout=5)
             self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
-            if call:
+            if call.content:
                 response = call.json()
         except ValueError:
             self.reset_token()

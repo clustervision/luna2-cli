@@ -164,7 +164,9 @@ class Network():
         self.logger.debug(f'IPinfo URI => {uri}')
         ipinfo = Rest().get_data(self.table, uri)
         self.logger.debug(f'IPinfo Response => {ipinfo}')
-        if ipinfo:
+        if 'message' in ipinfo:
+            response = Helper().show_warning(ipinfo['message'])
+        if 'config' in ipinfo:
             status = ipinfo['config']['network'][self.args["ipaddress"]]['status']
             status = f'{self.args["ipaddress"]} is {status.capitalize()}.'
             if 'free' in status:
