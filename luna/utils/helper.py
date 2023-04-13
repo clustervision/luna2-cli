@@ -151,12 +151,16 @@ class Helper():
         """
         Method to show a switch in Luna Configuration.
         """
-        response = False
-        fields, rows = [], []
-        get_list = Rest().get_data(table, args['name'])
+        rowname = None
+        if 'name' in args:
+            rowname = args['name']
+        get_list = Rest().get_data(table, rowname)
         self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
-            data = get_list['config'][table][args["name"]]
+            if rowname:
+                data = get_list['config'][table][rowname]
+            else:
+                data = get_list['config'][table]
             json_data = Helper().prepare_json(data)
             if args['raw']:
                 response = Presenter().show_json(json_data)
@@ -165,7 +169,7 @@ class Helper():
                 fields, rows  = self.filter_data_col(table, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
-                title = f'{table.capitalize()} => {args["name"]}'
+                title = f'{table.capitalize()} => {data["name"]}'
                 response = Presenter().show_table_col(title, fields, rows)
         else:
             response = self.show_error(f'{args["name"]} is not found in {table}.')
@@ -224,17 +228,47 @@ class Helper():
         """
         for remove in ['verbose', 'command', 'action']:
             data.pop(remove, None)
+        if 'raw' in data:
+            data.pop('raw', None)
         payload = self.prepare_payload(data)
-        request_data = {'config':{table:{payload['name']: payload}}}
+        name = None
+        if 'name' in payload:
+            name = payload['name']
+            request_data = {'config':{table:{name: payload}}}
+        else:
+            request_data = {'config':{table: payload}}
         self.logger.debug(f'Payload => {request_data}')
-        response = Rest().post_data(table, payload['name'], request_data)
+        response = Rest().post_data(table, name, request_data)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
-            self.show_success(f'{table.capitalize()}, {payload["name"]} updated.')
+            if name:
+                self.show_success(f'{table.capitalize()}, {name} updated.')
+            else:
+                self.show_success(f'{table.capitalize()} updated.')
         else:
             self.show_error(f'HTTP Error Code {response.status_code}.')
             self.show_error(f'HTTP Error {response.content}.')
         return True
+
+
+    # def change_cluster(self):
+    #     """
+    #     This method update the luna cluster.
+    #     """
+    #     for remove in ['verbose', 'command', 'action', 'raw']:
+    #         self.args.pop(remove, None)
+    #     # payload = Helper().prepare_payload(args)
+    #     # request_data = {'config': {table: payload}}
+    #     # self.logger.debug(f'Payload => {request_data}')
+    #     response = Rest().post_data(table, None, request_data)
+    #     # self.logger.debug(f'Response => {response}')
+    #     if response.status_code == 204:
+    #         Helper().show_success(f'{table.capitalize()} is updated.')
+    #     else:
+    #         Helper().show_error(f'HTTP Error Code {response.status_code}.')
+    #         Helper().show_error(f'HTTP Error {response.content}.')
+
+    #     return True
 
 
     def delete_record(self, table=None, data=None):
