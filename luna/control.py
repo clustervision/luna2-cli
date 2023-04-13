@@ -31,14 +31,19 @@ class Control():
         self.route = "control"
         self.action = "power"
         if self.args:
-            if self.args["power"] and self.args["action"]:
-                self.logger.debug(f'Arguments Supplied => {self.args}')
-                if self.args["action"] == "status":
-                    self.power_status()
-                elif self.args["action"] in ["on", "off"]:
-                    self.power_toggle()
+            if self.args["power"]:
+                if self.args["action"]:
+                    self.logger.debug(f'Arguments Supplied => {self.args}')
+                    if self.args["action"] == "status":
+                        self.power_status()
+                    elif self.args["action"] in ["on", "off"]:
+                        self.power_toggle()
+                    else:
+                        Helper().show_error("Not a valid option.")
                 else:
-                    Helper().show_error("Not a valid option.")
+                    Helper().show_error("Kindly choose from status, on, or off.")
+            else:
+                Helper().show_error("Kindly choose 'power' to perform operations.")
         else:
             self.getarguments(parser, subparsers)
 
