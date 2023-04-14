@@ -21,7 +21,7 @@ pip install luna
 ## Commands Cluster
 1. Detaild view of cluster and controllers
 ```
-[+ luna cluster +]
+luna cluster
 ```
 2. Make change in Cluster information.
 ```
