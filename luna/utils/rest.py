@@ -30,8 +30,9 @@ class Rest():
         it will fetch the credentials and endpoint url
         from luna.ini from Luna 2 Daemon.
         """
+        self.error_msg = []
         self.logger = Log.get_logger()
-        self.username, self.password, self.daemon = '', '', ''
+        self.username, self.password, self.daemon = None, None, None
         ini_file = '/trinity/local/luna/config/luna.ini'
         file_check = os.path.isfile(ini_file)
         read_check = os.access(ini_file, os.R_OK)
@@ -39,14 +40,29 @@ class Rest():
         if file_check and read_check:
             configparser = RawConfigParser()
             configparser.read(ini_file)
-            if configparser.has_option('API', 'USERNAME'):
-                self.username = configparser.get('API', 'USERNAME')
-            if configparser.has_option('API', 'PASSWORD'):
-                self.password = configparser.get('API', 'PASSWORD')
-            if configparser.has_option('API', 'ENDPOINT'):
-                self.daemon = configparser.get('API', 'ENDPOINT')
+            if configparser.has_section('API'):
+                if configparser.has_option('API', 'USERNAME'):
+                    self.username = configparser.get('API', 'USERNAME')
+                else:
+                    self.error_msg.append(f'USERNAME is not found in API section in {ini_file}.')
+                if configparser.has_option('API', 'PASSWORD'):
+                    self.password = configparser.get('API', 'PASSWORD')
+                else:
+                    self.error_msg.append(f'PASSWORD is not found in API section in {ini_file}.')
+                if configparser.has_option('API', 'ENDPOINT'):
+                    self.daemon = configparser.get('API', 'ENDPOINT')
+                else:
+                    self.error_msg.append(f'ENDPOINT is not found in API section in {ini_file}.')
+            else:
+                self.error_msg.append(f'API section is not found in {ini_file}.')
         else:
-            print(f'{ini_file} is not found on this machine.')
+            self.error_msg.append(f'{ini_file} is not found on this machine.')
+        if self.error_msg:
+            print("You need to fix following errors...")
+            num = 1
+            for error in self.error_msg:
+                print(f'{num}. {error}')
+            sys.exit(1)
 
 
     def get_token(self):
@@ -58,7 +74,9 @@ class Rest():
         response = False
         if os.path.isfile('/tmp/token.txt'):
             with open('/tmp/token.txt', 'r', encoding='utf-8') as token:
-                response = token.read()
+                token_data = token.read()
+                if len(token_data):
+                    response = token_data
         else:
             data['username'] = self.username
             data['password'] = self.password
