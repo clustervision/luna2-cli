@@ -178,7 +178,42 @@ class OSImage():
         """
         This method clone a osimage.
         """
-        return Helper().clone_record(self.table, self.args, self.args["newosimage"])
+        response = False
+        for remove in ['verbose', 'command', 'action']:
+            self.args.pop(remove, None)
+        payload = Helper().prepare_payload(self.args)
+        request_data = {'config':{self.table:{payload['name']: payload}}}
+        self.logger.debug(f'Payload => {request_data}')
+        result = Rest().post_clone(self.table, payload['name'], request_data)
+        if result.status_code == 200:
+            process1 = Process(target=Helper().loader, args=("OS Image Cloning...",))
+            process1.start()
+            http_response = result.json()
+            if 'request_id' in http_response.keys():
+                uri = f'config/status/{http_response["request_id"]}'
+                def dig_packing_status(uri):
+                    result = Rest().get_raw(uri)
+                    if result.status_code == 400:
+                        process1.terminate()
+                        return True
+                    elif result.status_code == 200:
+                        http_response = result.json()
+                        if http_response['message']:
+                            message = http_response['message'].split(';;')
+                            for msg in message:
+                                sleep(2)
+                                print(msg)
+                        sleep(2)
+                        return dig_packing_status(uri)
+                    else:
+                        return False
+
+                response = dig_packing_status(uri)
+        if response:
+            print(f'[========] OS Image {self.args["newosimage"]} Cloned.')
+        else:
+            print("[X ERROR X] Try Again!")
+        return response
 
 
     def pack_osimage(self):
