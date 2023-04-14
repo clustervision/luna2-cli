@@ -12,21 +12,20 @@ pip install luna
 ## Usage
 * -h or --help can be run anywhere to see the required parameters.
 * -R or --raw will be useful to see the data in json while using list or show arguments.
-* -i or --init will be useful while add, update, rename, clone or delete activity.
--i will provide the interactive way to perform these operations.]
+* -V or --version will be useful to see the current version of Luna.
+* -V or --version will be useful to see the current version of Luna.
+* -v or --verbose will be useful for debugging purpose.
+* Log File location -> /var/log/luna/luna2-cli.log
+
 
 ## Commands Cluster
-1. List of cluster with controllers
+1. Detaild view of cluster and controllers
 ```
-luna cluster list
+luna cluster
 ```
-2. Detaild view of cluster and controllers
+2. Make change in Cluster information.
 ```
-luna cluster show {Cluster Name}
-```
-3. Update the Cluster information.
-```
-luna cluster update -n {Cluster Name} -u {Cluster User} -ntp {NTP Server IP} -cd {Cluster Debug Mode} -c {Technical Contact} -pm {Provision Method} -fb {Provision Fallback}
+luna cluster change -n {Cluster Name} -u {Cluster User} -ntp {NTP Server IP} -o {Create Node Ondmand} -ns {Nameserver IP} -fs {Forwardserver IP} -c {Technical Contact} -pm {Provision Method} -pf {Provision Fallback} -s {Security} -d {Debug Mode}
 ```
 
 ## Commands Network
@@ -40,23 +39,23 @@ luna network show {Network Name}
 ```
 3. Add a network.
 ```
-luna network add -n {Network Name} -N {Network} -g {Gateway} -ni {NS IP} -nh {NS Hostname} -ntp {NTP Server IP} -ds {DHCP Range Start} -de {DHCP Range End} -c {Comment}
+luna network add {Network Name} -N {Network} -g {Gateway} -nsip {NS IP} -ntp {NTP Server IP} -dhcp {DHCP} -ds {DHCP Range Start} -de {DHCP Range End} -c {Comment}
 ```
-4. Update a network.
+4. Make change in network information.
 ```
-luna network update -n {Network Name} -N {Network} -g {Gateway} -ni {NS IP} -nh {NS Hostname} -ntp {NTP Server IP} -ds {DHCP Range Start} -de {DHCP Range End} -c {Comment}
+luna network change {Network Name} -N {Network} -g {Gateway} -nsip {NS IP} -ntp {NTP Server IP} -dhcp {DHCP} -ds {DHCP Range Start} -de {DHCP Range End} -c {Comment}
 ```
 5. Clone a network.
 ```
-luna network clone -n {Network Name} -nn {New Network Name} -N {Network} -g {Gateway} -ni {NS IP} -nh {NS Hostname} -ntp {NTP Server IP} -ds {DHCP Range Start} -de {DHCP Range End} -c {Comment}
+luna network clone {Network Name} {New Network Name} -N {Network} -g {Gateway} -nsip {NS IP} -ntp {NTP Server IP} -dhcp {DHCP} -ds {DHCP Range Start} -de {DHCP Range End} -c {Comment}
 ```
 6. Rename a network.
 ```
-luna network rename -n {Network Name} -nn {New Network Name}
+luna network rename {Network Name} {New Network Name}
 ```
-7. Delete a network.
+7. Remove a network.
 ```
-luna network delete -n {Network Name} 
+luna network remove {Network Name} 
 ```
 8. Get a Information of an IP, such as it is free or taken.
 ```
@@ -78,23 +77,23 @@ luna osimage show {OSImage Name}
 ```
 3. Add a os images.
 ```
-luna osimage add -n {OSImage Name} -dm {Dracut Modules} -gf {Grab Filesystems} -ge {Grab Filesystems} -rd {InitRD File} -k {Kernel File} -m {Kernel Modules} -o {Kernel Options} -v {Kernel Version} -p {Path Of Image} -tar {Tarball UUID} -t {Torrent UUID} -D {Distribution} -c {Comment}
+luna osimage add {OSImage Name} -dm {Dracut Modules} -gf {Grab Filesystems} -ge {Grab Filesystems} -rd {InitRD File} -k {Kernel File} -m {Kernel Modules} -o {Kernel Options} -var {Kernel Version} -p {Path Of Image} -tar {Tarball UUID} -t {Torrent UUID} -D {Distribution} -c {Comment}
 ```
-4. Update a os images.
+4. Make change in a os images.
 ```
-luna osimage add -n {OSImage Name} -dm {Dracut Modules} -gf {Grab Filesystems} -ge {Grab Filesystems} -rd {InitRD File} -k {Kernel File} -m {Kernel Modules} -o {Kernel Options} -v {Kernel Version} -p {Path Of Image} -tar {Tarball UUID} -t {Torrent UUID} -D {Distribution} -c {Comment}
+luna osimage change {OSImage Name} -dm {Dracut Modules} -gf {Grab Filesystems} -ge {Grab Filesystems} -rd {InitRD File} -k {Kernel File} -m {Kernel Modules} -o {Kernel Options} -var {Kernel Version} -p {Path Of Image} -tar {Tarball UUID} -t {Torrent UUID} -D {Distribution} -c {Comment}
 ```
 5. Clone a os images.
 ```
-luna osimage add -n {OSImage Name} -n {New OSImage Name} -dm {Dracut Modules} -gf {Grab Filesystems} -ge {Grab Filesystems} -rd {InitRD File} -k {Kernel File} -m {Kernel Modules} -o {Kernel Options} -v {Kernel Version} -p {Path Of Image} -tar {Tarball UUID} -t {Torrent UUID} -D {Distribution} -c {Comment}
+luna osimage clone {OSImage Name} {New OSImage Name} -dm {Dracut Modules} -gf {Grab Filesystems} -ge {Grab Filesystems} -rd {InitRD File} -k {Kernel File} -m {Kernel Modules} -o {Kernel Options} -var {Kernel Version} -p {Path Of Image} -tar {Tarball UUID} -t {Torrent UUID} -D {Distribution} -c {Comment}
 ```
 6. Rename a os images.
 ```
-luna osimage add -n {OSImage Name} -n {New OSImage Name} 
+luna osimage rename {OSImage Name} {New OSImage Name} 
 ```
-7. Delete a os images.
+7. Remove a os images.
 ```
-luna osimage delete -n {OSImage Name} 
+luna osimage remove {OSImage Name} 
 ```
 8. Pack a os images.
 ```
@@ -102,7 +101,11 @@ luna osimage pack {OSImage Name}
 ```
 9. Change Kernel in an os images.
 ```
-luna osimage kernel -n {OSImage Name}  -rd {InitRD File} -k {Kernel File} -v {Kernel Version}
+luna osimage kernel {OSImage Name}  -rd {InitRD File} -k {Kernel File} -ver {Kernel Version}
+```
+10. OS Image used by nodes.
+```
+luna osimage member {OSImage Name}
 ```
 
 ## Commands BMC Setup
@@ -116,23 +119,27 @@ luna bmcsetup show {BMC Setup Name}
 ```
 3. Add a BMC Setup.
 ```
-luna bmcsetup add -n {BMC Setup Name} -uid {User ID} -u {Username} -p {Password} -nc {Network Channel} -mc {Management Channel} -ubu {Unmanaged BMC Users} -c {Comment}
+luna bmcsetup add {BMC Setup Name} -uid {User ID} -u {Username} -p {Password} -nt {Network Channel} -mt {Management Channel} -ubu {Unmanaged BMC Users} -c {Comment}
 ```
-4. Update a BMC Setup.
+4. Make change in BMC Setup.
 ```
-luna bmcsetup update -n {BMC Setup Name} -uid {User ID} -u {Username} -p {Password} -nc {Network Channel} -mc {Management Channel} -ubu {Unmanaged BMC Users} -c {Comment}
+luna bmcsetup change {BMC Setup Name} -uid {User ID} -u {Username} -p {Password} -nt {Network Channel} -mt {Management Channel} -ubu {Unmanaged BMC Users} -c {Comment}
 ```
 5. Clone a BMC Setup.
 ```
-luna bmcsetup clone -n {BMC Setup Name} -nn {New BMC Setup Name} -uid {User ID} -u {Username} -p {Password} -nc {Network Channel} -mc {Management Channel} -ubu {Unmanaged BMC Users} -c {Comment}
+luna bmcsetup clone {BMC Setup Name} {New BMC Setup Name} -uid {User ID} -u {Username} -p {Password} -nt {Network Channel} -mt {Management Channel} -ubu {Unmanaged BMC Users} -c {Comment}
 ```
 6. Rename a BMC Setup.
 ```
-luna bmcsetup rename -n {BMC Setup Name} -nn {New BMC Setup Name}
+luna bmcsetup rename {BMC Setup Name} {New BMC Setup Name}
 ```
-7. Delete a BMC Setup.
+7. Remove a BMC Setup.
 ```
-luna bmcsetup delete -n {BMC Setup Name} 
+luna bmcsetup remove {BMC Setup Name} 
+```
+8. BMC Setup used by nodes.
+```
+luna bmcsetup member {BMC Setup Name}
 ```
 
 ## Commands Switch
@@ -146,53 +153,53 @@ luna switch show {Switch Name}
 ```
 3. Add a Switch.
 ```
-luna switch add -n {Switch Name} -N {Network} -ip {IP Address} -r {Read Community} -w {Write Community} -o {OID} -c {Comment}
+luna switch add {Switch Name} -N {Network} -ip {IP Address} -m {MAC Address} -r {Read Community} -w {Write Community} -o {OID} -c {Comment}
 ```
-4. Update a Switch.
+4. Make change in a Switch.
 ```
-luna switch update -n {Switch Name} -N {Network} -ip {IP Address} -r {Read Community} -w {Write Community} -o {OID} -c {Comment}
+luna switch change {Switch Name} -N {Network} -ip {IP Address} -m {MAC Address} -r {Read Community} -w {Write Community} -o {OID} -c {Comment}
 ```
 5. Clone a Switch.
 ```
-luna switch clone -n {Switch Name} -nn {New Switch Name} -N {Network} -ip {IP Address} -r {Read Community} -w {Write Community} -o {OID} -c {Comment}
+luna switch clone {Switch Name} {New Switch Name} -N {Network} -ip {IP Address} -m {MAC Address} -r {Read Community} -w {Write Community} -o {OID} -c {Comment}
 ```
 6. Rename a Switch.
 ```
-luna switch rename -n {Switch Name} -nn {New Switch Name}
+luna switch rename {Switch Name} {New Switch Name}
 ```
-7. Delete a Switch.
+7. Remove a Switch.
 ```
-luna switch delete -n {Switch Name}
+luna switch remove {Switch Name}
 ```
 
 ## Commands Other Devices
 1. List of all configured Other Devices
 ```
-luna otherdevices list
+luna otherdev list
 ```
-2. Detaild view of a Other Devices
+2. Detaild view of a Other Device
 ```
-luna otherdevices show {Other Devices Name}
+luna otherdev show {Other Device Name}
 ```
-3. Add a Other Devices.
+3. Add a Other Device.
 ```
-luna otherdevices add -n {Other Devices Name} -N {Network} -ip {IP Address} -m {Mac Address} -c {Comment}
+luna otherdev add {Other Device Name} -N {Network} -ip {IP Address} -m {Mac Address} -c {Comment}
 ```
-4. Update a Other Devices.
+4. Make change in a Other Device.
 ```
-luna otherdevices update -n {Other Devices Name} -N {Network} -ip {IP Address} -m {Mac Address} -c {Comment}
+luna otherdev change {Other Device Name} -N {Network} -ip {IP Address} -m {Mac Address} -c {Comment}
 ```
-5. Clone a Other Devices.
+5. Clone a Other Device.
 ```
-luna otherdevices clone -n {Other Devices Name} -nn {New Other Devices Name} -N {Network} -ip {IP Address} -m {Mac Address} -c {Comment}
+luna otherdev clone {Other Device Name} {New Other Device Name} -N {Network} -ip {IP Address} -m {Mac Address} -c {Comment}
 ```
-6. Rename a Other Devices.
+6. Rename a Other Device.
 ```
-luna otherdevices rename -n {Other Devices Name} -nn {New Other Devices Name}
+luna otherdev rename {Other Device Name} {New Other Device Name}
 ```
-7. Delete a Other Devices.
+7. Delete a Other Device.
 ```
-luna otherdevices delete -n {Other Devices Name}
+luna otherdev delete {Other Device Name}
 ```
 
 ## Commands Group
@@ -206,39 +213,43 @@ luna group show {Group Name}
 ```
 3. Add a Group.
 ```
-luna group add -n {Group Name} -b {BMC Setup} -bmc {BMC Setup Name} -D {Domain Name} -o {OS Image Name} -pre {Pre Script} -part {Part Script} -post {Post Script} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -pm {Provision Method} -fb {Provision Fallback} -ubu {Unmanaged BMC Users} -if {InterfaceName|NetworkName} -c {Comment}
+luna group add {Group Name} -b {BMC Setup} -bmc {BMC Setup Name} -D {Domain Name} -o {OS Image Name} -pre {Pre Script} -part {Part Script} -post {Post Script} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -pi {Provision Interface} -pm {Provision Method} -fb {Provision Fallback} -ubu {Unmanaged BMC Users} -if {Interface Name} -N {Interface Network Name} -O {Interface Options} -c {Comment}
 ```
-4. Update a Group.
+4. Make change in a Group.
 ```
-luna group update -n {Group Name} -b {BMC Setup} -bmc {BMC Setup Name} -D {Domain Name} -o {OS Image Name} -pre {Pre Script} -part {Part Script} -post {Post Script} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -pm {Provision Method} -fb {Provision Fallback} -ubu {Unmanaged BMC Users} -if {InterfaceName|NetworkName} -c {Comment}
+luna group change {Group Name} -b {BMC Setup} -bmc {BMC Setup Name} -D {Domain Name} -o {OS Image Name} -pre {Pre Script} -part {Part Script} -post {Post Script} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -pi {Provision Interface} -pm {Provision Method} -fb {Provision Fallback} -ubu {Unmanaged BMC Users} -if {Interface Name} -N {Interface Network Name} -O {Interface Options} -c {Comment}
 ```
 5. Clone a Group.
 ```
-luna group clone -n {Group Name} -nn {New Group Name} -b {BMC Setup} -bmc {BMC Setup Name} -D {Domain Name} -o {OS Image Name} -pre {Pre Script} -part {Part Script} -post {Post Script} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -pm {Provision Method} -fb {Provision Fallback} -ubu {Unmanaged BMC Users} -if {InterfaceName|NetworkName} -c {Comment}
+luna group clone {Group Name} {New Group Name} -b {BMC Setup} -bmc {BMC Setup Name} -D {Domain Name} -o {OS Image Name} -pre {Pre Script} -part {Part Script} -post {Post Script} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -pi {Provision Interface} -pm {Provision Method} -fb {Provision Fallback} -ubu {Unmanaged BMC Users} -if {Interface Name} -N {Interface Network Name} -O {Interface Options} -c {Comment}
 ```
 6. Rename a Group.
 ```
-luna group rename -n {Group Name} -nn {New Group Name}
+luna group rename {Group Name} {New Group Name}
 ```
-7. Delete a Group.
+7. Remove a Group.
 ```
-luna group delete -n {Group Name}
+luna group remove {Group Name}
 ```
 8. Get a list of all Group Interfaces of a group.
 ```
-luna group interfaces {Group Name}
+luna group listinterface {Group Name}
 ```
 9. Get a Detail of a  Interface of a group.
 ```
-luna group interface {Group Name} {Interface Name}
+luna group showinterface {Group Name} {Interface Name}
 ```
-10. Update a Group Interface.
+10. Make change in a Group Interface.
 ```
-luna group updateinterface -n {Group Name} -if {Interface Name} -N {Network Name}
+luna group changeinterface {Group Name} {Interface Name} -N {Network Name} -O {Interface Options}
 ```
-11. Delete a Group Interface.
+11. Remove a Group Interface.
 ```
-luna group deleteinterface -n {Group Name} -if {Interface Name}
+luna group removeinterface {Group Name} {Interface Name}
+```
+12. Group used by nodes.
+```
+luna group member {Group Name}
 ```
 
 ## Commands Node
@@ -252,39 +263,40 @@ luna node show {Node Name}
 ```
 3. Add a Node.
 ```
-luna node add -n {Node Name} -host {Hostname} -g {Group Name} -lb {Local Boot} -m {Mac Address} -sw {Switch Name} -sp {Switch Port} -ser {Service} -b {BMC Setup} -s {Status} -pre {Pre Script} -part {Part Script} -post {Post Script} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -pi {Provision Interface} -pm {Provision Method} -fb {Provision Fallback} -tid {TPM UUID} -tkey {TPM Public Key} -tsha {TPM SHA256} -ubu {Unmanaged BMC Users} -if {InterfaceName|NetworkName|IPAddress|MACAddress} -c {Comment}
+luna node add {Node Name} -host {Hostname} -g {Group Name} -o {OSImage Name} -b {BMC Setup} -bmc {BMC Setup Name} -sw {Switch Name} -sp {Switch Port} -pre {Pre Script} -part {Part Script} -post {Post Script} -pi {Provision Interface} -pm {Provision Method} -fb {Provision Fallback} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -lb {Local Boot} -s {Status} -tid {TPM UUID} -tkey {TPM Public Key} -tsha {TPM SHA256} -ubu {Unmanaged BMC Users} -c {Comment}-if {Interface Name} -N {Interface Network Name} -I {Interface IP Address} -M {Interface MAC Address} -O {Interface Options}
+
 ```
-4. Update a Node.
+4. Make change in a Node.
 ```
-luna node update -n {Node Name} -host {Hostname} -g {Group Name} -lb {Local Boot} -m {Mac Address} -sw {Switch Name} -sp {Switch Port} -ser {Service} -b {BMC Setup} -s {Status} -pre {Pre Script} -part {Part Script} -post {Post Script} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -pi {Provision Interface} -pm {Provision Method} -fb {Provision Fallback} -tid {TPM UUID} -tkey {TPM Public Key} -tsha {TPM SHA256} -ubu {Unmanaged BMC Users} -if {InterfaceName|NetworkName|IPAddress|MACAddress} -c {Comment}
+luna node change {Node Name} -host {Hostname} -g {Group Name} -o {OSImage Name} -b {BMC Setup} -bmc {BMC Setup Name} -sw {Switch Name} -sp {Switch Port} -pre {Pre Script} -part {Part Script} -post {Post Script} -pi {Provision Interface} -pm {Provision Method} -fb {Provision Fallback} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -lb {Local Boot} -s {Status} -tid {TPM UUID} -tkey {TPM Public Key} -tsha {TPM SHA256} -ubu {Unmanaged BMC Users} -c {Comment}-if {Interface Name} -N {Interface Network Name} -I {Interface IP Address} -M {Interface MAC Address} -O {Interface Options}
 ```
 5. Clone a Node.
 ```
-luna node clone -n {Node Name} -nn {New Node Name} -host {Hostname} -g {Group Name} -lb {Local Boot} -m {Mac Address} -sw {Switch Name} -sp {Switch Port} -ser {Service} -b {BMC Setup} -s {Status} -pre {Pre Script} -part {Part Script} -post {Post Script} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -pi {Provision Interface} -pm {Provision Method} -fb {Provision Fallback} -tid {TPM UUID} -tkey {TPM Public Key} -tsha {TPM SHA256} -ubu {Unmanaged BMC Users} -if {InterfaceName|NetworkName|IPAddress|MACAddress} -c {Comment}
+luna node clone {Node Name} {New Node Name} -host {Hostname} -g {Group Name} -o {OSImage Name} -b {BMC Setup} -bmc {BMC Setup Name} -sw {Switch Name} -sp {Switch Port} -pre {Pre Script} -part {Part Script} -post {Post Script} -pi {Provision Interface} -pm {Provision Method} -fb {Provision Fallback} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -lb {Local Boot} -s {Status} -tid {TPM UUID} -tkey {TPM Public Key} -tsha {TPM SHA256} -ubu {Unmanaged BMC Users} -c {Comment}-if {Interface Name} -N {Interface Network Name} -I {Interface IP Address} -M {Interface MAC Address} -O {Interface Options}
 ```
 6. Rename a Node.
 ```
-luna node rename -n {Node Name} -nn {New Node Name}
+luna node rename {Node Name} {New Node Name}
 ```
-7. Delete a Node.
+7. Remove a Node.
 ```
-luna node delete -n {Node Name}
+luna node remove {Node Name}
 ```
 8. Get a list of all Node Interfaces of a node.
 ```
-luna node interfaces {Node Name}
+luna node listinterface {Node Name}
 ```
 9. Get a Detail of a  Interface of a node.
 ```
-luna node interface {Node Name} {Interface Name}
+luna node showinterface {Node Name} {Interface Name}
 ```
-10. Update a Node Interface.
+10. Make change in a Node Interface.
 ```
-luna node updateinterface -n {Node Name} -if {Interface Name} -N {Network Name} -ip {IP Address} -m {MAC Address}
+luna node changeinterface {Node Name} {Interface Name} -N {Network Name} -I {IP Address} -M {MAC Address} -O {Interface Options}
 ```
-11. Delete a Node Interface.
+11. Remove a Node Interface.
 ```
-luna node deleteinterface -n {Node Name} -if {Interface Name}
+luna node removeinterface {Node Name} {Interface Name}
 ```
 
 ## Commands Secrets
@@ -308,42 +320,54 @@ luna secrets show node {Node Name} -s {Secret Name}
 ```
 luna secrets show group {Group Name} -s {Secret Name}
 ```
-6. Update of all Node Secrets OR One Secret by name
+6. Change of all Node Secrets OR One Secret by name
 ```
-luna secrets update node -n {Node Name} -s {Secret Name} -c {Content} -p {Path}
+luna secrets change node {Node Name} -s {Secret Name} -c {Content} -p {Path}
 ```
-7. Update of all Group Secrets OR One Secret by name
+7. Change of all Group Secrets OR One Secret by name
 ```
-luna secrets update group -n {Group Name} -s {Secret Name} -c {Content} -p {Path}
+luna secrets change group {Group Name} -s {Secret Name} -c {Content} -p {Path}
 ```
 8. Clone a Node Secret.
 ```
-luna secrets clone node -n {Node Name} -nn {New Secret Name} -s {Secret Name} -c {Content} -p {Path}
+luna secrets clone node {Node Name} {Secret Name} {New Secret Name} -c {Content} -p {Path}
 ```
 9. Clone a Group Secret.
 ```
-luna secrets clone group -n {Group Name} -nn {New Secret Name -s {Secret Name} -c {Content} -p {Path}
+luna secrets clone group {Group Name} {Secret Name} {New Secret Name} -c {Content} -p {Path}
 ```
 10. Delete a Node Secret.
 ```
-luna secrets delete node -n {Node Name} -s {Secret Name}
+luna secrets delete node {Node Name} {Secret Name}
 ```
 11. Delete a Group Secret.
 ```
-luna secrets delete group -n {Group Name} -s {Secret Name} 
+luna secrets delete group {Group Name} {Secret Name} 
 ```
 
 ## Commands Service
 1. Perform action on DHCP Service
 ```
-luna service dhcp {start/stop/restart}
+luna service dhcp {start/stop/restart/reload/status}
 ```
 2. Perform action on DNS Service
 ```
-luna service dns {start/stop/restart}
+luna service dns {start/stop/restart/reload/status}
 ```
 3. Perform action on Luna 2 Daemon Service
 ```
-luna service luna2 {start/stop/restart}
+luna service luna2 {start/stop/restart/reload/status}
 ```
-## Commands Control [WIP]
+## Commands Control
+1. Check Node(s) power status
+```
+luna control power status {NodeName OR Nodelist}
+```
+2. Power ON Node(s)
+```
+luna control power on {NodeName OR Nodelist}
+```
+3. Power OFF Node(s)
+```
+luna control power off {NodeName OR Nodelist}
+```
