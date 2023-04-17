@@ -168,7 +168,6 @@ class Rest():
         try:
             response = requests.post(url=daemon_url, json=data, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
-            print(response)
         except ValueError:
             self.reset_token()
             response = self.post_data(table, name, data)
