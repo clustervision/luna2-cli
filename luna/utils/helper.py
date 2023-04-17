@@ -104,6 +104,7 @@ class Helper():
         """
         response = ''
         editor = str(os.path.abspath(__file__)).replace('helper.py', 'editor.sh')
+        os.chmod(editor, 0o0755)
         random_path = str(time())+str(randint(1001,9999))+str(getpid())
         tmp_folder = f'/tmp/lunatmp-{random_path}'
         os.mkdir(tmp_folder)
