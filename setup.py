@@ -49,31 +49,31 @@ setup(
 	url = "https://gitlab.taurusgroup.one/clustervision/luna2-cli.git",
 	download_url = f"https://{PRE}@gitlab.taurusgroup.one/api/v4/projects/20/packages/pypi/simple",
 	packages = find_packages(),
-    license = "MIT",
+	license = "MIT",
 	keywords = ["luna", "cli", "Trinity", "ClusterVision", "Sumit", "Sumit Sharma"],
-    entry_points = {
-    	'console_scripts': [
+	entry_points = {
+		'console_scripts': [
 			'luna = luna.cli:run_tool'
 		]
 	},
-    dependency_links = [],
+	dependency_links = [],
 	package_data = {},
 	data_files = [],
 	zip_safe = False,
 	include_package_data = True,
-    classifiers = [
-          'Development Status :: Beta',
-          'Environment :: Console',
-          'Intended Audience :: System Administrators',
-          'License :: MIT',
-          'Operating System :: RockyLinux :: CentOS :: RedHat',
-          'Programming Language :: Python',
-          'Topic :: Trinity :: Luna',
-          ],
-    platforms = [
-          'RockyLinux',
-          'CentOS',
-          'RedHat',
-          ]
+	classifiers = [
+		'Development Status :: Beta',
+		'Environment :: Console',
+		'Intended Audience :: System Administrators',
+		'License :: MIT',
+		'Operating System :: RockyLinux :: CentOS :: RedHat',
+		'Programming Language :: Python',
+		'Topic :: Trinity :: Luna'
+	],
+	platforms = [
+		'RockyLinux',
+		'CentOS',
+		'RedHat'
+	]
 )
 # python setup.py sdist bdist_wheel
