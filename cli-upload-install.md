@@ -32,8 +32,8 @@ index-servers =
 
 [gitlab]
 repository = https://gitlab.taurusgroup.one/api/v4/projects/20/packages/pypi
-username = {Personal Access Token Name}
-password = {Personal Access Token}
+username = {Personal-Access-Token-Name}
+password = {Personal-Access-Token}
 ```
 
 ## Step 4 - Create luna2-cli package
@@ -47,12 +47,14 @@ twine upload --repository gitlab dist/*
 ```
 
 ## Step 6 - Install luna2-cli package from gitlab
+If certificate PEM file is available
 ```
-pip install luna2-cli --cert gitlab-taurusgroup-one.pem --extra-index-url https://{Personal Access Token Name}:{Personal Access Token}@gitlab.taurusgroup.one/api/v4/projects/20/packages/pypi/simple
+pip install luna2-cli --cert gitlab-taurusgroup-one.pem --index-url https://{Personal-Access-Token-Name}:{Personal-Access-Token}@gitlab.taurusgroup.one/api/v4/projects/20/packages/pypi/simple
 ```
-[OR]
+[OR]<br />
+Without certificate file
 ```
-pip install luna2-cli --trusted-host gitlab-taurusgroup-one --extra-index-url https://{Personal Access Token Name}:{Personal Access Token}@gitlab.taurusgroup.one/api/v4/projects/20/packages/pypi/simple
+pip install luna2-cli --trusted-host gitlab.taurusgroup.one --index-url https://{Personal-Access-Token-Name}:{Personal-Access-Token}@gitlab.taurusgroup.one/api/v4/projects/20/packages/pypi/simple
 ```
 
 # gitlab-taurusgroup-one.pem
@@ -79,4 +81,4 @@ avx3gP+nPXskwiZW10Sl6fes1NT5P1flS52OC1t4dO1XFzAMHw3s6ZXU2lXJH1xc
 1zKqqtMKFC2SWZGfI3V5f/Wi1zB25oYADuwVBLnzL0bDoCrFVdCsXWr8H48u4BWb
 s+cT2lKipcc+wGNleupC8hda8dymLw0hEXcwmdA=
 -----END CERTIFICATE-----
-'''
+```
