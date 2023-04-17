@@ -6,11 +6,12 @@ Setup file, will build the pip package for the project.
 """
 __author__      = "Sumit Sharma"
 __copyright__   = "Copyright 2022, Luna2 Project [CLI]"
-__license__     = "GPL"
+__license__     = "MIT"
 __version__     = "2.0"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
+
 
 import os
 import sys
@@ -33,29 +34,46 @@ if os.path.exists(LOG_FOLDER) is False:
     except PermissionError:
         print("ERROR :: Install this tool as a super user.")
         sys.exit(1)
-else:
-    print("NO-IMPACT :: Log Directory already present.")
 
+PRE = "{Personal-Access-Token-Name}:{Personal-Access-Token}"
 
 setup(
-    name="luna2-cli",
+	name = "Luna CLI",
 	version = "2.0",
-	description = "Luna2 CLI is a command line utility",
-	url = "https://gitlab.taurusgroup.one/clustervision/luna2-cli.git",
+	description = "Luna CLI tool to manage Luna Daemon",
+	long_description = "Luna CLI is a tool to manage Luna Daemon. It's a part of Trinity project.",
 	author = "Sumit Sharma",
 	author_email = "sumit.sharma@clustervision.com",
-	license = "MIT",
+	maintainer = "Sumit Sharma",
+	maintainer_email = "sumit.sharma@clustervision.com",
+	url = "https://gitlab.taurusgroup.one/clustervision/luna2-cli.git",
+	download_url = f"https://{PRE}@gitlab.taurusgroup.one/api/v4/projects/20/packages/pypi/simple",
 	packages = find_packages(),
-	install_requires = reqs,
-	entry_points = {
+    license = "MIT",
+	keywords = ["luna", "cli", "Trinity", "ClusterVision", "Sumit", "Sumit Sharma"],
+    entry_points = {
     	'console_scripts': [
-		'luna = luna.cli:run_tool'
+			'luna = luna.cli:run_tool'
 		]
 	},
-	dependency_links = [],
+    dependency_links = [],
 	package_data = {},
 	data_files = [],
 	zip_safe = False,
-	include_package_data = True
+	include_package_data = True,
+    classifiers = [
+          'Development Status :: Beta',
+          'Environment :: Console',
+          'Intended Audience :: System Administrators',
+          'License :: MIT',
+          'Operating System :: RockyLinux :: CentOS :: RedHat',
+          'Programming Language :: Python',
+          'Topic :: Trinity :: Luna',
+          ],
+    platforms = [
+          'RockyLinux',
+          'CentOS',
+          'RedHat',
+          ]
 )
 # python setup.py sdist bdist_wheel
