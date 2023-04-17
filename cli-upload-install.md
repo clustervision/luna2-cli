@@ -1,6 +1,6 @@
 # Create Latest PIP package for luna2-cli
 
-Follow setps to Create a Build of luna2-cli tool. If 
+Follow setps to Create a Build of luna2-cli tool.
 
 ## Step 1 - Install Requirements:
 1. OpenSSL to get the SSL Certificate => yum install openssl
@@ -8,22 +8,23 @@ Follow setps to Create a Build of luna2-cli tool. If
 3. Text Editor to save token & passwd => yum install vim [OR] can use vi or nano
 4. Create Personal Access Token from  => https://gitlab.taurusgroup.one/-/profile/personal_access_tokens
 5. Install Python 3                   => yum install python3-pip
-6. Install required pip packages => 
-    A. pip package wheel
-    B. pip package twine
+6. Install required pip packages =><br />
+    A. pip package wheel<br />
+    B. pip package twine<br />
 
 ## Step 2 - Get SSL Certificate
-
-'''
+```
 openssl s_client -showcerts -servername gitlab.taurusgroup.one -connect gitlab.taurusgroup.one:443 </dev/null 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p'  > gitlab-taurusgroup-one.pem
+```
+```
 git config --global http."https://gitlab.taurusgroup.one/".sslCAInfo ./gitlab-taurusgroup-one.pem
+```
+```
 export TWINE_CERT=./gitlab-taurusgroup-one.pem
-'''
-
+```
 
 ## Step 3 - Setup Registry for luna2-cli package
-
-'''
+```
 vim ~/.pypirc
 [distutils]
 index-servers =
@@ -33,27 +34,28 @@ index-servers =
 repository = https://gitlab.taurusgroup.one/api/v4/projects/20/packages/pypi
 username = {Personal Access Token Name}
 password = {Personal Access Token}
-'''
+```
+
 ## Step 4 - Create luna2-cli package
-
-'''
+```
 python setup.py sdist bdist_wheel
-'''
-## Step 5 - Upload luna2-cli package to gitlab
+```
 
-'''
+## Step 5 - Upload luna2-cli package to gitlab
+```
 twine upload --repository gitlab dist/*
-'''
+```
 
 ## Step 6 - Install luna2-cli package from gitlab
-
-'''
+```
 pip install luna2-cli --cert gitlab-taurusgroup-one.pem --extra-index-url https://{Personal Access Token Name}:{Personal Access Token}@gitlab.taurusgroup.one/api/v4/projects/20/packages/pypi/simple
+```
 [OR]
+```
 pip install luna2-cli --trusted-host gitlab-taurusgroup-one --extra-index-url https://{Personal Access Token Name}:{Personal Access Token}@gitlab.taurusgroup.one/api/v4/projects/20/packages/pypi/simple
-'''
+```
 
-* gitlab-taurusgroup-one.pem
+# gitlab-taurusgroup-one.pem
 ```
 -----BEGIN CERTIFICATE-----
 MIIDqTCCApGgAwIBAgIUU323YeaG7Q2pWd5ZbgPPr9dbZaQwDQYJKoZIhvcNAQEL
