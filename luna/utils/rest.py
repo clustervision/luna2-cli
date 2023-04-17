@@ -13,7 +13,6 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 from configparser import RawConfigParser
-import json
 import os
 import sys
 import requests
