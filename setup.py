@@ -38,7 +38,7 @@ if os.path.exists(LOG_FOLDER) is False:
 PRE = "{Personal-Access-Token-Name}:{Personal-Access-Token}"
 
 setup(
-	name = "luna-cli",
+	name = "luna2-cli",
 	version = "2.0",
 	description = "Luna CLI tool to manage Luna Daemon",
 	long_description = "Luna CLI is a tool to manage Luna Daemon. It's a part of Trinity project.",
