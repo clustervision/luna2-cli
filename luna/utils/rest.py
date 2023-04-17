@@ -160,16 +160,16 @@ class Rest():
         And use for creating and updating records.
         """
         response = False
-        headers = {'x-access-tokens': self.get_token()}
+        headers = {'x-access-tokens': self.get_token(), 'Content-Type':'application/json'}
         daemon_url = f'http://{self.daemon}/config/{table}'
         if name:
             daemon_url = f'{daemon_url}/{name}'
         self.logger.debug(f'POST URL => {daemon_url}')
         self.logger.debug(f'POST DATA => {data}')
         try:
-            data=json.dumps(data)
-            response = requests.post(url=daemon_url, data=data, headers=headers, timeout=5)
+            response = requests.post(url=daemon_url, json=data, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+            print(response)
         except ValueError:
             self.reset_token()
             response = self.post_data(table, name, data)
@@ -202,12 +202,11 @@ class Rest():
         And use for cloning the records.
         """
         response = False
-        headers = {'x-access-tokens': self.get_token()}
+        headers = {'x-access-tokens': self.get_token(), 'Content-Type':'application/json'}
         daemon_url = f'http://{self.daemon}/config/{table}/{name}/_clone'
         self.logger.debug(f'Clone URL => {daemon_url}')
         try:
-            data=json.dumps(data)
-            response = requests.post(url=daemon_url, data=data, headers=headers, timeout=5)
+            response = requests.post(url=daemon_url, json=data, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except ValueError:
             self.reset_token()
@@ -265,12 +264,11 @@ class Rest():
         via REST API's.
         """
         response = False
-        headers = {'x-access-tokens': self.get_token()}
+        headers = {'x-access-tokens': self.get_token(), 'Content-Type':'application/json'}
         daemon_url = f'http://{self.daemon}/{route}'
         self.logger.debug(f'Clone URL => {daemon_url}')
         try:
-            data=json.dumps(payload)
-            response = requests.post(url=daemon_url, data=data, headers=headers, timeout=5)
+            response = requests.post(url=daemon_url, json=payload, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except ValueError:
             self.reset_token()
