@@ -72,6 +72,8 @@ class OSImage():
         osimage_add.add_argument('-t', '--torrent', help='Torrent UUID')
         osimage_add.add_argument('-D', '--distribution', help='Distribution')
         osimage_add.add_argument('-c', '--comment', action='store_true', help='Comment')
+        osimage_add.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         osimage_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         osimage_change = osimage_args.add_parser('change', help='Change OSImage')
         osimage_change.add_argument('name', help='OSImage Name')
@@ -88,6 +90,8 @@ class OSImage():
         osimage_change.add_argument('-t', '--torrent', help='Torrent UUID')
         osimage_change.add_argument('-D', '--distribution', help='Distribution')
         osimage_change.add_argument('-c', '--comment', action='store_true', help='Comment')
+        osimage_change.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         osimage_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         osimage_clone = osimage_args.add_parser('clone', help='Clone OSImage')
         osimage_clone.add_argument('name', help='OSImage Name')
@@ -105,6 +109,8 @@ class OSImage():
         osimage_clone.add_argument('-t', '--torrent', help='Torrent UUID')
         osimage_clone.add_argument('-D', '--distribution', help='Distribution')
         osimage_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
+        osimage_clone.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         osimage_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         osimage_rename = osimage_args.add_parser('rename', help='Rename OSImage')
         osimage_rename.add_argument('name', help='OSImage Name')

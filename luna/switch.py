@@ -13,8 +13,17 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 from operator import methodcaller
+# from argparse import BooleanOptionalAction, Action, FileType
 from luna.utils.helper import Helper
 from luna.utils.log import Log
+
+
+# class LoadFromFile (Action):
+#     def __call__ (self, parser, namespace, values, option_string = None):
+#         with values as f:
+#             # parse arguments in the file and store them in the target namespace
+#             parser.parse_args(f.read().split(), namespace)
+
 
 class Switch():
     """
@@ -43,6 +52,7 @@ class Switch():
         Method will provide all the arguments
         related to the Switch class.
         """
+        # import pathlib
         switch_menu = subparsers.add_parser('switch', help='Switch operations.')
         switch_args = switch_menu.add_subparsers(dest='action')
         switch_list = switch_args.add_parser('list', help='List Switch')
@@ -59,6 +69,8 @@ class Switch():
         switch_add.add_argument('-w', '--rw', help='Write community')
         switch_add.add_argument('-o', '--oid', help='OID')
         switch_add.add_argument('-c', '--comment', action='store_true', help='Comment')
+        switch_add.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         switch_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         switch_change = switch_args.add_parser('change', help='Change Switch')
         switch_change.add_argument('name', help='Switch Name')
@@ -69,6 +81,8 @@ class Switch():
         switch_change.add_argument('-w', '--rw', help='Write community')
         switch_change.add_argument('-o', '--oid', help='OID')
         switch_change.add_argument('-c', '--comment', action='store_true', help='Comment')
+        switch_change.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         switch_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         switch_clone = switch_args.add_parser('clone', help='Clone Switch')
         switch_clone.add_argument('name', help='Switch Name')
@@ -80,6 +94,8 @@ class Switch():
         switch_clone.add_argument('-w', '--rw', help='Write community')
         switch_clone.add_argument('-o', '--oid', help='OID')
         switch_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
+        switch_clone.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         switch_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         switch_rename = switch_args.add_parser('rename', help='Rename Switch')
         switch_rename.add_argument('name', help='Switch Name')

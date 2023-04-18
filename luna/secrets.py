@@ -84,6 +84,8 @@ class Secrets():
                                  help='Name of the Secret')
         change_node.add_argument('--content', '-c', required=True, action='store_true',
                                  help='Content of the Secret')
+        change_node.add_argument('-qc', '--quick-content', dest='content',
+                                metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
         change_node.add_argument('--path', '-p', required=True, action='append',
                                  help='Path of the Secret')
         change_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
@@ -93,6 +95,8 @@ class Secrets():
                                   help='Name of the Secret')
         change_group.add_argument('--content', '-c', required=True, action='store_true',
                                   help='Content of the Secret')
+        change_group.add_argument('-qc', '--quick-content', dest='content',
+                                metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
         change_group.add_argument('--path', '-p', required=True, action='append',
                                   help='Path of the Secret')
         change_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
@@ -105,6 +109,8 @@ class Secrets():
         clone_node.add_argument('newsecretname', help='New name for the Secret')
         clone_node.add_argument('--content', '-c', action='store_true',
                                 help='Content of the Secret')
+        clone_node.add_argument('-qc', '--quick-content', dest='content',
+                                metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
         clone_node.add_argument('--path', '-p', help='Path of the Secret')
         clone_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         clone_group = clone_parser.add_parser('group', help='Clone Group Secrets')
@@ -113,6 +119,8 @@ class Secrets():
         clone_group.add_argument('newsecretname', help='New name for the Secret')
         clone_group.add_argument('--content', '-c', action='store_true',
                                  help='Content of the Secret')
+        clone_group.add_argument('-qc', '--quick-content', dest='content',
+                                metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
         clone_group.add_argument('--path', '-p', help='Path of the Secret')
         clone_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> delete

@@ -92,6 +92,17 @@ class Helper():
                     payload = nested_update(payload, key=enkey, value=content)
                 elif content[0] is False:
                     payload = nested_delete(payload, enkey)
+                elif content[0]:
+                    if os.path.exists(content[0]):
+                        if os.path.isfile(content[0]):
+                            with open(content[0], 'rb') as file_data:
+                                content = self.base64_encode(file_data.read())
+                                payload = nested_update(payload, key=enkey, value=content)
+                        else:
+                            print(f"ERROR :: {content[0]} is not a valid filepath.")
+                    else:
+                        content = self.base64_encode(bytes(content[0], 'utf-8'))
+                        payload = nested_update(payload, key=enkey, value=content)
         return payload
 
 

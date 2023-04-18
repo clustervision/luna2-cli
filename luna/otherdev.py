@@ -56,6 +56,8 @@ class OtherDev():
         otherdev_add.add_argument('-ip', '--ipaddress', help='IP Address')
         otherdev_add.add_argument('-m', '--macaddress', help='MAC Address')
         otherdev_add.add_argument('-c', '--comment', action='store_true', help='Comment')
+        otherdev_add.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         otherdev_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         otherdev_change = otherdev_args.add_parser('change', help='Change Other Devices')
         otherdev_change.add_argument('name', help='Other Device Name')
@@ -63,6 +65,8 @@ class OtherDev():
         otherdev_change.add_argument('-ip', '--ipaddress', help='IP Address')
         otherdev_change.add_argument('-m', '--macaddress', help='MAC Address')
         otherdev_change.add_argument('-c', '--comment', action='store_true', help='Comment')
+        otherdev_change.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         otherdev_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         otherdev_clone = otherdev_args.add_parser('clone', help='Clone Other Devices')
         otherdev_clone.add_argument('name', help='Other Device Name')
@@ -71,6 +75,8 @@ class OtherDev():
         otherdev_clone.add_argument('-ip', '--ipaddress', help='IP Address')
         otherdev_clone.add_argument('-m', '--macaddress', help='MAC Address')
         otherdev_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
+        otherdev_clone.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         otherdev_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         otherdev_rename = otherdev_args.add_parser('rename', help='Rename Other Devices')
         otherdev_rename.add_argument('name', help='Other Device Name')

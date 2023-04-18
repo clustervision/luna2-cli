@@ -70,8 +70,14 @@ class Node():
         node_add.add_argument('-sw', '--switch', help='Switch Name')
         node_add.add_argument('-sp', '--switchport', help='Switch Port')
         node_add.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
+        node_add.add_argument('-qpre', '--quick-prescript', dest='prescript',
+                        metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
         node_add.add_argument('-part', '--partscript', action='store_true', help='Part Script')
+        node_add.add_argument('-qpart', '--quick-partscript', dest='partscript',
+                        metavar="File-Path OR In-Line", help='Part Script File-Path OR In-Line')
         node_add.add_argument('-post', '--postscript', action='store_true', help='Post Script')
+        node_add.add_argument('-qpost', '--quick-postscript', dest='postscript',
+                        metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
         node_add.add_argument('-pi', '--provision_interface', help='Provision Interface')
         node_add.add_argument('-pm', '--provision_method', help='Provision Method')
         node_add.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
@@ -91,11 +97,15 @@ class Node():
         node_add.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
         node_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         node_add.add_argument('-c', '--comment', action='store_true', help='Comment')
+        node_add.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         node_add.add_argument('-if', '--interface', help='Interface Name')
         node_add.add_argument('-N', '--network', help='Interface Network Name')
         node_add.add_argument('-I', '--ipaddress', help='Interfaces IP Address')
         node_add.add_argument('-M', '--macaddress', help='Interfaces MAC Address')
         node_add.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
+        node_add.add_argument('-qo', '--quick-options', dest='options',
+                                metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
         node_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_change = node_args.add_parser('change', help='Change Node')
         node_change.add_argument('name', help='Name of the Node')
@@ -108,8 +118,14 @@ class Node():
         node_change.add_argument('-sw', '--switch', help='Switch Name')
         node_change.add_argument('-sp', '--switchport', help='Switch Port')
         node_change.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
+        node_change.add_argument('-qpre', '--quick-prescript', dest='prescript',
+                        metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
         node_change.add_argument('-part', '--partscript', action='store_true', help='Part Script')
+        node_change.add_argument('-qpart', '--quick-partscript', dest='partscript',
+                        metavar="File-Path OR In-Line", help='Part Script File-Path OR In-Line')
         node_change.add_argument('-post', '--postscript', action='store_true', help='Post Script')
+        node_change.add_argument('-qpost', '--quick-postscript', dest='postscript',
+                        metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
         node_change.add_argument('-pi', '--provision_interface', help='Provision Interface')
         node_change.add_argument('-pm', '--provision_method', help='Provision Method')
         node_change.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
@@ -129,11 +145,15 @@ class Node():
         node_change.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
         node_change.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         node_change.add_argument('-c', '--comment', action='store_true', help='Comment')
+        node_change.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         node_change.add_argument('-if', '--interface', help='Interface Name')
         node_change.add_argument('-N', '--network', help='Interface Network Name')
         node_change.add_argument('-I', '--ipaddress', help='Interfaces IP Address')
         node_change.add_argument('-M', '--macaddress', help='Interfaces MAC Address')
         node_change.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
+        node_change.add_argument('-qo', '--quick-options', dest='options',
+                                metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
         node_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         ## >>>>>>> Node Command >>>>>>> clone
         node_clone = node_args.add_parser('clone', help='Clone Node')
@@ -148,8 +168,14 @@ class Node():
         node_clone.add_argument('-sw', '--switch', help='Switch Name')
         node_clone.add_argument('-sp', '--switchport', help='Switch Port')
         node_clone.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
+        node_clone.add_argument('-qpre', '--quick-prescript', dest='prescript',
+                        metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
         node_clone.add_argument('-part', '--partscript', action='store_true', help='Part Script')
+        node_clone.add_argument('-qpart', '--quick-partscript', dest='partscript',
+                        metavar="File-Path OR In-Line", help='Part Script File-Path OR In-Line')
         node_clone.add_argument('-post', '--postscript', action='store_true', help='Post Script')
+        node_clone.add_argument('-qpost', '--quick-postscript', dest='postscript',
+                        metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
         node_clone.add_argument('-pi', '--provision_interface', help='Provision Interface')
         node_clone.add_argument('-pm', '--provision_method', help='Provision Method')
         node_clone.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
@@ -169,11 +195,15 @@ class Node():
         node_clone.add_argument('-tsha', '--tpm_sha256', help='TPM SHA256')
         node_clone.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         node_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
+        node_clone.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         node_clone.add_argument('-if', '--interface', help='Interface Name')
         node_clone.add_argument('-N', '--network', help='Interface Network Name')
         node_clone.add_argument('-I', '--ipaddress', help='Interfaces IP Address')
         node_clone.add_argument('-M', '--macaddress', help='Interfaces MAC Address')
         node_clone.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
+        node_clone.add_argument('-qo', '--quick-options', dest='options',
+                                metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
         node_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_rename = node_args.add_parser('rename', help='Rename Node')
         node_rename.add_argument('name', help='Name of the Node')
@@ -197,6 +227,8 @@ class Node():
         change_interface.add_argument('-M', '--macaddress', help='MAC Address')
         change_interface.add_argument('-O', '--options', action='store_true',
                                       help='Interfaces Options')
+        change_interface.add_argument('-qo', '--quick-options', dest='options',
+                                metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
         change_interface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         remove_interface = node_args.add_parser('removeinterface', help='Remove Node Interface')
         remove_interface.add_argument('name', help='Name of the Node')

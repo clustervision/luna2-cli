@@ -69,8 +69,14 @@ class Group():
         group_add.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         group_add.add_argument('-D', '--domain', help='Domain Name')
         group_add.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
+        group_add.add_argument('-qpre', '--quick-prescript', dest='prescript',
+                        metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
         group_add.add_argument('-part', '--partscript', action='store_true', help='Part Script')
+        group_add.add_argument('-qpart', '--quick-partscript', dest='partscript',
+                        metavar="File-Path OR In-Line", help='Part Script File-Path OR In-Line')
         group_add.add_argument('-post', '--postscript', action='store_true', help='Post Script')
+        group_add.add_argument('-qpost', '--quick-postscript', dest='postscript',
+                        metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
         group_add.add_argument('-pi', '--provision_interface', help='Provision Interface')
         group_add.add_argument('-pm', '--provision_method', help='Provision Method')
         group_add.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
@@ -84,7 +90,11 @@ class Group():
         group_add.add_argument('-if', '--interface', help='Interface Name')
         group_add.add_argument('-N', '--network', help='Interface Network Name')
         group_add.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
+        group_add.add_argument('-qo', '--quick-options', dest='options',
+                                metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
         group_add.add_argument('-c', '--comment', action='store_true', help='Comment')
+        group_add.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         group_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_change = group_args.add_parser('change', help='Change Group')
         group_change.add_argument('name', help='Name of the Group')
@@ -94,8 +104,14 @@ class Group():
         group_change.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         group_change.add_argument('-D', '--domain', help='Domain Name')
         group_change.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
+        group_change.add_argument('-qpre', '--quick-prescript', dest='prescript',
+                        metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
         group_change.add_argument('-part', '--partscript', action='store_true', help='Part Script')
+        group_change.add_argument('-qpart', '--quick-partscript', dest='partscript',
+                        metavar="File-Path OR In-Line", help='Part Script File-Path OR In-Line')
         group_change.add_argument('-post', '--postscript', action='store_true', help='Post Script')
+        group_change.add_argument('-qpost', '--quick-postscript', dest='postscript',
+                        metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
         group_change.add_argument('-pi', '--provision_interface', help='Provision Interface')
         group_change.add_argument('-pm', '--provision_method', help='Provision Method')
         group_change.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
@@ -109,7 +125,11 @@ class Group():
         group_change.add_argument('-if', '--interface', help='Interface Name')
         group_change.add_argument('-N', '--network', help='Interface Network Name')
         group_change.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
+        group_change.add_argument('-qo', '--quick-options', dest='options',
+                                metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
         group_change.add_argument('-c', '--comment', action='store_true', help='Comment')
+        group_change.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         group_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_clone = group_args.add_parser('clone', help='Clone Group.')
         group_clone.add_argument('name', help='Name of the Group')
@@ -120,8 +140,14 @@ class Group():
         group_clone.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         group_clone.add_argument('-D', '--domain', help='Domain Name')
         group_clone.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
+        group_clone.add_argument('-qpre', '--quick-prescript', dest='prescript',
+                        metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
         group_clone.add_argument('-part', '--partscript', action='store_true', help='Part Script')
+        group_clone.add_argument('-qpart', '--quick-partscript', dest='partscript',
+                        metavar="File-Path OR In-Line", help='Part Script File-Path OR In-Line')
         group_clone.add_argument('-post', '--postscript', action='store_true', help='Post Script')
+        group_clone.add_argument('-qpost', '--quick-postscript', dest='postscript',
+                        metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
         group_clone.add_argument('-pi', '--provision_interface', help='Provision Interface')
         group_clone.add_argument('-pm', '--provision_method', help='Provision Method')
         group_clone.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
@@ -132,7 +158,11 @@ class Group():
         group_clone.add_argument('-if', '--interface', help='Interface Name')
         group_clone.add_argument('-N', '--network', help='Interface Network Name')
         group_clone.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
+        group_clone.add_argument('-qo', '--quick-options', dest='options',
+                                metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
         group_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
+        group_clone.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         group_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_rename = group_args.add_parser('rename', help='Rename Group.')
         group_rename.add_argument('name', help='Name of the Group')
@@ -154,6 +184,8 @@ class Group():
         change_interface.add_argument('-N', '--network', help='Network Name')
         change_interface.add_argument('-O', '--options', action='store_true',
                                       help='Interfaces Options')
+        change_interface.add_argument('-qo', '--quick-options', dest='options',
+                                metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
         change_interface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         remove_interface = group_args.add_parser('removeinterface', help='Remove Group Interface')
         remove_interface.add_argument('name', help='Name of the Group')
