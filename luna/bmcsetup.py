@@ -62,6 +62,8 @@ class BMCSetup():
         bmcsetup_add.add_argument('-mt', '--mgmtchannel', type=int, help='Management Channel')
         bmcsetup_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         bmcsetup_add.add_argument('-c', '--comment', action='store_true', help='Comment')
+        bmcsetup_add.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         bmcsetup_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         bmcsetup_change = bmcsetup_args.add_parser('change', help='Change a BMC Setup')
         bmcsetup_change.add_argument('name', help='BMC Setup Name')
@@ -72,6 +74,8 @@ class BMCSetup():
         bmcsetup_change.add_argument('-mt', '--mgmtchannel', type=int, help='Management Channel')
         bmcsetup_change.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         bmcsetup_change.add_argument('-c', '--comment', action='store_true', help='Comment')
+        bmcsetup_change.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         bmcsetup_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         bmcsetup_clone = bmcsetup_args.add_parser('clone', help='Clone BMC Setup')
         bmcsetup_clone.add_argument('name', help='BMC Setup Name')
@@ -83,6 +87,8 @@ class BMCSetup():
         bmcsetup_clone.add_argument('-mt', '--mgmtchannel', type=int, help='Management Channel')
         bmcsetup_clone.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         bmcsetup_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
+        bmcsetup_clone.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         bmcsetup_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         bmcsetup_rename = bmcsetup_args.add_parser('rename', help='Rename BMC Setup')
         bmcsetup_rename.add_argument('name', help='BMC Setup Name')

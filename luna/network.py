@@ -63,6 +63,8 @@ class Network():
         network_add.add_argument('-ds', '--dhcp_range_begin', help='DHCP Range Start')
         network_add.add_argument('-de', '--dhcp_range_end', help='DHCP Range End')
         network_add.add_argument('-c', '--comment', action='store_true', help='Comment')
+        network_add.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         network_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         network_change = network_args.add_parser('change', help='Change Network')
         network_change.add_argument('name', help='Network Name')
@@ -75,6 +77,8 @@ class Network():
         network_change.add_argument('-ds', '--dhcp_range_begin', help='DHCP Range Start')
         network_change.add_argument('-de', '--dhcp_range_end', help='DHCP Range End')
         network_change.add_argument('-c', '--comment', action='store_true', help='Comment')
+        network_change.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         network_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         network_clone = network_args.add_parser('clone', help='Clone Network')
         network_clone.add_argument('name', help='Network Name')
@@ -88,6 +92,8 @@ class Network():
         network_clone.add_argument('-ds', '--dhcp_range_begin', help='DHCP Range Start')
         network_clone.add_argument('-de', '--dhcp_range_end', help='DHCP Range End')
         network_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
+        network_clone.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         network_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         network_rename = network_args.add_parser('rename', help='Rename Network')
         network_rename.add_argument('name', help='Network Name')
