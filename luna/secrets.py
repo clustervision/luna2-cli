@@ -80,7 +80,7 @@ class Secrets():
         change_parser = change_secrets.add_subparsers(dest='entity')
         change_node = change_parser.add_parser('node', help='Change Node Secrets')
         change_node.add_argument('name', help='Name of the Node')
-        change_node.add_argument('--secret', '-s', help='Name of the Secret')
+        change_node.add_argument('secret', help='Name of the Secret')
         change_node.add_argument('-c', '--content', action='store_true',
                                  help='Content of the Secret')
         change_node.add_argument('-qc', '--quick-content', dest='content',
@@ -89,7 +89,7 @@ class Secrets():
         change_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         change_group = change_parser.add_parser('group', help='Change Group Secrets')
         change_group.add_argument('name', help='Name of the Group')
-        change_group.add_argument('--secret', '-s', help='Name of the Secret')
+        change_group.add_argument('secret', help='Name of the Secret')
         change_group.add_argument('--content', '-c', action='store_true',
                                   help='Content of the Secret')
         change_group.add_argument('-qc', '--quick-content', dest='content',
@@ -225,9 +225,7 @@ class Secrets():
         """
         Method to change Secrets for node or group
         depending on the arguments.
-        """
-        payload = Helper().prepare_payload(self.args)
-        
+        """        
         response = False
         if self.args['entity'] is not None:
             uri = f'{self.args["entity"]}/{self.args["name"]}'
@@ -235,53 +233,35 @@ class Secrets():
                 if len(self.args["secret"]) == 1:
                     uri = f'{uri}/{self.args["secret"][0]}'
             self.logger.debug(f'Secret URI => {uri}')
-            
-            # payload = {}
             entity = self.args['entity']
             del self.args['entity']
             entity_name = self.args['name']
             for remove in ['verbose', 'command', 'action', 'name']:
                 self.args.pop(remove, None)
-            # secret_dict = self.args
-            # self.args[entity_name] = secret_dict
-            # print(secret_dict)
-            
-            payload = {entity_name: [self.args]}
-            print(payload)
-            
-        #     print(payload)
-            # if len(self.args['secret']) == len(self.args['path']):
-            #     self.args[entity_name] = []
-            #     temp_dict = {}
-            #     for secret, path in zip(self.args['secret'], self.args['path']):
-            #         temp_dict['name'] = secret
-            #         temp_dict['path'] = path
-            #         temp_dict['content'] = ''
-            #         content_dict = Helper().prepare_payload(temp_dict)
-            #         temp_dict['content'] = content_dict['content']
-            #         self.args[entity_name].append(temp_dict)
-            #         temp_dict = {}
-            #     for remove in ['secret', 'content', 'path']:
-            #         self.args.pop(remove, None)
-            # else:
-            #     response = Helper().show_error('Secret should have Secret Name, Content and Path')
-            # payload = self.args
-            # print(payload)
-        #     if payload:
-        #         request_data = {'config': {self.route: {entity: payload}}}
-        #         self.logger.debug(f'Payload => {request_data}')
-        #         response = Rest().post_data(self.route, uri, request_data)
-        #         self.logger.debug(f'Response => {response}')
-        #         if response.status_code == 201:
-        #             Helper().show_success(f'Secret for {entity} is created.')
-        #         elif response.status_code == 204:
-        #             Helper().show_success(f'Secret for {entity} is update.')
-        #         else:
-        #             Helper().show_error(f'HTTP Error Code {response.status_code}.')
-        #             Helper().show_error(f'HTTP Error {response.content}.')
-        # else:
-        #     response = Helper().show_error('Either select node or group')
-        # return response
+            if self.args['content'] is False:
+                self.args.pop('content', None)
+            if self.args['path'] is None:
+                self.args.pop('path', None)
+            self.args['name'] = self.args['secret']
+            self.args.pop('secret', None)
+            pre_payload = {entity_name: [self.args], 'name': self.args['name']}
+            payload = Helper().prepare_payload(pre_payload)
+            payload.pop('name', None)
+            if payload:
+                request_data = {'config': {self.route: {entity: payload}}}
+                self.logger.debug(f'Payload => {request_data}')
+                response = Rest().post_data(self.route, uri, request_data)
+                self.logger.debug(f'Response => {response}')
+                if response.status_code == 201:
+                    Helper().show_success(f'Secret for {entity} is created.')
+                elif response.status_code == 204:
+                    Helper().show_success(f'Secret for {entity} is update.')
+                else:
+                    Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                    Helper().show_error(f'HTTP Error {response.content}.')
+        else:
+            response = Helper().show_error('Either select node or group')
+        return response
 
 
     def clone_secrets(self):
