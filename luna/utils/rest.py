@@ -90,7 +90,7 @@ class Rest():
                     with open('/tmp/token.txt', 'w', encoding='utf-8') as file_data:
                         file_data.write(response)
             except requests.exceptions.ConnectionError:
-                print(f'ERROR :: Unable to Coonect Luna Daemon => http://{self.daemon}.')
+                sys.stderr.write(f'ERROR :: Unable to Coonect Luna Daemon => http://{self.daemon}.')
                 self.logger.debug(f'ERROR :: Unable to connect Luna Daemon http://{self.daemon}.')
                 sys.exit(1)
         return response
@@ -115,11 +115,11 @@ class Rest():
                 with open('/tmp/token.txt', 'w', encoding='utf-8') as file_data:
                     file_data.write(response)
             elif 'message' in data:
-                print(f'ERROR :: {data["message"]}.')
+                sys.stderr.write(f'ERROR :: {data["message"]}.')
                 self.logger.debug(f'ERROR :: {data["message"]}.')
                 sys.exit(1)
         except requests.exceptions.ConnectionError:
-            print(f'ERROR :: Unable to Coonect Luna Daemon => http://{self.daemon}.')
+            sys.stderr.write(f'ERROR :: Unable to Coonect Luna Daemon => http://{self.daemon}.')
             self.logger.debug(f'ERROR :: Unable to connect Luna Daemon => http://{self.daemon}.')
             sys.exit(1)
         return response
@@ -141,7 +141,8 @@ class Rest():
             self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
             response_json = call.json()
             if 'message' in response_json:
-                print(f'{response_json["message"]}.')
+                sys.stderr.write(f'{response_json["message"]}.')
+                sys.exit(1)
             else:
                 response = response_json
         except requests.exceptions.JSONDecodeError:

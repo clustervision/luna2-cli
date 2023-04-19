@@ -12,6 +12,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
+import sys
 from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
@@ -365,8 +366,9 @@ class Group():
             if response.status_code == 204:
                 Helper().show_success(f'Interfaces updated in {self.table_cap} {group_name}.')
             else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
+                sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
+                sys.stderr.write(f'HTTP Error {response.content}.\n')
+                sys.exit(1)
         else:
             Helper().show_error('Nothing to update.')
         return response
@@ -388,6 +390,7 @@ class Group():
                 msg = f'{payload["interface"]} removed from {self.table_cap} {payload["name"]}.'
                 Helper().show_success(msg)
             else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
+                sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
+                sys.stderr.write(f'HTTP Error {response.content}.\n')
+                sys.exit(1)
         return response

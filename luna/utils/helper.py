@@ -13,6 +13,7 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 import os
+import sys
 from time import time, sleep
 import base64
 import binascii
@@ -99,7 +100,8 @@ class Helper():
                                 content = self.base64_encode(file_data.read())
                                 payload = nested_update(payload, key=enkey, value=content)
                         else:
-                            print(f"ERROR :: {content[0]} is not a valid filepath.")
+                            sys.stderr.write(f"ERROR :: {content[0]} is not a valid filepath.")
+                            sys.exit(1)
                     else:
                         content = self.base64_encode(bytes(content[0], 'utf-8'))
                         payload = nested_update(payload, key=enkey, value=content)
@@ -229,8 +231,9 @@ class Helper():
         if response.status_code == 201:
             self.show_success(f'New {table.capitalize()}, {payload["name"]} created.')
         else:
-            self.show_error(f'HTTP Error Code {response.status_code}.')
-            self.show_error(f'HTTP Error {response.content}.')
+            sys.stderr.write(f'HTTP Error Code {response.status_code}.')
+            sys.stderr.write(f'HTTP Error {response.content}.')
+            sys.exit(1)
         return True
 
 
@@ -258,8 +261,9 @@ class Helper():
             else:
                 self.show_success(f'{table.capitalize()} updated.')
         else:
-            self.show_error(f'HTTP Error Code {response.status_code}.')
-            self.show_error(f'HTTP Error {response.content}.')
+            sys.stderr.write(f'HTTP Error Code {response.status_code}.')
+            sys.stderr.write(f'HTTP Error {response.content}.')
+            sys.exit(1)
         return True
 
 
@@ -275,8 +279,9 @@ class Helper():
         if response.status_code == 204:
             self.show_success(f'{table.capitalize()}, {data["name"]} is deleted.')
         else:
-            self.show_error(f'HTTP Error Code {response.status_code}.')
-            self.show_error(f'HTTP Error {response.content}.')
+            sys.stderr.write(f'HTTP Error Code {response.status_code}.')
+            sys.stderr.write(f'HTTP Error {response.content}.')
+            sys.exit(1)
         return True
 
 
@@ -293,8 +298,9 @@ class Helper():
         if response.status_code == 204:
             self.show_success(f'{data["name"]} renamed to {newname}.')
         else:
-            self.show_error(f'HTTP Error Code {response.status_code}.')
-            self.show_error(f'HTTP Error {response.content}.')
+            sys.stderr.write(f'HTTP Error Code {response.status_code}.')
+            sys.stderr.write(f'HTTP Error {response.content}.')
+            sys.exit(1)
         return True
 
 
@@ -312,8 +318,9 @@ class Helper():
         if response.status_code == 201:
             self.show_success(f'{payload["name"]} cloneed as {newname}.')
         else:
-            self.show_error(f'HTTP Error Code {response.status_code}.')
-            self.show_error(f'HTTP Error {response.content}.')
+            sys.stderr.write(f'HTTP Error Code {response.status_code}.')
+            sys.stderr.write(f'HTTP Error {response.content}.')
+            sys.exit(1)
         return True
 
 

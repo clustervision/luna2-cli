@@ -12,6 +12,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
+import sys
 from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
@@ -412,10 +413,11 @@ class Node():
             response = Rest().post_data(self.table, node_name+'/interfaces', request_data)
             self.logger.debug(f'Response => {response}')
             if response.status_code == 204:
-                Helper().show_success(f'Interfaces updated in {self.table_cap} {payload["name"]}.')
+                Helper().show_success(f'Interfaces updated in {self.table_cap} {node_name}.')
             else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
+                sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
+                sys.stderr.write(f'HTTP Error {response.content}.\n')
+                sys.exit(1)
         else:
             Helper().show_error('Nothing to update.')
         return True
@@ -437,6 +439,7 @@ class Node():
                 msg = f'{payload["interface"]} Deleted from {self.table_cap} {payload["name"]}.'
                 Helper().show_success(msg)
             else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
+                sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
+                sys.stderr.write(f'HTTP Error {response.content}.\n')
+                sys.exit(1)
         return True
