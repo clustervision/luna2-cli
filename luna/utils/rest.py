@@ -90,7 +90,7 @@ class Rest():
                     with open('/tmp/token.txt', 'w', encoding='utf-8') as file_data:
                         file_data.write(response)
             except requests.exceptions.ConnectionError:
-                sys.stderr.write(f'ERROR :: Unable to Coonect Luna Daemon => http://{self.daemon}.')
+                sys.stderr.write(f'ERROR :: Unable to Coonect Luna Daemon => http://{self.daemon}.\n')
                 self.logger.debug(f'ERROR :: Unable to connect Luna Daemon http://{self.daemon}.')
                 sys.exit(1)
         return response
@@ -119,7 +119,7 @@ class Rest():
                 self.logger.debug(f'ERROR :: {data["message"]}.')
                 sys.exit(1)
         except requests.exceptions.ConnectionError:
-            sys.stderr.write(f'ERROR :: Unable to Coonect Luna Daemon => http://{self.daemon}.')
+            sys.stderr.write(f'ERROR :: Unable to Coonect Luna Daemon => http://{self.daemon}.\n')
             self.logger.debug(f'ERROR :: Unable to connect Luna Daemon => http://{self.daemon}.')
             sys.exit(1)
         return response
@@ -141,10 +141,13 @@ class Rest():
             self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
             response_json = call.json()
             if 'message' in response_json:
-                sys.stderr.write(f'{response_json["message"]}.')
+                sys.stderr.write(f'{response_json["message"]}.\n')
                 # sys.exit(1)
             else:
                 response = response_json
+        except requests.exceptions.ConnectionError:
+            sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
+            sys.exit(1)
         except requests.exceptions.JSONDecodeError:
             response = False
         except ValueError:
@@ -169,6 +172,9 @@ class Rest():
         try:
             response = requests.post(url=daemon_url, json=data, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.ConnectionError:
+            sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
+            sys.exit(1)
         except ValueError:
             self.reset_token()
             response = self.post_data(table, name, data)
@@ -188,6 +194,9 @@ class Rest():
         try:
             response = requests.get(url=daemon_url, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.ConnectionError:
+            sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
+            sys.exit(1)
         except ValueError:
             self.reset_token()
             response = self.get_delete(table, name)
@@ -207,6 +216,9 @@ class Rest():
         try:
             response = requests.post(url=daemon_url, json=data, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.ConnectionError:
+            sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
+            sys.exit(1)
         except ValueError:
             self.reset_token()
             response = self.post_clone(table, name, data)
@@ -229,6 +241,9 @@ class Rest():
             call = requests.get(url=daemon_url, params=data, headers=headers, timeout=5)
             self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
             response = call.status_code
+        except requests.exceptions.ConnectionError:
+            sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
+            sys.exit(1)
         except ValueError:
             self.reset_token()
             response = self.get_status(table, name, data)
@@ -250,6 +265,9 @@ class Rest():
         try:
             response = requests.get(url=daemon_url, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.ConnectionError:
+            sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
+            sys.exit(1)
         except ValueError:
             self.reset_token()
             response = self.get_raw(route, uri)
@@ -269,6 +287,9 @@ class Rest():
         try:
             response = requests.post(url=daemon_url, json=payload, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.ConnectionError:
+            sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
+            sys.exit(1)
         except ValueError:
             self.reset_token()
             response = self.post_raw(route, payload)

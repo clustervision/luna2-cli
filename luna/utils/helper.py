@@ -108,7 +108,7 @@ class Helper():
                                 content = self.base64_encode(file_data.read())
                                 payload = nested_update(payload, key=enkey, value=content)
                         else:
-                            sys.stderr.write(f"ERROR :: {content[0]} is a Invalid filepath.")
+                            sys.stderr.write(f"ERROR :: {content[0]} is a Invalid filepath.\n")
                             sys.exit(1)
                     else:
                         content = self.base64_encode(bytes(content[0], 'utf-8'))
@@ -243,8 +243,8 @@ class Helper():
         if response.status_code == 201:
             self.show_success(f'New {table.capitalize()}, {payload["name"]} created.')
         else:
-            sys.stderr.write(f'HTTP Error Code {response.status_code}.')
-            sys.stderr.write(f'HTTP Error {response.content}.')
+            sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
+            sys.stderr.write(f'HTTP Error {response.content}.\n')
             sys.exit(1)
         return True
 
@@ -273,8 +273,8 @@ class Helper():
             else:
                 self.show_success(f'{table.capitalize()} updated.')
         else:
-            sys.stderr.write(f'HTTP Error Code {response.status_code}.')
-            sys.stderr.write(f'HTTP Error {response.content}.')
+            sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
+            sys.stderr.write(f'HTTP Error {response.content}.\n')
             sys.exit(1)
         return True
 
