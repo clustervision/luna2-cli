@@ -271,7 +271,6 @@ class Secrets():
             if payload:
                 request_data = {'config': {self.route: {entity: payload}}}
                 self.logger.debug(f'Payload => {request_data}')
-                print(f'Payload => {request_data}')
                 response = Rest().post_data(self.route, uri, request_data)
                 self.logger.debug(f'Response => {response}')
                 if response.status_code == 201:
