@@ -291,8 +291,8 @@ class Helper():
         if response.status_code == 204:
             self.show_success(f'{table.capitalize()}, {data["name"]} is deleted.')
         else:
-            sys.stderr.write(f'HTTP Error Code {response.status_code}.')
-            sys.stderr.write(f'HTTP Error {response.content}.')
+            sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
+            sys.stderr.write(f'HTTP Error {response.content}.\n')
             sys.exit(1)
         return True
 
@@ -310,8 +310,8 @@ class Helper():
         if response.status_code == 204:
             self.show_success(f'{data["name"]} renamed to {newname}.')
         else:
-            sys.stderr.write(f'HTTP Error Code {response.status_code}.')
-            sys.stderr.write(f'HTTP Error {response.content}.')
+            sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
+            sys.stderr.write(f'HTTP Error {response.content}.\n')
             sys.exit(1)
         return True
 
@@ -330,8 +330,8 @@ class Helper():
         if response.status_code == 201:
             self.show_success(f'{payload["name"]} cloneed as {newname}.')
         else:
-            sys.stderr.write(f'HTTP Error Code {response.status_code}.')
-            sys.stderr.write(f'HTTP Error {response.content}.')
+            sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
+            sys.stderr.write(f'HTTP Error {response.content}.\n')
             sys.exit(1)
         return True
 
