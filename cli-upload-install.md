@@ -43,7 +43,7 @@ python setup.py sdist bdist_wheel
 
 ## Step 5 - Upload luna2-cli package to gitlab
 ```
-twine upload --repository gitlab dist/*
+twine upload --repository gitlab dist/* --cert /gitlab.taurusgroup.one
 ```
 
 ## Step 6 - Install luna2-cli package from gitlab

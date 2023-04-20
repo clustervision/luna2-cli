@@ -37,9 +37,25 @@ if os.path.exists(LOG_FOLDER) is False:
 
 PRE = "{Personal-Access-Token-Name}:{Personal-Access-Token}"
 
+def new_version():
+    """This Method will create a New version and update the Version file."""
+    version = "0.0.0"
+    with open('VERSION.txt', 'r', encoding='utf-8') as ver:
+        version = ver.read()
+    if '.' in version:
+        version = version.split('.')
+        version[-1] = str(int(version[-1]) + 1)
+        version = '.'.join(version)
+    else:
+        version = str(int(version)+1)
+    with open('VERSION.txt', 'w', encoding='utf-8') as newver:
+        newver.write(version)
+    return version
+
+
 setup(
 	name = "luna2-cli",
-	version = "2.0",
+	version = new_version(),
 	description = "Luna CLI tool to manage Luna Daemon",
 	long_description = "Luna CLI is a tool to manage Luna Daemon. It's a part of Trinity project.",
 	author = "Sumit Sharma",

@@ -30,7 +30,7 @@ class Secrets():
         self.route = "secrets"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "change", "clone", "remove"]
+            actions = ["list", "show", "add", "change", "clone", "remove"]
             if self.args["action"] in actions:
                 call = methodcaller(f'{self.args["action"]}_secrets')
                 call(self)
@@ -75,6 +75,27 @@ class Secrets():
         show_group.add_argument('secret', help='Name of the Secret')
         show_group.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         show_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        ## >>>>>>> Secrets Command >>>>>>> add
+        change_secrets = secrets_args.add_parser('add', help='Add A New Secret')
+        change_parser = change_secrets.add_subparsers(dest='entity')
+        change_node = change_parser.add_parser('node', help='Add A Node Secrets')
+        change_node.add_argument('name', help='Name of the Node')
+        change_node.add_argument('secret', help='Name of the Secret')
+        change_node.add_argument('-c', '--content', action='store_true',
+                                 help='Content of the Secret')
+        change_node.add_argument('-qc', '--quick-content', dest='content',
+                                metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
+        change_node.add_argument('-p', '--path', help='Path of the Secret')
+        change_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        change_group = change_parser.add_parser('group', help='Add A Group Secrets')
+        change_group.add_argument('name', help='Name of the Group')
+        change_group.add_argument('secret', help='Name of the Secret')
+        change_group.add_argument('--content', '-c', action='store_true',
+                                  help='Content of the Secret')
+        change_group.add_argument('-qc', '--quick-content', dest='content',
+                                metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
+        change_group.add_argument('--path', '-p', help='Path of the Secret')
+        change_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> change
         change_secrets = secrets_args.add_parser('change', help='Change Secrets')
         change_parser = change_secrets.add_subparsers(dest='entity')
@@ -221,6 +242,48 @@ class Secrets():
         return response
 
 
+    def add_secrets(self):
+        """
+        Method to change Secrets for node or group
+        depending on the arguments.
+        """
+        response = False
+        if self.args['entity'] is not None:
+            uri = f'{self.args["entity"]}/{self.args["name"]}'
+            if self.args['secret'] is not None:
+                if len(self.args["secret"]) == 1:
+                    uri = f'{uri}/{self.args["secret"][0]}'
+            self.logger.debug(f'Secret URI => {uri}')
+            entity = self.args['entity']
+            del self.args['entity']
+            entity_name = self.args['name']
+            for remove in ['verbose', 'command', 'action', 'name']:
+                self.args.pop(remove, None)
+            if self.args['content'] is False:
+                self.args.pop('content', None)
+            if self.args['path'] is None:
+                self.args.pop('path', None)
+            self.args['name'] = self.args['secret']
+            self.args.pop('secret', None)
+            pre_payload = {entity_name: [self.args], 'name': self.args['name']}
+            payload = Helper().prepare_payload(None, pre_payload)
+            payload.pop('name', None)
+            if payload:
+                request_data = {'config': {self.route: {entity: payload}}}
+                self.logger.debug(f'Payload => {request_data}')
+                print(f'Payload => {request_data}')
+                response = Rest().post_data(self.route, uri, request_data)
+                self.logger.debug(f'Response => {response}')
+                if response.status_code == 201:
+                    Helper().show_success(f'Secret for {entity} is created.')
+                else:
+                    Helper().show_error(f'HTTP Error Code {response.status_code}.')
+                    Helper().show_error(f'HTTP Error {response.content}.')
+        else:
+            response = Helper().show_error('Either select node or group')
+        return response
+
+
     def change_secrets(self):
         """
         Method to change Secrets for node or group
@@ -252,9 +315,7 @@ class Secrets():
                 self.logger.debug(f'Payload => {request_data}')
                 response = Rest().post_data(self.route, uri, request_data)
                 self.logger.debug(f'Response => {response}')
-                if response.status_code == 201:
-                    Helper().show_success(f'Secret for {entity} is created.')
-                elif response.status_code == 204:
+                if response.status_code == 204:
                     Helper().show_success(f'Secret for {entity} is update.')
                 else:
                     Helper().show_error(f'HTTP Error Code {response.status_code}.')
