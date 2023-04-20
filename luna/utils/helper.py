@@ -78,7 +78,7 @@ class Helper():
                         raw_data = nested_update(raw_data, key=enkey, value=False)
         return raw_data
 
-    def prepare_payload(self, raw_data=None):
+    def prepare_payload(self, table=None, raw_data=None):
         """
         This method will prepare the payload.
         """
@@ -89,8 +89,16 @@ class Helper():
             content = nested_lookup(enkey, payload)
             if content:
                 if content[0] is True:
-                    content = self.open_editor(enkey, payload)
-                    payload = nested_update(payload, key=enkey, value=content)
+                    if table:
+                        get_list = Rest().get_data(table, payload['name'])
+                        if get_list:
+                            keydata = nested_lookup(enkey, get_list)
+                            if keydata:
+                                content = self.open_editor(enkey, keydata[0], payload)
+                                payload = nested_update(payload, key=enkey, value=content)
+                    else:
+                        content = self.open_editor(enkey, None, payload)
+                        payload = nested_update(payload, key=enkey, value=content)
                 elif content[0] is False:
                     payload = nested_delete(payload, enkey)
                 elif content[0]:
@@ -100,7 +108,7 @@ class Helper():
                                 content = self.base64_encode(file_data.read())
                                 payload = nested_update(payload, key=enkey, value=content)
                         else:
-                            sys.stderr.write(f"ERROR :: {content[0]} is not a valid filepath.")
+                            sys.stderr.write(f"ERROR :: {content[0]} is a Invalid filepath.")
                             sys.exit(1)
                     else:
                         content = self.base64_encode(bytes(content[0], 'utf-8'))
@@ -108,7 +116,7 @@ class Helper():
         return payload
 
 
-    def open_editor(self, key=None, payload=None):
+    def open_editor(self, key=None, keydata=None, payload=None):
         """
         This Method will open a default text editor to
         write the multiline text for keys such as comment,
@@ -125,7 +133,11 @@ class Helper():
             filename = f'/tmp/lunatmp-{random_path}/{payload["name"]}{key}'
         else:
             filename = f'/tmp/lunatmp-{random_path}/{key}'
-        open(filename, "x", encoding='utf-8')
+        temp_file = open(filename, "x", encoding='utf-8')
+        if keydata:
+            keydata = self.base64_decode(keydata)
+            temp_file.write(keydata)
+            temp_file.close()
         subprocess.call([editor, filename])
         with open(filename, 'rb') as file_data:
             response = self.base64_encode(file_data.read())
@@ -223,7 +235,7 @@ class Helper():
         """
         for remove in ['verbose', 'command', 'action']:
             data.pop(remove, None)
-        payload = self.prepare_payload(data)
+        payload = self.prepare_payload(None, data)
         request_data = {'config':{table:{payload['name']: payload}}}
         self.logger.debug(f'Payload => {request_data}')
         response = Rest().post_data(table, payload['name'], request_data)
@@ -245,7 +257,7 @@ class Helper():
             data.pop(remove, None)
         if 'raw' in data:
             data.pop('raw', None)
-        payload = self.prepare_payload(data)
+        payload = self.prepare_payload(table, data)
         name = None
         if 'name' in payload:
             name = payload['name']
@@ -310,7 +322,7 @@ class Helper():
         """
         for remove in ['verbose', 'command', 'action']:
             data.pop(remove, None)
-        payload = self.prepare_payload(data)
+        payload = self.prepare_payload(table, data)
         request_data = {'config':{table:{payload['name']: payload}}}
         self.logger.debug(f'Payload => {request_data}')
         response = Rest().post_clone(table, payload['name'], request_data)

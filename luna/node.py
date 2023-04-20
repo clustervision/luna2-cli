@@ -387,6 +387,7 @@ class Node():
         """
         Method to change a node interfaces in Luna Configuration.
         """
+        uri = self.table+'/'+self.args['name']+'/interfaces'
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         interface = {}
@@ -404,7 +405,7 @@ class Node():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options']:
                 self.args.pop(remove, None)
-        payload = Helper().prepare_payload(self.args)
+        payload = Helper().prepare_payload(uri, self.args)
         if payload:
             node_name = payload['name']
             del payload['name']

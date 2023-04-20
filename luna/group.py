@@ -342,6 +342,9 @@ class Group():
         """
         Method to change a Group interfaces in Luna Configuration.
         """
+        uri = self.table+'/'+self.args['name']+'/interfaces'
+        group_name = self.args['name']
+        self.args['name'] = self.args['interface']
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         interface = {}
@@ -355,9 +358,8 @@ class Group():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'options']:
                 self.args.pop(remove, None)
-        payload = Helper().prepare_payload(self.args)
+        payload = Helper().prepare_payload(uri, self.args)
         if payload:
-            group_name = payload['name']
             del payload['name']
             request_data = {'config': {self.table: {group_name: payload}}}
             self.logger.debug(f'Payload => {request_data}')

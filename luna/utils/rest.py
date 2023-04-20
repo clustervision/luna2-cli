@@ -142,7 +142,7 @@ class Rest():
             response_json = call.json()
             if 'message' in response_json:
                 sys.stderr.write(f'{response_json["message"]}.')
-                sys.exit(1)
+                # sys.exit(1)
             else:
                 response = response_json
         except requests.exceptions.JSONDecodeError:
