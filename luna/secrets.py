@@ -225,7 +225,7 @@ class Secrets():
         """
         Method to change Secrets for node or group
         depending on the arguments.
-        """        
+        """
         response = False
         if self.args['entity'] is not None:
             uri = f'{self.args["entity"]}/{self.args["name"]}'
@@ -245,7 +245,7 @@ class Secrets():
             self.args['name'] = self.args['secret']
             self.args.pop('secret', None)
             pre_payload = {entity_name: [self.args], 'name': self.args['name']}
-            payload = Helper().prepare_payload(pre_payload)
+            payload = Helper().prepare_payload(f'{self.route}/{uri}', pre_payload)
             payload.pop('name', None)
             if payload:
                 request_data = {'config': {self.route: {entity: payload}}}
@@ -282,7 +282,7 @@ class Secrets():
             tmp_payload = self.args
             if tmp_payload['content']:
                 tmp_payload['name'] = tmp_payload['newsecretname']
-                content = Helper().prepare_payload(tmp_payload)
+                content = Helper().prepare_payload(f'{self.route}/{uri}', tmp_payload)
                 tmp_payload['content'] = content['content']
             tmp_payload['name'] = tmp_payload['secret']
             del tmp_payload['secret']

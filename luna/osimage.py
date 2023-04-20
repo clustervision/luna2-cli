@@ -187,7 +187,7 @@ class OSImage():
         response = False
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        payload = Helper().prepare_payload(self.args)
+        payload = Helper().prepare_payload(self.table, self.args)
         request_data = {'config':{self.table:{payload['name']: payload}}}
         self.logger.debug(f'Payload => {request_data}')
         result = Rest().post_clone(self.table, payload['name'], request_data)
@@ -266,7 +266,7 @@ class OSImage():
         """
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
-        payload = Helper().prepare_payload(self.args)
+        payload = Helper().prepare_payload(self.table, self.args)
         request_data = {'config':{self.table:{payload['name']: payload}}}
         self.logger.debug(f'Payload => {request_data}')
         self.logger.debug(f'Change Kernel URI => {payload["name"]}/_kernel')

@@ -12,6 +12,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
+import sys
 from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
@@ -341,6 +342,9 @@ class Group():
         """
         Method to change a Group interfaces in Luna Configuration.
         """
+        uri = self.table+'/'+self.args['name']+'/interfaces'
+        group_name = self.args['name']
+        self.args['name'] = self.args['interface']
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         interface = {}
@@ -354,9 +358,8 @@ class Group():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'options']:
                 self.args.pop(remove, None)
-        payload = Helper().prepare_payload(self.args)
+        payload = Helper().prepare_payload(uri, self.args)
         if payload:
-            group_name = payload['name']
             del payload['name']
             request_data = {'config': {self.table: {group_name: payload}}}
             self.logger.debug(f'Payload => {request_data}')
@@ -365,8 +368,9 @@ class Group():
             if response.status_code == 204:
                 Helper().show_success(f'Interfaces updated in {self.table_cap} {group_name}.')
             else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
+                sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
+                sys.stderr.write(f'HTTP Error {response.content}.\n')
+                sys.exit(1)
         else:
             Helper().show_error('Nothing to update.')
         return response
@@ -388,6 +392,7 @@ class Group():
                 msg = f'{payload["interface"]} removed from {self.table_cap} {payload["name"]}.'
                 Helper().show_success(msg)
             else:
-                Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                Helper().show_error(f'HTTP Error {response.content}.')
+                sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
+                sys.stderr.write(f'HTTP Error {response.content}.\n')
+                sys.exit(1)
         return response

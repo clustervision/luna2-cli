@@ -14,13 +14,13 @@ Follow setps to Create a Build of luna2-cli tool.
 
 ## Step 2 - Get SSL Certificate
 ```
-openssl s_client -showcerts -servername gitlab.taurusgroup.one -connect gitlab.taurusgroup.one:443 </dev/null 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p'  > gitlab-taurusgroup-one.pem
+openssl s_client -showcerts -servername gitlab.taurusgroup.one -connect gitlab.taurusgroup.one:443 </dev/null 2>/dev/null | sed -n -e '/BEGIN\ CERTIFICATE/,/END\ CERTIFICATE/ p'  > /gitlab.taurusgroup.one.pem
 ```
 ```
-git config --global http."https://gitlab.taurusgroup.one/".sslCAInfo ./gitlab-taurusgroup-one.pem
+git config --global http."https://gitlab.taurusgroup.one/".sslCAInfo /gitlab.taurusgroup.one.pem
 ```
 ```
-export TWINE_CERT=./gitlab-taurusgroup-one.pem
+export TWINE_CERT=/gitlab.taurusgroup.one.pem
 ```
 
 ## Step 3 - Setup Registry for luna2-cli package
@@ -49,7 +49,7 @@ twine upload --repository gitlab dist/*
 ## Step 6 - Install luna2-cli package from gitlab
 If certificate PEM file is available
 ```
-pip install luna2-cli --cert gitlab-taurusgroup-one.pem --index-url https://{Personal-Access-Token-Name}:{Personal-Access-Token}@gitlab.taurusgroup.one/api/v4/projects/20/packages/pypi/simple
+pip install luna2-cli --cert /gitlab.taurusgroup.one --index-url https://{Personal-Access-Token-Name}:{Personal-Access-Token}@gitlab.taurusgroup.one/api/v4/projects/20/packages/pypi/simple
 ```
 [OR]<br />
 Without certificate file
@@ -57,7 +57,7 @@ Without certificate file
 pip install luna2-cli --trusted-host gitlab.taurusgroup.one --index-url https://{Personal-Access-Token-Name}:{Personal-Access-Token}@gitlab.taurusgroup.one/api/v4/projects/20/packages/pypi/simple
 ```
 
-# gitlab-taurusgroup-one.pem
+# /gitlab.taurusgroup.one
 ```
 -----BEGIN CERTIFICATE-----
 MIIDqTCCApGgAwIBAgIUU323YeaG7Q2pWd5ZbgPPr9dbZaQwDQYJKoZIhvcNAQEL
