@@ -199,7 +199,7 @@ class OSImage():
                 uri = f'config/status/{http_response["request_id"]}'
                 def dig_packing_status(uri):
                     result = Rest().get_raw(uri)
-                    if result.status_code == 400:
+                    if result.status_code == 404:
                         process1.terminate()
                         return True
                     elif result.status_code == 200:
@@ -237,7 +237,7 @@ class OSImage():
                 uri = f'config/status/{http_response["request_id"]}'
                 def dig_packing_status(uri):
                     result = Rest().get_raw(uri)
-                    if result.status_code == 400:
+                    if result.status_code == 404:
                         process1.terminate()
                         return True
                     elif result.status_code == 200:

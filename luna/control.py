@@ -96,7 +96,7 @@ class Control():
                 count = 1
                 if 'failed' in http_response['control']['power'].keys():
                     count = Helper().control_print(1, http_response)
-                check = Helper().dig_data(result.status_code, request_id, count, 0)
+                check = Helper().dig_data(result.status_code, request_id, count)
                 process1.terminate()
                 if check:
                     print("[========] Process Completed")
@@ -143,7 +143,7 @@ class Control():
                 count = 1
                 if 'failed' in http_response['control']['power'].keys():
                     count = Helper().control_print(1, http_response)
-                check = Helper().dig_data(result.status_code, request_id, count, 0)
+                check = Helper().dig_data(result.status_code, request_id, count)
                 process1.terminate()
                 if check:
                     print("[========] Process Completed")

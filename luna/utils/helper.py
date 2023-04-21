@@ -445,27 +445,21 @@ class Helper():
         return True
 
 
-    def dig_data(self, code=None, request_id=None, count=None, bad_count=None):
+    def dig_data(self, code=None, request_id=None, count=None):
         """
         Data Digger for Control API's.
         """
+        sleep(2)
         uri = f'control/status/{request_id}'
         response = Rest().get_raw(uri)
         code = response.status_code
         http_response = response.json()
         if code == 200:
             count = Helper().control_print(count, http_response)
-            return self.dig_data(code, request_id, count, bad_count)
-        elif code == 400:
-            bad_count = bad_count + 1
-            if bad_count < 10:
-                count = Helper().control_print(count, http_response)
-                return self.dig_data(code, request_id, count, bad_count)
-            elif bad_count > 10:
-                Helper().show_error("Too Many Bad Response, Try Again!")
-            else:
-                print('X-------------------------------------------------X')
-                return True
+            return self.dig_data(code, request_id, count)
+        elif code == 404:
+            print('X-------------------------------------------------X')
+            return True
         else:
             Helper().show_error(f"Something Went Wrong {code}")
             return False

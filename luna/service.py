@@ -12,6 +12,8 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
+import sys
+import requests
 from time import sleep
 from multiprocessing import Process
 from luna.utils.helper import Helper
@@ -64,63 +66,66 @@ class Service():
 
     def service_action(self):
         """
-        Method to will perform the action on
-        the desired service via Luna Daemon
-        with it's REST API.
+        Method to will perform the action on the desired service by Luna Daemon's API.
         """
         response = False
         uri = f'{self.args["service"]}/{self.args["action"]}'
         self.logger.debug(f'Service URL => {uri}')
-        result = Rest().get_raw(self.route, uri)
-        self.logger.debug(f'Response => {result}')
-        http_code = result.status_code
-        result = result.json()
-        if http_code == 200:
-            if self.args["action"] == 'status':
-                print(f'HTTP CODE :: {http_code}')
-                print(f'RESPONSE  :: {result}')
-                ## TODO ->
-                ## Need to parse it, when daemon side is done
-                # result = result['service'][self.args["service"]]
-                # response = Helper().show_success(f'{self.args["action"]} {self.args["service"]}')
-                # Helper().show_success(f'{result}')
-            else:
-                fetch_msg = f"{self.args['service']} {self.args['action']}..."
-                process1 = Process(target=Helper().loader, args=(fetch_msg,))
-                process1.start()
-                if 'request_id' in result.keys():
-                    uri = f'service/status/{result["request_id"]}'
-                    def dig_service_status(uri):
-                        result = Rest().get_raw(uri)
-                        if result.status_code == 400:
-                            process1.terminate()
-                            return True
-                        elif result.status_code == 200:
-                            http_response = result.json()
-                            if http_response['message']:
-                                message = http_response['message'].split(';;')
-                                for msg in message:
-                                    sleep(1)
-                                    if 'error' in msg.lower() or 'fail' in msg.lower():
-                                        print(f'[X ERROR X] {msg}')
-                                    else:
-                                        print(f'[========] {msg}')
-                            sleep(1)
-                            return dig_service_status(uri)
-                        else:
-                            return False
-                    response = dig_service_status(uri)
-                    if response:
-                        service = self.args['service']
-                        action = self.args['action']
-                        msg = f"[========] Service {service} {action} is finish."
-                        print(msg)
-                    else:
-                        print("[X ERROR X] Try Again!")
+        response = Rest().get_raw(self.route, uri)
+        self.logger.debug(f'Response => {response}')
+        content = response.json()
+        status_code = response.status_code 
+        if self.args["action"] == 'status':
+            if status_code == 200:
+                if 'info' in content:
+                    print(content['info'])
                 else:
-                    process1.terminate()
-                    print("[X ERROR X] Something is Wrong with Daemon.")
+                    service_name = list(content['monitor']['Service'].keys())
+                    service_status = content['monitor']['Service'][service_name[0]]
+                    print(service_status)
+            elif status_code == 500:
+                service_name = list(content['monitor']['Service'].keys())
+                service_status = content['monitor']['Service'][service_name[0]]
+                sys.stderr.write(f'{service_status}\n')
+                sys.exit(1)
+            else:
+                sys.stderr.write(f'HTTP ERROR ::{status_code}\n')
+                sys.stderr.write(f'RESPONSE  :: {content}\n')
+                sys.exit(1)
         else:
-            Helper().show_error(f'HTTP error code is: {http_code} ')
-            Helper().show_error(f'{result}')
+            fetch_msg = f"{self.args['service']} {self.args['action']}..."
+            process1 = Process(target=Helper().loader, args=(fetch_msg,))
+            process1.start()
+            if 'request_id' in content:
+                uri = f'service/status/{content["request_id"]}'
+                def dig_service_status(uri):
+                    result = Rest().get_raw(uri)
+                    if result.status_code == 404:
+                        process1.terminate()
+                        return True
+                    elif result.status_code == 200:
+                        http_response = result.json()
+                        if http_response['message']:
+                            message = http_response['message'].split(';;')
+                            for msg in message:
+                                sleep(1)
+                                if 'error' in msg.lower() or 'fail' in msg.lower():
+                                    print(f'[X ERROR X] {msg}')
+                                else:
+                                    print(f'[========] {msg}')
+                        sleep(1)
+                        return dig_service_status(uri)
+                    else:
+                        return False
+                response = dig_service_status(uri)
+                if response:
+                    service = self.args['service']
+                    action = self.args['action']
+                    msg = f"[========] Service {service} {action} is finish."
+                    print(msg)
+                else:
+                    print("[X ERROR X] Try Again!")
+            else:
+                process1.terminate()
+                print("[X ERROR X] Something is Wrong with Daemon.")
         return response
