@@ -267,6 +267,8 @@ class Node():
                 interface['macaddress'] = self.args['macaddress']
             if self.args['options']:
                 interface['options'] = self.args['options']
+            elif self.args['options'] == '':
+                interface['options'] = self.args['options']
         if interface:
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options']:
@@ -288,6 +290,8 @@ class Node():
             if self.args['macaddress']:
                 interface['macaddress'] = self.args['macaddress']
             if self.args['options']:
+                interface['options'] = self.args['options']
+            elif self.args['options'] == '':
                 interface['options'] = self.args['options']
         if interface:
             self.args['interfaces'] = [interface]
@@ -324,6 +328,8 @@ class Node():
             if self.args['macaddress']:
                 interface['macaddress'] = self.args['macaddress']
             if self.args['options']:
+                interface['options'] = self.args['options']
+            elif self.args['options'] == '':
                 interface['options'] = self.args['options']
         if interface:
             self.args['interfaces'] = [interface]
@@ -400,6 +406,8 @@ class Node():
             if self.args['macaddress']:
                 interface['macaddress'] = self.args['macaddress']
             if self.args['options']:
+                interface['options'] = self.args['options']
+            elif self.args['options'] == '':
                 interface['options'] = self.args['options']
         if interface:
             self.args['interfaces'] = [interface]

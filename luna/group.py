@@ -227,6 +227,8 @@ class Group():
                 interface['network'] = self.args['network']
             if self.args['options']:
                 interface['options'] = self.args['options']
+            elif self.args['options'] == '':
+                interface['options'] = self.args['options']
         if interface:
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'options']:
@@ -244,6 +246,8 @@ class Group():
             if self.args['network']:
                 interface['network'] = self.args['network']
             if self.args['options']:
+                interface['options'] = self.args['options']
+            elif self.args['options'] == '':
                 interface['options'] = self.args['options']
         if interface:
             self.args['interfaces'] = [interface]
@@ -276,6 +280,8 @@ class Group():
             if self.args['network']:
                 interface['network'] = self.args['network']
             if self.args['options']:
+                interface['options'] = self.args['options']
+            elif self.args['options'] == '':
                 interface['options'] = self.args['options']
         if interface:
             self.args['interfaces'] = [interface]
@@ -353,6 +359,8 @@ class Group():
             if self.args['network']:
                 interface['network'] = self.args['network']
             if self.args['options']:
+                interface['options'] = self.args['options']
+            elif self.args['options'] == '':
                 interface['options'] = self.args['options']
         if interface:
             self.args['interfaces'] = [interface]
