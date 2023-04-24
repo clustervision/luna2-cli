@@ -14,6 +14,7 @@ __status__      = "Development"
 
 import os
 import sys
+from pathlib import Path
 from textwrap import dedent
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from luna.utils.constant import TOOL_DESCRIPTION, TOOL_EPILOG, LOG_DIR, VERSION_FILE
@@ -108,7 +109,9 @@ class Cli():
 
 def get_version():
     """This Method will fetch the current version of Luna CLI from VERSION File."""
-    version_file = f'{os.getcwd()}/{VERSION_FILE}'
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    base_dir = str(Path(current_dir).parent)
+    version_file = f'{base_dir}/{VERSION_FILE}'
     with open(version_file, 'r', encoding='utf-8') as ver:
         version = ver.read()
     return version
