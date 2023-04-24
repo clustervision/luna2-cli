@@ -72,7 +72,7 @@ class Cli():
                     - use -h or --help at any point where you are not sure what to use.
             '''),
         epilog = '© 2023 ClusterVision')
-        self.parser.add_argument('-V', '--version', action='version', version='%(prog)s 2.0')
+        self.parser.add_argument('-V', '--version', action='version', version=f'%(prog)s {get_version()}')
         self.parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
         for clss in classes:
@@ -109,6 +109,13 @@ class Cli():
             self.parser.print_help(sys.stderr)
             sys.exit(0)
 
+
+def get_version():
+    """This Method will fetch the current version of Luna CLI from VERSION File."""
+    version = "0.0.0"
+    with open('VERSION.txt', 'r', encoding='utf-8') as ver:
+        version = ver.read()
+    return version
 
 def log_checker():
     """
