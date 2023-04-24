@@ -15,6 +15,7 @@ __status__      = "Development"
 from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.log import Log
+from luna.utils.constant import actions
 
 class OtherDev():
     """
@@ -26,14 +27,14 @@ class OtherDev():
         self.logger = Log.get_logger()
         self.args = args
         self.table = "otherdev"
+        self.actions = actions(self.table)
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "add", "change", "rename", "clone", "remove"]
-            if self.args["action"] in actions:
+            if self.args["action"] in self.actions:
                 call = methodcaller(f'{self.args["action"]}_otherdev')
                 call(self)
             else:
-                Helper().show_error(f"Kindly choose from {actions}.")
+                Helper().show_error(f"Kindly choose from {self.actions}.")
         else:
             self.getarguments(parser, subparsers)
 

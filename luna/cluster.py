@@ -14,6 +14,7 @@ __status__      = "Development"
 
 from luna.utils.helper import Helper
 from luna.utils.log import Log
+from luna.utils.constant import BOOL_CHOICES, BOOL_META
 
 class Cluster():
     """
@@ -49,17 +50,17 @@ class Cluster():
         cluster_change.add_argument('-n', '--name', help='New Name For Cluster')
         cluster_change.add_argument('-u', '--user', help='Cluster User')
         cluster_change.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='NTP IP')
-        cluster_change.add_argument('-o', '--createnode_ondemand', choices=Helper().boolean(),
-                                    metavar="{y,yes,n,no,''}", help='On Demand Nodes')
+        cluster_change.add_argument('-o', '--createnode_ondemand', choices=BOOL_CHOICES,
+                                    metavar=BOOL_META, help='On Demand Nodes')
         cluster_change.add_argument('-ns', '--nameserver_ip', help='Name Server IP')
         cluster_change.add_argument('-fs', '--forwardserver_ip', help='Forward Server IP')
         cluster_change.add_argument('-c', '--technical_contacts',  help='Technical Contact')
         cluster_change.add_argument('-pm', '--provision_method', help='Provision Method')
         cluster_change.add_argument('-pf', '--provision_fallback', help='Provision Fallback')
-        cluster_change.add_argument('-s', '--security', choices=Helper().boolean(),
-                                    metavar="{y,yes,n,no,''}", help='Security')
-        cluster_change.add_argument('-d', '--debug', choices=Helper().boolean(),
-                                    metavar="{y,yes,n,no,''}", help='Debug Mode')
+        cluster_change.add_argument('-s', '--security', choices=BOOL_CHOICES,
+                                    metavar=BOOL_META, help='Security')
+        cluster_change.add_argument('-d', '--debug', choices=BOOL_CHOICES,
+                                    metavar=BOOL_META, help='Debug Mode')
         return parser
 
 

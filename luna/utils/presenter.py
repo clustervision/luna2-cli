@@ -16,6 +16,7 @@ import json
 from prettytable import PrettyTable
 import pyfiglet
 from luna.utils.log import Log
+from luna.utils.constant import BANNER_NAME, BANNER_STYLE
 
 class Presenter():
     """
@@ -34,7 +35,7 @@ class Presenter():
         """
         This method will show the banner
         """
-        banner = pyfiglet.figlet_format('Luna 2 CLI', font = "digital")
+        banner = pyfiglet.figlet_format(BANNER_NAME, font=BANNER_STYLE)
         print(banner)
         return True
 

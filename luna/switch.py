@@ -13,17 +13,9 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 from operator import methodcaller
-# from argparse import BooleanOptionalAction, Action, FileType
 from luna.utils.helper import Helper
 from luna.utils.log import Log
-
-
-# class LoadFromFile (Action):
-#     def __call__ (self, parser, namespace, values, option_string = None):
-#         with values as f:
-#             # parse arguments in the file and store them in the target namespace
-#             parser.parse_args(f.read().split(), namespace)
-
+from luna.utils.constant import actions
 
 class Switch():
     """
@@ -35,14 +27,14 @@ class Switch():
         self.logger = Log.get_logger()
         self.args = args
         self.table = "switch"
+        self.actions = actions(self.table)
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "add", "change", "rename", "clone", "remove"]
-            if self.args["action"] in actions:
+            if self.args["action"] in self.actions:
                 call = methodcaller(f'{self.args["action"]}_switch')
                 call(self)
             else:
-                Helper().show_error(f"Kindly choose from {actions}.")
+                Helper().show_error(f"Kindly choose from {self.actions}.")
         else:
             self.getarguments(parser, subparsers)
 

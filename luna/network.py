@@ -16,6 +16,7 @@ from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.rest import Rest
 from luna.utils.log import Log
+from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 
 class Network():
     """
@@ -27,15 +28,14 @@ class Network():
         self.logger = Log.get_logger()
         self.args = args
         self.table = "network"
+        self.actions = actions(self.table)
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "add", "change", "rename", "clone", "remove",
-                       "ipinfo", "nextip"]
-            if self.args["action"] in actions:
+            if self.args["action"] in self.actions:
                 call = methodcaller(f'{self.args["action"]}_network')
                 call(self)
             else:
-                Helper().show_error(f"Kindly choose from {actions}.")
+                Helper().show_error(f"Kindly choose from {self.actions}.")
         else:
             self.getarguments(parser, subparsers)
 
@@ -58,8 +58,8 @@ class Network():
         network_add.add_argument('-g', '--gateway', help='Gateway')
         network_add.add_argument('-nsip', '--nameserver_ip', help='NameServer IP')
         network_add.add_argument('-ntp', '--ntp_server', help='NTP Server')
-        network_add.add_argument('-dhcp', '--dhcp', choices=Helper().boolean(),
-                                 metavar="{y,yes,n,no,''}", help='DHCP')
+        network_add.add_argument('-dhcp', '--dhcp', choices=BOOL_CHOICES,
+                                 metavar=BOOL_META, help='DHCP')
         network_add.add_argument('-ds', '--dhcp_range_begin', help='DHCP Range Start')
         network_add.add_argument('-de', '--dhcp_range_end', help='DHCP Range End')
         network_add.add_argument('-c', '--comment', action='store_true', help='Comment')
@@ -72,8 +72,8 @@ class Network():
         network_change.add_argument('-g', '--gateway', help='Gateway')
         network_change.add_argument('-nsip', '--nameserver_ip', help='Name server IP')
         network_change.add_argument('-ntp', '--ntp_server', help='NTP Server')
-        network_change.add_argument('-dhcp', '--dhcp', choices=Helper().boolean(),
-                                    metavar="{y,yes,n,no,''}", help='DHCP')
+        network_change.add_argument('-dhcp', '--dhcp', choices=BOOL_CHOICES,
+                                    metavar=BOOL_META, help='DHCP')
         network_change.add_argument('-ds', '--dhcp_range_begin', help='DHCP Range Start')
         network_change.add_argument('-de', '--dhcp_range_end', help='DHCP Range End')
         network_change.add_argument('-c', '--comment', action='store_true', help='Comment')
@@ -87,8 +87,8 @@ class Network():
         network_clone.add_argument('-g', '--gateway', help='Gateway')
         network_clone.add_argument('-nsip', '--nameserver_ip', help='Name server IP')
         network_clone.add_argument('-ntp', '--ntp_server', help='NTP Server')
-        network_clone.add_argument('-dhcp', '--dhcp', choices=Helper().boolean(),
-                                   metavar="{y,yes,n,no,''}", help='DHCP')
+        network_clone.add_argument('-dhcp', '--dhcp', choices=BOOL_CHOICES,
+                                   metavar=BOOL_META, help='DHCP')
         network_clone.add_argument('-ds', '--dhcp_range_begin', help='DHCP Range Start')
         network_clone.add_argument('-de', '--dhcp_range_end', help='DHCP Range End')
         network_clone.add_argument('-c', '--comment', action='store_true', help='Comment')

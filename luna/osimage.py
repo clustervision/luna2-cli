@@ -18,6 +18,7 @@ from multiprocessing import Process
 from luna.utils.helper import Helper
 from luna.utils.rest import Rest
 from luna.utils.log import Log
+from luna.utils.constant import actions
 
 class OSImage():
     """
@@ -29,15 +30,14 @@ class OSImage():
         self.logger = Log.get_logger()
         self.args = args
         self.table = "osimage"
+        self.actions = actions(self.table)
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "member", "add", "change", "rename", "clone", "remove",
-                       "pack", "kernel"]
-            if self.args["action"] in actions:
+            if self.args["action"] in self.actions:
                 call = methodcaller(f'{self.args["action"]}_osimage')
                 call(self)
             else:
-                Helper().show_error(f"Kindly choose from {actions}.")
+                Helper().show_error(f"Kindly choose from {self.actions}.")
         else:
             self.getarguments(parser, subparsers)
 

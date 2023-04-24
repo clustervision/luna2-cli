@@ -26,6 +26,7 @@ from nested_lookup import nested_lookup, nested_update, nested_delete
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
+from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby
 
 
 class Helper():
@@ -40,33 +41,12 @@ class Helper():
         self.logger = Log.get_logger()
 
 
-    def boolean(self):
-        """
-        This method will provide boolean choices
-        for argument parser.
-        """
-        choices = ['y', 'yes', 'n', 'no', '']
-        return choices
-
-
     def choice_to_bool(self, raw_data=None):
         """
         This method will convert string choices to
         boolean
         """
-        bool_keys = [
-            'debug',
-            'security',
-            'createnode_ondemand',
-            'dhcp',
-            'setupbmc',
-            'netboot',
-            'localinstall',
-            'bootmenu',
-            'localboot',
-            'service'
-        ]
-        for enkey in bool_keys:
+        for enkey in BOOL_KEYS:
             content = nested_lookup(enkey, raw_data)
             if content:
                 if content[0] is not None:
@@ -78,14 +58,14 @@ class Helper():
                         raw_data = nested_update(raw_data, key=enkey, value=False)
         return raw_data
 
+
     def prepare_payload(self, table=None, raw_data=None):
         """
         This method will prepare the payload.
         """
         raw_data = self.choice_to_bool(raw_data)
         payload = {k: v for k, v in raw_data.items() if v is not None}
-        editor_keys = ['options', 'content', 'comment', 'prescript', 'partscript', 'postscript']
-        for enkey in editor_keys:
+        for enkey in EDITOR_KEYS:
             content = nested_lookup(enkey, payload)
             if content:
                 if content[0] is True:
@@ -368,18 +348,6 @@ class Helper():
         return parser
 
 
-    def common_service_args(self, parser=None, service=None):
-        """
-        This method will return all common actions and arguments
-        parser for service module.
-        """
-        actions = ['start', 'stop', 'restart', 'reload', 'status']
-        for act in actions:
-            parser_args = parser.add_parser(act, help=f'{act.capitalize()} {service} Service')
-            parser_args.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
-        return parser
-
-
     def control_print(self, num=None, control_data=None):
         """
         This method will perform power option on node.
@@ -503,7 +471,7 @@ class Helper():
         self.logger.debug(f'table => {table}')
         self.logger.debug(f'data => {data}')
         fields, rows, coloredfields = [], [], []
-        fields = self.filter_columns(table)
+        fields = filter_columns(table)
         self.logger.debug(f'fields => {fields}')
         for fieldkey in fields:
             valrow = []
@@ -537,7 +505,7 @@ class Helper():
         self.logger.debug(f'Table => {table}')
         self.logger.debug(f'Data => {data}')
         fields, rows, coloredfields = [], [], []
-        fields = self.filter_columns(table)
+        fields = filter_columns(table)
         self.logger.debug(f'Fields => {fields}')
         for fieldkey in fields:
             valrow = []
@@ -611,8 +579,7 @@ class Helper():
         """
         This method will decode the base 64 string.
         """
-        encoded_keys = ['options', 'content', 'comment', 'prescript', 'partscript', 'postscript']
-        for enkey in encoded_keys:
+        for enkey in EDITOR_KEYS:
             content = nested_lookup(enkey, jsondata)
             if content:
                 if content[0] is not None:
@@ -636,7 +603,7 @@ class Helper():
         """
         self.logger.debug(f'Table => {table} and Data => {data}')
         rows, coloredfields = [], []
-        fields = self.filter_columns(table)
+        fields = filter_columns(table)
         self.logger.debug(f'Fields => {fields}')
         for key in data:
             newrow = []
@@ -669,7 +636,7 @@ class Helper():
         """
         self.logger.debug(f'Table => {table} and Data => {data}')
         rows, coloredfields = [], []
-        fields = self.sortby(table)
+        fields = sortby(table)
         self.logger.debug(f'Fields => {fields}')
         for key in data:
             newrow = []
@@ -707,7 +674,7 @@ class Helper():
         row format
         """
         self.logger.debug(f'Table => {table} and Data => {data}')
-        definedkeys = self.sortby(table)
+        definedkeys = sortby(table)
         self.logger.debug(f'Fields => {definedkeys}')
         for newkey in list(data.keys()):
             if newkey not in definedkeys:
@@ -743,71 +710,3 @@ class Helper():
             else:
                 rows.append(key[1])
         return fields, rows
-
-
-    def filter_columns(self, table=None):
-        """
-        This method remove the unnessasry fields from
-        the dataset.
-        """
-        response = False
-        static = {
-            'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
-            'cluster': ['name', 'hostname','ipaddress', 'technical_contacts', 'provision_method',
-                        'security'],
-            'controller': ['id', 'clusterid', 'hostname', 'status', 'ipaddress', 'serverport'],
-            'group': ['name', 'bmcsetupname', 'osimage', 'provision_fallback', 'interfaces'],
-            'groupinterface': ['interface', 'network', 'options'],
-            'groupsecrets': ['Group', 'name', 'path', 'content'],
-            'ipaddress': ['id', 'ipaddress', 'subnet', 'network'],
-            'monitor': ['id', 'nodeid', 'status', 'state'],
-            'network': ['name', 'network', 'ns_ip', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end'],
-            'node': ['name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_uuid'],
-            'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options'],
-            'nodesecrets': ['Node', 'name', 'path', 'content'],
-            'osimage': ['name', 'kernelfile', 'path', 'tarball', 'distribution'],
-            'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
-            'roles': ['id', 'name', 'modules'],
-            'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],
-            'tracker': ['infohash', 'peer', 'ipaddress', 'port', 'status'],
-            'user': ['id', 'username', 'password', 'roleid', 'createdby', 'lastlogin', 'created']
-        }
-        response = list(static[table])
-        return response
-
-
-    def sortby(self, table=None):
-        """
-        This method remove the unnessasry fields from
-        the dataset.
-        """
-        response = False
-        static = {
-            'cluster': ['name', 'ns_ip','ntp_server', 'provision_fallback', 'provision_method',
-                        'security', 'technical_contacts', 'user', 'debug'],
-            'controller': ['hostname', 'ipaddress','luna_config', 'srverport', 'status'],
-            'node': ['name', 'hostname', 'group', 'osimage', 'interfaces', 'localboot',
-                     'macaddress', 'switch', 'switchport', 'setupbmc', 'status', 'service',
-                     'prescript', 'partscript', 'postscript', 'netboot', 'localinstall',
-                     'bootmenu', 'provisionmethod', 'provisioninterface', 'provisionfallback',
-                     'tpmuuid', 'tpmpubkey', 'tpmsha256', 'unmanaged_bmc_users', 'comment'],
-            'group': ['name', 'bmcsetup', 'bmcsetupname', 'domain', 'interfaces', 'osimage',
-                      'prescript', 'partscript', 'postscript', 'netboot', 'localinstall',
-                      'bootmenu', 'provisionmethod', 'provisioninterface', 'provisionfallback',
-                      'unmanaged_bmc_users','comment'],
-            'bmcsetup': ['name', 'userid', 'username', 'password', 'netchannel', 'mgmtchannel',
-                         'unmanaged_bmc_users', 'comment'],
-            'osimage': ['name', 'dracutmodules', 'grab_filesystems', 'grab_exclude', 'initrdfile',
-                        'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions', 'path',
-                        'tarball', 'torrent', 'distribution', 'comment'],
-            'switch': ['name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'comment'],
-            'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
-            'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network'],
-            'groupinterface': ['interfacename', 'network'],
-            'groupsecrets': ['Group', 'name', 'path', 'content'],
-            'nodesecrets': ['Node', 'name', 'path', 'content'],
-            'network': ['name', 'network', 'ns_hostname', 'ns_ip', 'ntp_server', 'gateway', 'dhcp',
-                        'dhcp_range_begin', 'dhcp_range_end', 'comment']
-        }
-        response = list(static[table])
-        return response

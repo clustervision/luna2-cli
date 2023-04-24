@@ -18,8 +18,8 @@ __status__      = 'Development'
 
 import sys
 import logging
+from luna.utils.constant import LOG_FILE
 
-LOG_FILE = '/var/log/luna/luna2-cli.log'
 
 class Log:
     """This Log Class is responsible to start the Logger depend on the Level."""
