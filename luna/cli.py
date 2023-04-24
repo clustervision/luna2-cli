@@ -109,8 +109,8 @@ class Cli():
 
 def get_version():
     """This Method will fetch the current version of Luna CLI from VERSION File."""
+    current_dir = os.path.dirname(os.path.realpath(__file__))
     if 'test.py' in sys.argv:
-        current_dir = os.path.dirname(os.path.realpath(__file__))
         base_dir = str(Path(current_dir).parent)
     else:
         base_dir = str(Path(current_dir))
