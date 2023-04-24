@@ -13,12 +13,12 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 import sys
-import requests
 from time import sleep
 from multiprocessing import Process
 from luna.utils.helper import Helper
 from luna.utils.rest import Rest
 from luna.utils.log import Log
+from luna.utils.constant import SERVICES, SERVICE_ACTIONS
 
 class Service():
     """
@@ -30,17 +30,15 @@ class Service():
         self.logger = Log.get_logger()
         self.args = args
         self.route = "service"
-        self.actions = ['start', 'stop', 'restart', 'reload', 'status']
-        self.service = ['dhcp', 'dns', 'luna2']
         if self.args:
             if self.args["service"]:
                 if self.args["action"]:
                     self.logger.debug(f'Arguments Supplied => {self.args}')
                     self.service_action()
                 else:
-                    Helper().show_error(f"Kindly choose action from {self.actions}.")
+                    Helper().show_error(f"Kindly choose action from {SERVICE_ACTIONS}.")
             else:
-                Helper().show_error(f"Kindly choose service {self.service}.")
+                Helper().show_error(f"Kindly choose service {SERVICES}.")
         else:
             self.getarguments(parser, subparsers)
 
@@ -52,15 +50,14 @@ class Service():
         """
         service_menu = subparsers.add_parser('service', help='Service operations.')
         service_args = service_menu.add_subparsers(dest='service')
-        dhcp = service_args.add_parser('dhcp', help='DHCP Service')
-        dhcp_parser = dhcp.add_subparsers(dest='action')
-        Helper().common_service_args(dhcp_parser, 'DHCP')
-        dns = service_args.add_parser('dns', help='DNS Service')
-        dns_parser = dns.add_subparsers(dest='action')
-        Helper().common_service_args(dns_parser, 'DNS')
-        daemon = service_args.add_parser('luna2', help='Luna Daemon Service')
-        daemon_parser = daemon.add_subparsers(dest='action')
-        Helper().common_service_args(daemon_parser, 'Luna Daemon')
+        for name in SERVICES:
+            service = service_args.add_parser(name, help=f'{name.upper()} Service')
+            service_parser = service.add_subparsers(dest='action')
+            for action in SERVICE_ACTIONS:
+                action_help = f'{action.capitalize()} {name.upper()} Service'
+                action_args = service_parser.add_parser(action, help=action_help)
+                action_args.add_argument('-v', '--verbose', action='store_true',
+                                         help='Verbose Mode')
         return parser
 
 
@@ -74,7 +71,7 @@ class Service():
         response = Rest().get_raw(self.route, uri)
         self.logger.debug(f'Response => {response}')
         content = response.json()
-        status_code = response.status_code 
+        status_code = response.status_code
         if self.args["action"] == 'status':
             if status_code == 200:
                 if 'info' in content:

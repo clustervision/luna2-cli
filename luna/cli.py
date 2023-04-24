@@ -16,6 +16,7 @@ import os
 import sys
 from textwrap import dedent
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from luna.utils.constant import TOOL_DESCRIPTION, TOOL_EPILOG, LOG_DIR, VERSION_FILE
 from luna.utils.presenter import Presenter
 from luna.utils.log import Log
 from luna.network import Network
@@ -58,21 +59,16 @@ class Cli():
 
     def main(self):
         """
-        Main method to fetch and provide the arguments
-        for each class.
+        Main method to fetch and provide the arguments for each class.
         """
         log_checker()
+        ver = get_version()
         self.parser = ArgumentParser(
             prog = 'luna',
             formatter_class = RawDescriptionHelpFormatter,
-            description = dedent('''\
-                Manage Luna Cluster
-                --------------------------------
-                    - This tool will be helpful to communicate with the luna daemon.
-                    - use -h or --help at any point where you are not sure what to use.
-            '''),
-        epilog = '© 2023 ClusterVision')
-        self.parser.add_argument('-V', '--version', action='version', version=f'%(prog)s {get_version()}')
+            description = dedent(TOOL_DESCRIPTION),
+            epilog = TOOL_EPILOG)
+        self.parser.add_argument('-V', '--version', action='version', version=f'%(prog)s {ver}')
         self.parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
         for clss in classes:
@@ -112,8 +108,7 @@ class Cli():
 
 def get_version():
     """This Method will fetch the current version of Luna CLI from VERSION File."""
-    version = "0.0.0"
-    with open('VERSION.txt', 'r', encoding='utf-8') as ver:
+    with open(VERSION_FILE, 'r', encoding='utf-8') as ver:
         version = ver.read()
     return version
 
@@ -122,11 +117,10 @@ def log_checker():
     This method will check if the log file is in place or not.
     If not then will create it.
     """
-    log_folder = '/var/log/luna'
-    if os.path.exists(log_folder) is False:
+    if os.path.exists(LOG_DIR) is False:
         try:
-            os.makedirs(log_folder)
-            print(f'PASS :: {log_folder} is created.')
+            os.makedirs(LOG_DIR)
+            print(f'PASS :: {LOG_DIR} is created.')
         except PermissionError:
             print("ERROR :: Run this tool once as a super user.")
             sys.exit(1)

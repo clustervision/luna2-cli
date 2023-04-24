@@ -18,6 +18,7 @@ from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
 from luna.utils.log import Log
+from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 
 class Group():
     """
@@ -29,20 +30,19 @@ class Group():
         self.logger = Log.get_logger()
         self.args = args
         self.table = "group"
+        self.actions = actions(self.table)
         self.table_cap = self.table.capitalize()
         self.interface = "groupinterface"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "member", "add", "change", "rename", "remove", "clone",
-                       "listinterface", "showinterface", "changeinterface", "removeinterface"]
-            if self.args["action"] in actions:
+            if self.args["action"] in self.actions:
                 if 'interface' in self.args["action"]:
                     call = methodcaller(f'{self.args["action"]}')
                 else:
                     call = methodcaller(f'{self.args["action"]}_group')
                 call(self)
             else:
-                Helper().show_error(f"Kindly choose from {actions}.")
+                Helper().show_error(f"Kindly choose from {self.actions}.")
         else:
             self.getarguments(parser, subparsers)
 
@@ -64,8 +64,8 @@ class Group():
         Helper().common_list_args(group_member)
         group_add = group_args.add_parser('add', help='Add Group')
         group_add.add_argument('name', help='Name of the Group')
-        group_add.add_argument('-b', '--setupbmc', choices=Helper().boolean(),
-                               metavar="{y,yes,n,no,''}", help='BMC Setup')
+        group_add.add_argument('-b', '--setupbmc', choices=BOOL_CHOICES,
+                               metavar=BOOL_META, help='BMC Setup')
         group_add.add_argument('-o', '--osimage', help='OS Image Name')
         group_add.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         group_add.add_argument('-D', '--domain', help='Domain Name')
@@ -81,12 +81,12 @@ class Group():
         group_add.add_argument('-pi', '--provision_interface', help='Provision Interface')
         group_add.add_argument('-pm', '--provision_method', help='Provision Method')
         group_add.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        group_add.add_argument('-nb', '--netboot', choices=Helper().boolean(),
-                               metavar="{y,yes,n,no,''}", help='Network Boot')
-        group_add.add_argument('-li', '--localinstall', choices=Helper().boolean(),
-                               metavar="{y,yes,n,no,''}", help='Local Install')
-        group_add.add_argument('-bm', '--bootmenu', choices=Helper().boolean(),
-                               metavar="{y,yes,n,no,''}", help='Boot Menu')
+        group_add.add_argument('-nb', '--netboot', choices=BOOL_CHOICES,
+                               metavar=BOOL_META, help='Network Boot')
+        group_add.add_argument('-li', '--localinstall', choices=BOOL_CHOICES,
+                               metavar=BOOL_META, help='Local Install')
+        group_add.add_argument('-bm', '--bootmenu', choices=BOOL_CHOICES,
+                               metavar=BOOL_META, help='Boot Menu')
         group_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         group_add.add_argument('-if', '--interface', help='Interface Name')
         group_add.add_argument('-N', '--network', help='Interface Network Name')
@@ -99,8 +99,8 @@ class Group():
         group_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_change = group_args.add_parser('change', help='Change Group')
         group_change.add_argument('name', help='Name of the Group')
-        group_change.add_argument('-b', '--setupbmc', choices=Helper().boolean(),
-                                  metavar="{y,yes,n,no,''}", help='BMC Setup')
+        group_change.add_argument('-b', '--setupbmc', choices=BOOL_CHOICES,
+                                  metavar=BOOL_META, help='BMC Setup')
         group_change.add_argument('-o', '--osimage', help='OS Image Name')
         group_change.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         group_change.add_argument('-D', '--domain', help='Domain Name')
@@ -116,12 +116,12 @@ class Group():
         group_change.add_argument('-pi', '--provision_interface', help='Provision Interface')
         group_change.add_argument('-pm', '--provision_method', help='Provision Method')
         group_change.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        group_change.add_argument('-nb', '--netboot', choices=Helper().boolean(),
-                                  metavar="{y,yes,n,no,''}", help='Network Boot')
-        group_change.add_argument('-li', '--localinstall', choices=Helper().boolean(),
-                                  metavar="{y,yes,n,no,''}", help='Local Install')
-        group_change.add_argument('-bm', '--bootmenu', choices=Helper().boolean(),
-                                  metavar="{y,yes,n,no,''}", help='Boot Menu')
+        group_change.add_argument('-nb', '--netboot', choices=BOOL_CHOICES,
+                                  metavar=BOOL_META, help='Network Boot')
+        group_change.add_argument('-li', '--localinstall', choices=BOOL_CHOICES,
+                                  metavar=BOOL_META, help='Local Install')
+        group_change.add_argument('-bm', '--bootmenu', choices=BOOL_CHOICES,
+                                  metavar=BOOL_META, help='Boot Menu')
         group_change.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         group_change.add_argument('-if', '--interface', help='Interface Name')
         group_change.add_argument('-N', '--network', help='Interface Network Name')
@@ -135,8 +135,8 @@ class Group():
         group_clone = group_args.add_parser('clone', help='Clone Group.')
         group_clone.add_argument('name', help='Name of the Group')
         group_clone.add_argument('newgroupname', help='New Name for the Group')
-        group_clone.add_argument('-b', '--setupbmc', choices=Helper().boolean(),
-                                 metavar="{y,yes,n,no,''}", help='BMC Setup')
+        group_clone.add_argument('-b', '--setupbmc', choices=BOOL_CHOICES,
+                                 metavar=BOOL_META, help='BMC Setup')
         group_clone.add_argument('-o', '--osimage', help='OS Image Name')
         group_clone.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         group_clone.add_argument('-D', '--domain', help='Domain Name')

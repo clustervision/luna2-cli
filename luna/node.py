@@ -18,6 +18,7 @@ from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
 from luna.utils.log import Log
+from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 
 class Node():
     """
@@ -29,20 +30,19 @@ class Node():
         self.logger = Log.get_logger()
         self.args = args
         self.table = "node"
+        self.actions = actions(self.table)
         self.table_cap = self.table.capitalize()
         self.interface = "nodeinterface"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "add", "change", "rename", "remove", "clone",
-                       "listinterface", "showinterface", "changeinterface", "removeinterface"]
-            if self.args["action"] in actions:
+            if self.args["action"] in self.actions:
                 if 'interface' in self.args["action"]:
                     call = methodcaller(f'{self.args["action"]}')
                 else:
                     call = methodcaller(f'{self.args["action"]}_node')
                 call(self)
             else:
-                Helper().show_error(f"Kindly choose from {actions}.")
+                Helper().show_error(f"Kindly choose from {self.actions}.")
         else:
             self.getarguments(parser, subparsers)
 
@@ -65,8 +65,8 @@ class Node():
         node_add.add_argument('-host', '--hostname',help='Hostname')
         node_add.add_argument('-g', '--group', required=True, help='Group Name')
         node_add.add_argument('-o', '--osimage', help='OS Image Name')
-        node_add.add_argument('-b', '--setupbmc', choices=Helper().boolean(),
-                              metavar="{y,yes,n,no,''}", help='BMC Setup')
+        node_add.add_argument('-b', '--setupbmc', choices=BOOL_CHOICES,
+                              metavar=BOOL_META, help='BMC Setup')
         node_add.add_argument('-bmc', '--bmcsetup', help='BMC Setup')
         node_add.add_argument('-sw', '--switch', help='Switch Name')
         node_add.add_argument('-sp', '--switchport', help='Switch Port')
@@ -82,16 +82,16 @@ class Node():
         node_add.add_argument('-pi', '--provision_interface', help='Provision Interface')
         node_add.add_argument('-pm', '--provision_method', help='Provision Method')
         node_add.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        node_add.add_argument('-nb', '--netboot', choices=Helper().boolean(),
-                              metavar="{y,yes,n,no,''}", help='Network Boot')
-        node_add.add_argument('-li', '--localinstall', choices=Helper().boolean(),
-                              metavar="{y,yes,n,no,''}", help='Local Install')
-        node_add.add_argument('-bm', '--bootmenu', choices=Helper().boolean(),
-                              metavar="{y,yes,n,no,''}", help='Boot Menu')
-        node_add.add_argument('-lb', '--localboot', choices=Helper().boolean(),
-                              metavar="{y,yes,n,no,''}", help='Local Boot')
-        node_add.add_argument('-ser', '--service', choices=Helper().boolean(),
-                              metavar="{y,yes,n,no,''}", help='Service')
+        node_add.add_argument('-nb', '--netboot', choices=BOOL_CHOICES,
+                              metavar=BOOL_META, help='Network Boot')
+        node_add.add_argument('-li', '--localinstall', choices=BOOL_CHOICES,
+                              metavar=BOOL_META, help='Local Install')
+        node_add.add_argument('-bm', '--bootmenu', choices=BOOL_CHOICES,
+                              metavar=BOOL_META, help='Boot Menu')
+        node_add.add_argument('-lb', '--localboot', choices=BOOL_CHOICES,
+                              metavar=BOOL_META, help='Local Boot')
+        node_add.add_argument('-ser', '--service', choices=BOOL_CHOICES,
+                              metavar=BOOL_META, help='Service')
         node_add.add_argument('-s', '--status', help='Status')
         node_add.add_argument('-tid', '--tpm_uuid', help='TPM UUID')
         node_add.add_argument('-tkey', '--tpm_pubkey', help='TPM Public Key')
@@ -113,8 +113,8 @@ class Node():
         node_change.add_argument('-host', '--hostname',help='Hostname')
         node_change.add_argument('-g', '--group', help='Group Name')
         node_change.add_argument('-o', '--osimage', help='OS Image Name')
-        node_change.add_argument('-b', '--setupbmc', choices=Helper().boolean(),
-                                 metavar="{y,yes,n,no,''}", help='BMC Setup')
+        node_change.add_argument('-b', '--setupbmc', choices=BOOL_CHOICES,
+                                 metavar=BOOL_META, help='BMC Setup')
         node_change.add_argument('-bmc', '--bmcsetup', help='BMC Setup')
         node_change.add_argument('-sw', '--switch', help='Switch Name')
         node_change.add_argument('-sp', '--switchport', help='Switch Port')
@@ -130,16 +130,16 @@ class Node():
         node_change.add_argument('-pi', '--provision_interface', help='Provision Interface')
         node_change.add_argument('-pm', '--provision_method', help='Provision Method')
         node_change.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        node_change.add_argument('-nb', '--netboot', choices=Helper().boolean(),
-                                 metavar="{y,yes,n,no,''}", help='Network Boot')
-        node_change.add_argument('-li', '--localinstall', choices=Helper().boolean(),
-                                 metavar="{y,yes,n,no,''}", help='Local Install')
-        node_change.add_argument('-bm', '--bootmenu', choices=Helper().boolean(),
-                                 metavar="{y,yes,n,no,''}", help='Boot Menu')
-        node_change.add_argument('-lb', '--localboot', choices=Helper().boolean(),
-                                 metavar="{y,yes,n,no,''}", help='Local Boot')
-        node_change.add_argument('-ser', '--service', choices=Helper().boolean(),
-                                 metavar="{y,yes,n,no,''}", help='Service')
+        node_change.add_argument('-nb', '--netboot', choices=BOOL_CHOICES,
+                                 metavar=BOOL_META, help='Network Boot')
+        node_change.add_argument('-li', '--localinstall', choices=BOOL_CHOICES,
+                                 metavar=BOOL_META, help='Local Install')
+        node_change.add_argument('-bm', '--bootmenu', choices=BOOL_CHOICES,
+                                 metavar=BOOL_META, help='Boot Menu')
+        node_change.add_argument('-lb', '--localboot', choices=BOOL_CHOICES,
+                                 metavar=BOOL_META, help='Local Boot')
+        node_change.add_argument('-ser', '--service', choices=BOOL_CHOICES,
+                                 metavar=BOOL_META, help='Service')
         node_change.add_argument('-s', '--status', help='Status')
         node_change.add_argument('-tid', '--tpm_uuid', help='TPM UUID')
         node_change.add_argument('-tkey', '--tpm_pubkey', help='TPM Public Key')
@@ -163,8 +163,8 @@ class Node():
         node_clone.add_argument('-host', '--hostname',help='Hostname')
         node_clone.add_argument('-g', '--group', help='Group Name')
         node_clone.add_argument('-o', '--osimage', help='OS Image Name')
-        node_clone.add_argument('-b', '--setupbmc', choices=Helper().boolean(),
-                                metavar="{y,yes,n,no,''}", help='BMC Setup')
+        node_clone.add_argument('-b', '--setupbmc', choices=BOOL_CHOICES,
+                                metavar=BOOL_META, help='BMC Setup')
         node_clone.add_argument('-bmc', '--bmcsetup', help='BMC Setup')
         node_clone.add_argument('-sw', '--switch', help='Switch Name')
         node_clone.add_argument('-sp', '--switchport', help='Switch Port')
@@ -180,16 +180,16 @@ class Node():
         node_clone.add_argument('-pi', '--provision_interface', help='Provision Interface')
         node_clone.add_argument('-pm', '--provision_method', help='Provision Method')
         node_clone.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        node_clone.add_argument('-nb', '--netboot', choices=Helper().boolean(),
-                                metavar="{y,yes,n,no,''}", help='Network Boot')
-        node_clone.add_argument('-li', '--localinstall', choices=Helper().boolean(),
-                                metavar="{y,yes,n,no,''}", help='Local Install')
-        node_clone.add_argument('-bm', '--bootmenu', choices=Helper().boolean(),
-                                metavar="{y,yes,n,no,''}", help='Boot Menu')
-        node_clone.add_argument('-lb', '--localboot', choices=Helper().boolean(),
-                                metavar="{y,yes,n,no,''}", help='Local Boot')
-        node_clone.add_argument('-ser', '--service', choices=Helper().boolean(),
-                                metavar="{y,yes,n,no,''}", help='Service')
+        node_clone.add_argument('-nb', '--netboot', choices=BOOL_CHOICES,
+                                metavar=BOOL_META, help='Network Boot')
+        node_clone.add_argument('-li', '--localinstall', choices=BOOL_CHOICES,
+                                metavar=BOOL_META, help='Local Install')
+        node_clone.add_argument('-bm', '--bootmenu', choices=BOOL_CHOICES,
+                                metavar=BOOL_META, help='Boot Menu')
+        node_clone.add_argument('-lb', '--localboot', choices=BOOL_CHOICES,
+                                metavar=BOOL_META, help='Local Boot')
+        node_clone.add_argument('-ser', '--service', choices=BOOL_CHOICES,
+                                metavar=BOOL_META, help='Service')
         node_clone.add_argument('-s', '--status', help='Status')
         node_clone.add_argument('-tid', '--tpm_uuid', help='TPM UUID')
         node_clone.add_argument('-tkey', '--tpm_pubkey', help='TPM Public Key')
