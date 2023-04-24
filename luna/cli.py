@@ -108,7 +108,8 @@ class Cli():
 
 def get_version():
     """This Method will fetch the current version of Luna CLI from VERSION File."""
-    with open(VERSION_FILE, 'r', encoding='utf-8') as ver:
+    version_file = f'{os.getcwd()}/{VERSION_FILE}'
+    with open(version_file, 'r', encoding='utf-8') as ver:
         version = ver.read()
     return version
 

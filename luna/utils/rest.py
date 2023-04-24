@@ -16,6 +16,7 @@ from configparser import RawConfigParser
 import os
 import sys
 import requests
+import jwt
 from luna.utils.log import Log
 from luna.utils.constant import INI_FILE, TOKEN_FILE
 
@@ -32,7 +33,7 @@ class Rest():
         """
         self.error_msg = []
         self.logger = Log.get_logger()
-        self.username, self.password, self.daemon = None, None, None
+        self.username, self.password, self.daemon, self.secret_key = None, None, None, None
         file_check = os.path.isfile(INI_FILE)
         read_check = os.access(INI_FILE, os.R_OK)
         self.logger.debug(f'INI File => {INI_FILE} READ Check is {read_check}')
@@ -52,6 +53,10 @@ class Rest():
                     self.daemon = configparser.get('API', 'ENDPOINT')
                 else:
                     self.error_msg.append(f'ENDPOINT is not found in API section in {INI_FILE}.')
+                if configparser.has_option('API', 'SECRET_KEY'):
+                    self.secret_key = configparser.get('API', 'SECRET_KEY')
+                else:
+                    self.error_msg.append(f'SECRET_KEY is not found in API section in {INI_FILE}.')
             else:
                 self.error_msg.append(f'API section is not found in {INI_FILE}.')
         else:
@@ -64,64 +69,59 @@ class Rest():
             sys.exit(1)
 
 
-    def get_token(self):
+    def token(self):
         """
-        This method will fetch a valid token
-        for further use.
+        This method will fetch a valid token for further use.
         """
-        data = {}
-        response = False
-        if os.path.isfile(TOKEN_FILE):
-            with open(TOKEN_FILE, 'r', encoding='utf-8') as token:
-                token_data = token.read()
-                if len(token_data):
-                    response = token_data
-        else:
-            data['username'] = self.username
-            data['password'] = self.password
-            daemon_url = f'http://{self.daemon}/token'
-            self.logger.debug(f'Token URL => {daemon_url}')
-            try:
-                call = requests.post(url = daemon_url, json=data, timeout=5)
-                self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
+        data = {'username': self.username, 'password': self.password}
+        daemon_url = f'http://{self.daemon}/token'
+        self.logger.debug(f'Token URL => {daemon_url}')
+        try:
+            call = requests.post(url=daemon_url, json=data, timeout=5)
+            self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
+            if call.content:
                 data = call.json()
                 if 'token' in data:
                     response = data['token']
                     with open(TOKEN_FILE, 'w', encoding='utf-8') as file_data:
                         file_data.write(response)
-            except requests.exceptions.ConnectionError:
-                sys.stderr.write(f'ERROR :: Unable to Coonect Luna Daemon => http://{self.daemon}.\n')
-                self.logger.debug(f'ERROR :: Unable to connect Luna Daemon http://{self.daemon}.')
+                elif 'message' in data:
+                    sys.stderr.write(f'ERROR :: {data["token"]}.\n')
+                    sys.exit(1)
+            else:
+                sys.stderr.write(f'ERROR :: Recevied Nothing http://{self.daemon}.\n')
+                sys.stderr.write(f'ERROR :: HTTP Code {call.status_code}.\n')
                 sys.exit(1)
+        except requests.exceptions.ConnectionError:
+            sys.stderr.write(f'ERROR :: Unable to Connect => http://{self.daemon}.\n')
+            self.logger.debug(f'ERROR :: Unable to Connect http://{self.daemon}.')
+            sys.exit(1)
+        except requests.exceptions.JSONDecodeError:
+            sys.stderr.write(f'ERROR :: Response is not JSON {call.content}.\n')
+            sys.exit(1)
         return response
 
 
-    def reset_token(self):
+    def get_token(self):
         """
-        This method will update the token
+        This method will fetch a valid token
+        for further use.
         """
-        data = {}
         response = False
-        data['username'] = self.username
-        data['password'] = self.password
-        daemon_url = f'http://{self.daemon}/token'
-        self.logger.debug(f'Token URL => {daemon_url}')
-        try:
-            call = requests.post(url = daemon_url, json=data, timeout=5)
-            self.logger.debug(f'Response {call.content}& HTTP Code {call.status_code}')
-            data = call.json()
-            if 'token' in data:
-                response = data['token']
-                with open(TOKEN_FILE, 'w', encoding='utf-8') as file_data:
-                    file_data.write(response)
-            elif 'message' in data:
-                sys.stderr.write(f'ERROR :: {data["message"]}.')
-                self.logger.debug(f'ERROR :: {data["message"]}.')
-                sys.exit(1)
-        except requests.exceptions.ConnectionError:
-            sys.stderr.write(f'ERROR :: Unable to Coonect Luna Daemon => http://{self.daemon}.\n')
-            self.logger.debug(f'ERROR :: Unable to connect Luna Daemon => http://{self.daemon}.')
-            sys.exit(1)
+        if os.path.isfile(TOKEN_FILE):
+            with open(TOKEN_FILE, 'r', encoding='utf-8') as token:
+                token_data = token.read()
+                try:
+                    jwt.decode(token_data, self.secret_key, algorithms=['HS256'])
+                    response = token_data
+                except jwt.exceptions.DecodeError:
+                    self.logger.debug('Token Decode Error, Getting New Token.')
+                    response = self.token()
+                except jwt.exceptions.ExpiredSignatureError:
+                    self.logger.debug('Expired Signature Error, Getting New Token.')
+                    response = self.token()
+        if response is False:
+            response = self.token()
         return response
 
 
@@ -142,11 +142,7 @@ class Rest():
             self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
             response_json = call.json()
             if 'message' in response_json:
-                if "Token is invalid" in response_json['message']:
-                    self.reset_token()
-                    response = self.get_data(table, name, data)
-                else:
-                    sys.stderr.write(f'{response_json["message"]}.\n')
+                sys.stderr.write(f'{response_json["message"]}.\n')
                 # sys.exit(1)
             else:
                 response = response_json
@@ -155,9 +151,6 @@ class Rest():
             sys.exit(1)
         except requests.exceptions.JSONDecodeError:
             response = False
-        except ValueError:
-            self.reset_token()
-            response = self.get_data(table, name, data)
         return response
 
 
@@ -177,22 +170,9 @@ class Rest():
         try:
             response = requests.post(url=daemon_url, json=data, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
-            if response.content:
-                response_json = response.json()
-                if 'message' in response_json:
-                    if "Token is invalid" in response_json['message']:
-                        self.reset_token()
-                        response = self.post_data(table, name, data)
-                    else:
-                        sys.stderr.write(f'{response_json["message"]}.\n')
         except requests.exceptions.ConnectionError:
             sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
             sys.exit(1)
-        except requests.exceptions.JSONDecodeError:
-            response = False
-        except ValueError:
-            self.reset_token()
-            response = self.post_data(table, name, data)
         return response
 
 
@@ -209,22 +189,9 @@ class Rest():
         try:
             response = requests.get(url=daemon_url, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
-            if response.content:
-                response_json = response.json()
-                if 'message' in response_json:
-                    if "Token is invalid" in response_json['message']:
-                        self.reset_token()
-                        response = self.get_delete(table, name)
-                    else:
-                        sys.stderr.write(f'{response_json["message"]}.\n')
         except requests.exceptions.ConnectionError:
             sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
             sys.exit(1)
-        except requests.exceptions.JSONDecodeError:
-            response = False
-        except ValueError:
-            self.reset_token()
-            response = self.get_delete(table, name)
         return response
 
 
@@ -241,22 +208,9 @@ class Rest():
         try:
             response = requests.post(url=daemon_url, json=data, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
-            if response.content:
-                response_json = response.json()
-                if 'message' in response_json:
-                    if "Token is invalid" in response_json['message']:
-                        self.reset_token()
-                        response = self.post_clone(table, name, data)
-                    else:
-                        sys.stderr.write(f'{response_json["message"]}.\n')
         except requests.exceptions.ConnectionError:
             sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
             sys.exit(1)
-        except requests.exceptions.JSONDecodeError:
-            response = False
-        except ValueError:
-            self.reset_token()
-            response = self.post_clone(table, name, data)
         return response
 
 
@@ -276,20 +230,9 @@ class Rest():
             call = requests.get(url=daemon_url, params=data, headers=headers, timeout=5)
             self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
             response = call.status_code
-            if call.content:
-                response_json = call.json()
-                if 'message' in response_json:
-                    if "Token is invalid" in response_json['message']:
-                        self.reset_token()
-                        response = self.get_status(table, name, data)
         except requests.exceptions.ConnectionError:
             sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
             sys.exit(1)
-        except requests.exceptions.JSONDecodeError:
-            response = False
-        except ValueError:
-            self.reset_token()
-            response = self.get_status(table, name, data)
         return response
 
 
@@ -311,9 +254,6 @@ class Rest():
         except requests.exceptions.ConnectionError:
             sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
             sys.exit(1)
-        except ValueError:
-            self.reset_token()
-            response = self.get_raw(route, uri)
         return response
 
 
@@ -333,7 +273,4 @@ class Rest():
         except requests.exceptions.ConnectionError:
             sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
             sys.exit(1)
-        except ValueError:
-            self.reset_token()
-            response = self.post_raw(route, payload)
         return response
