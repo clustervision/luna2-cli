@@ -62,8 +62,8 @@ class Cli():
         """
         Main method to fetch and provide the arguments for each class.
         """
-        log_checker()
-        ver = get_version()
+        self.log_checker()
+        ver = self.get_version()
         self.parser = ArgumentParser(
             prog = 'luna',
             formatter_class = RawDescriptionHelpFormatter,
@@ -107,30 +107,31 @@ class Cli():
             sys.exit(0)
 
 
-def get_version():
-    """This Method will fetch the current version of Luna CLI from VERSION File."""
-    current_dir = os.path.dirname(os.path.realpath(__file__))
-    if 'test.py' in sys.argv:
-        base_dir = str(Path(current_dir).parent)
-    else:
-        base_dir = str(Path(current_dir))
-    version_file = f'{base_dir}/{VERSION_FILE}'
-    with open(version_file, 'r', encoding='utf-8') as ver:
-        version = ver.read()
-    return version
+    def get_version(self):
+        """This Method will fetch the current version of Luna CLI from VERSION File."""
+        current_dir = os.path.dirname(os.path.realpath(__file__))
+        if 'test.py' in sys.argv:
+            base_dir = str(Path(current_dir).parent)
+        else:
+            base_dir = str(Path(current_dir))
+        version_file = f'{base_dir}/{VERSION_FILE}'
+        with open(version_file, 'r', encoding='utf-8') as ver:
+            version = ver.read()
+        return version
 
-def log_checker():
-    """
-    This method will check if the log file is in place or not.
-    If not then will create it.
-    """
-    if os.path.exists(LOG_DIR) is False:
-        try:
-            os.makedirs(LOG_DIR)
-            print(f'PASS :: {LOG_DIR} is created.')
-        except PermissionError:
-            print("ERROR :: Run this tool once as a super user.")
-            sys.exit(1)
+
+    def log_checker(self):
+        """
+        This method will check if the log file is in place or not.
+        If not then will create it.
+        """
+        if os.path.exists(LOG_DIR) is False:
+            try:
+                os.makedirs(LOG_DIR)
+                print(f'PASS :: {LOG_DIR} is created.')
+            except PermissionError:
+                print("ERROR :: Run this tool once as a super user.")
+                sys.exit(1)
 
 def run_tool():
     """
