@@ -52,9 +52,9 @@ def new_version():
     with open('VERSION.txt', 'w', encoding='utf-8') as newver:
         newver.write(version)
     shutil.copy2('VERSION.txt', '/luna/VERSION.txt')
-	shutil.copy2('requirements.txt', '/luna/requirements.txt')
-	shutil.copy2('README.md', '/luna/README.md')
-	shutil.copy2('cli-upload-install.md', '/luna/cli-upload-install.md')
+    shutil.copy2('requirements.txt', '/luna/requirements.txt')
+    shutil.copy2('README.md', '/luna/README.md')
+    shutil.copy2('cli-upload-install.md', '/luna/cli-upload-install.md')
     return version
 
 
