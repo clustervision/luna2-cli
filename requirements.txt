@@ -7,3 +7,4 @@ configparser==5.3.0
 pyfiglet==0.8.post1
 nested_lookup==0.2.25
 prettytable==3.6.0
+PyJWT==2.6.0
