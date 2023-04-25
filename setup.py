@@ -52,6 +52,7 @@ def new_version():
     with open('VERSION.txt', 'w', encoding='utf-8') as newver:
         newver.write(version)
     shutil.copy2('VERSION.txt', 'luna/VERSION.txt')
+    shutil.copy2('requirements.txt', 'luna/requirements.txt')
     return version
 
 
