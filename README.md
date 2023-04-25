@@ -19,13 +19,13 @@ pip install luna
 
 
 ## Commands Cluster
-1. Detaild view of cluster and controllers
+1. Detailed view of cluster and controllers
 ```
 luna cluster
 ```
 2. Make change in Cluster information.
 ```
-luna cluster change -n {Cluster Name} -u {Cluster User} -ntp {NTP Server IP} -o {Create Node Ondmand} -ns {Nameserver IP} -fs {Forwardserver IP} -c {Technical Contact} -pm {Provision Method} -pf {Provision Fallback} -s {Security} -d {Debug Mode}
+luna cluster change -n {Cluster Name} -u {Cluster User} -ntp {NTP Server IP} -o {Create Node On Demand} -ns {Name_Server IP} -fs {Forward_Server IP} -c {Technical Contact} -pm {Provision Method} -pf {Provision Fallback} -s {Security} -d {Debug Mode}
 ```
 
 ## Commands Network
@@ -33,7 +33,7 @@ luna cluster change -n {Cluster Name} -u {Cluster User} -ntp {NTP Server IP} -o 
 ```
 luna network list
 ```
-2. Detaild view of a network
+2. Detailed view of a network
 ```
 luna network show {Network Name}
 ```
@@ -71,21 +71,21 @@ luna network nextip {Network Name}
 ```
 luna osimage list
 ```
-2. Detaild view of a os images
+2. Detailed view of a os images
 ```
 luna osimage show {OSImage Name}
 ```
 3. Add a os images.
 ```
-luna osimage add {OSImage Name} -dm {Dracut Modules} -gf {Grab Filesystems} -ge {Grab Filesystems} -rd {InitRD File} -k {Kernel File} -m {Kernel Modules} -o {Kernel Options} -var {Kernel Version} -p {Path Of Image} -tar {Tarball UUID} -t {Torrent UUID} -D {Distribution} -c {Comment}
+luna osimage add {OSImage Name} -dm {Dracut Modules} -gf {Grab Filesystem} -ge {Grab Filesystem} -rd {InitRD File} -k {Kernel File} -m {Kernel Modules} -o {Kernel Options} -var {Kernel Version} -p {Path Of Image} -tar {Tarball UUID} -t {Torrent UUID} -D {Distribution} -c {Comment}
 ```
 4. Make change in a os images.
 ```
-luna osimage change {OSImage Name} -dm {Dracut Modules} -gf {Grab Filesystems} -ge {Grab Filesystems} -rd {InitRD File} -k {Kernel File} -m {Kernel Modules} -o {Kernel Options} -var {Kernel Version} -p {Path Of Image} -tar {Tarball UUID} -t {Torrent UUID} -D {Distribution} -c {Comment}
+luna osimage change {OSImage Name} -dm {Dracut Modules} -gf {Grab Filesystem} -ge {Grab Filesystem} -rd {InitRD File} -k {Kernel File} -m {Kernel Modules} -o {Kernel Options} -var {Kernel Version} -p {Path Of Image} -tar {Tarball UUID} -t {Torrent UUID} -D {Distribution} -c {Comment}
 ```
 5. Clone a os images.
 ```
-luna osimage clone {OSImage Name} {New OSImage Name} -dm {Dracut Modules} -gf {Grab Filesystems} -ge {Grab Filesystems} -rd {InitRD File} -k {Kernel File} -m {Kernel Modules} -o {Kernel Options} -var {Kernel Version} -p {Path Of Image} -tar {Tarball UUID} -t {Torrent UUID} -D {Distribution} -c {Comment}
+luna osimage clone {OSImage Name} {New OSImage Name} -dm {Dracut Modules} -gf {Grab Filesystem} -ge {Grab Filesystem} -rd {InitRD File} -k {Kernel File} -m {Kernel Modules} -o {Kernel Options} -var {Kernel Version} -p {Path Of Image} -tar {Tarball UUID} -t {Torrent UUID} -D {Distribution} -c {Comment}
 ```
 6. Rename a os images.
 ```
@@ -113,7 +113,7 @@ luna osimage member {OSImage Name}
 ```
 luna bmcsetup list
 ```
-2. Detaild view of a BMC Setup
+2. Detailed view of a BMC Setup
 ```
 luna bmcsetup show {BMC Setup Name}
 ```
@@ -147,7 +147,7 @@ luna bmcsetup member {BMC Setup Name}
 ```
 luna switch list
 ```
-2. Detaild view of a Switch
+2. Detailed view of a Switch
 ```
 luna switch show {Switch Name}
 ```
@@ -177,7 +177,7 @@ luna switch remove {Switch Name}
 ```
 luna otherdev list
 ```
-2. Detaild view of a Other Device
+2. Detailed view of a Other Device
 ```
 luna otherdev show {Other Device Name}
 ```
@@ -207,7 +207,7 @@ luna otherdev delete {Other Device Name}
 ```
 luna group list
 ```
-2. Detaild view of a Group
+2. Detailed view of a Group
 ```
 luna group show {Group Name}
 ```
@@ -257,7 +257,7 @@ luna group member {Group Name}
 ```
 luna node list
 ```
-2. Detaild view of a Node
+2. Detailed view of a Node
 ```
 luna node show {Node Name}
 ```
@@ -361,13 +361,13 @@ luna service luna2 {start/stop/restart/reload/status}
 ## Commands Control
 1. Check Node(s) power status
 ```
-luna control power status {NodeName OR Nodelist}
+luna control power status {NodeName OR NodeList}
 ```
 2. Power ON Node(s)
 ```
-luna control power on {NodeName OR Nodelist}
+luna control power on {NodeName OR NodeList}
 ```
 3. Power OFF Node(s)
 ```
-luna control power off {NodeName OR Nodelist}
+luna control power off {NodeName OR NodeList}
 ```

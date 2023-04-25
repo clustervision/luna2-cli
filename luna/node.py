@@ -44,10 +44,10 @@ class Node():
             else:
                 Helper().show_error(f"Kindly choose from {self.actions}.")
         else:
-            self.getarguments(parser, subparsers)
+            self.get_arguments(parser, subparsers)
 
 
-    def getarguments(self, parser, subparsers):
+    def get_arguments(self, parser, subparsers):
         """
         Method will provide all the arguments
         related to the Node class.
@@ -278,7 +278,7 @@ class Node():
 
     def change_node(self):
         """
-        Method to chagne a node in Luna Configuration.
+        Method to change a node in Luna Configuration.
         """
         interface = {}
         if self.args['interface']:

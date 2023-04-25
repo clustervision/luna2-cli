@@ -72,8 +72,8 @@ class Cli():
         self.parser.add_argument('-V', '--version', action='version', version=f'%(prog)s {ver}')
         self.parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
-        for clss in classes:
-            clss(parser=self.parser, subparsers =self.subparsers)
+        for cls in classes:
+            cls(parser=self.parser, subparsers =self.subparsers)
         self.args = vars(self.parser.parse_args())
         self.call_class()
         return True
@@ -81,8 +81,7 @@ class Cli():
 
     def call_class(self):
         """
-        Method to call the class for further
-        operations.
+        Method to call the class for further operations.
         """
         if self.args["verbose"]:
             self.logger = Log.init_log('debug')
@@ -133,7 +132,6 @@ class Cli():
 
 def run_tool():
     """
-    This method initiate the main method of
-    CLI class.
+    This method initiate the main method of CLI class.
     """
     Cli().main()

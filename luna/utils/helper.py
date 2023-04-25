@@ -46,16 +46,16 @@ class Helper():
         This method will convert string choices to
         boolean
         """
-        for enkey in BOOL_KEYS:
-            content = nested_lookup(enkey, raw_data)
+        for key in BOOL_KEYS:
+            content = nested_lookup(key, raw_data)
             if content:
                 if content[0] is not None:
                     if content[0] == '':
-                        raw_data = nested_update(raw_data, key=enkey, value='')
+                        raw_data = nested_update(raw_data, key=key, value='')
                     elif content[0].lower() in ['y', 'yes', 'true']:
-                        raw_data = nested_update(raw_data, key=enkey, value=True)
+                        raw_data = nested_update(raw_data, key=key, value=True)
                     else:
-                        raw_data = nested_update(raw_data, key=enkey, value=False)
+                        raw_data = nested_update(raw_data, key=key, value=False)
         return raw_data
 
 
@@ -65,38 +65,38 @@ class Helper():
         """
         raw_data = self.choice_to_bool(raw_data)
         payload = {k: v for k, v in raw_data.items() if v is not None}
-        for enkey in EDITOR_KEYS:
-            content = nested_lookup(enkey, payload)
+        for key in EDITOR_KEYS:
+            content = nested_lookup(key, payload)
             if content:
                 if content[0] is True:
                     if table:
                         get_list = Rest().get_data(table, payload['name'])
                         if get_list:
-                            keydata = nested_lookup(enkey, get_list)
-                            if keydata:
-                                content = self.open_editor(enkey, keydata[0], payload)
-                                payload = nested_update(payload, key=enkey, value=content)
+                            value = nested_lookup(key, get_list)
+                            if value:
+                                content = self.open_editor(key, value[0], payload)
+                                payload = nested_update(payload, key=key, value=content)
                     else:
-                        content = self.open_editor(enkey, None, payload)
-                        payload = nested_update(payload, key=enkey, value=content)
+                        content = self.open_editor(key, None, payload)
+                        payload = nested_update(payload, key=key, value=content)
                 elif content[0] is False:
-                    payload = nested_delete(payload, enkey)
+                    payload = nested_delete(payload, key)
                 elif content[0]:
                     if os.path.exists(content[0]):
                         if os.path.isfile(content[0]):
                             with open(content[0], 'rb') as file_data:
                                 content = self.base64_encode(file_data.read())
-                                payload = nested_update(payload, key=enkey, value=content)
+                                payload = nested_update(payload, key=key, value=content)
                         else:
                             sys.stderr.write(f"ERROR :: {content[0]} is a Invalid filepath.\n")
                             sys.exit(1)
                     else:
                         content = self.base64_encode(bytes(content[0], 'utf-8'))
-                        payload = nested_update(payload, key=enkey, value=content)
+                        payload = nested_update(payload, key=key, value=content)
         return payload
 
 
-    def open_editor(self, key=None, keydata=None, payload=None):
+    def open_editor(self, key=None, value=None, payload=None):
         """
         This Method will open a default text editor to
         write the multiline text for keys such as comment,
@@ -114,9 +114,9 @@ class Helper():
         else:
             filename = f'/tmp/lunatmp-{random_path}/{key}'
         temp_file = open(filename, "x", encoding='utf-8')
-        if keydata:
-            keydata = self.base64_decode(keydata)
-            temp_file.write(keydata)
+        if value:
+            value = self.base64_decode(value)
+            temp_file.write(value)
             temp_file.close()
         subprocess.call([editor, filename])
         with open(filename, 'rb') as file_data:
@@ -128,7 +128,7 @@ class Helper():
 
     def get_list(self, table=None, args=None):
         """
-        Method to list all switchs from Luna Configuration.
+        Method to list all switches from Luna Configuration.
         """
         response = False
         fields, rows = [], []
@@ -157,14 +157,14 @@ class Helper():
         """
         Method to show a switch in Luna Configuration.
         """
-        rowname = None
+        row_name = None
         if 'name' in args:
-            rowname = args['name']
-        get_list = Rest().get_data(table, rowname)
+            row_name = args['name']
+        get_list = Rest().get_data(table, row_name)
         self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
-            if rowname:
-                data = get_list['config'][table][rowname]
+            if row_name:
+                data = get_list['config'][table][row_name]
             else:
                 data = get_list['config'][table]
             json_data = Helper().prepare_json(data)
@@ -199,8 +199,8 @@ class Helper():
                 fields = ['S.No.', 'Nodes']
                 rows = []
                 for member in data:
-                    newrow = [num, member]
-                    rows.append(newrow)
+                    new_row = [num, member]
+                    rows.append(new_row)
                     num = num + 1
                 title = f'<< {table.capitalize()} {args["name"]} Member Nodes >>'
                 response = Presenter().show_table(title, fields, rows)
@@ -308,7 +308,7 @@ class Helper():
         response = Rest().post_clone(table, payload['name'], request_data)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 201:
-            self.show_success(f'{payload["name"]} cloneed as {newname}.')
+            self.show_success(f'{payload["name"]} cloned as {newname}.')
         else:
             sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
             sys.stderr.write(f'HTTP Error {response.content}.\n')
@@ -316,17 +316,17 @@ class Helper():
         return True
 
 
-    def get_hostlist(self, rawhosts=None):
+    def get_hostlist(self, raw_hosts=None):
         """
         This method will perform power option on node.
         """
         response = []
-        self.logger.debug(f'Received hostlist: {rawhosts}.')
+        self.logger.debug(f'Received hostlist: {raw_hosts}.')
         try:
-            response = hostlist.expand_hostlist(rawhosts)
+            response = hostlist.expand_hostlist(raw_hosts)
             self.logger.debug(f'Expanded hostlist: {response}.')
         except hostlist.BadHostlist:
-            self.logger.debug(f'Hostlist is incorrect: {rawhosts}.')
+            self.logger.debug(f'Hostlist is incorrect: {raw_hosts}.')
         return response
 
 
@@ -404,9 +404,9 @@ class Helper():
         f"[       =] {message}",
         f"[        ] {message}",
         f"[        ] {message}",        ]
-        notcomplete = True
+        not_complete = True
         i = 0
-        while notcomplete:
+        while not_complete:
             print(animation[i % len(animation)], end='\r')
             sleep(.1)
             i += 1
@@ -470,21 +470,21 @@ class Helper():
         """
         self.logger.debug(f'table => {table}')
         self.logger.debug(f'data => {data}')
-        fields, rows, coloredfields = [], [], []
+        fields, rows, colored_fields = [], [], []
         fields = filter_columns(table)
         self.logger.debug(f'fields => {fields}')
-        for fieldkey in fields:
-            valrow = []
+        for field_key in fields:
+            val_row = []
             for ele in data:
-                if fieldkey in list(ele.keys()):
-                    valrow.append(ele[fieldkey])
+                if field_key in list(ele.keys()):
+                    val_row.append(ele[field_key])
                 else:
-                    valrow.append("--NA--")
+                    val_row.append("--NA--")
                 self.logger.debug(f'Element => {ele}')
-            rows.append(valrow)
-            valrow = []
-            coloredfields.append(fieldkey)
-        fields = coloredfields
+            rows.append(val_row)
+            val_row = []
+            colored_fields.append(field_key)
+        fields = colored_fields
         self.logger.debug(f'Rows before Swapping => {rows}')
         rows = np.array(rows).T.tolist()
         # Adding Serial Numbers to the dataset
@@ -504,39 +504,39 @@ class Helper():
         """
         self.logger.debug(f'Table => {table}')
         self.logger.debug(f'Data => {data}')
-        fields, rows, coloredfields = [], [], []
+        fields, rows, colored_fields = [], [], []
         fields = filter_columns(table)
         self.logger.debug(f'Fields => {fields}')
-        for fieldkey in fields:
-            valrow = []
+        for field_key in fields:
+            val_row = []
             for ele in data:
-                if fieldkey in list((data[ele].keys())):
-                    if isinstance(data[ele][fieldkey], list):
-                        newlist = []
-                        for internal in data[ele][fieldkey]:
+                if field_key in list((data[ele].keys())):
+                    if isinstance(data[ele][field_key], list):
+                        new_list = []
+                        for internal in data[ele][field_key]:
                             for internal_val in internal:
                                 self.logger.debug(f'Key => {internal_val}')
                                 self.logger.debug(f'Value => {internal[internal_val]}')
-                                inkey = internal_val
-                                inval = internal[internal_val]
-                                newlist.append(f'{inkey} = {inval} ')
-                        newlist = '\n'.join(newlist)
-                        valrow.append(newlist)
-                        newlist = []
-                    elif fieldkey == 'tpm_uuid':
-                        if data[ele][fieldkey]:
-                            valrow.append(True)
+                                in_key = internal_val
+                                in_val = internal[internal_val]
+                                new_list.append(f'{in_key} = {in_val} ')
+                        new_list = '\n'.join(new_list)
+                        val_row.append(new_list)
+                        new_list = []
+                    elif field_key == 'tpm_uuid':
+                        if data[ele][field_key]:
+                            val_row.append(True)
                         else:
-                            valrow.append(False)
+                            val_row.append(False)
                     else:
-                        valrow.append(data[ele][fieldkey])
+                        val_row.append(data[ele][field_key])
                 else:
-                    valrow.append("--NA--")
-            rows.append(valrow)
-            self.logger.debug(f'Each Row => {valrow}')
-            valrow = []
-            coloredfields.append(fieldkey)
-        fields = coloredfields
+                    val_row.append("--NA--")
+            rows.append(val_row)
+            self.logger.debug(f'Each Row => {val_row}')
+            val_row = []
+            colored_fields.append(field_key)
+        fields = colored_fields
         rows = np.array(rows).T.tolist()
         # Adding Serial Numbers to the dataset
         fields.insert(0, 'S. No.')
@@ -575,12 +575,12 @@ class Helper():
         return content
 
 
-    def prepare_json(self, jsondata=None, limit=False):
+    def prepare_json(self, json_data=None, limit=False):
         """
         This method will decode the base 64 string.
         """
-        for enkey in EDITOR_KEYS:
-            content = nested_lookup(enkey, jsondata)
+        for key in EDITOR_KEYS:
+            content = nested_lookup(key, json_data)
             if content:
                 if content[0] is not None:
                     try:
@@ -591,10 +591,10 @@ class Helper():
                                 if '\n' in content:
                                     content = content.removesuffix('\n')
                                 content = f'{content}...'
-                        jsondata = nested_update(jsondata, key=enkey, value=content)
+                        json_data = nested_update(json_data, key=key, value=content)
                     except TypeError:
                         self.logger.debug(f"Without any reason {content} is coming from api.")
-        return jsondata
+        return json_data
 
 
     def get_secrets(self, table=None, data=None):
@@ -602,23 +602,23 @@ class Helper():
         This method will filter data for Secrets
         """
         self.logger.debug(f'Table => {table} and Data => {data}')
-        rows, coloredfields = [], []
+        rows, colored_fields = [], []
         fields = filter_columns(table)
         self.logger.debug(f'Fields => {fields}')
         for key in data:
-            newrow = []
+            new_row = []
             for value in data[key]:
                 self.logger.debug(f'Key => {key} and Value => {value}')
-                newrow.append(key)
-                newrow.append(value['name'])
-                newrow.append(value['path'])
+                new_row.append(key)
+                new_row.append(value['name'])
+                new_row.append(value['path'])
                 content = self.base64_decode(value['content'])
-                newrow.append(content[:60]+'...')
-                rows.append(newrow)
-                newrow = []
+                new_row.append(content[:60]+'...')
+                rows.append(new_row)
+                new_row = []
         for newfield in fields:
-            coloredfields.append(newfield)
-        fields = coloredfields
+            colored_fields.append(newfield)
+        fields = colored_fields
         # Adding Serial Numbers to the dataset
         fields.insert(0, 'S. No.')
         num = 1
@@ -635,23 +635,23 @@ class Helper():
         row format
         """
         self.logger.debug(f'Table => {table} and Data => {data}')
-        rows, coloredfields = [], []
+        rows, colored_fields = [], []
         fields = sortby(table)
         self.logger.debug(f'Fields => {fields}')
         for key in data:
-            newrow = []
+            new_row = []
             for value in data[key]:
                 self.logger.debug(f'Key => {key} and Value => {value}')
-                newrow.append(key)
-                newrow.append(value['name'])
-                newrow.append(value['path'])
+                new_row.append(key)
+                new_row.append(value['name'])
+                new_row.append(value['path'])
                 content = self.base64_decode(value['content'])
-                newrow.append(content)
-                rows.append(newrow)
-                newrow = []
+                new_row.append(content)
+                rows.append(new_row)
+                new_row = []
         for newfield in fields:
-            coloredfields.append(newfield)
-        fields = coloredfields
+            colored_fields.append(newfield)
+        fields = colored_fields
         # Adding Serial Numbers to the dataset
         fields.insert(0, 'S. No.')
         num = 1
@@ -659,13 +659,13 @@ class Helper():
             outer.insert(0, num)
             num = num + 1
         # Adding Serial Numbers to the dataset
-        newfiels, newrows = [], []
+        new_fields, new_row = [], []
         for row in rows:
-            newfiels = newfiels + fields
-            newrows = newrows + row
-            newfiels.append("")
-            newrows.append("")
-        return newfiels, newrows
+            new_fields = new_fields + fields
+            new_row = new_row + row
+            new_fields.append("")
+            new_row.append("")
+        return new_fields, new_row
 
 
     def filter_data_col(self, table=None, data=None):
@@ -674,39 +674,39 @@ class Helper():
         row format
         """
         self.logger.debug(f'Table => {table} and Data => {data}')
-        definedkeys = sortby(table)
-        self.logger.debug(f'Fields => {definedkeys}')
-        for newkey in list(data.keys()):
-            if newkey not in definedkeys:
-                definedkeys.append(newkey)
-        index_map = {v: i for i, v in enumerate(definedkeys)}
+        defined_keys = sortby(table)
+        self.logger.debug(f'Fields => {defined_keys}')
+        for new_key in list(data.keys()):
+            if new_key not in defined_keys:
+                defined_keys.append(new_key)
+        index_map = {v: i for i, v in enumerate(defined_keys)}
         data = sorted(data.items(), key=lambda pair: index_map[pair[0]])
         self.logger.debug(f'Sorted Data => {data}')
         fields, rows = [], []
         for key in data:
             fields.append(key[0])
             if isinstance(key[1], list):
-                newlist = []
+                new_list = []
                 for internal in key[1]:
                     for internal_val in internal:
                         self.logger.debug(f'Key: {internal_val} Value: {internal[internal_val]}')
                         if internal_val == "interface":
-                            newlist.append(f'{internal_val} = {internal[internal_val]}')
+                            new_list.append(f'{internal_val} = {internal[internal_val]}')
                         else:
-                            newlist.append(f'  {internal_val} = {internal[internal_val]}')
-                newlist = '\n'.join(newlist)
-                rows.append(newlist)
-                newlist = []
+                            new_list.append(f'  {internal_val} = {internal[internal_val]}')
+                new_list = '\n'.join(new_list)
+                rows.append(new_list)
+                new_list = []
             elif isinstance(key[1], dict):
-                newlist = []
+                new_list = []
                 for internal in key[1]:
                     self.logger.debug(f'Key => {internal} and Value => {key[1][internal]}')
-                    inkey = internal
-                    inval = key[1][internal]
-                    newlist.append(f'{inkey} = {inval} ')
-                newlist = '\n'.join(newlist)
-                rows.append(newlist)
-                newlist = []
+                    in_key = internal
+                    in_val = key[1][internal]
+                    new_list.append(f'{in_key} = {in_val} ')
+                new_list = '\n'.join(new_list)
+                rows.append(new_list)
+                new_list = []
             else:
                 rows.append(key[1])
         return fields, rows

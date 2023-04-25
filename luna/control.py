@@ -45,10 +45,10 @@ class Control():
             else:
                 Helper().show_error("Kindly choose 'power' to perform operations.")
         else:
-            self.getarguments(parser, subparsers)
+            self.get_arguments(parser, subparsers)
 
 
-    def getarguments(self, parser, subparsers):
+    def get_arguments(self, parser, subparsers):
         """
         Method will provide all the arguments
         related to the Control Process class.

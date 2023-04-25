@@ -21,7 +21,7 @@ from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 class Network():
     """
     Network Class responsible to show, list,
-    add, remove informations
+    add, remove Information
     """
 
     def __init__(self, args=None, parser=None, subparsers=None):
@@ -37,10 +37,10 @@ class Network():
             else:
                 Helper().show_error(f"Kindly choose from {self.actions}.")
         else:
-            self.getarguments(parser, subparsers)
+            self.get_arguments(parser, subparsers)
 
 
-    def getarguments(self, parser, subparsers):
+    def get_arguments(self, parser, subparsers):
         """
         Method will provide all the arguments
         related to the Network class.
@@ -190,9 +190,9 @@ class Network():
         nextip = Rest().get_data(self.table, uri)
         self.logger.debug(f'NextIP Response => {nextip}')
         if nextip:
-            ipaddr = nextip['config']['network'][self.args["name"]]['nextip']
-            if ipaddr:
-                response = Helper().show_success(f'Next Available IP Address is {ipaddr}.')
+            ipaddress = nextip['config']['network'][self.args["name"]]['nextip']
+            if ipaddress:
+                response = Helper().show_success(f'Next Available IP Address is {ipaddress}.')
             else:
                 response = Helper().show_warning(f'IP not available on {self.args["ipaddress"]}.')
         return response

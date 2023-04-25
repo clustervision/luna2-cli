@@ -40,10 +40,10 @@ class Service():
             else:
                 Helper().show_error(f"Kindly choose service {SERVICES}.")
         else:
-            self.getarguments(parser, subparsers)
+            self.get_arguments(parser, subparsers)
 
 
-    def getarguments(self, parser, subparsers):
+    def get_arguments(self, parser, subparsers):
         """
         Method will provide all the arguments
         related to the Service class.
