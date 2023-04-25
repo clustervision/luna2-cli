@@ -67,7 +67,7 @@ def actions(table=None):
 
 def filter_columns(table=None):
     """
-    This method remove the unnessasry fields from
+    This method remove the unnecessary fields from
     the dataset.
     """
     response = False
@@ -98,14 +98,14 @@ def filter_columns(table=None):
 
 def sortby(table=None):
     """
-    This method remove the unnessasry fields from
+    This method remove the unnecessary fields from
     the dataset.
     """
     response = False
     static = {
         'cluster': ['name', 'ns_ip','ntp_server', 'provision_fallback', 'provision_method',
                     'security', 'technical_contacts', 'user', 'debug'],
-        'controller': ['hostname', 'ipaddress','luna_config', 'srverport', 'status'],
+        'controller': ['hostname', 'ipaddress','luna_config', 'serverport', 'status'],
         'node': ['name', 'hostname', 'group', 'osimage', 'interfaces', 'localboot',
                     'macaddress', 'switch', 'switchport', 'setupbmc', 'status', 'service',
                     'prescript', 'partscript', 'postscript', 'netboot', 'localinstall',

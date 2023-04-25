@@ -39,10 +39,10 @@ class OSImage():
             else:
                 Helper().show_error(f"Kindly choose from {self.actions}.")
         else:
-            self.getarguments(parser, subparsers)
+            self.get_arguments(parser, subparsers)
 
 
-    def getarguments(self, parser, subparsers):
+    def get_arguments(self, parser, subparsers):
         """
         Method will provide all the arguments
         related to the OSImage class.
@@ -122,7 +122,7 @@ class OSImage():
         osimage_pack = osimage_args.add_parser('pack', help='Pack OSImage')
         osimage_pack.add_argument('name', help='Name of the OS Image')
         osimage_pack.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
-        osimage_kernel = osimage_args.add_parser('kernel', help='Chnage Kernel Version in OS Image')
+        osimage_kernel = osimage_args.add_parser('kernel', help='Change Kernel Version in OS Image')
         osimage_kernel.add_argument('name', help='Name of the OS Image')
         osimage_kernel.add_argument('-rd', '--initrdfile', help='INIT RD File')
         osimage_kernel.add_argument('-k', '--kernelfile', help='Kernel File')

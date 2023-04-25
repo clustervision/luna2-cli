@@ -36,10 +36,10 @@ class Switch():
             else:
                 Helper().show_error(f"Kindly choose from {self.actions}.")
         else:
-            self.getarguments(parser, subparsers)
+            self.get_arguments(parser, subparsers)
 
 
-    def getarguments(self, parser, subparsers):
+    def get_arguments(self, parser, subparsers):
         """
         Method will provide all the arguments
         related to the Switch class.
@@ -101,7 +101,7 @@ class Switch():
 
     def list_switch(self):
         """
-        This method list all switchs.
+        This method list all switches.
         """
         return Helper().get_list(self.table, self.args)
 

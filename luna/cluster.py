@@ -34,12 +34,11 @@ class Cluster():
             else:
                 Helper().show_error("If you want to change then use change as an argument.")
         else:
-            self.getarguments(parser, subparsers)
+            self.get_arguments(parser, subparsers)
 
-    def getarguments(self, parser, subparsers):
+    def get_arguments(self, parser, subparsers):
         """
-        Method will provide all the arguments
-        related to the Cluster class.
+        Method will provide all the arguments related to the Cluster class.
         """
         cluster_menu = subparsers.add_parser('cluster', help='Cluster Information.')
         cluster_menu.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')

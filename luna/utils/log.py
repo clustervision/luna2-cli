@@ -3,9 +3,9 @@
 
 """
 This Log Class is responsible to start the Logger depend on the Level.
-Level alway info untill argument --debug is not supplied.
+Level alway info until argument --debug is not supplied.
 Method get_logger will provide a logging object, which is helpful to write the log messages.
-Logger Object have basic mathods: debug, error, info, critical and warnings.
+Logger Object have basic methods: debug, error, info, critical and warnings.
 
 """
 __author__      = 'Sumit Sharma'
@@ -43,10 +43,10 @@ class Log:
         cls.__logger.setLevel(log_level)
         if log_level == 10:
             formatter = logging.Formatter(log_format)
-            cnsl = logging.StreamHandler(sys.stdout)
-            cnsl.setLevel(log_level)
-            cnsl.setFormatter(formatter)
-            cls.__logger.addHandler(cnsl)
+            console = logging.StreamHandler(sys.stdout)
+            console.setLevel(log_level)
+            console.setFormatter(formatter)
+            cls.__logger.addHandler(console)
         levels = {0: 'NOTSET', 10: 'DEBUG', 20: 'INFO', 30: 'WARNING', 40: 'ERROR', 50: 'CRITICAL'}
         cls.__logger.info(f'######### Luna Logging Level IsSet To [{levels[log_level]}] #########')
         return cls.__logger
@@ -64,7 +64,7 @@ class Log:
     def set_logger(cls, log_level=None):
         """
         Input - None
-        Process - Update the exsisting Log Level
+        Process - Update the existing Log Level
         Output - Logger Object.
         """
         levels = {'NOTSET': 0, 'DEBUG': 10, 'INFO': 20, 'WARNING': 30, 'ERROR': 40, 'CRITICAL': 50}
@@ -76,7 +76,7 @@ class Log:
     def check_loglevel(cls):
         """
         Input - None
-        Process - Update the exsisting Log Level
+        Process - Update the existing Log Level
         Output - Logger Object.
         """
         return logging.root.level

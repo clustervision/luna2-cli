@@ -89,7 +89,7 @@ class Rest():
                     sys.stderr.write(f'ERROR :: {data["token"]}.\n')
                     sys.exit(1)
             else:
-                sys.stderr.write(f'ERROR :: Recevied Nothing http://{self.daemon}.\n')
+                sys.stderr.write(f'ERROR :: Received Nothing http://{self.daemon}.\n')
                 sys.stderr.write(f'ERROR :: HTTP Code {call.status_code}.\n')
                 sys.exit(1)
         except requests.exceptions.ConnectionError:
@@ -157,7 +157,7 @@ class Rest():
     def post_data(self, table=None, name=None, data=None):
         """
         This method is based on REST API's POST method.
-        It will post data to Luna 2 Daemonvia REST API's.
+        It will post data to Luna 2 Daemon via REST API's.
         And use for creating and updating records.
         """
         response = False
@@ -198,7 +198,7 @@ class Rest():
     def post_clone(self, table=None, name=None, data=None):
         """
         This method is based on REST API's POST method.
-        It will post data to Luna 2 Daemonvia REST API's.
+        It will post data to Luna 2 Daemon via REST API's.
         And use for cloning the records.
         """
         response = False

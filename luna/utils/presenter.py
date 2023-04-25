@@ -40,13 +40,13 @@ class Presenter():
         return True
 
 
-    def show_json(self, jsondata=None):
+    def show_json(self, json_data=None):
         """
         This method will fetch all records from
         the Luna 2 Daemon Database
         """
-        self.logger.debug(f'Jason Data => {jsondata}')
-        pretty = json.dumps(jsondata, indent=2)
+        self.logger.debug(f'Jason Data => {json_data}')
+        pretty = json.dumps(json_data, indent=2)
         print(pretty)
         return True
 

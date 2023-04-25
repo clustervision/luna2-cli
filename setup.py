@@ -21,12 +21,12 @@ from setuptools import setup, find_packages
 LOG_FOLDER = '/var/log/luna'
 try: # for pip >= 10
     from pip._internal.req import parse_requirements
-    install_reqs = list(parse_requirements('requirements.txt', session='hack'))
-    reqs = [str(ir.requirement) for ir in install_reqs]
+    install_requirements = list(parse_requirements('requirements.txt', session='hack'))
+    requirements = [str(ir.requirement) for ir in install_requirements]
 except ImportError: # for pip <= 9.0.3
     from pip.req import parse_requirements
-    install_reqs = parse_requirements('requirements.txt', session='hack')
-    reqs = [str(ir.req) for ir in install_reqs]
+    install_requirements = parse_requirements('requirements.txt', session='hack')
+    requirements = [str(ir.req) for ir in install_requirements]
 
 if os.path.exists(LOG_FOLDER) is False:
     try:
@@ -49,8 +49,8 @@ def new_version():
         version = '.'.join(version)
     else:
         version = str(int(version)+1)
-    with open('VERSION.txt', 'w', encoding='utf-8') as newver:
-        newver.write(version)
+    with open('VERSION.txt', 'w', encoding='utf-8') as version_file:
+        version_file.write(version)
     shutil.copy2('VERSION.txt', 'luna/VERSION.txt')
     shutil.copy2('requirements.txt', 'luna/requirements.txt')
     return version
@@ -75,7 +75,7 @@ setup(
 			'luna = luna.cli:run_tool'
 		]
 	},
-	install_requires = reqs,
+	install_requires = requirements,
 	dependency_links = [],
 	package_data = {"luna": ["*.txt"]},
 	data_files = [],

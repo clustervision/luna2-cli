@@ -1,6 +1,6 @@
 # Create Latest PIP package for luna2-cli
 
-Follow setps to Create a Build of luna2-cli tool.
+Follow steps to Create a Build of luna2-cli tool.
 
 ## Step 1 - Install Requirements:
 1. OpenSSL to get the SSL Certificate => yum install openssl
