@@ -110,11 +110,7 @@ class Cli():
     def get_version(self):
         """This Method will fetch the current version of Luna CLI from VERSION File."""
         current_dir = os.path.dirname(os.path.realpath(__file__))
-        if 'luna' == sys.argv[0]:
-            base_dir = f'{current_dir}/luna'
-        else:
-            base_dir = str(Path(current_dir).parent)
-        version_file = f'{base_dir}/{VERSION_FILE}'
+        version_file = f'{current_dir}/{VERSION_FILE}'
         with open(version_file, 'r', encoding='utf-8') as ver:
             version = ver.read()
         return version

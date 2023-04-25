@@ -15,6 +15,7 @@ __status__      = "Development"
 
 import os
 import sys
+import shutil
 from setuptools import setup, find_packages
 
 LOG_FOLDER = '/var/log/luna'
@@ -50,6 +51,10 @@ def new_version():
         version = str(int(version)+1)
     with open('VERSION.txt', 'w', encoding='utf-8') as newver:
         newver.write(version)
+    shutil.copy2('VERSION.txt', '/luna/VERSION.txt')
+	shutil.copy2('requirements.txt', '/luna/requirements.txt')
+	shutil.copy2('README.md', '/luna/README.md')
+	shutil.copy2('cli-upload-install.md', '/luna/cli-upload-install.md')
     return version
 
 
@@ -73,7 +78,7 @@ setup(
 		]
 	},
 	dependency_links = [],
-	package_data = {},
+	package_data = {"luna": ["*.txt", "*.md"]},
 	data_files = [],
 	zip_safe = False,
 	include_package_data = True,
