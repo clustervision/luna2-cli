@@ -75,11 +75,11 @@ class Service():
         if self.args["action"] == 'status':
             if status_code == 200:
                 if 'info' in content:
-                    print(content['info'])
+                    sys.stderr.write(f'{content["info"]}\n')
                 else:
                     service_name = list(content['monitor']['Service'].keys())
                     service_status = content['monitor']['Service'][service_name[0]]
-                    print(service_status)
+                    sys.stdout.write(f'{service_status}\n')
             elif status_code == 500:
                 service_name = list(content['monitor']['Service'].keys())
                 service_status = content['monitor']['Service'][service_name[0]]
@@ -107,9 +107,9 @@ class Service():
                             for msg in message:
                                 sleep(1)
                                 if 'error' in msg.lower() or 'fail' in msg.lower():
-                                    print(f'[X ERROR X] {msg}')
+                                    sys.stderr.write(f'[X ERROR X] {msg}\n')
                                 else:
-                                    print(f'[========] {msg}')
+                                    sys.stdout.write(f'[========] {msg}\n')
                         sleep(1)
                         return dig_service_status(uri)
                     else:
@@ -119,10 +119,12 @@ class Service():
                     service = self.args['service']
                     action = self.args['action']
                     msg = f"[========] Service {service} {action} is finish."
-                    print(msg)
+                    sys.stdout.write(f'{msg}\n')
                 else:
-                    print("[X ERROR X] Try Again!")
+                    sys.stdout.write('[X ERROR X] Try Again!\n')
+                    sys.exit(1)
             else:
                 process1.terminate()
-                print("[X ERROR X] Something is Wrong with Daemon.")
+                sys.stdout.write("[X ERROR X] Something is Wrong with Daemon.\n")
+                sys.exit(1)
         return response

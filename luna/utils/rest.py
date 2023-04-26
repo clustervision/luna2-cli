@@ -62,10 +62,10 @@ class Rest():
         else:
             self.error_msg.append(f'{INI_FILE} is not found on this machine.')
         if self.error_msg:
-            print("You need to fix following errors...")
+            sys.stderr.write('You need to fix following errors...\n')
             num = 1
             for error in self.error_msg:
-                print(f'{num}. {error}')
+                sys.stderr.write(f'{num}. {error}\n')
             sys.exit(1)
 
 

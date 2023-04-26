@@ -125,10 +125,11 @@ class Cli():
         if os.path.exists(LOG_DIR) is False:
             try:
                 os.makedirs(LOG_DIR)
-                print(f'PASS :: {LOG_DIR} is created.')
+                sys.stdout.write(f'PASS :: {LOG_DIR} is created.\n')
             except PermissionError:
-                print("ERROR :: Run this tool once as a super user.")
+                sys.stderr.write('ERROR :: Install this tool as a super user.\n')
                 sys.exit(1)
+
 
 def run_tool():
     """

@@ -12,6 +12,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
+import sys
 from multiprocessing import Process
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
@@ -99,9 +100,10 @@ class Control():
                 check = Helper().dig_data(result.status_code, request_id, count)
                 process1.terminate()
                 if check:
-                    print("[========] Process Completed")
+                    sys.stdout.write('[========] Process Completed\n')
                 else:
-                    print("[X ERROR X] Try Again!")
+                    sys.stdout.write('[X ERROR X] Try Again!\n')
+                    sys.exit(1)
         else:
             Helper().show_error("Incorrect host list")
         return response
@@ -146,9 +148,10 @@ class Control():
                 check = Helper().dig_data(result.status_code, request_id, count)
                 process1.terminate()
                 if check:
-                    print("[========] Process Completed")
+                    sys.stdout.write('[========] Process Completed\n')
                 else:
-                    print("[X ERROR X] Try Again!")
+                    sys.stdout.write('[X ERROR X] Try Again!\n')
+                    sys.exit(1)
         else:
             Helper().show_error("Incorrect host list")
         return response
