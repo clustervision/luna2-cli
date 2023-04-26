@@ -368,9 +368,9 @@ class Helper():
         if rows:
             for row in rows:
                 if row[0] == 1:
-                    print(hr_line)
-                    print(header)
-                    print(hr_line)
+                    sys.stdout.write(f'{hr_line}\n')
+                    sys.stdout.write(f'{header}\n')
+                    sys.stdout.write(f'{hr_line}\n')
                 row[0] = f'{row[0]}'.ljust(6)
                 row[1] = f'{row[1]}'.ljust(19)
                 if row[2] in ['Failed', 'Off', 'off']:
@@ -379,7 +379,7 @@ class Helper():
                     row[2] = row[2].ljust(19)
                 line = f'| {row[0]}| {row[1]}| {row[2]}|'
                 # line = line.replace('|', colored('|', 'yellow'))
-                print(line)
+                sys.stdout.write(f'{line}\n')
         return num
 
 
@@ -426,7 +426,7 @@ class Helper():
             count = Helper().control_print(count, http_response)
             return self.dig_data(code, request_id, count)
         elif code == 404:
-            print('X-------------------------------------------------X')
+            sys.stdout.write('X-------------------------------------------------X\n')
             return True
         else:
             Helper().show_error(f"Something Went Wrong {code}")
@@ -439,7 +439,7 @@ class Helper():
         the Luna 2 Daemon Database
         """
         self.logger.debug(f'Message => {message}')
-        print(message)
+        sys.stderr.write(f'{message}.\n')
         return True
 
 
@@ -449,7 +449,7 @@ class Helper():
         the Luna 2 Daemon Database
         """
         self.logger.debug(f'Message => {message}')
-        print(message)
+        sys.stdout.write(f'{message}.\n')
         return True
 
 
@@ -459,7 +459,7 @@ class Helper():
         the Luna 2 Daemon Database
         """
         self.logger.debug(f'Message => {message}')
-        print(message)
+        sys.stderr.write(f'{message}.\n')
         return True
 
 

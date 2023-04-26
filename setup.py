@@ -31,9 +31,9 @@ except ImportError: # for pip <= 9.0.3
 if os.path.exists(LOG_FOLDER) is False:
     try:
         os.makedirs(LOG_FOLDER)
-        print(f'PASS :: {LOG_FOLDER} is created.')
+        sys.stdout.write(f'PASS :: {LOG_FOLDER} is created.\n')
     except PermissionError:
-        print("ERROR :: Install this tool as a super user.")
+        sys.stderr.write('ERROR :: Install this tool as a super user.\n')
         sys.exit(1)
 
 PRE = "{Personal-Access-Token-Name}:{Personal-Access-Token}"

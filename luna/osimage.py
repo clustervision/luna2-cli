@@ -12,6 +12,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
+import sys
 from operator import methodcaller
 from time import sleep
 from multiprocessing import Process
@@ -208,7 +209,7 @@ class OSImage():
                             message = http_response['message'].split(';;')
                             for msg in message:
                                 sleep(2)
-                                print(msg)
+                                sys.stdout.write(f'{msg}\n')
                         sleep(2)
                         return dig_packing_status(uri)
                     else:
@@ -216,9 +217,10 @@ class OSImage():
 
                 response = dig_packing_status(uri)
         if response:
-            print(f'[========] OS Image {self.args["newosimage"]} Cloned.')
+            sys.stdout.write(f'[========] OS Image {self.args["newosimage"]} Cloned.\n')
         else:
-            print("[X ERROR X] Try Again!")
+            sys.stdout.write('[X ERROR X] Try Again!\n')
+            sys.exit(1)
         return response
 
 
@@ -246,16 +248,17 @@ class OSImage():
                             message = http_response['message'].split(';;')
                             for msg in message:
                                 sleep(2)
-                                print(msg)
+                                sys.stdout.write(f'{msg}\n')
                         sleep(2)
                         return dig_packing_status(uri)
                     else:
                         return False
                 response = dig_packing_status(uri)
         if response:
-            print(f'[========] Image {self.args["name"]} Packed.')
+            sys.stdout.write(f'[========] Image {self.args["name"]} Packed.\n')
         else:
-            print("[X ERROR X] Try Again!")
+            sys.stdout.write('[X ERROR X] Try Again!\n')
+            sys.exit(1)
         return response
 
 
