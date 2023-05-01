@@ -16,6 +16,7 @@ from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.log import Log
 from luna.utils.constant import actions
+from luna.utils.message import Message
 
 class Switch():
     """
@@ -34,17 +35,15 @@ class Switch():
                 call = methodcaller(f'{self.args["action"]}_switch')
                 call(self)
             else:
-                Helper().show_error(f"Kindly choose from {self.actions}.")
+                Message().show_warning(f'Kindly choose from {self.actions}.')
         else:
             self.get_arguments(parser, subparsers)
 
 
     def get_arguments(self, parser, subparsers):
         """
-        Method will provide all the arguments
-        related to the Switch class.
+        Method will provide all the arguments related to the Switch class.
         """
-        # import pathlib
         switch_menu = subparsers.add_parser('switch', help='Switch operations.')
         switch_args = switch_menu.add_subparsers(dest='action')
         switch_list = switch_args.add_parser('list', help='List Switch')

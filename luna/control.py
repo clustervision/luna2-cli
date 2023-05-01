@@ -12,12 +12,12 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
-import sys
 from multiprocessing import Process
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
 from luna.utils.log import Log
+from luna.utils.message import Message
 
 class Control():
     """
@@ -40,30 +40,27 @@ class Control():
                     elif self.args["action"] in ["on", "off"]:
                         self.power_toggle()
                     else:
-                        Helper().show_error("Not a valid option.")
+                        Message().show_warning('Not a valid option.')
                 else:
-                    Helper().show_error("Kindly choose from status, on, or off.")
+                    Message().show_warning('Kindly choose from status, on, or off.')
             else:
-                Helper().show_error("Kindly choose 'power' to perform operations.")
+                Message().show_warning('Kindly choose "power" to perform operations.')
         else:
             self.get_arguments(parser, subparsers)
 
 
     def get_arguments(self, parser, subparsers):
         """
-        Method will provide all the arguments
-        related to the Control Process class.
+        Method will provide all the arguments related to the Control Process class.
         """
         control_menu = subparsers.add_parser('control', help='Control Nodes.')
         control_args = control_menu.add_subparsers(dest='power')
         power_parser = control_args.add_parser('power', help='Power Operations')
         power_menu = power_parser.add_subparsers(dest='action')
-        status_parser = power_menu.add_parser('status', help='Status of Node(s)')
-        Helper().common_control_args(status_parser)
-        on_parser = power_menu.add_parser('on', help='Power On Node(s)')
-        Helper().common_control_args(on_parser)
-        off_parser = power_menu.add_parser('off', help='Power Off Node(s)')
-        Helper().common_control_args(off_parser)
+        for action in ['status', 'on', 'off']:
+            action_parser = power_menu.add_parser(action, help=f'Node(s) {action.capitalize()} ')
+            action_parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+            action_parser.add_argument('node', help='Node Name or Node Hostlist')
         return parser
 
 
@@ -84,7 +81,7 @@ class Control():
                 rows = [self.args['node'], status]
                 response = Presenter().show_table_col(title, fields, rows)
             else:
-                response = Helper().show_error(http_response['message'])
+                response = Message().show_error(http_response['message'])
         elif len(hostlist) > 1:
             process1 = Process(target=Helper().loader, args=("Fetching Nodes Status...",))
             process1.start()
@@ -100,12 +97,11 @@ class Control():
                 check = Helper().dig_data(result.status_code, request_id, count)
                 process1.terminate()
                 if check:
-                    sys.stdout.write('[========] Process Completed\n')
+                    Message().show_success('[========] Process Completed')
                 else:
-                    sys.stdout.write('[X ERROR X] Try Again!\n')
-                    sys.exit(1)
+                    Message().error_exit('[X ERROR X] Try Again!')
         else:
-            Helper().show_error("Incorrect host list")
+            Message().show_error("Incorrect host list")
         return response
 
 
@@ -129,7 +125,7 @@ class Control():
                 response = Presenter().show_table_col(title, fields, rows)
             else:
                 http_response = result.json()
-                Helper().show_error(http_response['message'])
+                Message().show_error(http_response['message'])
         elif len(hostlist) > 1:
             process1 = Process(target=Helper().loader, args=("Fetching Nodes Status...",))
             process1.start()
@@ -148,10 +144,9 @@ class Control():
                 check = Helper().dig_data(result.status_code, request_id, count)
                 process1.terminate()
                 if check:
-                    sys.stdout.write('[========] Process Completed\n')
+                    Message().show_success('[========] Process Completed')
                 else:
-                    sys.stdout.write('[X ERROR X] Try Again!\n')
-                    sys.exit(1)
+                    Message().error_exit('[X ERROR X] Try Again!')
         else:
-            Helper().show_error("Incorrect host list")
+            Message().show_error("Incorrect host list")
         return response

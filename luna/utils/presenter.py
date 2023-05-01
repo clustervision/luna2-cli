@@ -12,12 +12,12 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
-import sys
 import json
 from prettytable import PrettyTable
 import pyfiglet
 from luna.utils.log import Log
 from luna.utils.constant import BANNER_NAME, BANNER_STYLE
+from luna.utils.message import Message
 
 class Presenter():
     """
@@ -37,7 +37,7 @@ class Presenter():
         This method will show the banner
         """
         banner = pyfiglet.figlet_format(BANNER_NAME, font=BANNER_STYLE)
-        sys.stdout.write(f'{banner}\n')
+        Message().show_success(banner)
         return True
 
 
@@ -48,7 +48,7 @@ class Presenter():
         """
         self.logger.debug(f'Jason Data => {json_data}')
         pretty = json.dumps(json_data, indent=2)
-        sys.stdout.write(f'{pretty}\n')
+        Message().show_success(pretty)
         return True
 
 
@@ -64,7 +64,7 @@ class Presenter():
         if '\\n' in str(rows):
             self.table.align = "l"
         self.table.add_rows(rows)
-        sys.stdout.write(f'{self.table}\n')
+        Message().show_success(self.table)
         return True
 
 
@@ -80,7 +80,7 @@ class Presenter():
         self.table.add_column("Values", rows)
         self.table.header = False
         self.table.align = "l"
-        sys.stdout.write(f'{self.table}\n')
+        Message().show_success(self.table)
         return True
 
 
@@ -92,5 +92,5 @@ class Presenter():
         self.logger.debug(f'Rows => {rows}')
         self.table.field_names = fields
         self.table.add_rows(rows)
-        sys.stdout.write(f'{self.table}\n')
+        Message().show_success(self.table)
         return True

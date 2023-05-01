@@ -16,6 +16,8 @@ from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.log import Log
 from luna.utils.constant import actions
+from luna.utils.message import Message
+from luna.utils.arguments import Arguments
 
 class BMCSetup():
     """
@@ -34,63 +36,32 @@ class BMCSetup():
                 call = methodcaller(f'{self.args["action"]}_bmcsetup')
                 call(self)
             else:
-                Helper().show_error(f"Kindly choose from {self.actions}.")
+                Message().show_warning(f'Kindly choose from {self.actions}.')
         else:
             self.get_arguments(parser, subparsers)
 
 
     def get_arguments(self, parser, subparsers):
         """
-        Method will provide all the arguments
-        related to the BMC Setup class.
+        Method will provide all the arguments related to the BMC Setup class.
         """
         bmcsetup_menu = subparsers.add_parser('bmcsetup', help='BMC Setup operations.')
         bmcsetup_args = bmcsetup_menu.add_subparsers(dest='action')
         bmcsetup_list = bmcsetup_args.add_parser('list', help='List BMC Setups')
-        Helper().common_list_args(bmcsetup_list)
+        Arguments().common_list_args(bmcsetup_list)
         bmcsetup_show = bmcsetup_args.add_parser('show', help='Show BMC Setup')
         bmcsetup_show.add_argument('name', help='BMC Setup Name')
-        Helper().common_list_args(bmcsetup_show)
+        Arguments().common_list_args(bmcsetup_show)
         bmcsetup_member = bmcsetup_args.add_parser('member', help='OS Image Used by Nodes')
         bmcsetup_member.add_argument('name', help='BMC Setup Name')
-        Helper().common_list_args(bmcsetup_member)
+        Arguments().common_list_args(bmcsetup_member)
         bmcsetup_add = bmcsetup_args.add_parser('add', help='Add BMC Setup')
-        bmcsetup_add.add_argument('name', help='BMC Setup Name')
-        bmcsetup_add.add_argument('-uid', '--userid', type=int, help='UserID')
-        bmcsetup_add.add_argument('-u', '--username', help='Username')
-        bmcsetup_add.add_argument('-p', '--password', help='Password')
-        bmcsetup_add.add_argument('-nt', '--netchannel', type=int, help='Network Channel')
-        bmcsetup_add.add_argument('-mt', '--mgmtchannel', type=int, help='Management Channel')
-        bmcsetup_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        bmcsetup_add.add_argument('-c', '--comment', action='store_true', help='Comment')
-        bmcsetup_add.add_argument('-qc', '--quick-comment', dest='comment',
-                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        bmcsetup_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        Arguments().common_bmcsetup_args(bmcsetup_add)
         bmcsetup_change = bmcsetup_args.add_parser('change', help='Change a BMC Setup')
-        bmcsetup_change.add_argument('name', help='BMC Setup Name')
-        bmcsetup_change.add_argument('-uid', '--userid', type=int, help='UserID')
-        bmcsetup_change.add_argument('-u', '--username', help='Username')
-        bmcsetup_change.add_argument('-p', '--password', help='Password')
-        bmcsetup_change.add_argument('-nt', '--netchannel', type=int, help='Network Channel')
-        bmcsetup_change.add_argument('-mt', '--mgmtchannel', type=int, help='Management Channel')
-        bmcsetup_change.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        bmcsetup_change.add_argument('-c', '--comment', action='store_true', help='Comment')
-        bmcsetup_change.add_argument('-qc', '--quick-comment', dest='comment',
-                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        bmcsetup_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        Arguments().common_bmcsetup_args(bmcsetup_change)
         bmcsetup_clone = bmcsetup_args.add_parser('clone', help='Clone BMC Setup')
-        bmcsetup_clone.add_argument('name', help='BMC Setup Name')
+        Arguments().common_bmcsetup_args(bmcsetup_clone)
         bmcsetup_clone.add_argument('newbmcname', help='New BMC Setup Name')
-        bmcsetup_clone.add_argument('-uid', '--userid', type=int, help='UserID')
-        bmcsetup_clone.add_argument('-u', '--username', help='Username')
-        bmcsetup_clone.add_argument('-p', '--password', help='Password')
-        bmcsetup_clone.add_argument('-nt', '--netchannel', type=int, help='Network Channel')
-        bmcsetup_clone.add_argument('-mt', '--mgmtchannel', type=int, help='Management Channel')
-        bmcsetup_clone.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        bmcsetup_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
-        bmcsetup_clone.add_argument('-qc', '--quick-comment', dest='comment',
-                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        bmcsetup_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         bmcsetup_rename = bmcsetup_args.add_parser('rename', help='Rename BMC Setup')
         bmcsetup_rename.add_argument('name', help='BMC Setup Name')
         bmcsetup_rename.add_argument('newbmcname', help='New BMC Setup Name')

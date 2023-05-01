@@ -31,6 +31,8 @@ from luna.otherdev import OtherDev
 from luna.secrets import Secrets
 from luna.service import Service
 from luna.control import Control
+from luna.utils.message import Message
+
 classes = [
     Cluster,
     Network,
@@ -125,10 +127,9 @@ class Cli():
         if os.path.exists(LOG_DIR) is False:
             try:
                 os.makedirs(LOG_DIR)
-                sys.stdout.write(f'PASS :: {LOG_DIR} is created.\n')
+                Message().show_success(f'PASS :: {LOG_DIR} is created.')
             except PermissionError:
-                sys.stderr.write('ERROR :: Install this tool as a super user.\n')
-                sys.exit(1)
+                Message().error_exit('ERROR :: Install this tool as a super user.')
 
 
 def run_tool():

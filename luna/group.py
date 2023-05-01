@@ -12,13 +12,14 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
-import sys
 from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
 from luna.utils.log import Log
-from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
+from luna.utils.constant import actions
+from luna.utils.message import Message
+from luna.utils.arguments import Arguments
 
 class Group():
     """
@@ -42,129 +43,32 @@ class Group():
                     call = methodcaller(f'{self.args["action"]}_group')
                 call(self)
             else:
-                Helper().show_error(f"Kindly choose from {self.actions}.")
+                Message().show_warning(f'Kindly choose from {self.actions}.')
         else:
             self.get_arguments(parser, subparsers)
 
 
     def get_arguments(self, parser, subparsers):
         """
-        Method will provide all the arguments
-        related to the Group class.
+        Method will provide all the arguments related to the Group class.
         """
         group_menu = subparsers.add_parser('group', help='Group operations')
         group_args = group_menu.add_subparsers(dest='action')
         group_list = group_args.add_parser('list', help='List Groups')
-        Helper().common_list_args(group_list)
+        Arguments().common_list_args(group_list)
         group_show = group_args.add_parser('show', help='Show Group')
         group_show.add_argument('name', help='Name of the Group')
-        Helper().common_list_args(group_show)
+        Arguments().common_list_args(group_show)
         group_member = group_args.add_parser('member', help='Group Used by Nodes')
         group_member.add_argument('name', help='Name of the Group')
-        Helper().common_list_args(group_member)
+        Arguments().common_list_args(group_member)
         group_add = group_args.add_parser('add', help='Add Group')
-        group_add.add_argument('name', help='Name of the Group')
-        group_add.add_argument('-b', '--setupbmc', choices=BOOL_CHOICES,
-                               metavar=BOOL_META, help='BMC Setup')
-        group_add.add_argument('-o', '--osimage', help='OS Image Name')
-        group_add.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
-        group_add.add_argument('-D', '--domain', help='Domain Name')
-        group_add.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
-        group_add.add_argument('-qpre', '--quick-prescript', dest='prescript',
-                        metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
-        group_add.add_argument('-part', '--partscript', action='store_true', help='Part Script')
-        group_add.add_argument('-qpart', '--quick-partscript', dest='partscript',
-                        metavar="File-Path OR In-Line", help='Part Script File-Path OR In-Line')
-        group_add.add_argument('-post', '--postscript', action='store_true', help='Post Script')
-        group_add.add_argument('-qpost', '--quick-postscript', dest='postscript',
-                        metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
-        group_add.add_argument('-pi', '--provision_interface', help='Provision Interface')
-        group_add.add_argument('-pm', '--provision_method', help='Provision Method')
-        group_add.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        group_add.add_argument('-nb', '--netboot', choices=BOOL_CHOICES,
-                               metavar=BOOL_META, help='Network Boot')
-        group_add.add_argument('-li', '--localinstall', choices=BOOL_CHOICES,
-                               metavar=BOOL_META, help='Local Install')
-        group_add.add_argument('-bm', '--bootmenu', choices=BOOL_CHOICES,
-                               metavar=BOOL_META, help='Boot Menu')
-        group_add.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        group_add.add_argument('-if', '--interface', help='Interface Name')
-        group_add.add_argument('-N', '--network', help='Interface Network Name')
-        group_add.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
-        group_add.add_argument('-qo', '--quick-options', dest='options',
-                                metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
-        group_add.add_argument('-c', '--comment', action='store_true', help='Comment')
-        group_add.add_argument('-qc', '--quick-comment', dest='comment',
-                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        group_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        Arguments().common_group_args(group_add)
         group_change = group_args.add_parser('change', help='Change Group')
-        group_change.add_argument('name', help='Name of the Group')
-        group_change.add_argument('-b', '--setupbmc', choices=BOOL_CHOICES,
-                                  metavar=BOOL_META, help='BMC Setup')
-        group_change.add_argument('-o', '--osimage', help='OS Image Name')
-        group_change.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
-        group_change.add_argument('-D', '--domain', help='Domain Name')
-        group_change.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
-        group_change.add_argument('-qpre', '--quick-prescript', dest='prescript',
-                        metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
-        group_change.add_argument('-part', '--partscript', action='store_true', help='Part Script')
-        group_change.add_argument('-qpart', '--quick-partscript', dest='partscript',
-                        metavar="File-Path OR In-Line", help='Part Script File-Path OR In-Line')
-        group_change.add_argument('-post', '--postscript', action='store_true', help='Post Script')
-        group_change.add_argument('-qpost', '--quick-postscript', dest='postscript',
-                        metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
-        group_change.add_argument('-pi', '--provision_interface', help='Provision Interface')
-        group_change.add_argument('-pm', '--provision_method', help='Provision Method')
-        group_change.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        group_change.add_argument('-nb', '--netboot', choices=BOOL_CHOICES,
-                                  metavar=BOOL_META, help='Network Boot')
-        group_change.add_argument('-li', '--localinstall', choices=BOOL_CHOICES,
-                                  metavar=BOOL_META, help='Local Install')
-        group_change.add_argument('-bm', '--bootmenu', choices=BOOL_CHOICES,
-                                  metavar=BOOL_META, help='Boot Menu')
-        group_change.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        group_change.add_argument('-if', '--interface', help='Interface Name')
-        group_change.add_argument('-N', '--network', help='Interface Network Name')
-        group_change.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
-        group_change.add_argument('-qo', '--quick-options', dest='options',
-                                metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
-        group_change.add_argument('-c', '--comment', action='store_true', help='Comment')
-        group_change.add_argument('-qc', '--quick-comment', dest='comment',
-                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        group_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        Arguments().common_group_args(group_change)
         group_clone = group_args.add_parser('clone', help='Clone Group.')
-        group_clone.add_argument('name', help='Name of the Group')
+        Arguments().common_group_args(group_clone)
         group_clone.add_argument('newgroupname', help='New Name for the Group')
-        group_clone.add_argument('-b', '--setupbmc', choices=BOOL_CHOICES,
-                                 metavar=BOOL_META, help='BMC Setup')
-        group_clone.add_argument('-o', '--osimage', help='OS Image Name')
-        group_clone.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
-        group_clone.add_argument('-D', '--domain', help='Domain Name')
-        group_clone.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
-        group_clone.add_argument('-qpre', '--quick-prescript', dest='prescript',
-                        metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
-        group_clone.add_argument('-part', '--partscript', action='store_true', help='Part Script')
-        group_clone.add_argument('-qpart', '--quick-partscript', dest='partscript',
-                        metavar="File-Path OR In-Line", help='Part Script File-Path OR In-Line')
-        group_clone.add_argument('-post', '--postscript', action='store_true', help='Post Script')
-        group_clone.add_argument('-qpost', '--quick-postscript', dest='postscript',
-                        metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
-        group_clone.add_argument('-pi', '--provision_interface', help='Provision Interface')
-        group_clone.add_argument('-pm', '--provision_method', help='Provision Method')
-        group_clone.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
-        group_clone.add_argument('-nb', '--netboot', help='Network Boot')
-        group_clone.add_argument('-li', '--localinstall', help='Local Install')
-        group_clone.add_argument('-bm', '--bootmenu', help='Boot Menu')
-        group_clone.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        group_clone.add_argument('-if', '--interface', help='Interface Name')
-        group_clone.add_argument('-N', '--network', help='Interface Network Name')
-        group_clone.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
-        group_clone.add_argument('-qo', '--quick-options', dest='options',
-                                metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
-        group_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
-        group_clone.add_argument('-qc', '--quick-comment', dest='comment',
-                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        group_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_rename = group_args.add_parser('rename', help='Rename Group.')
         group_rename.add_argument('name', help='Name of the Group')
         group_rename.add_argument('newgroupname', help='New Name for the Group')
@@ -174,11 +78,11 @@ class Group():
         group_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_interfaces = group_args.add_parser('listinterface', help='List Group Interfaces')
         group_interfaces.add_argument('name', help='Name of the Group')
-        Helper().common_list_args(group_interfaces)
+        Arguments().common_list_args(group_interfaces)
         group_interface = group_args.add_parser('showinterface', help='Show Group Interface')
         group_interface.add_argument('name', help='Name of the Group')
         group_interface.add_argument('interface', help='Name of the Group Interface')
-        Helper().common_list_args(group_interface)
+        Arguments().common_list_args(group_interface)
         change_interface = group_args.add_parser('changeinterface', help='Change Group Interface')
         change_interface.add_argument('name', help='Name of the Group')
         change_interface.add_argument('interface', help='Group Interface Name')
@@ -312,7 +216,7 @@ class Group():
                 title = f' << {self.table_cap} {self.args["name"]} Interfaces >>'
                 response = Presenter().show_table(title, fields, rows)
         else:
-            response = Helper().show_error(f'{self.args["name"]} is not found in {self.table}.')
+            response = Message().show_error(f'{self.args["name"]} is not found in {self.table}.')
         return response
 
 
@@ -340,7 +244,7 @@ class Group():
         else:
             msg = f'{self.args["interface"]} not found in {self.table} {self.args["name"]}'
             msg = f'{msg} OR {self.args["name"]} is unavailable.'
-            response = Helper().show_error(msg)
+            response = Message().show_error(msg)
         return response
 
 
@@ -374,13 +278,11 @@ class Group():
             response = Rest().post_data(self.table, group_name+'/interfaces', request_data)
             self.logger.debug(f'Response => {response}')
             if response.status_code == 204:
-                Helper().show_success(f'Interfaces updated in {self.table_cap} {group_name}.')
+                Message().show_success(f'Interfaces updated in {self.table_cap} {group_name}.')
             else:
-                sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
-                sys.stderr.write(f'HTTP Error {response.content}.\n')
-                sys.exit(1)
+                Message().error_exit(response.content, response.status_code)
         else:
-            Helper().show_error('Nothing to update.')
+            Message().show_error('Nothing to update.')
         return response
 
 
@@ -398,9 +300,7 @@ class Group():
             self.logger.debug(f'Response => {response}')
             if response.status_code == 204:
                 msg = f'{payload["interface"]} removed from {self.table_cap} {payload["name"]}.'
-                Helper().show_success(msg)
+                Message().show_success(msg)
             else:
-                sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
-                sys.stderr.write(f'HTTP Error {response.content}.\n')
-                sys.exit(1)
+                Message().error_exit(response.content, response.status_code)
         return response

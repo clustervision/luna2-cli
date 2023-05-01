@@ -19,6 +19,7 @@ import requests
 import jwt
 from luna.utils.log import Log
 from luna.utils.constant import INI_FILE, TOKEN_FILE
+from luna.utils.message import Message
 
 class Rest():
     """
@@ -62,10 +63,10 @@ class Rest():
         else:
             self.error_msg.append(f'{INI_FILE} is not found on this machine.')
         if self.error_msg:
-            sys.stderr.write('You need to fix following errors...\n')
+            Message().show_error('You need to fix following errors...')
             num = 1
             for error in self.error_msg:
-                sys.stderr.write(f'{num}. {error}\n')
+                Message().show_error(f'{num}. {error}')
             sys.exit(1)
 
 
@@ -86,19 +87,13 @@ class Rest():
                     with open(TOKEN_FILE, 'w', encoding='utf-8') as file_data:
                         file_data.write(response)
                 elif 'message' in data:
-                    sys.stderr.write(f'ERROR :: {data["token"]}.\n')
-                    sys.exit(1)
+                    Message().error_exit(data["message"], call.status_code)
             else:
-                sys.stderr.write(f'ERROR :: Received Nothing http://{self.daemon}.\n')
-                sys.stderr.write(f'ERROR :: HTTP Code {call.status_code}.\n')
-                sys.exit(1)
+                Message().error_exit(call.content, call.status_code)
         except requests.exceptions.ConnectionError:
-            sys.stderr.write(f'ERROR :: Unable to Connect => http://{self.daemon}.\n')
-            self.logger.debug(f'ERROR :: Unable to Connect http://{self.daemon}.')
-            sys.exit(1)
+            Message().error_exit(call.content, call.status_code)
         except requests.exceptions.JSONDecodeError:
-            sys.stderr.write(f'ERROR :: Response is not JSON {call.content}.\n')
-            sys.exit(1)
+            Message().error_exit(call.content, call.status_code)
         return response
 
 
@@ -111,15 +106,15 @@ class Rest():
         if os.path.isfile(TOKEN_FILE):
             with open(TOKEN_FILE, 'r', encoding='utf-8') as token:
                 token_data = token.read()
-                try:
-                    jwt.decode(token_data, self.secret_key, algorithms=['HS256'])
-                    response = token_data
-                except jwt.exceptions.DecodeError:
-                    self.logger.debug('Token Decode Error, Getting New Token.')
-                    response = self.token()
-                except jwt.exceptions.ExpiredSignatureError:
-                    self.logger.debug('Expired Signature Error, Getting New Token.')
-                    response = self.token()
+            try:
+                jwt.decode(token_data, self.secret_key, algorithms=['HS256'])
+                response = token_data
+            except jwt.exceptions.DecodeError:
+                self.logger.debug('Token Decode Error, Getting New Token.')
+                response = self.token()
+            except jwt.exceptions.ExpiredSignatureError:
+                self.logger.debug('Expired Signature Error, Getting New Token.')
+                response = self.token()
         if response is False:
             response = self.token()
         return response
@@ -142,13 +137,11 @@ class Rest():
             self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
             response_json = call.json()
             if 'message' in response_json:
-                sys.stderr.write(f'{response_json["message"]}.\n')
-                # sys.exit(1)
+                Message().show_error(response_json["message"])
             else:
                 response = response_json
         except requests.exceptions.ConnectionError:
-            sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
-            sys.exit(1)
+            Message().error_exit(f'Request Timeout while {daemon_url}', call.status_code)
         except requests.exceptions.JSONDecodeError:
             response = False
         return response
@@ -171,8 +164,7 @@ class Rest():
             response = requests.post(url=daemon_url, json=data, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.ConnectionError:
-            sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
-            sys.exit(1)
+            Message().error_exit(f'Request Timeout while {daemon_url}')
         return response
 
 
@@ -190,8 +182,7 @@ class Rest():
             response = requests.get(url=daemon_url, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.ConnectionError:
-            sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
-            sys.exit(1)
+            Message().error_exit(f'Request Timeout while {daemon_url}')
         return response
 
 
@@ -209,8 +200,7 @@ class Rest():
             response = requests.post(url=daemon_url, json=data, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.ConnectionError:
-            sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
-            sys.exit(1)
+            Message().error_exit(f'Request Timeout while {daemon_url}')
         return response
 
 
@@ -231,8 +221,7 @@ class Rest():
             self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
             response = call.status_code
         except requests.exceptions.ConnectionError:
-            sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
-            sys.exit(1)
+            Message().error_exit(f'Request Timeout while {daemon_url}')
         return response
 
 
@@ -252,8 +241,7 @@ class Rest():
             response = requests.get(url=daemon_url, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.ConnectionError:
-            sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
-            sys.exit(1)
+            Message().error_exit(f'Request Timeout while {daemon_url}')
         return response
 
 
@@ -271,6 +259,5 @@ class Rest():
             response = requests.post(url=daemon_url, json=payload, headers=headers, timeout=5)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.ConnectionError:
-            sys.stderr.write(f'Request Timeout while {daemon_url}.\nLuna Daemon is Not Working.\n')
-            sys.exit(1)
+            Message().error_exit(f'Request Timeout while {daemon_url}')
         return response

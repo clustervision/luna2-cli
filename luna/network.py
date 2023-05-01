@@ -16,7 +16,9 @@ from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.rest import Rest
 from luna.utils.log import Log
-from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
+from luna.utils.constant import actions
+from luna.utils.message import Message
+from luna.utils.arguments import Arguments
 
 class Network():
     """
@@ -35,66 +37,29 @@ class Network():
                 call = methodcaller(f'{self.args["action"]}_network')
                 call(self)
             else:
-                Helper().show_error(f"Kindly choose from {self.actions}.")
+                Message().show_warning(f'Kindly choose from {self.actions}.')
         else:
             self.get_arguments(parser, subparsers)
 
 
     def get_arguments(self, parser, subparsers):
         """
-        Method will provide all the arguments
-        related to the Network class.
+        Method will provide all the arguments related to the Network class.
         """
         network_menu = subparsers.add_parser('network', help='Network operations.')
         network_args = network_menu.add_subparsers(dest='action')
         network_list = network_args.add_parser('list', help='List Networks')
-        Helper().common_list_args(network_list)
+        Arguments().common_list_args(network_list)
         network_show = network_args.add_parser('show', help='Show Network')
         network_show.add_argument('name', help='Network Name')
-        Helper().common_list_args(network_show)
+        Arguments().common_list_args(network_show)
         network_add = network_args.add_parser('add', help='Add Network')
-        network_add.add_argument('name', help='Network Name')
-        network_add.add_argument('-N', '--network', required=True, help='Network')
-        network_add.add_argument('-g', '--gateway', help='Gateway')
-        network_add.add_argument('-nsip', '--nameserver_ip', help='NameServer IP')
-        network_add.add_argument('-ntp', '--ntp_server', help='NTP Server')
-        network_add.add_argument('-dhcp', '--dhcp', choices=BOOL_CHOICES,
-                                 metavar=BOOL_META, help='DHCP')
-        network_add.add_argument('-ds', '--dhcp_range_begin', help='DHCP Range Start')
-        network_add.add_argument('-de', '--dhcp_range_end', help='DHCP Range End')
-        network_add.add_argument('-c', '--comment', action='store_true', help='Comment')
-        network_add.add_argument('-qc', '--quick-comment', dest='comment',
-                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        network_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        Arguments().common_network_args(network_add, True)
         network_change = network_args.add_parser('change', help='Change Network')
-        network_change.add_argument('name', help='Network Name')
-        network_change.add_argument('-N', '--network', help='Network')
-        network_change.add_argument('-g', '--gateway', help='Gateway')
-        network_change.add_argument('-nsip', '--nameserver_ip', help='Name server IP')
-        network_change.add_argument('-ntp', '--ntp_server', help='NTP Server')
-        network_change.add_argument('-dhcp', '--dhcp', choices=BOOL_CHOICES,
-                                    metavar=BOOL_META, help='DHCP')
-        network_change.add_argument('-ds', '--dhcp_range_begin', help='DHCP Range Start')
-        network_change.add_argument('-de', '--dhcp_range_end', help='DHCP Range End')
-        network_change.add_argument('-c', '--comment', action='store_true', help='Comment')
-        network_change.add_argument('-qc', '--quick-comment', dest='comment',
-                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        network_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        Arguments().common_network_args(network_change)
         network_clone = network_args.add_parser('clone', help='Clone Network')
-        network_clone.add_argument('name', help='Network Name')
+        Arguments().common_network_args(network_clone, True)
         network_clone.add_argument('newnetname', help='New Network Name')
-        network_clone.add_argument('-N', '--network', required=True, help='Network')
-        network_clone.add_argument('-g', '--gateway', help='Gateway')
-        network_clone.add_argument('-nsip', '--nameserver_ip', help='Name server IP')
-        network_clone.add_argument('-ntp', '--ntp_server', help='NTP Server')
-        network_clone.add_argument('-dhcp', '--dhcp', choices=BOOL_CHOICES,
-                                   metavar=BOOL_META, help='DHCP')
-        network_clone.add_argument('-ds', '--dhcp_range_begin', help='DHCP Range Start')
-        network_clone.add_argument('-de', '--dhcp_range_end', help='DHCP Range End')
-        network_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
-        network_clone.add_argument('-qc', '--quick-comment', dest='comment',
-                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        network_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         network_rename = network_args.add_parser('rename', help='Rename Network')
         network_rename.add_argument('name', help='Network Name')
         network_rename.add_argument('newnetname', help='New Network Name')
@@ -174,9 +139,9 @@ class Network():
             status = ipinfo['config']['network'][self.args["ipaddress"]]['status']
             status = f'{self.args["ipaddress"]} is {status.capitalize()}.'
             if 'free' in status:
-                response = Helper().show_success(status)
+                response = Message().show_success(status)
             else:
-                response = Helper().show_warning(status)
+                response = Message().show_warning(status)
         return response
 
 
@@ -192,7 +157,7 @@ class Network():
         if nextip:
             ipaddress = nextip['config']['network'][self.args["name"]]['nextip']
             if ipaddress:
-                response = Helper().show_success(f'Next Available IP Address is {ipaddress}.')
+                response = Message().show_success(f'Next Available IP Address is {ipaddress}.')
             else:
-                response = Helper().show_warning(f'IP not available on {self.args["ipaddress"]}.')
+                response = Message().show_warning(f'IP not available on {self.args["ipaddress"]}.')
         return response

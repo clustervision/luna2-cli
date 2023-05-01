@@ -16,6 +16,7 @@ from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.log import Log
 from luna.utils.constant import actions
+from luna.utils.message import Message
 
 class OtherDev():
     """
@@ -34,7 +35,7 @@ class OtherDev():
                 call = methodcaller(f'{self.args["action"]}_otherdev')
                 call(self)
             else:
-                Helper().show_error(f"Kindly choose from {self.actions}.")
+                Message().show_warning(f'Kindly choose from {self.actions}.')
         else:
             self.get_arguments(parser, subparsers)
 

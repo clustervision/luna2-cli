@@ -12,13 +12,13 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
-import sys
 from time import sleep
 from multiprocessing import Process
 from luna.utils.helper import Helper
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.constant import SERVICES, SERVICE_ACTIONS
+from luna.utils.message import Message
 
 class Service():
     """
@@ -36,9 +36,9 @@ class Service():
                     self.logger.debug(f'Arguments Supplied => {self.args}')
                     self.service_action()
                 else:
-                    Helper().show_error(f"Kindly choose action from {SERVICE_ACTIONS}.")
+                    Message().show_warning(f'Kindly choose action from {SERVICE_ACTIONS}.')
             else:
-                Helper().show_error(f"Kindly choose service {SERVICES}.")
+                Message().show_warning(f'Kindly choose service {SERVICES}.')
         else:
             self.get_arguments(parser, subparsers)
 
@@ -75,20 +75,17 @@ class Service():
         if self.args["action"] == 'status':
             if status_code == 200:
                 if 'info' in content:
-                    sys.stderr.write(f'{content["info"]}\n')
+                    Message().show_warning(content["info"])
                 else:
                     service_name = list(content['monitor']['Service'].keys())
                     service_status = content['monitor']['Service'][service_name[0]]
-                    sys.stdout.write(f'{service_status}\n')
+                    Message().show_success(service_status)
             elif status_code == 500:
                 service_name = list(content['monitor']['Service'].keys())
                 service_status = content['monitor']['Service'][service_name[0]]
-                sys.stderr.write(f'{service_status}\n')
-                sys.exit(1)
+                Message().error_exit(service_status, status_code)
             else:
-                sys.stderr.write(f'HTTP ERROR ::{status_code}\n')
-                sys.stderr.write(f'RESPONSE  :: {content}\n')
-                sys.exit(1)
+                Message().error_exit(content, status_code)
         else:
             fetch_msg = f"{self.args['service']} {self.args['action']}..."
             process1 = Process(target=Helper().loader, args=(fetch_msg,))
@@ -107,9 +104,9 @@ class Service():
                             for msg in message:
                                 sleep(1)
                                 if 'error' in msg.lower() or 'fail' in msg.lower():
-                                    sys.stderr.write(f'[X ERROR X] {msg}\n')
+                                    Message().show_success(f'[X ERROR X] {msg}')
                                 else:
-                                    sys.stdout.write(f'[========] {msg}\n')
+                                    Message().show_success(f'[========] {msg}')
                         sleep(1)
                         return dig_service_status(uri)
                     else:
@@ -118,13 +115,10 @@ class Service():
                 if response:
                     service = self.args['service']
                     action = self.args['action']
-                    msg = f"[========] Service {service} {action} is finish."
-                    sys.stdout.write(f'{msg}\n')
+                    Message().show_success(f'[========] Service {service} {action} is finish.')
                 else:
-                    sys.stdout.write('[X ERROR X] Try Again!\n')
-                    sys.exit(1)
+                    Message().error_exit('[X ERROR X] Try Again!')
             else:
                 process1.terminate()
-                sys.stdout.write("[X ERROR X] Something is Wrong with Daemon.\n")
-                sys.exit(1)
+                Message().error_exit('[X ERROR X] Something is Wrong with Daemon.')
         return response
