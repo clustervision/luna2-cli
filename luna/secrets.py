@@ -17,6 +17,7 @@ from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
 from luna.utils.log import Log
+from luna.utils.message import Message
 
 class Secrets():
     """
@@ -35,15 +36,14 @@ class Secrets():
                 call = methodcaller(f'{self.args["action"]}_secrets')
                 call(self)
             else:
-                Helper().show_error(f"Kindly choose from {actions}.")
+                Message().show_warning(f'Kindly choose from {actions}.')
         else:
             self.get_arguments(parser, subparsers)
 
 
     def get_arguments(self, parser, subparsers):
         """
-        Method will provide all the arguments
-        related to the Secrets class.
+        Method will provide all the arguments related to the Secrets class.
         """
         secrets_menu = subparsers.add_parser('secrets', help='Secrets operations.')
         secrets_args = secrets_menu.add_subparsers(dest='action')
@@ -167,7 +167,7 @@ class Secrets():
                 uri = f'{uri}/{self.args["secret"]}'
         if self.args["entity"]:
             if self.args['name'] is None:
-                error = Helper().show_error('Kindly Choose a Node or Group.')
+                error = Message().show_error('Kindly Choose a Node or Group.')
         if error is False:
             self.logger.debug(f'Secret URI => {uri}')
             get_list = Rest().get_data(uri)
@@ -199,7 +199,7 @@ class Secrets():
                             title = ' << Node Secrets >>'
                         Presenter().show_table(title, fields, rows)
             else:
-                Helper().show_error(f'{self.route} are not found.')
+                Message().show_error(f'{self.route} are not found.')
         return True
 
 
@@ -238,7 +238,7 @@ class Secrets():
                         title = f'Node {self.args["name"]} Secrets'
                         response = Presenter().show_table_col(title, fields, rows)
         else:
-            response = Helper().show_error('Either select node or group')
+            response = Message().show_error('Either select node or group')
         return response
 
 
@@ -274,12 +274,11 @@ class Secrets():
                 response = Rest().post_data(self.route, uri, request_data)
                 self.logger.debug(f'Response => {response}')
                 if response.status_code == 201:
-                    Helper().show_success(f'Secret for {entity} is created.')
+                    Message().show_success(f'Secret for {entity} is created.')
                 else:
-                    Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                    Helper().show_error(f'HTTP Error {response.content}.')
+                    Message().error_exit(response.content, response.status_code)
         else:
-            response = Helper().show_error('Either select node or group')
+            response = Message().show_error('Either select node or group')
         return response
 
 
@@ -315,12 +314,11 @@ class Secrets():
                 response = Rest().post_data(self.route, uri, request_data)
                 self.logger.debug(f'Response => {response}')
                 if response.status_code == 204:
-                    Helper().show_success(f'Secret for {entity} is update.')
+                    Message().show_success(f'Secret for {entity} is update.')
                 else:
-                    Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                    Helper().show_error(f'HTTP Error {response.content}.')
+                    Message().error_exit(response.content, response.status_code)
         else:
-            response = Helper().show_error('Either select node or group')
+            response = Message().show_error('Either select node or group')
         return response
 
 
@@ -353,12 +351,11 @@ class Secrets():
                 response = Rest().post_clone(self.route, uri, request_data)
                 self.logger.debug(f'Response => {response}')
                 if response.status_code == 204:
-                    Helper().show_success('Secret is Cloned.')
+                    Message().show_success('Secret is Cloned.')
                 else:
-                    Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                    Helper().show_error(f'HTTP Error {response.content}.')
+                    Message().error_exit(response.content, response.status_code)
         else:
-            response = Helper().show_error('Either select node or group')
+            response = Message().show_error('Either select node or group')
         return response
 
 
@@ -381,15 +378,14 @@ class Secrets():
                 uri = f'{entity}/{entity_name}/{payload["secret"]}'
                 self.logger.debug(f'Delete URI => {uri}')
             else:
-                abort = Helper().show_error('Provide Node/Group name and the secret name')
+                abort = Message().show_error('Provide Node/Group name and the secret name')
             if abort is False:
                 response = Rest().get_delete(self.route, uri)
                 self.logger.debug(f'Response => {response}')
                 if response.status_code == 204:
-                    Helper().show_success('Secret is Deleted.')
+                    Message().show_success('Secret is Deleted.')
                 else:
-                    Helper().show_error(f'HTTP Error Code {response.status_code}.')
-                    Helper().show_error(f'HTTP Error {response.content}.')
+                    Message().error_exit(response.content, response.status_code)
         else:
-            response = Helper().show_error('Either select node or group')
+            response = Message().show_error('Either select node or group')
         return response

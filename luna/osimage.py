@@ -12,7 +12,6 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
-import sys
 from operator import methodcaller
 from time import sleep
 from multiprocessing import Process
@@ -20,6 +19,8 @@ from luna.utils.helper import Helper
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.constant import actions
+from luna.utils.message import Message
+from luna.utils.arguments import Arguments
 
 class OSImage():
     """
@@ -38,81 +39,32 @@ class OSImage():
                 call = methodcaller(f'{self.args["action"]}_osimage')
                 call(self)
             else:
-                Helper().show_error(f"Kindly choose from {self.actions}.")
+                Message().show_warning(f'Kindly choose from {self.actions}.')
         else:
             self.get_arguments(parser, subparsers)
 
 
     def get_arguments(self, parser, subparsers):
         """
-        Method will provide all the arguments
-        related to the OSImage class.
+        Method will provide all the arguments related to the OSImage class.
         """
         osimage_menu = subparsers.add_parser('osimage', help='OSImage operations.')
         osimage_args = osimage_menu.add_subparsers(dest='action')
         osimage_list = osimage_args.add_parser('list', help='List OSImages')
-        Helper().common_list_args(osimage_list)
+        Arguments().common_list_args(osimage_list)
         osimage_show = osimage_args.add_parser('show', help='Show a OSImage')
         osimage_show.add_argument('name', help='OSImage Name')
-        Helper().common_list_args(osimage_show)
+        Arguments().common_list_args(osimage_show)
         osimage_member = osimage_args.add_parser('member', help='OS Image Used by Nodes')
         osimage_member.add_argument('name', help='OS Image Name')
-        Helper().common_list_args(osimage_member)
+        Arguments().common_list_args(osimage_member)
         osimage_add = osimage_args.add_parser('add', help='Add OSImage')
-        osimage_add.add_argument('name', help='OSImage Name')
-        osimage_add.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
-        osimage_add.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
-        osimage_add.add_argument('-ge', '--grab_exclude', help='Grab Excludes')
-        osimage_add.add_argument('-rd', '--initrdfile', help='INIT RD File')
-        osimage_add.add_argument('-k', '--kernelfile', help='Kernel File')
-        osimage_add.add_argument('-m', '--kernelmodules', help='Kernel Modules')
-        osimage_add.add_argument('-o', '--kerneloptions', help='Kernel Options')
-        osimage_add.add_argument('-ver', '--kernelversion', help='Kernel Version')
-        osimage_add.add_argument('-p', '--path', required=True, help='Path of image')
-        osimage_add.add_argument('-tar', '--tarball', help='Tarball UUID')
-        osimage_add.add_argument('-t', '--torrent', help='Torrent UUID')
-        osimage_add.add_argument('-D', '--distribution', help='Distribution')
-        osimage_add.add_argument('-c', '--comment', action='store_true', help='Comment')
-        osimage_add.add_argument('-qc', '--quick-comment', dest='comment',
-                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        osimage_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        Arguments().common_osimage_args(osimage_add, True)
         osimage_change = osimage_args.add_parser('change', help='Change OSImage')
-        osimage_change.add_argument('name', help='OSImage Name')
-        osimage_change.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
-        osimage_change.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
-        osimage_change.add_argument('-ge', '--grab_exclude', help='Grab Excludes')
-        osimage_change.add_argument('-rd', '--initrdfile', help='INIT RD File')
-        osimage_change.add_argument('-k', '--kernelfile', help='Kernel File')
-        osimage_change.add_argument('-m', '--kernelmodules', help='Kernel Modules')
-        osimage_change.add_argument('-o', '--kerneloptions', help='Kernel Options')
-        osimage_change.add_argument('-ver', '--kernelversion', help='Kernel Version')
-        osimage_change.add_argument('-p', '--path', help='Path of image')
-        osimage_change.add_argument('-tar', '--tarball', help='Tarball UUID')
-        osimage_change.add_argument('-t', '--torrent', help='Torrent UUID')
-        osimage_change.add_argument('-D', '--distribution', help='Distribution')
-        osimage_change.add_argument('-c', '--comment', action='store_true', help='Comment')
-        osimage_change.add_argument('-qc', '--quick-comment', dest='comment',
-                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        osimage_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        Arguments().common_osimage_args(osimage_change)
         osimage_clone = osimage_args.add_parser('clone', help='Clone OSImage')
-        osimage_clone.add_argument('name', help='OSImage Name')
+        Arguments().common_osimage_args(osimage_clone, True)
         osimage_clone.add_argument('newosimage', help='New OSImage Name')
-        osimage_clone.add_argument('-dm', '--dracutmodules', help='Dracut Modules')
-        osimage_clone.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
-        osimage_clone.add_argument('-ge', '--grab_exclude', help='Grab Excludes')
-        osimage_clone.add_argument('-rd', '--initrdfile', help='INIT RD File')
-        osimage_clone.add_argument('-k', '--kernelfile', help='Kernel File')
-        osimage_clone.add_argument('-m', '--kernelmodules', help='Kernel Modules')
-        osimage_clone.add_argument('-o', '--kerneloptions', help='Kernel Options')
-        osimage_clone.add_argument('-ver', '--kernelversion', help='Kernel Version')
-        osimage_clone.add_argument('-p', '--path', required=True, help='Path of image')
-        osimage_clone.add_argument('-tar', '--tarball', help='Tarball UUID')
-        osimage_clone.add_argument('-t', '--torrent', help='Torrent UUID')
-        osimage_clone.add_argument('-D', '--distribution', help='Distribution')
-        osimage_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
-        osimage_clone.add_argument('-qc', '--quick-comment', dest='comment',
-                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        osimage_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         osimage_rename = osimage_args.add_parser('rename', help='Rename OSImage')
         osimage_rename.add_argument('name', help='OSImage Name')
         osimage_rename.add_argument('newosimage', help='New OSImage Name')
@@ -209,7 +161,7 @@ class OSImage():
                             message = http_response['message'].split(';;')
                             for msg in message:
                                 sleep(2)
-                                sys.stdout.write(f'{msg}\n')
+                                Message().show_success(f'{msg}')
                         sleep(2)
                         return dig_packing_status(uri)
                     else:
@@ -217,10 +169,9 @@ class OSImage():
 
                 response = dig_packing_status(uri)
         if response:
-            sys.stdout.write(f'[========] OS Image {self.args["newosimage"]} Cloned.\n')
+            Message().show_success(f'[========] OS Image {self.args["newosimage"]} Cloned.')
         else:
-            sys.stdout.write('[X ERROR X] Try Again!\n')
-            sys.exit(1)
+            Message().error_exit('[X ERROR X] Try Again!')
         return response
 
 
@@ -248,17 +199,16 @@ class OSImage():
                             message = http_response['message'].split(';;')
                             for msg in message:
                                 sleep(2)
-                                sys.stdout.write(f'{msg}\n')
+                                Message().show_success(f'{msg}')
                         sleep(2)
                         return dig_packing_status(uri)
                     else:
                         return False
                 response = dig_packing_status(uri)
         if response:
-            sys.stdout.write(f'[========] Image {self.args["name"]} Packed.\n')
+            Message().show_success(f'[========] Image {self.args["name"]} Packed.')
         else:
-            sys.stdout.write('[X ERROR X] Try Again!\n')
-            sys.exit(1)
+            Message().error_exit('[X ERROR X] Try Again!')
         return response
 
 
@@ -276,8 +226,7 @@ class OSImage():
         response = Rest().post_data(self.table, payload['name']+'/_kernel', request_data)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
-            Helper().show_success(f'OS Image {self.args["name"]} Kernel updated.')
+            Message().show_success(f'OS Image {self.args["name"]} Kernel updated.')
         else:
-            Helper().show_error(f'HTTP Error Code {response.status_code}.')
-            Helper().show_error(f'HTTP Error {response.content}.')
+            Message().error_exit(f'{response.content}', response.status_code)
         return True

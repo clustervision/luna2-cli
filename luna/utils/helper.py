@@ -13,7 +13,6 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 import os
-import sys
 from time import time, sleep
 import base64
 import binascii
@@ -27,6 +26,7 @@ from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
 from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby
+from luna.utils.message import Message
 
 
 class Helper():
@@ -88,8 +88,7 @@ class Helper():
                                 content = self.base64_encode(file_data.read())
                                 payload = nested_update(payload, key=key, value=content)
                         else:
-                            sys.stderr.write(f"ERROR :: {content[0]} is a Invalid filepath.\n")
-                            sys.exit(1)
+                            Message().error_exit(f'ERROR :: {content[0]} is a Invalid filepath.')
                     else:
                         content = self.base64_encode(bytes(content[0], 'utf-8'))
                         payload = nested_update(payload, key=key, value=content)
@@ -149,7 +148,7 @@ class Helper():
                 title = f' << {table.capitalize()} >>'
                 response = Presenter().show_table(title, fields, rows)
         else:
-            response = self.show_error(f'{table} is not found.')
+            response = Message().show_error(f'{table} is not found.')
         return response
 
 
@@ -178,7 +177,7 @@ class Helper():
                 title = f'{table.capitalize()} => {data["name"]}'
                 response = Presenter().show_table_col(title, fields, rows)
         else:
-            response = self.show_error(f'{args["name"]} is not found in {table}.')
+            response = Message().show_error(f'{args["name"]} is not found in {table}.')
         return response
 
 
@@ -205,7 +204,7 @@ class Helper():
                 title = f'<< {table.capitalize()} {args["name"]} Member Nodes >>'
                 response = Presenter().show_table(title, fields, rows)
         else:
-            response = self.show_error(f'{table} {args["name"]} not have any node.')
+            response = Message().show_error(f'{table} {args["name"]} not have any node.')
         return response
 
 
@@ -221,11 +220,9 @@ class Helper():
         response = Rest().post_data(table, payload['name'], request_data)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 201:
-            self.show_success(f'New {table.capitalize()}, {payload["name"]} created.')
+            Message().show_success(f'New {table.capitalize()}, {payload["name"]} created.')
         else:
-            sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
-            sys.stderr.write(f'HTTP Error {response.content}.\n')
-            sys.exit(1)
+            Message().error_exit(response.content, response.status_code)
         return True
 
 
@@ -249,13 +246,11 @@ class Helper():
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
             if name:
-                self.show_success(f'{table.capitalize()}, {name} updated.')
+                Message().show_success(f'{table.capitalize()}, {name} updated.')
             else:
-                self.show_success(f'{table.capitalize()} updated.')
+                Message().show_success(f'{table.capitalize()} updated.')
         else:
-            sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
-            sys.stderr.write(f'HTTP Error {response.content}.\n')
-            sys.exit(1)
+            Message().error_exit(response.content, response.status_code)
         return True
 
 
@@ -269,11 +264,9 @@ class Helper():
         response = Rest().get_delete(table, data['name'])
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
-            self.show_success(f'{table.capitalize()}, {data["name"]} is deleted.')
+            Message().show_success(f'{table.capitalize()}, {data["name"]} is deleted.')
         else:
-            sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
-            sys.stderr.write(f'HTTP Error {response.content}.\n')
-            sys.exit(1)
+            Message().error_exit(response.content, response.status_code)
         return True
 
 
@@ -288,11 +281,9 @@ class Helper():
         response = Rest().post_data(table, data['name'], request_data)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
-            self.show_success(f'{data["name"]} renamed to {newname}.')
+            Message().show_success(f'{data["name"]} renamed to {newname}.')
         else:
-            sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
-            sys.stderr.write(f'HTTP Error {response.content}.\n')
-            sys.exit(1)
+            Message().error_exit(response.content, response.status_code)
         return True
 
 
@@ -308,11 +299,9 @@ class Helper():
         response = Rest().post_clone(table, payload['name'], request_data)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 201:
-            self.show_success(f'{payload["name"]} cloned as {newname}.')
+            Message().show_success(f'{payload["name"]} cloned as {newname}.')
         else:
-            sys.stderr.write(f'HTTP Error Code {response.status_code}.\n')
-            sys.stderr.write(f'HTTP Error {response.content}.\n')
-            sys.exit(1)
+            Message().error_exit(response.content, response.status_code)
         return True
 
 
@@ -339,15 +328,6 @@ class Helper():
         return parser
 
 
-    def common_control_args(self, parser=None):
-        """
-        This method will provide the control arguments..
-        """
-        parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
-        parser.add_argument('node', help='Node Name or Node Hostlist')
-        return parser
-
-
     def control_print(self, num=None, control_data=None):
         """
         This method will perform power option on node.
@@ -368,9 +348,9 @@ class Helper():
         if rows:
             for row in rows:
                 if row[0] == 1:
-                    sys.stdout.write(f'{hr_line}\n')
-                    sys.stdout.write(f'{header}\n')
-                    sys.stdout.write(f'{hr_line}\n')
+                    Message().show_success(hr_line)
+                    Message().show_success(header)
+                    Message().show_success(hr_line)
                 row[0] = f'{row[0]}'.ljust(6)
                 row[1] = f'{row[1]}'.ljust(19)
                 if row[2] in ['Failed', 'Off', 'off']:
@@ -378,8 +358,7 @@ class Helper():
                 if row[2] in ['on', 'On']:
                     row[2] = row[2].ljust(19)
                 line = f'| {row[0]}| {row[1]}| {row[2]}|'
-                # line = line.replace('|', colored('|', 'yellow'))
-                sys.stdout.write(f'{line}\n')
+                Message().show_success(line)
         return num
 
 
@@ -426,41 +405,11 @@ class Helper():
             count = Helper().control_print(count, http_response)
             return self.dig_data(code, request_id, count)
         elif code == 404:
-            sys.stdout.write('X-------------------------------------------------X\n')
+            Message().show_success('X-------------------------------------------------X')
             return True
         else:
-            Helper().show_error(f"Something Went Wrong {code}")
+            Message().show_error(f"Something Went Wrong {code}")
             return False
-
-
-    def show_error(self, message=None):
-        """
-        This method will add a new records into
-        the Luna 2 Daemon Database
-        """
-        self.logger.debug(f'Message => {message}')
-        sys.stderr.write(f'{message}.\n')
-        return True
-
-
-    def show_success(self, message=None):
-        """
-        This method will add a new records into
-        the Luna 2 Daemon Database
-        """
-        self.logger.debug(f'Message => {message}')
-        sys.stdout.write(f'{message}.\n')
-        return True
-
-
-    def show_warning(self, message=None):
-        """
-        This method will add a new records into
-        the Luna 2 Daemon Database
-        """
-        self.logger.debug(f'Message => {message}')
-        sys.stderr.write(f'{message}.\n')
-        return True
 
 
     def filter_interface(self, table=None, data=None):

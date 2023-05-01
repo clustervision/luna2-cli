@@ -15,11 +15,12 @@ __status__      = "Development"
 from luna.utils.helper import Helper
 from luna.utils.log import Log
 from luna.utils.constant import BOOL_CHOICES, BOOL_META
+from luna.utils.message import Message
+from luna.utils.arguments import Arguments
 
 class Cluster():
     """
-    Cluster Class responsible to show and change
-    information for the Cluster
+    Cluster Class responsible to show and change information for the Cluster
     """
 
     def __init__(self, args=None, parser=None, subparsers=None):
@@ -32,7 +33,7 @@ class Cluster():
             elif self.args["action"] == 'change':
                 self.change_cluster()
             else:
-                Helper().show_error("If you want to change then use change as an argument.")
+                Message().show_warning('Use change as an argument to make an change in cluster.')
         else:
             self.get_arguments(parser, subparsers)
 
@@ -41,8 +42,7 @@ class Cluster():
         Method will provide all the arguments related to the Cluster class.
         """
         cluster_menu = subparsers.add_parser('cluster', help='Cluster Information.')
-        cluster_menu.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        cluster_menu.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        Arguments().common_list_args(cluster_menu)
         cluster_args = cluster_menu.add_subparsers(dest='action')
         cluster_change = cluster_args.add_parser('change', help='Change Cluster')
         cluster_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
