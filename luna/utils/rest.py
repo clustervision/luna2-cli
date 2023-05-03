@@ -28,46 +28,53 @@ class Rest():
 
     def __init__(self):
         """
-        Constructor - Before calling any REST API
-        it will fetch the credentials and endpoint url
+        Constructor - Before calling any REST API it will fetch the credentials and endpoint url
         from luna.ini from Luna 2 Daemon.
         """
-        self.error_msg = []
         self.logger = Log.get_logger()
-        self.username, self.password, self.daemon, self.secret_key = None, None, None, None
+        self.username, self.password, self.daemon, self.secret_key = self.get_ini_info()
+
+
+    def get_ini_info(self):
+        """
+        This method will get the information from the INI File.
+        """
+        errors = []
         file_check = os.path.isfile(INI_FILE)
         read_check = os.access(INI_FILE, os.R_OK)
         self.logger.debug(f'INI File => {INI_FILE} READ Check is {read_check}')
         if file_check and read_check:
-            configparser = RawConfigParser()
-            configparser.read(INI_FILE)
-            if configparser.has_section('API'):
-                if configparser.has_option('API', 'USERNAME'):
-                    self.username = configparser.get('API', 'USERNAME')
-                else:
-                    self.error_msg.append(f'USERNAME is not found in API section in {INI_FILE}.')
-                if configparser.has_option('API', 'PASSWORD'):
-                    self.password = configparser.get('API', 'PASSWORD')
-                else:
-                    self.error_msg.append(f'PASSWORD is not found in API section in {INI_FILE}.')
-                if configparser.has_option('API', 'ENDPOINT'):
-                    self.daemon = configparser.get('API', 'ENDPOINT')
-                else:
-                    self.error_msg.append(f'ENDPOINT is not found in API section in {INI_FILE}.')
-                if configparser.has_option('API', 'SECRET_KEY'):
-                    self.secret_key = configparser.get('API', 'SECRET_KEY')
-                else:
-                    self.error_msg.append(f'SECRET_KEY is not found in API section in {INI_FILE}.')
+            parser = RawConfigParser()
+            parser.read(INI_FILE)
+            if parser.has_section('API'):
+                self.username, errors = self.get_option(parser, errors, 'API', 'USERNAME')
+                self.password, errors = self.get_option(parser, errors, 'API', 'PASSWORD')
+                self.secret_key, errors = self.get_option(parser, errors, 'API', 'SECRET_KEY')
+                self.daemon, errors = self.get_option(parser, errors, 'API', 'ENDPOINT')
             else:
-                self.error_msg.append(f'API section is not found in {INI_FILE}.')
+                errors.append(f'API section is not found in {INI_FILE}.')
         else:
-            self.error_msg.append(f'{INI_FILE} is not found on this machine.')
-        if self.error_msg:
+            errors.append(f'{INI_FILE} is not found on this machine.')
+        if errors:
             Message().show_error('You need to fix following errors...')
             num = 1
-            for error in self.error_msg:
+            for error in errors:
                 Message().show_error(f'{num}. {error}')
+                num = num + 1
             sys.exit(1)
+        return self.username, self.password, self.daemon, self.secret_key
+
+
+    def get_option(self, parser=None, error=None, section=None, option=None):
+        """
+        This method will retrieve the value from the INI
+        """
+        response = False
+        if parser.has_option(section, option):
+            response = parser.get(section, option)
+        else:
+            error.append(f'{option} is not found in {section} section in {INI_FILE}.')
+        return response, error
 
 
     def token(self):
