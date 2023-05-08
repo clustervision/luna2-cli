@@ -385,10 +385,13 @@ class Helper():
         f"[        ] {message}",        ]
         not_complete = True
         i = 0
-        while not_complete:
-            print(animation[i % len(animation)], end='\r')
-            sleep(.1)
-            i += 1
+        try:
+            while not_complete:
+                print(animation[i % len(animation)], end='\r')
+                sleep(.1)
+                i += 1
+        except KeyboardInterrupt:
+            return False
         return True
 
 
