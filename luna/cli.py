@@ -12,40 +12,46 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
-import os
 import sys
-from pathlib import Path
-from textwrap import dedent
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
-from luna.utils.constant import TOOL_DESCRIPTION, TOOL_EPILOG, LOG_DIR, VERSION_FILE
-from luna.utils.presenter import Presenter
-from luna.utils.log import Log
-from luna.network import Network
-from luna.group import Group
-from luna.osimage import OSImage
-from luna.cluster import Cluster
-from luna.bmcsetup import BMCSetup
-from luna.node import Node
-from luna.switch import Switch
-from luna.otherdev import OtherDev
-from luna.secrets import Secrets
-from luna.service import Service
-from luna.control import Control
-from luna.utils.message import Message
+try:
+    import os
+    from pathlib import Path
+    from textwrap import dedent
+    from argparse import ArgumentParser, RawDescriptionHelpFormatter
+    from luna.utils.constant import TOOL_DESCRIPTION, TOOL_EPILOG, LOG_DIR, VERSION_FILE
+    from luna.utils.presenter import Presenter
+    from luna.utils.log import Log
+    from luna.network import Network
+    from luna.group import Group
+    from luna.osimage import OSImage
+    from luna.cluster import Cluster
+    from luna.bmcsetup import BMCSetup
+    from luna.node import Node
+    from luna.switch import Switch
+    from luna.otherdev import OtherDev
+    from luna.secrets import Secrets
+    from luna.service import Service
+    from luna.control import Control
+    from luna.utils.message import Message
 
-classes = [
-    Cluster,
-    Network,
-    OSImage,
-    BMCSetup,
-    Switch,
-    OtherDev,
-    Group,
-    Node,
-    Secrets,
-    Service,
-    Control
-]
+    classes = [
+        Cluster,
+        Network,
+        OSImage,
+        BMCSetup,
+        Switch,
+        OtherDev,
+        Group,
+        Node,
+        Secrets,
+        Service,
+        Control
+    ]
+
+except KeyboardInterrupt:
+    sys.stderr.write("\nKeyboard Interrupted.\n")
+    sys.exit(1)
+
 
 class Cli():
     """
@@ -93,19 +99,23 @@ class Cli():
         command[0] = 'luna'
         command = ' '.join(command)
         self.logger.info(f'Command Supplied => {command}')
-        if self.args["command"]:
-            if self.args["command"] == "osimage":
-                call = globals()["OSImage"]
-            elif self.args["command"] == "bmcsetup":
-                call = globals()["BMCSetup"]
-            elif self.args["command"] == "otherdev":
-                call = globals()["OtherDev"]
+        try:
+            if self.args["command"]:
+                if self.args["command"] == "osimage":
+                    call = globals()["OSImage"]
+                elif self.args["command"] == "bmcsetup":
+                    call = globals()["BMCSetup"]
+                elif self.args["command"] == "otherdev":
+                    call = globals()["OtherDev"]
+                else:
+                    call = globals()[self.args["command"].capitalize()]
+                call(self.args, self.parser, self.subparsers)
             else:
-                call = globals()[self.args["command"].capitalize()]
-            call(self.args, self.parser, self.subparsers)
-        else:
-            self.parser.print_help(sys.stderr)
-            sys.exit(0)
+                self.parser.print_help(sys.stderr)
+                sys.exit(0)
+        except KeyboardInterrupt:
+            sys.stderr.write("\nKeyboard Interrupted\n")
+            sys.exit(1)
 
 
     def get_version(self):
@@ -136,4 +146,9 @@ def run_tool():
     """
     This method initiate the main method of CLI class.
     """
-    Cli().main()
+    try:
+        Cli().main()
+    except KeyboardInterrupt:
+        sys.stderr.write("\nKeyboard Interrupted.\n")
+        sys.exit(1)
+ 
