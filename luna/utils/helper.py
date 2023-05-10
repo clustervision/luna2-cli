@@ -19,7 +19,6 @@ import binascii
 import subprocess
 from random import randint
 from os import getpid
-import numpy as np
 import hostlist
 from nested_lookup import nested_lookup, nested_update, nested_delete
 from luna.utils.rest import Rest
@@ -438,7 +437,13 @@ class Helper():
             colored_fields.append(field_key)
         fields = colored_fields
         self.logger.debug(f'Rows before Swapping => {rows}')
-        rows = np.array(rows).T.tolist()
+        final_rows = []
+        for array in range(len(rows[0])) :
+            tmp = []
+            for element in rows:
+                tmp.append(element[array])
+            final_rows.append(tmp)
+        rows = final_rows
         # Adding Serial Numbers to the dataset
         fields.insert(0, 'S. No.')
         num = 1
@@ -489,7 +494,13 @@ class Helper():
             val_row = []
             colored_fields.append(field_key)
         fields = colored_fields
-        rows = np.array(rows).T.tolist()
+        final_rows = []
+        for array in range(len(rows[0])) :
+            tmp = []
+            for element in rows:
+                tmp.append(element[array])
+            final_rows.append(tmp)
+        rows = final_rows
         # Adding Serial Numbers to the dataset
         fields.insert(0, 'S. No.')
         num = 1
