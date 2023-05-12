@@ -57,7 +57,7 @@ def new_version():
 
 
 setup(
-	name = "luna2-cli",
+	name = "luna",
 	# version = new_version(),
 	version = __version__,
 	description = "Luna CLI tool to manage Luna Daemon",
