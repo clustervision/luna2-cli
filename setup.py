@@ -58,7 +58,8 @@ def new_version():
 
 setup(
 	name = "luna2-cli",
-	version = new_version(),
+	# version = new_version(),
+	version = __version__,
 	description = "Luna CLI tool to manage Luna Daemon",
 	long_description = "Luna CLI is a tool to manage Luna Daemon. It's a part of Trinity project.",
 	author = "Sumit Sharma",
@@ -75,7 +76,7 @@ setup(
 			'luna = luna.cli:run_tool'
 		]
 	},
-	install_requires = requirements,
+	# install_requires = requirements,
 	dependency_links = [],
 	package_data = {"luna": ["*.txt"]},
 	data_files = [],
