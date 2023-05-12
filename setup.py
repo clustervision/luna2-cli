@@ -76,7 +76,7 @@ setup(
 			'luna = luna.cli:run_tool'
 		]
 	},
-	# install_requires = requirements,
+	install_requires = requirements,
 	dependency_links = [],
 	package_data = {"luna": ["*.txt"]},
 	data_files = [],
