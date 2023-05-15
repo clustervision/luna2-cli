@@ -124,8 +124,11 @@ class Cli():
         if 'luna' not in sys.argv[0]:
             current_dir = str(Path(current_dir).parent)
         version_file = f'{current_dir}/{VERSION_FILE}'
-        with open(version_file, 'r', encoding='utf-8') as ver:
-            version = ver.read()
+        try:
+            with open(version_file, 'r', encoding='utf-8') as ver:
+                version = ver.read()
+        except FileNotFoundError:
+            version = "2.0 [DEFAULT]"
         return version
 
 
