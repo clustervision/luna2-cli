@@ -271,12 +271,12 @@ class Secrets():
             if payload:
                 request_data = {'config': {self.route: {entity: payload}}}
                 self.logger.debug(f'Payload => {request_data}')
-                response = Rest().post_data(self.route, uri, request_data)
+                response = Rest().post_url_data(self.route, uri, request_data)
                 self.logger.debug(f'Response => {response}')
-                if response.status_code == 201:
+                if response.status == 201:
                     Message().show_success(f'Secret for {entity} is created.')
                 else:
-                    Message().error_exit(response.content, response.status_code)
+                    Message().error_exit(response.content, response.status)
         else:
             response = Message().show_error('Either select node or group')
         return response
@@ -311,12 +311,12 @@ class Secrets():
             if payload:
                 request_data = {'config': {self.route: {entity: payload}}}
                 self.logger.debug(f'Payload => {request_data}')
-                response = Rest().post_data(self.route, uri, request_data)
+                response = Rest().post_url_data(self.route, uri, request_data)
                 self.logger.debug(f'Response => {response}')
-                if response.status_code == 204:
+                if response.status == 204:
                     Message().show_success(f'Secret for {entity} is update.')
                 else:
-                    Message().error_exit(response.content, response.status_code)
+                    Message().error_exit(response.content, response.status)
         else:
             response = Message().show_error('Either select node or group')
         return response
@@ -350,10 +350,10 @@ class Secrets():
                 self.logger.debug(f'Payload => {request_data}')
                 response = Rest().post_clone(self.route, uri, request_data)
                 self.logger.debug(f'Response => {response}')
-                if response.status_code == 204:
+                if response.status == 204:
                     Message().show_success('Secret is Cloned.')
                 else:
-                    Message().error_exit(response.content, response.status_code)
+                    Message().error_exit(response.content, response.status)
         else:
             response = Message().show_error('Either select node or group')
         return response
@@ -382,10 +382,10 @@ class Secrets():
             if abort is False:
                 response = Rest().get_delete(self.route, uri)
                 self.logger.debug(f'Response => {response}')
-                if response.status_code == 204:
+                if response.status == 204:
                     Message().show_success('Secret is Deleted.')
                 else:
-                    Message().error_exit(response.content, response.status_code)
+                    Message().error_exit(response.content, response.status)
         else:
             response = Message().show_error('Either select node or group')
         return response

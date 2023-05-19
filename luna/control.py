@@ -73,28 +73,27 @@ class Control():
         if len(hostlist) == 1:
             uri = f'{self.action}/{self.args["node"]}/{self.args["action"]}'
             result = Rest().get_raw(self.route, uri)
-            http_response = result.json()
-            if 'control' in http_response.keys():
+            if 'control' in result.keys():
                 title = "<< Power Control Status Of Node >>"
                 fields = ["Node Name", "Status"]
-                status = http_response['control']['status']
+                status = result['control']['status']
                 rows = [self.args['node'], status]
                 response = Presenter().show_table_col(title, fields, rows)
             else:
-                response = Message().show_error(http_response['message'])
+                response = Message().show_error(result['message'])
         elif len(hostlist) > 1:
             process1 = Process(target=Helper().loader, args=("Fetching Nodes Status...",))
             process1.start()
             uri = f'{self.route}/{self.action}'
             payload = {"control":{"power":{self.args["action"]:{"hostlist":self.args['node']}}}}
             result = Rest().post_raw(uri, payload)
-            if result.status_code == 200:
-                http_response = result.json()
+            if result.status == 200:
+                http_response = result.content
                 request_id = http_response['control']['power']['request_id']
                 count = 1
                 if 'failed' in http_response['control']['power'].keys():
                     count = Helper().control_print(1, http_response)
-                check = Helper().dig_data(result.status_code, request_id, count)
+                check = Helper().dig_data(result.status, request_id, count)
                 process1.terminate()
                 if check:
                     Message().show_success('[========] Process Completed')
@@ -116,7 +115,7 @@ class Control():
         if len(hostlist) == 1:
             uri = f'{self.action}/{self.args["node"]}/{self.args["action"]}'
             result = Rest().get_raw(self.route, uri)
-            http_code = result.status_code
+            http_code = result.status
             if http_code == 204:
                 title = "<< Power Control Status Of Node >>"
                 fields = ["Node Name", "Status"]
@@ -124,7 +123,7 @@ class Control():
                 rows = [self.args['node'], status]
                 response = Presenter().show_table_col(title, fields, rows)
             else:
-                http_response = result.json()
+                http_response = result.content
                 Message().show_error(http_response['message'])
         elif len(hostlist) > 1:
             process1 = Process(target=Helper().loader, args=("Fetching Nodes Status...",))
@@ -134,14 +133,14 @@ class Control():
             Rest().post_raw(uri, payload)
             payload = {"control":{"power":{'status':{"hostlist":self.args['node']}}}}
             result = Rest().post_raw(uri, payload)
-            http_response = result.json()
+            http_response = result.content
 
-            if result.status_code == 200:
+            if result.status == 200:
                 request_id = http_response['control']['power']['request_id']
                 count = 1
                 if 'failed' in http_response['control']['power'].keys():
                     count = Helper().control_print(1, http_response)
-                check = Helper().dig_data(result.status_code, request_id, count)
+                check = Helper().dig_data(result.status, request_id, count)
                 process1.terminate()
                 if check:
                     Message().show_success('[========] Process Completed')

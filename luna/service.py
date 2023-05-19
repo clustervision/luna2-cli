@@ -71,7 +71,7 @@ class Service():
         response = Rest().get_raw(self.route, uri)
         self.logger.debug(f'Response => {response}')
         content = response.json()
-        status_code = response.status_code
+        status_code = response.status
         if self.args["action"] == 'status':
             if status_code == 200:
                 if 'info' in content:

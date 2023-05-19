@@ -35,8 +35,8 @@ EDITOR_KEYS = ['options', 'content', 'comment', 'prescript', 'partscript', 'post
 SERVICE_ACTIONS = ['start', 'stop', 'restart', 'reload', 'status']
 SERVICES = ['dhcp', 'dns', 'luna2']
 
-BANNER_NAME = 'Luna 2 CLI'
-BANNER_STYLE= "digital"
+# BANNER_NAME = 'Luna 2 CLI'
+# BANNER_STYLE= "digital"
 TOOL_DESCRIPTION = '''\
     Manage Luna Cluster
     --------------------------------

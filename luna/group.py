@@ -275,12 +275,12 @@ class Group():
             del payload['name']
             request_data = {'config': {self.table: {group_name: payload}}}
             self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_data(self.table, group_name+'/interfaces', request_data)
+            response = Rest().post_url_data(self.table, group_name+'/interfaces', request_data)
             self.logger.debug(f'Response => {response}')
-            if response.status_code == 204:
+            if response.status == 204:
                 Message().show_success(f'Interfaces updated in {self.table_cap} {group_name}.')
             else:
-                Message().error_exit(response.content, response.status_code)
+                Message().error_exit(response.content, response.status)
         else:
             Message().show_error('Nothing to update.')
         return response
@@ -298,9 +298,9 @@ class Group():
             self.logger.debug(f"URI {uri}")
             response = Rest().get_delete(self.table, uri)
             self.logger.debug(f'Response => {response}')
-            if response.status_code == 204:
+            if response.status == 204:
                 msg = f'{payload["interface"]} removed from {self.table_cap} {payload["name"]}.'
                 Message().show_success(msg)
             else:
-                Message().error_exit(response.content, response.status_code)
+                Message().error_exit(response.content, response.status)
         return response

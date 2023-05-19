@@ -14,9 +14,7 @@ __status__      = "Development"
 
 import json
 from prettytable import PrettyTable
-import pyfiglet
 from luna.utils.log import Log
-from luna.utils.constant import BANNER_NAME, BANNER_STYLE
 from luna.utils.message import Message
 
 class Presenter():
@@ -36,7 +34,7 @@ class Presenter():
         """
         This method will show the banner
         """
-        banner = pyfiglet.figlet_format(BANNER_NAME, font=BANNER_STYLE)
+        banner = "\n+-+-+-+-+ +-+-+-+\n|L|u|n|a| |C|L|I|\n+-+-+-+-+ +-+-+-+\n"
         Message().show_success(banner)
         return True
 

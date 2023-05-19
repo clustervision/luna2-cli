@@ -216,12 +216,12 @@ class Helper():
         payload = self.prepare_payload(None, data)
         request_data = {'config':{table:{payload['name']: payload}}}
         self.logger.debug(f'Payload => {request_data}')
-        response = Rest().post_data(table, payload['name'], request_data)
+        response = Rest().post_url_data(table, payload['name'], request_data)
         self.logger.debug(f'Response => {response}')
-        if response.status_code == 201:
+        if response.status == 201:
             Message().show_success(f'New {table.capitalize()}, {payload["name"]} created.')
         else:
-            Message().error_exit(response.content, response.status_code)
+            Message().error_exit(response.content, response.status)
         return True
 
 
@@ -241,15 +241,15 @@ class Helper():
         else:
             request_data = {'config':{table: payload}}
         self.logger.debug(f'Payload => {request_data}')
-        response = Rest().post_data(table, name, request_data)
+        response = Rest().post_url_data(table, name, request_data)
         self.logger.debug(f'Response => {response}')
-        if response.status_code == 204:
+        if response.status == 204:
             if name:
                 Message().show_success(f'{table.capitalize()}, {name} updated.')
             else:
                 Message().show_success(f'{table.capitalize()} updated.')
         else:
-            Message().error_exit(response.content, response.status_code)
+            Message().error_exit(response.content, response.status)
         return True
 
 
@@ -262,10 +262,10 @@ class Helper():
         self.logger.debug(f'Payload => {data}')
         response = Rest().get_delete(table, data['name'])
         self.logger.debug(f'Response => {response}')
-        if response.status_code == 204:
+        if response.status == 204:
             Message().show_success(f'{table.capitalize()}, {data["name"]} is deleted.')
         else:
-            Message().error_exit(response.content, response.status_code)
+            Message().error_exit(response.content, response.status)
         return True
 
 
@@ -277,12 +277,12 @@ class Helper():
             data.pop(remove, None)
         request_data = {'config':{table:{data['name']: data}}}
         self.logger.debug(f'Payload => {request_data}')
-        response = Rest().post_data(table, data['name'], request_data)
+        response = Rest().post_url_data(table, data['name'], request_data)
         self.logger.debug(f'Response => {response}')
-        if response.status_code == 204:
+        if response.status == 204:
             Message().show_success(f'{data["name"]} renamed to {newname}.')
         else:
-            Message().error_exit(response.content, response.status_code)
+            Message().error_exit(response.content, response.status)
         return True
 
 
@@ -297,10 +297,10 @@ class Helper():
         self.logger.debug(f'Payload => {request_data}')
         response = Rest().post_clone(table, payload['name'], request_data)
         self.logger.debug(f'Response => {response}')
-        if response.status_code == 201:
+        if response.status == 201:
             Message().show_success(f'{payload["name"]} cloned as {newname}.')
         else:
-            Message().error_exit(response.content, response.status_code)
+            Message().error_exit(response.content, response.status)
         return True
 
 
@@ -401,8 +401,8 @@ class Helper():
         sleep(2)
         uri = f'control/status/{request_id}'
         response = Rest().get_raw(uri)
-        code = response.status_code
-        http_response = response.json()
+        code = response.status
+        http_response = response.content
         if code == 200:
             count = Helper().control_print(count, http_response)
             return self.dig_data(code, request_id, count)
