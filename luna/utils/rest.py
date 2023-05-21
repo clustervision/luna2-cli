@@ -60,7 +60,8 @@ class Rest():
                 read_response = result.read().decode('utf-8')
                 if read_response:
                     read_response = json.loads(read_response)
-                if 'delete' in daemon_url or '/control/' in daemon_url or '/_pack' in daemon_url or 'config/status/' in daemon_url:
+                matches = ["delete", "/control/", "/_pack", "config/status/"]
+                if any([x in daemon_url for x in matches]):
                     response.status = result.status
                     response.content = read_response
                 else:

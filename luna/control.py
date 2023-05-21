@@ -73,14 +73,14 @@ class Control():
         if len(hostlist) == 1:
             uri = f'{self.action}/{self.args["node"]}/{self.args["action"]}'
             result = Rest().get_raw(self.route, uri)
-            if 'control' in result.keys():
+            if 'control' in result.content.keys():
                 title = "<< Power Control Status Of Node >>"
                 fields = ["Node Name", "Status"]
-                status = result['control']['status']
+                status = result.content['control']['status']
                 rows = [self.args['node'], status]
                 response = Presenter().show_table_col(title, fields, rows)
             else:
-                response = Message().show_error(result['message'])
+                response = Message().show_error(result.content['message'])
         elif len(hostlist) > 1:
             process1 = Process(target=Helper().loader, args=("Fetching Nodes Status...",))
             process1.start()
