@@ -1,3 +1,2 @@
 python-hostlist==1.23.0
-nested_lookup==0.2.25
 prettytable==3.7.0

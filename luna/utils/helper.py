@@ -20,13 +20,11 @@ import subprocess
 from random import randint
 from os import getpid
 import hostlist
-from nested_lookup import nested_lookup, nested_update, nested_delete
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
 from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby
 from luna.utils.message import Message
-
 
 class Helper():
     """
@@ -38,6 +36,62 @@ class Helper():
         Constructor - As of now, nothing have to initialize.
         """
         self.logger = Log.get_logger()
+        self.response = None
+
+
+    def find_dict_key(self, dictionary, key):
+        """
+        This method will find a key in nested dictionary.
+        """
+        if isinstance(dictionary, dict):
+            for dic_key, dic_value in dictionary.items():
+                if key == dic_key:
+                    self.response = dic_value
+                elif isinstance(dic_value, list):
+                    for dict_list in dic_value:
+                        self.find_dict_key(dict_list, key)
+                elif isinstance(dic_value, dict):
+                    self.find_dict_key(dic_value, key)
+        elif isinstance(dictionary, list):
+            for dict_list in dictionary:
+                self.find_dict_key(dict_list, key)
+        return self.response
+
+
+    def update_dict_value(self, dictionary, key, value):
+        """
+        This method will find a key in nested dictionary.
+        """
+        if isinstance(dictionary, dict):
+            for dic_key, dic_value in dictionary.items():
+                if key == dic_key:
+                    dictionary[key] = value
+                elif isinstance(dic_value, list):
+                    for dict_list in dic_value:
+                        self.update_dict_value(dict_list, key, value)
+                elif isinstance(dic_value, dict):
+                    self.update_dict_value(dic_value, key, value)
+                else:
+                    dictionary[dic_key] = dic_value
+        elif isinstance(dictionary, list):
+            for dict_list in dictionary:
+                self.update_dict_value(dict_list, key, value)
+        return dictionary
+
+
+    def delete_dict_key(self, dictionary, key):
+        """
+        This method will find a key in nested dictionary.
+        """
+        if isinstance(dictionary, list):
+            for dict_list in dictionary:
+                self.delete_dict_key(dict_list, key)
+        elif isinstance(dictionary, dict):
+            if key in dictionary:
+                del dictionary[key]
+            for dict_key, dict_value in dictionary.items():
+                self.delete_dict_key(dict_value, key)
+        return dictionary
 
 
     def choice_to_bool(self, raw_data=None):
@@ -46,15 +100,14 @@ class Helper():
         boolean
         """
         for key in BOOL_KEYS:
-            content = nested_lookup(key, raw_data)
-            if content:
-                if content[0] is not None:
-                    if content[0] == '':
-                        raw_data = nested_update(raw_data, key=key, value='')
-                    elif content[0].lower() in ['y', 'yes', 'true']:
-                        raw_data = nested_update(raw_data, key=key, value=True)
-                    else:
-                        raw_data = nested_update(raw_data, key=key, value=False)
+            content = self.find_dict_key(raw_data, key)
+            if content is not None:
+                if content == '':
+                    raw_data = self.update_dict_value(raw_data, key, value='')
+                elif content.lower() in ['y', 'yes', 'true']:
+                    raw_data = self.update_dict_value(raw_data, key, value=True)
+                else:
+                    raw_data = self.update_dict_value(raw_data, key, value=False)
         return raw_data
 
 
@@ -65,32 +118,32 @@ class Helper():
         raw_data = self.choice_to_bool(raw_data)
         payload = {k: v for k, v in raw_data.items() if v is not None}
         for key in EDITOR_KEYS:
-            content = nested_lookup(key, payload)
-            if content:
-                if content[0] is True:
-                    if table:
-                        get_list = Rest().get_data(table, payload['name'])
-                        if get_list:
-                            value = nested_lookup(key, get_list)
-                            if value:
-                                content = self.open_editor(key, value[0], payload)
-                                payload = nested_update(payload, key=key, value=content)
+            content = self.find_dict_key(raw_data, key)
+            if content is True:
+                if table:
+                    get_list = Rest().get_data(table, payload['name'])
+                    if get_list:
+                        value = self.find_dict_key(get_list, key)
+                        if value:
+                            content = self.open_editor(key, value[0], payload)
+                            payload = self.update_dict_value(payload, key, content)
+                else:
+                    content = self.open_editor(key, None, payload)
+                    payload = self.update_dict_value(payload, key, content)
+            elif content is False:
+                payload = self.delete_dict_key(payload, key)
+                
+            elif content:
+                if os.path.exists(content):
+                    if os.path.isfile(content):
+                        with open(content, 'rb') as file_data:
+                            content = self.base64_encode(file_data.read())
+                            payload = self.update_dict_value(payload, key, content)
                     else:
-                        content = self.open_editor(key, None, payload)
-                        payload = nested_update(payload, key=key, value=content)
-                elif content[0] is False:
-                    payload = nested_delete(payload, key)
-                elif content[0]:
-                    if os.path.exists(content[0]):
-                        if os.path.isfile(content[0]):
-                            with open(content[0], 'rb') as file_data:
-                                content = self.base64_encode(file_data.read())
-                                payload = nested_update(payload, key=key, value=content)
-                        else:
-                            Message().error_exit(f'ERROR :: {content[0]} is a Invalid filepath.')
-                    else:
-                        content = self.base64_encode(bytes(content[0], 'utf-8'))
-                        payload = nested_update(payload, key=key, value=content)
+                        Message().error_exit(f'ERROR :: {content} is a Invalid filepath.')
+                else:
+                    content = self.base64_encode(bytes(content, 'utf-8'))
+                    payload = self.update_dict_value(payload, key, content)
         return payload
 
 
@@ -543,20 +596,19 @@ class Helper():
         This method will decode the base 64 string.
         """
         for key in EDITOR_KEYS:
-            content = nested_lookup(key, json_data)
-            if content:
-                if content[0] is not None:
-                    try:
-                        content = self.base64_decode(content[0])
-                        if limit:
-                            if len(content) and '<empty>' not in content:
-                                content = content[:60]
-                                if '\n' in content:
-                                    content = content.removesuffix('\n')
-                                content = f'{content}...'
-                        json_data = nested_update(json_data, key=key, value=content)
-                    except TypeError:
-                        self.logger.debug(f"Without any reason {content} is coming from api.")
+            content = self.find_dict_key(json_data, key)
+            if content is not None:
+                try:
+                    content = self.base64_decode(content)
+                    if limit:
+                        if len(content) and '<empty>' not in content:
+                            content = content[:60]
+                            if '\n' in content:
+                                content = content.removesuffix('\n')
+                            content = f'{content}...'
+                    json_data = self.update_dict_value(json_data, key, content)
+                except TypeError:
+                    self.logger.debug(f"Without any reason {content} is coming from api.")
         return json_data
 
 

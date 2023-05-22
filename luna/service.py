@@ -70,7 +70,7 @@ class Service():
         self.logger.debug(f'Service URL => {uri}')
         response = Rest().get_raw(self.route, uri)
         self.logger.debug(f'Response => {response}')
-        content = response.json()
+        content = response.content
         status_code = response.status
         if self.args["action"] == 'status':
             if status_code == 200:
@@ -94,11 +94,11 @@ class Service():
                 uri = f'service/status/{content["request_id"]}'
                 def dig_service_status(uri):
                     result = Rest().get_raw(uri)
-                    if result.status_code == 404:
+                    if result.status == 404:
                         process1.terminate()
                         return True
-                    elif result.status_code == 200:
-                        http_response = result.json()
+                    elif result.status == 200:
+                        http_response = result.content
                         if http_response['message']:
                             message = http_response['message'].split(';;')
                             for msg in message:

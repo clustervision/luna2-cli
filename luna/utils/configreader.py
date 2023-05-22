@@ -12,7 +12,6 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
-import sys
 
 class ConfigReader():
     """This Class will read INI file"""

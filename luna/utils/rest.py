@@ -60,14 +60,15 @@ class Rest():
                 read_response = result.read().decode('utf-8')
                 if read_response:
                     read_response = json.loads(read_response)
-                matches = ["delete", "/control/", "/_pack", "config/status/"]
+                matches = ["delete", "/control/", "/_pack", "config/status/", "/service/"]
                 if any([x in daemon_url for x in matches]):
                     response.status = result.status
                     response.content = read_response
                 else:
                     response = read_response
         except HTTPError as http_error:
-            if '/control/' in daemon_url or '/_pack' in daemon_url or 'config/status/' in daemon_url and http_error.status == 404:
+            matches = ["/control/", "/_pack", "config/status/", "service/status/"]
+            if any([x in daemon_url for x in matches]) and http_error.status == 404:
                 response.status = 404
                 response.content = ""
             else:
