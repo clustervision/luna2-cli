@@ -1,2 +1,1 @@
 python-hostlist==1.23.0
-prettytable==3.7.0

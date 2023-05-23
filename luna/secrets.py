@@ -224,19 +224,15 @@ class Secrets():
                 else:
                     if 'group' in data:
                         table = f'group{self.route}'
-                        fields, rows  = Helper().filter_secret_col(table, data['group'])
-                        self.logger.debug(f'Fields => {fields}')
-                        self.logger.debug(f'Rows => {rows}')
                         group_name = list(data["group"].keys())[0]
+                        table_data  = Helper().filter_secret_col(table, data['group'])
                         title = f'Group {group_name} Secrets'
-                        response = Presenter().show_table_col(title, fields, rows)
+                        response = Presenter().show_table_col(title, table_data)
                     if 'node' in data:
                         table = f'node{self.route}'
-                        fields, rows  = Helper().filter_secret_col(table, data['node'])
-                        self.logger.debug(f'Fields => {fields}')
-                        self.logger.debug(f'Rows => {rows}')
+                        table_data  = Helper().filter_secret_col(table, data['node'])
                         title = f'Node {self.args["name"]} Secrets'
-                        response = Presenter().show_table_col(title, fields, rows)
+                        response = Presenter().show_table_col(title, table_data)
         else:
             response = Message().show_error('Either select node or group')
         return response

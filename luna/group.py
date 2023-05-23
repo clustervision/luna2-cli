@@ -236,11 +236,9 @@ class Group():
                 response = Presenter().show_json(json_data)
             else:
                 data = Helper().prepare_json(data, True)
-                fields, rows  = Helper().filter_data_col(self.interface, data)
-                self.logger.debug(f'Fields => {fields}')
-                self.logger.debug(f'Rows => {rows}')
-                title = f'{self.table_cap} {self.args["name"]} Interface [{self.args["interface"]}]'
-                response = Presenter().show_table_col(title, fields, rows)
+                data  = Helper().filter_data_col(self.interface, data)
+                title = f'{self.args["name"]} [{self.args["interface"]}]'
+                response = Presenter().show_table_col(title, data)
         else:
             msg = f'{self.args["interface"]} not found in {self.table} {self.args["name"]}'
             msg = f'{msg} OR {self.args["name"]} is unavailable.'

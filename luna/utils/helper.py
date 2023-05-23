@@ -197,7 +197,7 @@ class Helper():
                 fields = list(map(lambda x: x.replace('ns_ip', 'nameserver'), fields))
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
-                title = f' << {table.capitalize()} >>'
+                title = f'<< {table.capitalize()} >>'
                 response = Presenter().show_table(title, fields, rows)
         else:
             response = Message().show_error(f'{table} is not found.')
@@ -218,16 +218,15 @@ class Helper():
                 data = get_list['config'][table][row_name]
             else:
                 data = get_list['config'][table]
+            name = data['name']
             json_data = Helper().prepare_json(data)
             if args['raw']:
                 response = Presenter().show_json(json_data)
             else:
                 data = Helper().prepare_json(data, True)
-                fields, rows  = self.filter_data_col(table, data)
-                self.logger.debug(f'Fields => {fields}')
-                self.logger.debug(f'Rows => {rows}')
-                title = f'{table.capitalize()} => {data["name"]}'
-                response = Presenter().show_table_col(title, fields, rows)
+                data  = self.filter_data_col(table, data)
+                title = f'{table.capitalize()} [{name}]'
+                response = Presenter().show_table_col(title, data)
         else:
             response = Message().show_error(f'{args["name"]} is not found in {table}.')
         return response
@@ -650,37 +649,22 @@ class Helper():
         row format
         """
         self.logger.debug(f'Table => {table} and Data => {data}')
-        rows, colored_fields = [], []
+        rows = []
         fields = sortby(table)
+        fields.insert(0, 'S. No.')
         self.logger.debug(f'Fields => {fields}')
         for key in data:
-            new_row = []
+            num = 1
             for value in data[key]:
                 self.logger.debug(f'Key => {key} and Value => {value}')
-                new_row.append(key)
-                new_row.append(value['name'])
-                new_row.append(value['path'])
                 content = self.base64_decode(value['content'])
-                new_row.append(content)
-                rows.append(new_row)
-                new_row = []
-        for newfield in fields:
-            colored_fields.append(newfield)
-        fields = colored_fields
-        # Adding Serial Numbers to the dataset
-        fields.insert(0, 'S. No.')
-        num = 1
-        for outer in rows:
-            outer.insert(0, num)
-            num = num + 1
-        # Adding Serial Numbers to the dataset
-        new_fields, new_row = [], []
-        for row in rows:
-            new_fields = new_fields + fields
-            new_row = new_row + row
-            new_fields.append("")
-            new_row.append("")
-        return new_fields, new_row
+                rows.append([fields[0], num])
+                rows.append([fields[1], key])
+                rows.append([fields[2], value['name']])
+                rows.append([fields[3], value['path']])
+                rows.append([fields[4], content])
+                num = num + 1
+        return rows
 
 
     def filter_data_col(self, table=None, data=None):
@@ -688,6 +672,8 @@ class Helper():
         This method will generate the data as for
         row format
         """
+        response = []
+        blank = []
         self.logger.debug(f'Table => {table} and Data => {data}')
         defined_keys = sortby(table)
         self.logger.debug(f'Fields => {defined_keys}')
@@ -697,9 +683,7 @@ class Helper():
         index_map = {v: i for i, v in enumerate(defined_keys)}
         data = sorted(data.items(), key=lambda pair: index_map[pair[0]])
         self.logger.debug(f'Sorted Data => {data}')
-        fields, rows = [], []
         for key in data:
-            fields.append(key[0])
             if isinstance(key[1], list):
                 new_list = []
                 for internal in key[1]:
@@ -710,7 +694,8 @@ class Helper():
                         else:
                             new_list.append(f'  {internal_val} = {internal[internal_val]}')
                 new_list = '\n'.join(new_list)
-                rows.append(new_list)
+                blank.append(key[0])
+                blank.append(new_list)
                 new_list = []
             elif isinstance(key[1], dict):
                 new_list = []
@@ -720,8 +705,12 @@ class Helper():
                     in_val = key[1][internal]
                     new_list.append(f'{in_key} = {in_val} ')
                 new_list = '\n'.join(new_list)
-                rows.append(new_list)
+                blank.append(key[0])
+                blank.append(new_list)
                 new_list = []
             else:
-                rows.append(key[1])
-        return fields, rows
+                blank.append(key[0])
+                blank.append(key[1])
+            response.append(blank)
+            blank = []
+        return response

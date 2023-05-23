@@ -68,17 +68,20 @@ class Control():
         """
         This method provide the status of one or more nodes.
         """
+        data = []
         response = False
         hostlist = Helper().get_hostlist(self.args['node'])
         if len(hostlist) == 1:
             uri = f'{self.action}/{self.args["node"]}/{self.args["action"]}'
             result = Rest().get_raw(self.route, uri)
             if 'control' in result.content.keys():
-                title = "<< Power Control Status Of Node >>"
+                title = "<< Control Status >>"
                 fields = ["Node Name", "Status"]
                 status = result.content['control']['status']
                 rows = [self.args['node'], status]
-                response = Presenter().show_table_col(title, fields, rows)
+                data.append(fields)
+                data.append(rows)
+                response = Presenter().show_table_col(title, data)
             else:
                 response = Message().show_error(result.content['message'])
         elif len(hostlist) > 1:
@@ -108,6 +111,7 @@ class Control():
         """
         This method power on or off one or more nodes.
         """
+        data = []
         http_code = 000
         http_response = None
         response = False
@@ -117,11 +121,13 @@ class Control():
             result = Rest().get_raw(self.route, uri)
             http_code = result.status
             if http_code == 204:
-                title = "<< Power Control Status Of Node >>"
+                title = "<< Control Status >>"
                 fields = ["Node Name", "Status"]
                 status = self.args["action"]
                 rows = [self.args['node'], status]
-                response = Presenter().show_table_col(title, fields, rows)
+                data.append(fields)
+                data.append(rows)
+                response = Presenter().show_table_col(title, data)
             else:
                 http_response = result.content
                 Message().show_error(http_response['message'])
