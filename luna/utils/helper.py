@@ -89,7 +89,7 @@ class Helper():
         elif isinstance(dictionary, dict):
             if key in dictionary:
                 del dictionary[key]
-            for dict_key, dict_value in dictionary.items():
+            for _, dict_value in dictionary.items():
                 self.delete_dict_key(dict_value, key)
         return dictionary
 
@@ -252,7 +252,7 @@ class Helper():
                     new_row = [num, member]
                     rows.append(new_row)
                     num = num + 1
-                title = f'<< {table.capitalize()} {args["name"]} Member Nodes >>'
+                title = f'<< {args["name"]} Nodes >>'
                 response = Presenter().show_table(title, fields, rows)
         else:
             response = Message().show_error(f'{table} {args["name"]} not have any node.')

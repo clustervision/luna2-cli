@@ -15,7 +15,7 @@ __status__      = "Development"
 import json
 from luna.utils.log import Log
 from luna.utils.message import Message
-from  luna.utils.TableIt import *
+from  luna.utils.consoletable import ConsoleTable
 class Presenter():
     """
     All kind of display methods.
@@ -26,6 +26,7 @@ class Presenter():
         Constructor - As of now, nothing have to initialize.
         """
         self.logger = Log.get_logger()
+        self.table = ConsoleTable()
 
 
     def show_banner(self):
@@ -54,7 +55,7 @@ class Presenter():
         the Luna 2 Daemon Database
         """
         rows.insert(0, fields)
-        print_table(title, rows, useFieldNames=True)
+        self.table.print_table(title, rows, True)
         return True
 
 
@@ -63,5 +64,5 @@ class Presenter():
         This method will fetch a records from
         the Luna 2 Daemon Database
         """
-        print_table(title, data)
+        self.table.print_table(title, data)
         return True

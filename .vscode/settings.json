@@ -8,6 +8,8 @@
         "bootmenu",
         "changeinterface",
         "clusterid",
+        "configreader",
+        "consoletable",
         "createdby",
         "createnode",
         "distutils",

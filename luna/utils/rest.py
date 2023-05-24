@@ -41,7 +41,7 @@ class Rest():
         self.username, self.password, self.daemon = self.get_ini_info()
 
 
-    def get_data(self, table=None, name=None, data=None, raw_url=None):
+    def get_data(self, table=None, name=None, raw_url=None):
         """
         This method will fetch the data from a URL.
         """
@@ -291,7 +291,7 @@ class Rest():
         daemon_url = f'{self.daemon}/{route}'
         if uri:
             daemon_url = f'{daemon_url}/{uri}'
-        response = self.get_data(None, None, None, daemon_url)
+        response = self.get_data(None, None, daemon_url)
         return response
 
 
