@@ -15,10 +15,9 @@ __status__      = "Development"
 import sys
 try:
     import os
-    from pathlib import Path
     from textwrap import dedent
     from argparse import ArgumentParser, RawDescriptionHelpFormatter
-    from luna.utils.constant import TOOL_DESCRIPTION, TOOL_EPILOG, LOG_DIR, VERSION_FILE
+    from luna.utils.constant import TOOL_DESCRIPTION, TOOL_EPILOG, LOG_DIR
     from luna.utils.presenter import Presenter
     from luna.utils.log import Log
     from luna.network import Network
@@ -71,13 +70,12 @@ class Cli():
         Main method to fetch and provide the arguments for each class.
         """
         self.log_checker()
-        ver = self.get_version()
         self.parser = ArgumentParser(
             prog = 'luna',
             formatter_class = RawDescriptionHelpFormatter,
             description = dedent(TOOL_DESCRIPTION),
             epilog = TOOL_EPILOG)
-        self.parser.add_argument('-V', '--version', action='version', version=f'%(prog)s {ver}')
+        self.parser.add_argument('-V', '--version', action='version', version=f'%(prog)s {__version__}')
         self.parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
         for cls in classes:
@@ -116,20 +114,6 @@ class Cli():
         except KeyboardInterrupt:
             sys.stderr.write("\nKeyboard Interrupted\n")
             sys.exit(1)
-
-
-    def get_version(self):
-        """This Method will fetch the current version of Luna CLI from VERSION File."""
-        current_dir = os.path.dirname(os.path.realpath(__file__))
-        if 'luna' not in sys.argv[0]:
-            current_dir = str(Path(current_dir).parent)
-        version_file = f'{current_dir}/{VERSION_FILE}'
-        try:
-            with open(version_file, 'r', encoding='utf-8') as ver:
-                version = ver.read()
-        except FileNotFoundError:
-            version = "2.0 [DEFAULT]"
-        return version
 
 
     def log_checker(self):

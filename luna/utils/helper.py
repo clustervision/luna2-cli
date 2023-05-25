@@ -19,12 +19,12 @@ import binascii
 import subprocess
 from random import randint
 from os import getpid
-import hostlist
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
 from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby
 from luna.utils.message import Message
+from luna.utils.hostlist import expand_hostlist, BadHostlist
 
 class Helper():
     """
@@ -125,14 +125,14 @@ class Helper():
                     if get_list:
                         value = self.find_dict_key(get_list, key)
                         if value:
-                            content = self.open_editor(key, value[0], payload)
+                            value = self.base64_decode(value)
+                            content = self.open_editor(key, value, payload)
                             payload = self.update_dict_value(payload, key, content)
                 else:
                     content = self.open_editor(key, None, payload)
                     payload = self.update_dict_value(payload, key, content)
             elif content is False:
                 payload = self.delete_dict_key(payload, key)
-                
             elif content:
                 if os.path.exists(content):
                     if os.path.isfile(content):
@@ -363,9 +363,9 @@ class Helper():
         response = []
         self.logger.debug(f'Received hostlist: {raw_hosts}.')
         try:
-            response = hostlist.expand_hostlist(raw_hosts)
+            response = expand_hostlist(raw_hosts)
             self.logger.debug(f'Expanded hostlist: {response}.')
-        except hostlist.BadHostlist:
+        except BadHostlist:
             self.logger.debug(f'Hostlist is incorrect: {raw_hosts}.')
         return response
 

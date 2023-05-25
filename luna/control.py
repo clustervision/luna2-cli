@@ -74,16 +74,19 @@ class Control():
         if len(hostlist) == 1:
             uri = f'{self.action}/{self.args["node"]}/{self.args["action"]}'
             result = Rest().get_raw(self.route, uri)
-            if 'control' in result.content.keys():
-                title = "<< Control Status >>"
-                fields = ["Node Name", "Status"]
-                status = result.content['control']['status']
-                rows = [self.args['node'], status]
-                data.append(fields)
-                data.append(rows)
-                response = Presenter().show_table_col(title, data)
+            if result.status == 200:
+                if 'control' in result.content.keys():
+                    title = "<< Control Status >>"
+                    fields = ["Node Name", "Status"]
+                    status = result.content['control']['status']
+                    rows = [self.args['node'], status]
+                    data.append(fields)
+                    data.append(rows)
+                    response = Presenter().show_table_col(title, data)
+                else:
+                    response = Message().show_error(result.content['message'])
             else:
-                response = Message().show_error(result.content['message'])
+                Message().error_exit(f'ERROR :: {result.content}', result.status)
         elif len(hostlist) > 1:
             process1 = Process(target=Helper().loader, args=("Fetching Nodes Status...",))
             process1.start()
