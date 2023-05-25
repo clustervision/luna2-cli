@@ -83,6 +83,8 @@ class Rest():
         except URLError as url_error:
             if isinstance(url_error.reason, timeout):
                 Message().error_exit(f'ERROR :: {daemon_url} {url_error.reason}')
+            elif 'not known' in str(url_error.reason):
+                Message().error_exit(f'ERROR :: {daemon_url} {url_error.reason}')
             elif 'unknown url type' in url_error.reason:
                 Message().error_exit(f'ERROR :: {daemon_url} {url_error.reason}')
             else:
@@ -126,6 +128,8 @@ class Rest():
             Message().error_exit(f'ERROR :: {reason}', http_error.status)
         except URLError as url_error:
             if isinstance(url_error.reason, timeout):
+                Message().error_exit(f'ERROR :: {daemon_url} {url_error.reason}')
+            elif 'not known' in str(url_error.reason):
                 Message().error_exit(f'ERROR :: {daemon_url} {url_error.reason}')
             elif 'unknown url type' in url_error.reason:
                 Message().error_exit(f'ERROR :: {daemon_url} {url_error.reason}')
@@ -256,6 +260,8 @@ class Rest():
             Message().error_exit(f'ERROR :: {reason}', http_error.status)
         except URLError as url_error:
             if isinstance(url_error.reason, timeout):
+                Message().error_exit(f'ERROR :: {token_url} {url_error.reason}')
+            elif 'not known' in str(url_error.reason):
                 Message().error_exit(f'ERROR :: {token_url} {url_error.reason}')
             elif 'unknown url type' in url_error.reason:
                 Message().error_exit(f'ERROR :: {token_url} {url_error.reason}')

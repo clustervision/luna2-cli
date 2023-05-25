@@ -12,22 +12,9 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
-
-import os
-import sys
 from setuptools import setup, find_packages
 
-LOG_FOLDER = '/var/log/luna'
 PRE = "{Personal-Access-Token-Name}:{Personal-Access-Token}"
-
-if os.path.exists(LOG_FOLDER) is False:
-    try:
-        os.makedirs(LOG_FOLDER)
-        sys.stdout.write(f'PASS :: {LOG_FOLDER} is created.\n')
-    except PermissionError:
-        sys.stderr.write('ERROR :: Install this tool as a super user.\n')
-        sys.exit(1)
-
 
 setup(
 	name = "luna",

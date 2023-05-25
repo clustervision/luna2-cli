@@ -70,12 +70,13 @@ class Cli():
         Main method to fetch and provide the arguments for each class.
         """
         self.log_checker()
+        ver = __version__
         self.parser = ArgumentParser(
             prog = 'luna',
             formatter_class = RawDescriptionHelpFormatter,
             description = dedent(TOOL_DESCRIPTION),
             epilog = TOOL_EPILOG)
-        self.parser.add_argument('-V', '--version', action='version', version=f'%(prog)s {__version__}')
+        self.parser.add_argument('-V', '--version', action='version', version=f'%(prog)s {ver}')
         self.parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
         for cls in classes:
