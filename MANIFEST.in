@@ -1,4 +1,2 @@
-include requirements.txt
-include VERSION.txt
 include README.md
 include luna/utils/*

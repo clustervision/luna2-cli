@@ -236,11 +236,9 @@ class Group():
                 response = Presenter().show_json(json_data)
             else:
                 data = Helper().prepare_json(data, True)
-                fields, rows  = Helper().filter_data_col(self.interface, data)
-                self.logger.debug(f'Fields => {fields}')
-                self.logger.debug(f'Rows => {rows}')
-                title = f'{self.table_cap} {self.args["name"]} Interface [{self.args["interface"]}]'
-                response = Presenter().show_table_col(title, fields, rows)
+                data  = Helper().filter_data_col(self.interface, data)
+                title = f'{self.args["name"]} [{self.args["interface"]}]'
+                response = Presenter().show_table_col(title, data)
         else:
             msg = f'{self.args["interface"]} not found in {self.table} {self.args["name"]}'
             msg = f'{msg} OR {self.args["name"]} is unavailable.'
@@ -275,12 +273,12 @@ class Group():
             del payload['name']
             request_data = {'config': {self.table: {group_name: payload}}}
             self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_data(self.table, group_name+'/interfaces', request_data)
+            response = Rest().post_url_data(self.table, group_name+'/interfaces', request_data)
             self.logger.debug(f'Response => {response}')
-            if response.status_code == 204:
+            if response.status == 204:
                 Message().show_success(f'Interfaces updated in {self.table_cap} {group_name}.')
             else:
-                Message().error_exit(response.content, response.status_code)
+                Message().error_exit(response.content, response.status)
         else:
             Message().show_error('Nothing to update.')
         return response
@@ -298,9 +296,9 @@ class Group():
             self.logger.debug(f"URI {uri}")
             response = Rest().get_delete(self.table, uri)
             self.logger.debug(f'Response => {response}')
-            if response.status_code == 204:
+            if response.status == 204:
                 msg = f'{payload["interface"]} removed from {self.table_cap} {payload["name"]}.'
                 Message().show_success(msg)
             else:
-                Message().error_exit(response.content, response.status_code)
+                Message().error_exit(response.content, response.status)
         return response
