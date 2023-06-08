@@ -34,7 +34,6 @@ BOOL_KEYS = [
 EDITOR_KEYS = ['options', 'content', 'comment', 'prescript', 'partscript', 'postscript']
 SERVICE_ACTIONS = ['start', 'stop', 'restart', 'reload', 'status']
 SERVICES = ['dhcp', 'dns', 'luna2']
-
 BANNER_NAME = 'Luna 2 CLI'
 BANNER_STYLE= "digital"
 TOOL_DESCRIPTION = '''\
