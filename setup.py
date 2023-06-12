@@ -41,6 +41,7 @@ def new_version():
     shutil.copy2('VERSION.txt', 'luna/VERSION.txt')
     return version
 
+
 def create_dir(path=None):
     """This method will create required directories"""
     if os.path.exists(path) is False:
