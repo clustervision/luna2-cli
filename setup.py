@@ -23,6 +23,7 @@ INI_FILE = '/trinity/local/luna/config/luna.ini'
 LOG_FOLDER = '/var/log/luna'
 PRE = "{Personal-Access-Token-Name}:{Personal-Access-Token}"
 
+
 try: # for pip >= 10
     from pip._internal.req import parse_requirements
     install_requirements = list(parse_requirements('requirements.txt', session='hack'))
