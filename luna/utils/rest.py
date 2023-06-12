@@ -201,8 +201,14 @@ class Rest():
             if parser.has_section('API'):
                 self.username, errors = self.get_option(parser, errors, 'API', 'USERNAME')
                 self.password, errors = self.get_option(parser, errors, 'API', 'PASSWORD')
+<<<<<<< HEAD
                 daemon, errors = self.get_option(parser, errors, 'API', 'ENDPOINT')
                 protocol, errors = self.get_option(parser, errors, 'API', 'PROTOCOL')
+=======
+                self.secret_key, errors = self.get_option(parser, errors, 'API', 'SECRET_KEY')
+                protocol, errors = self.get_option(parser, errors, 'API', 'PROTOCOL')
+                daemon, errors = self.get_option(parser, errors, 'API', 'ENDPOINT')
+>>>>>>> pip
                 self.daemon = f'{protocol}://{daemon}'
             else:
                 errors.append(f'API section is not found in {INI_FILE}.')
@@ -235,7 +241,12 @@ class Rest():
         This method will fetch a valid token for further use.
         """
         data = {'username': self.username, 'password': self.password}
+<<<<<<< HEAD
         token_url = f'{self.daemon}/token'
+=======
+        daemon_url = f'{self.daemon}/token'
+        self.logger.debug(f'Token URL => {daemon_url}')
+>>>>>>> pip
         try:
             request = Request(token_url)
             request.add_header('Content-Type', 'application/json; charset=utf-8')
@@ -256,6 +267,7 @@ class Rest():
                 if 'message' in reason:
                     reason = reason['message']
             else:
+<<<<<<< HEAD
                 reason = http_error.reason
             Message().error_exit(f'ERROR :: {reason}', http_error.status)
         except URLError as url_error:
@@ -267,6 +279,84 @@ class Rest():
                 Message().error_exit(f'ERROR :: {token_url} {url_error.reason}')
             else:
                 Message().error_exit(f'ERROR :: {token_url} {url_error.reason}')
+=======
+                Message().error_exit(call.content, call.status_code)
+        except requests.exceptions.ConnectionError:
+            Message().error_exit(call.content)
+        except requests.exceptions.JSONDecodeError:
+            Message().error_exit(call.content, call.status_code)
+        return response
+
+
+    def get_token(self):
+        """
+        This method will fetch a valid token
+        for further use.
+        """
+        response = False
+        if os.path.isfile(TOKEN_FILE):
+            with open(TOKEN_FILE, 'r', encoding='utf-8') as token:
+                token_data = token.read()
+            try:
+                jwt.decode(token_data, self.secret_key, algorithms=['HS256'])
+                response = token_data
+            except jwt.exceptions.DecodeError:
+                self.logger.debug('Token Decode Error, Getting New Token.')
+                response = self.token()
+            except jwt.exceptions.ExpiredSignatureError:
+                self.logger.debug('Expired Signature Error, Getting New Token.')
+                response = self.token()
+        if response is False:
+            response = self.token()
+        return response
+
+
+    def get_data(self, table=None, name=None, data=None):
+        """
+        This method is based on REST API's GET method.
+        It will fetch the records from Luna 2 Daemon
+        via REST API's.
+        """
+        response = False
+        headers = {'x-access-tokens': self.get_token()}
+        daemon_url = f'{self.daemon}/config/{table}'
+        if name:
+            daemon_url = f'{daemon_url}/{name}'
+        self.logger.debug(f'GET URL => {daemon_url}')
+        try:
+            call = requests.get(url=daemon_url, params=data, headers=headers, timeout=5)
+            self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
+            response_json = call.json()
+            if 'message' in response_json:
+                Message().show_error(response_json["message"])
+            else:
+                response = response_json
+        except requests.exceptions.ConnectionError:
+            Message().error_exit(f'Request Timeout while {daemon_url}')
+        except requests.exceptions.JSONDecodeError:
+            response = False
+        return response
+
+
+    def post_data(self, table=None, name=None, data=None):
+        """
+        This method is based on REST API's POST method.
+        It will post data to Luna 2 Daemon via REST API's.
+        And use for creating and updating records.
+        """
+        response = False
+        headers = {'x-access-tokens': self.get_token(), 'Content-Type':'application/json'}
+        daemon_url = f'{self.daemon}/config/{table}'
+        if name:
+            daemon_url = f'{daemon_url}/{name}'
+        self.logger.debug(f'POST URL => {daemon_url}')
+        self.logger.debug(f'POST DATA => {data}')
+        try:
+            response = requests.post(url=daemon_url, json=data, headers=headers, timeout=5)
+            self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.ConnectionError:
+            Message().error_exit(f'Request Timeout while {daemon_url}')
+>>>>>>> pip
         return response
 
 
@@ -275,7 +365,19 @@ class Rest():
         This method is based on REST API's GET method.
         It will delete the records from Luna 2 Daemon via REST API's.
         """
+<<<<<<< HEAD
         response = self.get_data(f'{table}/{name}/_delete')
+=======
+        response = False
+        headers = {'x-access-tokens': self.get_token()}
+        daemon_url = f'{self.daemon}/config/{table}/{name}/_delete'
+        self.logger.debug(f'GET URL => {daemon_url}')
+        try:
+            response = requests.get(url=daemon_url, headers=headers, timeout=5)
+            self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.ConnectionError:
+            Message().error_exit(f'Request Timeout while {daemon_url}')
+>>>>>>> pip
         return response
 
 
@@ -285,7 +387,40 @@ class Rest():
         It will post data to Luna 2 Daemon via REST API's.
         And use for cloning the records.
         """
+<<<<<<< HEAD
         response = self.post_url_data(f'{table}/{name}/_clone', None, data)
+=======
+        response = False
+        headers = {'x-access-tokens': self.get_token(), 'Content-Type':'application/json'}
+        daemon_url = f'{self.daemon}/config/{table}/{name}/_clone'
+        self.logger.debug(f'Clone URL => {daemon_url}')
+        try:
+            response = requests.post(url=daemon_url, json=data, headers=headers, timeout=5)
+            self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.ConnectionError:
+            Message().error_exit(f'Request Timeout while {daemon_url}')
+        return response
+
+
+    def get_status(self, table=None, name=None, data=None):
+        """
+        This method is based on REST API's GET method.
+        It will fetch the records from Luna 2 Daemon
+        via REST API's.
+        """
+        response = False
+        headers = {'x-access-tokens': self.get_token()}
+        daemon_url = f'{self.daemon}/config/{table}'
+        if name:
+            daemon_url = f'{daemon_url}/{name}'
+        self.logger.debug(f'Status URL => {daemon_url}')
+        try:
+            call = requests.get(url=daemon_url, params=data, headers=headers, timeout=5)
+            self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
+            response = call.status_code
+        except requests.exceptions.ConnectionError:
+            Message().error_exit(f'Request Timeout while {daemon_url}')
+>>>>>>> pip
         return response
 
 
@@ -294,6 +429,11 @@ class Rest():
         This method is based on REST API's GET method.
         It will fetch the records from Luna 2 Daemon via REST API's.
         """
+<<<<<<< HEAD
+=======
+        response = False
+        headers = {'x-access-tokens': self.get_token()}
+>>>>>>> pip
         daemon_url = f'{self.daemon}/{route}'
         if uri:
             daemon_url = f'{daemon_url}/{uri}'
@@ -306,5 +446,17 @@ class Rest():
         This method is based on REST API's GET method.
         It will fetch the records from Luna 2 Daemon via REST API's.
         """
+<<<<<<< HEAD
         response = self.post_url_data(None, None, payload, f'{self.daemon}/{route}')
+=======
+        response = False
+        headers = {'x-access-tokens': self.get_token(), 'Content-Type':'application/json'}
+        daemon_url = f'{self.daemon}/{route}'
+        self.logger.debug(f'Clone URL => {daemon_url}')
+        try:
+            response = requests.post(url=daemon_url, json=payload, headers=headers, timeout=5)
+            self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.ConnectionError:
+            Message().error_exit(f'Request Timeout while {daemon_url}')
+>>>>>>> pip
         return response

@@ -38,18 +38,22 @@ class Log:
         thread_level = '[%(levelname)s]:[%(asctime)s]:[%(threadName)s]:'
         message = '[%(filename)s:%(funcName)s@%(lineno)d] - %(message)s'
         log_format = f'{thread_level}{message}'
-        logging.basicConfig(filename=LOG_FILE, format=log_format, filemode='a', level=log_level)
-        cls.__logger = logging.getLogger('luna2-cli')
-        cls.__logger.setLevel(log_level)
-        if log_level == 10:
-            formatter = logging.Formatter(log_format)
-            console = logging.StreamHandler(sys.stdout)
-            console.setLevel(log_level)
-            console.setFormatter(formatter)
-            cls.__logger.addHandler(console)
-        levels = {0: 'NOTSET', 10: 'DEBUG', 20: 'INFO', 30: 'WARNING', 40: 'ERROR', 50: 'CRITICAL'}
-        cls.__logger.info(f'######### Luna Logging Level IsSet To [{levels[log_level]}] #########')
-        return cls.__logger
+        try:
+            logging.basicConfig(filename=LOG_FILE, format=log_format, filemode='a', level=log_level)
+            cls.__logger = logging.getLogger('luna2-cli')
+            cls.__logger.setLevel(log_level)
+            if log_level == 10:
+                formatter = logging.Formatter(log_format)
+                console = logging.StreamHandler(sys.stdout)
+                console.setLevel(log_level)
+                console.setFormatter(formatter)
+                cls.__logger.addHandler(console)
+            levels = {0:'NOTSET', 10: 'DEBUG', 20: 'INFO', 30: 'WARNING', 40:'ERROR', 50:'CRITICAL'}
+            cls.__logger.info(f'####### Luna Logging Level IsSet To [{levels[log_level]}] ########')
+            return cls.__logger
+        except PermissionError:
+            sys.stderr.write('ERROR :: Run this tool as a super user.\n')
+            sys.exit(1)
 
 
     @classmethod

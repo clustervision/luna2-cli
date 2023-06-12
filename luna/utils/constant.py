@@ -34,9 +34,14 @@ BOOL_KEYS = [
 EDITOR_KEYS = ['options', 'content', 'comment', 'prescript', 'partscript', 'postscript']
 SERVICE_ACTIONS = ['start', 'stop', 'restart', 'reload', 'status']
 SERVICES = ['dhcp', 'dns', 'luna2']
+<<<<<<< HEAD
 
 # BANNER_NAME = 'Luna 2 CLI'
 # BANNER_STYLE= "digital"
+=======
+BANNER_NAME = 'Luna 2 CLI'
+BANNER_STYLE= "digital"
+>>>>>>> pip
 TOOL_DESCRIPTION = '''\
     Manage Luna Cluster
     --------------------------------
