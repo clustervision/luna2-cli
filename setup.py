@@ -12,7 +12,6 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
-
 from shutil import copy2
 from setuptools import setup, find_packages
 
@@ -78,4 +77,3 @@ setup(
 	]
 )
 # python setup.py sdist bdist_wheel
-# python setup.py sdist bdist_rpm
