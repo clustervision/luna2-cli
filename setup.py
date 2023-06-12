@@ -12,11 +12,9 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
-import os
-import sys
+
 from shutil import copy2
 from setuptools import setup, find_packages
-from setuptools.command.install import install
 
 PRE = "{Personal-Access-Token-Name}:{Personal-Access-Token}"
 
@@ -39,17 +37,6 @@ def new_version():
     return version
 
 
-class PostInstallCommand(install):
-    """Post-installation for installation mode."""
-    def run(self):
-        try:
-            os.popen("sudo ln -fs /usr/local/bin/luna /usr/bin/luna")
-        except PermissionError:
-            sys.stderr.write('ERROR :: Install this tool as a super user.\n')
-            sys.exit(1)
-        install.run(self)
-
-
 setup(
 	name = "luna",
 	version = new_version(),
@@ -69,7 +56,6 @@ setup(
 			'luna = luna.cli:run_tool'
 		]
 	},
-    cmdclass={'install': PostInstallCommand},
 	install_requires = requirements,
 	dependency_links = [],
 	package_data = {"luna": ["*.txt", "*.ini"]},
