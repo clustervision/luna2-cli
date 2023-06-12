@@ -12,6 +12,9 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
+import os
+import sys
+import shutil
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 
