@@ -19,14 +19,12 @@ import binascii
 import subprocess
 from random import randint
 from os import getpid
-import hostlist
-from nested_lookup import nested_lookup, nested_update, nested_delete
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
 from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby
 from luna.utils.message import Message
-
+from luna.utils.hostlist import expand_hostlist, BadHostlist
 
 class Helper():
     """
@@ -38,6 +36,62 @@ class Helper():
         Constructor - As of now, nothing have to initialize.
         """
         self.logger = Log.get_logger()
+        self.response = None
+
+
+    def find_dict_key(self, dictionary, key):
+        """
+        This method will find a key in nested dictionary.
+        """
+        if isinstance(dictionary, dict):
+            for dic_key, dic_value in dictionary.items():
+                if key == dic_key:
+                    self.response = dic_value
+                elif isinstance(dic_value, list):
+                    for dict_list in dic_value:
+                        self.find_dict_key(dict_list, key)
+                elif isinstance(dic_value, dict):
+                    self.find_dict_key(dic_value, key)
+        elif isinstance(dictionary, list):
+            for dict_list in dictionary:
+                self.find_dict_key(dict_list, key)
+        return self.response
+
+
+    def update_dict_value(self, dictionary, key, value):
+        """
+        This method will find a key in nested dictionary.
+        """
+        if isinstance(dictionary, dict):
+            for dic_key, dic_value in dictionary.items():
+                if key == dic_key:
+                    dictionary[key] = value
+                elif isinstance(dic_value, list):
+                    for dict_list in dic_value:
+                        self.update_dict_value(dict_list, key, value)
+                elif isinstance(dic_value, dict):
+                    self.update_dict_value(dic_value, key, value)
+                else:
+                    dictionary[dic_key] = dic_value
+        elif isinstance(dictionary, list):
+            for dict_list in dictionary:
+                self.update_dict_value(dict_list, key, value)
+        return dictionary
+
+
+    def delete_dict_key(self, dictionary, key):
+        """
+        This method will find a key in nested dictionary.
+        """
+        if isinstance(dictionary, list):
+            for dict_list in dictionary:
+                self.delete_dict_key(dict_list, key)
+        elif isinstance(dictionary, dict):
+            if key in dictionary:
+                del dictionary[key]
+            for _, dict_value in dictionary.items():
+                self.delete_dict_key(dict_value, key)
+        return dictionary
 
 
     def choice_to_bool(self, raw_data=None):
@@ -46,15 +100,14 @@ class Helper():
         boolean
         """
         for key in BOOL_KEYS:
-            content = nested_lookup(key, raw_data)
-            if content:
-                if content[0] is not None:
-                    if content[0] == '':
-                        raw_data = nested_update(raw_data, key=key, value='')
-                    elif content[0].lower() in ['y', 'yes', 'true']:
-                        raw_data = nested_update(raw_data, key=key, value=True)
-                    else:
-                        raw_data = nested_update(raw_data, key=key, value=False)
+            content = self.find_dict_key(raw_data, key)
+            if content is not None:
+                if content == '':
+                    raw_data = self.update_dict_value(raw_data, key, value='')
+                elif content.lower() in ['y', 'yes', 'true']:
+                    raw_data = self.update_dict_value(raw_data, key, value=True)
+                else:
+                    raw_data = self.update_dict_value(raw_data, key, value=False)
         return raw_data
 
 
@@ -65,32 +118,32 @@ class Helper():
         raw_data = self.choice_to_bool(raw_data)
         payload = {k: v for k, v in raw_data.items() if v is not None}
         for key in EDITOR_KEYS:
-            content = nested_lookup(key, payload)
-            if content:
-                if content[0] is True:
-                    if table:
-                        get_list = Rest().get_data(table, payload['name'])
-                        if get_list:
-                            value = nested_lookup(key, get_list)
-                            if value:
-                                content = self.open_editor(key, value[0], payload)
-                                payload = nested_update(payload, key=key, value=content)
+            content = self.find_dict_key(raw_data, key)
+            if content is True:
+                if table:
+                    get_list = Rest().get_data(table, payload['name'])
+                    if get_list:
+                        value = self.find_dict_key(get_list, key)
+                        if value:
+                            value = self.base64_decode(value)
+                            content = self.open_editor(key, value, payload)
+                            payload = self.update_dict_value(payload, key, content)
+                else:
+                    content = self.open_editor(key, None, payload)
+                    payload = self.update_dict_value(payload, key, content)
+            elif content is False:
+                payload = self.delete_dict_key(payload, key)
+            elif content:
+                if os.path.exists(content):
+                    if os.path.isfile(content):
+                        with open(content, 'rb') as file_data:
+                            content = self.base64_encode(file_data.read())
+                            payload = self.update_dict_value(payload, key, content)
                     else:
-                        content = self.open_editor(key, None, payload)
-                        payload = nested_update(payload, key=key, value=content)
-                elif content[0] is False:
-                    payload = nested_delete(payload, key)
-                elif content[0]:
-                    if os.path.exists(content[0]):
-                        if os.path.isfile(content[0]):
-                            with open(content[0], 'rb') as file_data:
-                                content = self.base64_encode(file_data.read())
-                                payload = nested_update(payload, key=key, value=content)
-                        else:
-                            Message().error_exit(f'ERROR :: {content[0]} is a Invalid filepath.')
-                    else:
-                        content = self.base64_encode(bytes(content[0], 'utf-8'))
-                        payload = nested_update(payload, key=key, value=content)
+                        Message().error_exit(f'ERROR :: {content} is a Invalid filepath.')
+                else:
+                    content = self.base64_encode(bytes(content, 'utf-8'))
+                    payload = self.update_dict_value(payload, key, content)
         return payload
 
 
@@ -144,7 +197,7 @@ class Helper():
                 fields = list(map(lambda x: x.replace('ns_ip', 'nameserver'), fields))
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
-                title = f' << {table.capitalize()} >>'
+                title = f'<< {table.capitalize()} >>'
                 response = Presenter().show_table(title, fields, rows)
         else:
             response = Message().show_error(f'{table} is not found.')
@@ -165,16 +218,15 @@ class Helper():
                 data = get_list['config'][table][row_name]
             else:
                 data = get_list['config'][table]
+            name = data['name']
             json_data = Helper().prepare_json(data)
             if args['raw']:
                 response = Presenter().show_json(json_data)
             else:
                 data = Helper().prepare_json(data, True)
-                fields, rows  = self.filter_data_col(table, data)
-                self.logger.debug(f'Fields => {fields}')
-                self.logger.debug(f'Rows => {rows}')
-                title = f'{table.capitalize()} => {data["name"]}'
-                response = Presenter().show_table_col(title, fields, rows)
+                data  = self.filter_data_col(table, data)
+                title = f'{table.capitalize()} [{name}]'
+                response = Presenter().show_table_col(title, data)
         else:
             response = Message().show_error(f'{args["name"]} is not found in {table}.')
         return response
@@ -200,7 +252,7 @@ class Helper():
                     new_row = [num, member]
                     rows.append(new_row)
                     num = num + 1
-                title = f'<< {table.capitalize()} {args["name"]} Member Nodes >>'
+                title = f'<< {args["name"]} Nodes >>'
                 response = Presenter().show_table(title, fields, rows)
         else:
             response = Message().show_error(f'{table} {args["name"]} not have any node.')
@@ -216,12 +268,12 @@ class Helper():
         payload = self.prepare_payload(None, data)
         request_data = {'config':{table:{payload['name']: payload}}}
         self.logger.debug(f'Payload => {request_data}')
-        response = Rest().post_data(table, payload['name'], request_data)
+        response = Rest().post_url_data(table, payload['name'], request_data)
         self.logger.debug(f'Response => {response}')
-        if response.status_code == 201:
+        if response.status == 201:
             Message().show_success(f'New {table.capitalize()}, {payload["name"]} created.')
         else:
-            Message().error_exit(response.content, response.status_code)
+            Message().error_exit(response.content, response.status)
         return True
 
 
@@ -241,15 +293,15 @@ class Helper():
         else:
             request_data = {'config':{table: payload}}
         self.logger.debug(f'Payload => {request_data}')
-        response = Rest().post_data(table, name, request_data)
+        response = Rest().post_url_data(table, name, request_data)
         self.logger.debug(f'Response => {response}')
-        if response.status_code == 204:
+        if response.status == 204:
             if name:
                 Message().show_success(f'{table.capitalize()}, {name} updated.')
             else:
                 Message().show_success(f'{table.capitalize()} updated.')
         else:
-            Message().error_exit(response.content, response.status_code)
+            Message().error_exit(response.content, response.status)
         return True
 
 
@@ -262,10 +314,10 @@ class Helper():
         self.logger.debug(f'Payload => {data}')
         response = Rest().get_delete(table, data['name'])
         self.logger.debug(f'Response => {response}')
-        if response.status_code == 204:
+        if response.status == 204:
             Message().show_success(f'{table.capitalize()}, {data["name"]} is deleted.')
         else:
-            Message().error_exit(response.content, response.status_code)
+            Message().error_exit(response.content, response.status)
         return True
 
 
@@ -277,12 +329,12 @@ class Helper():
             data.pop(remove, None)
         request_data = {'config':{table:{data['name']: data}}}
         self.logger.debug(f'Payload => {request_data}')
-        response = Rest().post_data(table, data['name'], request_data)
+        response = Rest().post_url_data(table, data['name'], request_data)
         self.logger.debug(f'Response => {response}')
-        if response.status_code == 204:
+        if response.status == 204:
             Message().show_success(f'{data["name"]} renamed to {newname}.')
         else:
-            Message().error_exit(response.content, response.status_code)
+            Message().error_exit(response.content, response.status)
         return True
 
 
@@ -297,10 +349,10 @@ class Helper():
         self.logger.debug(f'Payload => {request_data}')
         response = Rest().post_clone(table, payload['name'], request_data)
         self.logger.debug(f'Response => {response}')
-        if response.status_code == 201:
+        if response.status == 201:
             Message().show_success(f'{payload["name"]} cloned as {newname}.')
         else:
-            Message().error_exit(response.content, response.status_code)
+            Message().error_exit(response.content, response.status)
         return True
 
 
@@ -311,9 +363,9 @@ class Helper():
         response = []
         self.logger.debug(f'Received hostlist: {raw_hosts}.')
         try:
-            response = hostlist.expand_hostlist(raw_hosts)
+            response = expand_hostlist(raw_hosts)
             self.logger.debug(f'Expanded hostlist: {response}.')
-        except hostlist.BadHostlist:
+        except BadHostlist:
             self.logger.debug(f'Hostlist is incorrect: {raw_hosts}.')
         return response
 
@@ -401,8 +453,8 @@ class Helper():
         sleep(2)
         uri = f'control/status/{request_id}'
         response = Rest().get_raw(uri)
-        code = response.status_code
-        http_response = response.json()
+        code = response.status
+        http_response = response.content
         if code == 200:
             count = Helper().control_print(count, http_response)
             return self.dig_data(code, request_id, count)
@@ -543,20 +595,19 @@ class Helper():
         This method will decode the base 64 string.
         """
         for key in EDITOR_KEYS:
-            content = nested_lookup(key, json_data)
-            if content:
-                if content[0] is not None:
-                    try:
-                        content = self.base64_decode(content[0])
-                        if limit:
-                            if len(content) and '<empty>' not in content:
-                                content = content[:60]
-                                if '\n' in content:
-                                    content = content.removesuffix('\n')
-                                content = f'{content}...'
-                        json_data = nested_update(json_data, key=key, value=content)
-                    except TypeError:
-                        self.logger.debug(f"Without any reason {content} is coming from api.")
+            content = self.find_dict_key(json_data, key)
+            if content is not None:
+                try:
+                    content = self.base64_decode(content)
+                    if limit:
+                        if len(content) and '<empty>' not in content:
+                            content = content[:60]
+                            if '\n' in content:
+                                content = content.removesuffix('\n')
+                            content = f'{content}...'
+                    json_data = self.update_dict_value(json_data, key, content)
+                except TypeError:
+                    self.logger.debug(f"Without any reason {content} is coming from api.")
         return json_data
 
 
@@ -598,37 +649,22 @@ class Helper():
         row format
         """
         self.logger.debug(f'Table => {table} and Data => {data}')
-        rows, colored_fields = [], []
+        rows = []
         fields = sortby(table)
+        fields.insert(0, 'S. No.')
         self.logger.debug(f'Fields => {fields}')
         for key in data:
-            new_row = []
+            num = 1
             for value in data[key]:
                 self.logger.debug(f'Key => {key} and Value => {value}')
-                new_row.append(key)
-                new_row.append(value['name'])
-                new_row.append(value['path'])
                 content = self.base64_decode(value['content'])
-                new_row.append(content)
-                rows.append(new_row)
-                new_row = []
-        for newfield in fields:
-            colored_fields.append(newfield)
-        fields = colored_fields
-        # Adding Serial Numbers to the dataset
-        fields.insert(0, 'S. No.')
-        num = 1
-        for outer in rows:
-            outer.insert(0, num)
-            num = num + 1
-        # Adding Serial Numbers to the dataset
-        new_fields, new_row = [], []
-        for row in rows:
-            new_fields = new_fields + fields
-            new_row = new_row + row
-            new_fields.append("")
-            new_row.append("")
-        return new_fields, new_row
+                rows.append([fields[0], num])
+                rows.append([fields[1], key])
+                rows.append([fields[2], value['name']])
+                rows.append([fields[3], value['path']])
+                rows.append([fields[4], content])
+                num = num + 1
+        return rows
 
 
     def filter_data_col(self, table=None, data=None):
@@ -636,6 +672,8 @@ class Helper():
         This method will generate the data as for
         row format
         """
+        response = []
+        blank = []
         self.logger.debug(f'Table => {table} and Data => {data}')
         defined_keys = sortby(table)
         self.logger.debug(f'Fields => {defined_keys}')
@@ -645,9 +683,7 @@ class Helper():
         index_map = {v: i for i, v in enumerate(defined_keys)}
         data = sorted(data.items(), key=lambda pair: index_map[pair[0]])
         self.logger.debug(f'Sorted Data => {data}')
-        fields, rows = [], []
         for key in data:
-            fields.append(key[0])
             if isinstance(key[1], list):
                 new_list = []
                 for internal in key[1]:
@@ -658,7 +694,8 @@ class Helper():
                         else:
                             new_list.append(f'  {internal_val} = {internal[internal_val]}')
                 new_list = '\n'.join(new_list)
-                rows.append(new_list)
+                blank.append(key[0])
+                blank.append(new_list)
                 new_list = []
             elif isinstance(key[1], dict):
                 new_list = []
@@ -668,8 +705,12 @@ class Helper():
                     in_val = key[1][internal]
                     new_list.append(f'{in_key} = {in_val} ')
                 new_list = '\n'.join(new_list)
-                rows.append(new_list)
+                blank.append(key[0])
+                blank.append(new_list)
                 new_list = []
             else:
-                rows.append(key[1])
-        return fields, rows
+                blank.append(key[0])
+                blank.append(key[1])
+            response.append(blank)
+            blank = []
+        return response
