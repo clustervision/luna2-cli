@@ -12,15 +12,12 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
-
 import os
 import sys
-import shutil
+from shutil import copy2
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 
-INI_FILE = '/trinity/local/luna/config/luna.ini'
-LOG_FOLDER = '/var/log/luna'
 PRE = "{Personal-Access-Token-Name}:{Personal-Access-Token}"
 
 try: # for pip >= 10
@@ -38,28 +35,18 @@ def new_version():
     version = "0.0.0"
     with open('VERSION.txt', 'r', encoding='utf-8') as ver:
         version = ver.read()
-    shutil.copy2('VERSION.txt', 'luna/VERSION.txt')
+    copy2('VERSION.txt', 'luna/VERSION.txt')
     return version
-
-
-def create_dir(path=None):
-    """This method will create required directories"""
-    if os.path.exists(path) is False:
-        try:
-            os.makedirs(path, mode=0o777, exist_ok=False)
-            sys.stdout.write(f'PASS :: {path} is created.\n')
-        except PermissionError:
-            sys.stderr.write('ERROR :: Install this tool as a super user.\n')
-            sys.exit(1)
 
 
 class PostInstallCommand(install):
     """Post-installation for installation mode."""
     def run(self):
-        create_dir(path="/trinity/local/luna/config")
-        create_dir(path=LOG_FOLDER)
-        if os.path.isfile(INI_FILE) is False:
-            shutil.copy2('luna/luna.ini', INI_FILE)
+        try:
+            os.popen("sudo ln -fs /usr/local/bin/luna /usr/bin/luna")
+        except PermissionError:
+            sys.stderr.write('ERROR :: Install this tool as a super user.\n')
+            sys.exit(1)
         install.run(self)
 
 
