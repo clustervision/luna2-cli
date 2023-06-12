@@ -13,9 +13,12 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 import json
+from prettytable import PrettyTable
+import pyfiglet
 from luna.utils.log import Log
+from luna.utils.constant import BANNER_NAME, BANNER_STYLE
 from luna.utils.message import Message
-from  luna.utils.consoletable import ConsoleTable
+
 class Presenter():
     """
     All kind of display methods.
@@ -26,14 +29,14 @@ class Presenter():
         Constructor - As of now, nothing have to initialize.
         """
         self.logger = Log.get_logger()
-        self.table = ConsoleTable()
+        self.table = PrettyTable()
 
 
     def show_banner(self):
         """
         This method will show the banner
         """
-        banner = "\n+-+-+-+-+ +-+-+-+\n|L|u|n|a| |C|L|I|\n+-+-+-+-+ +-+-+-+\n"
+        banner = pyfiglet.figlet_format(BANNER_NAME, font=BANNER_STYLE)
         Message().show_success(banner)
         return True
 
@@ -54,15 +57,40 @@ class Presenter():
         This method will fetch a records from
         the Luna 2 Daemon Database
         """
-        rows.insert(0, fields)
-        self.table.print_table(title, rows, True)
+        self.logger.debug(f'Fields => {fields}')
+        self.logger.debug(f'Rows => {rows}')
+        self.table.title = title
+        self.table.field_names = fields
+        if '\\n' in str(rows):
+            self.table.align = "l"
+        self.table.add_rows(rows)
+        Message().show_success(self.table)
         return True
 
 
-    def show_table_col(self, title=None, data=None):
+    def show_table_col(self, title=None, field=None, rows=None):
         """
         This method will fetch a records from
         the Luna 2 Daemon Database
         """
-        self.table.print_table(title, data)
+        self.logger.debug(f'Fields => {field}')
+        self.logger.debug(f'Rows => {rows}')
+        self.table.title = title
+        self.table.add_column("Field", field)
+        self.table.add_column("Values", rows)
+        self.table.header = False
+        self.table.align = "l"
+        Message().show_success(self.table)
+        return True
+
+
+    def table_only_rows(self, fields=None, rows=None):
+        """
+        This method will fetch a records from
+        the Luna 2 Daemon Database
+        """
+        self.logger.debug(f'Rows => {rows}')
+        self.table.field_names = fields
+        self.table.add_rows(rows)
+        Message().show_success(self.table)
         return True

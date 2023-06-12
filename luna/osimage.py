@@ -144,19 +144,19 @@ class OSImage():
         request_data = {'config':{self.table:{payload['name']: payload}}}
         self.logger.debug(f'Payload => {request_data}')
         result = Rest().post_clone(self.table, payload['name'], request_data)
-        if result.status == 200:
+        if result.status_code == 200:
             process1 = Process(target=Helper().loader, args=("OS Image Cloning...",))
             process1.start()
-            http_response = result.content
+            http_response = result.json()
             if 'request_id' in http_response.keys():
                 uri = f'config/status/{http_response["request_id"]}'
                 def dig_packing_status(uri):
                     result = Rest().get_raw(uri)
-                    if result.status == 404:
+                    if result.status_code == 404:
                         process1.terminate()
                         return True
-                    elif result.status == 200:
-                        http_response = result.content
+                    elif result.status_code == 200:
+                        http_response = result.json()
                         if http_response['message']:
                             message = http_response['message'].split(';;')
                             for msg in message:
@@ -184,17 +184,17 @@ class OSImage():
         response = False
         uri = f'config/{self.table}/{self.args["name"]}/_pack'
         result = Rest().get_raw(uri)
-        if result.status == 200:
-            http_response = result.content
+        if result.status_code == 200:
+            http_response = result.json()
             if 'request_id' in http_response.keys():
                 uri = f'config/status/{http_response["request_id"]}'
                 def dig_packing_status(uri):
                     result = Rest().get_raw(uri)
-                    if result.status == 404:
+                    if result.status_code == 404:
                         process1.terminate()
                         return True
-                    elif result.status == 200:
-                        http_response = result.content
+                    elif result.status_code == 200:
+                        http_response = result.json()
                         if http_response['message']:
                             message = http_response['message'].split(';;')
                             for msg in message:
@@ -222,16 +222,11 @@ class OSImage():
         payload = Helper().prepare_payload(self.table, self.args)
         request_data = {'config':{self.table:{payload['name']: payload}}}
         self.logger.debug(f'Payload => {request_data}')
-<<<<<<< HEAD
-        self.logger.debug(f'Change Kernel URI => {payload["name"]}/_kernel')
-        response = Rest().post_url_data(self.table, payload['name']+'/_kernel', request_data)
-=======
         self.logger.debug(f'Change Kernel URI => {payload["name"]}/kernel')
         response = Rest().post_data(self.table, payload['name']+'/kernel', request_data)
->>>>>>> pip
         self.logger.debug(f'Response => {response}')
-        if response.status == 204:
+        if response.status_code == 204:
             Message().show_success(f'OS Image {self.args["name"]} Kernel updated.')
         else:
-            Message().error_exit(f'{response.content}', response.status)
+            Message().error_exit(f'{response.content}', response.status_code)
         return True

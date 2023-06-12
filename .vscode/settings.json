@@ -8,8 +8,6 @@
         "bootmenu",
         "changeinterface",
         "clusterid",
-        "configreader",
-        "consoletable",
         "createdby",
         "createnode",
         "distutils",
@@ -72,7 +70,6 @@
         "qpre",
         "removeinterface",
         "roleid",
-        "Schonewille",
         "sdist",
         "servername",
         "serverport",
@@ -88,9 +85,5 @@
         "tsha",
         "Unmanaged",
         "userid"
-    ],
-    "[python]": {
-        "editor.defaultFormatter": "ms-python.black-formatter"
-    },
-    "python.formatting.provider": "none"
+    ]
 }
