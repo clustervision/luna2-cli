@@ -222,8 +222,8 @@ class OSImage():
         payload = Helper().prepare_payload(self.table, self.args)
         request_data = {'config':{self.table:{payload['name']: payload}}}
         self.logger.debug(f'Payload => {request_data}')
-        self.logger.debug(f'Change Kernel URI => {payload["name"]}/_kernel')
-        response = Rest().post_data(self.table, payload['name']+'/_kernel', request_data)
+        self.logger.debug(f'Change Kernel URI => {payload["name"]}/kernel')
+        response = Rest().post_data(self.table, payload['name']+'/kernel', request_data)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
             Message().show_success(f'OS Image {self.args["name"]} Kernel updated.')

@@ -50,7 +50,9 @@ class Rest():
                 self.username, errors = self.get_option(parser, errors, 'API', 'USERNAME')
                 self.password, errors = self.get_option(parser, errors, 'API', 'PASSWORD')
                 self.secret_key, errors = self.get_option(parser, errors, 'API', 'SECRET_KEY')
-                self.daemon, errors = self.get_option(parser, errors, 'API', 'ENDPOINT')
+                protocol, errors = self.get_option(parser, errors, 'API', 'PROTOCOL')
+                daemon, errors = self.get_option(parser, errors, 'API', 'ENDPOINT')
+                self.daemon = f'{protocol}://{daemon}'
             else:
                 errors.append(f'API section is not found in {INI_FILE}.')
         else:
@@ -82,7 +84,7 @@ class Rest():
         This method will fetch a valid token for further use.
         """
         data = {'username': self.username, 'password': self.password}
-        daemon_url = f'http://{self.daemon}/token'
+        daemon_url = f'{self.daemon}/token'
         self.logger.debug(f'Token URL => {daemon_url}')
         try:
             call = requests.post(url=daemon_url, json=data, timeout=5)
@@ -98,7 +100,7 @@ class Rest():
             else:
                 Message().error_exit(call.content, call.status_code)
         except requests.exceptions.ConnectionError:
-            Message().error_exit(call.content, call.status_code)
+            Message().error_exit(call.content)
         except requests.exceptions.JSONDecodeError:
             Message().error_exit(call.content, call.status_code)
         return response
@@ -135,7 +137,7 @@ class Rest():
         """
         response = False
         headers = {'x-access-tokens': self.get_token()}
-        daemon_url = f'http://{self.daemon}/config/{table}'
+        daemon_url = f'{self.daemon}/config/{table}'
         if name:
             daemon_url = f'{daemon_url}/{name}'
         self.logger.debug(f'GET URL => {daemon_url}')
@@ -148,7 +150,7 @@ class Rest():
             else:
                 response = response_json
         except requests.exceptions.ConnectionError:
-            Message().error_exit(f'Request Timeout while {daemon_url}', call.status_code)
+            Message().error_exit(f'Request Timeout while {daemon_url}')
         except requests.exceptions.JSONDecodeError:
             response = False
         return response
@@ -162,7 +164,7 @@ class Rest():
         """
         response = False
         headers = {'x-access-tokens': self.get_token(), 'Content-Type':'application/json'}
-        daemon_url = f'http://{self.daemon}/config/{table}'
+        daemon_url = f'{self.daemon}/config/{table}'
         if name:
             daemon_url = f'{daemon_url}/{name}'
         self.logger.debug(f'POST URL => {daemon_url}')
@@ -183,7 +185,7 @@ class Rest():
         """
         response = False
         headers = {'x-access-tokens': self.get_token()}
-        daemon_url = f'http://{self.daemon}/config/{table}/{name}/_delete'
+        daemon_url = f'{self.daemon}/config/{table}/{name}/_delete'
         self.logger.debug(f'GET URL => {daemon_url}')
         try:
             response = requests.get(url=daemon_url, headers=headers, timeout=5)
@@ -201,7 +203,7 @@ class Rest():
         """
         response = False
         headers = {'x-access-tokens': self.get_token(), 'Content-Type':'application/json'}
-        daemon_url = f'http://{self.daemon}/config/{table}/{name}/_clone'
+        daemon_url = f'{self.daemon}/config/{table}/{name}/_clone'
         self.logger.debug(f'Clone URL => {daemon_url}')
         try:
             response = requests.post(url=daemon_url, json=data, headers=headers, timeout=5)
@@ -219,7 +221,7 @@ class Rest():
         """
         response = False
         headers = {'x-access-tokens': self.get_token()}
-        daemon_url = f'http://{self.daemon}/config/{table}'
+        daemon_url = f'{self.daemon}/config/{table}'
         if name:
             daemon_url = f'{daemon_url}/{name}'
         self.logger.debug(f'Status URL => {daemon_url}')
@@ -240,7 +242,7 @@ class Rest():
         """
         response = False
         headers = {'x-access-tokens': self.get_token()}
-        daemon_url = f'http://{self.daemon}/{route}'
+        daemon_url = f'{self.daemon}/{route}'
         if uri:
             daemon_url = f'{daemon_url}/{uri}'
         self.logger.debug(f'RAW URL => {daemon_url}')
@@ -260,7 +262,7 @@ class Rest():
         """
         response = False
         headers = {'x-access-tokens': self.get_token(), 'Content-Type':'application/json'}
-        daemon_url = f'http://{self.daemon}/{route}'
+        daemon_url = f'{self.daemon}/{route}'
         self.logger.debug(f'Clone URL => {daemon_url}')
         try:
             response = requests.post(url=daemon_url, json=payload, headers=headers, timeout=5)
