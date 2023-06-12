@@ -282,7 +282,7 @@ class Rest():
 =======
                 Message().error_exit(call.content, call.status_code)
         except requests.exceptions.ConnectionError:
-            Message().error_exit(call.content)
+            Message().error_exit(f'Request Timeout while {daemon_url}')
         except requests.exceptions.JSONDecodeError:
             Message().error_exit(call.content, call.status_code)
         return response
