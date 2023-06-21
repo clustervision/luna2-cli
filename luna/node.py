@@ -298,7 +298,7 @@ class Node():
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = self.args
-        if payload is False:
+        if payload:
             self.logger.debug(f'Payload => {payload}')
             uri = payload['name']+'/interfaces/'+payload['interface']
             response = Rest().get_delete(self.table, uri)
