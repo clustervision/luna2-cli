@@ -184,9 +184,9 @@ class Arguments():
             parser.add_argument('-p', '--path', required=True, help='Path of image')
         else:
             parser.add_argument('-p', '--path', help='Path of image')
-        parser.add_argument('-tar', '--imagefile', help='Tarball UUID')
-        parser.add_argument('-t', '--torrent', help='Torrent UUID')
+        parser.add_argument('-img', '--imagefile', help='Imagefile UUID')
         parser.add_argument('-D', '--distribution', help='Distribution')
+        parser.add_argument('-R', '--osrelease', help='OS release or version')
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
