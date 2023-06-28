@@ -29,7 +29,8 @@ BOOL_KEYS = [
     'localinstall',
     'bootmenu',
     'localboot',
-    'service'
+    'service',
+    'bare'
 ]
 EDITOR_KEYS = ['options', 'content', 'comment', 'prescript', 'partscript', 'postscript']
 SERVICE_ACTIONS = ['start', 'stop', 'restart', 'reload', 'status']
@@ -52,8 +53,8 @@ def actions(table=None):
     interface_actions = ["listinterface", "showinterface", "changeinterface", "removeinterface"]
     member_action = ["member"]
     static = {
-        "group": common_actions + member_action + interface_actions,
-        "node": common_actions + interface_actions,
+        "group": common_actions + member_action + ["ospush"] + interface_actions,
+        "node": common_actions + ["osgrab", "ospush"] + interface_actions,
         "network": common_actions + ["ipinfo", "nextip"],
         "osimage": common_actions + member_action + ["pack", "kernel"],
         "bmcsetup": common_actions + member_action,

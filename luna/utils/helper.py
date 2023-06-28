@@ -21,6 +21,7 @@ from random import randint
 from os import getpid
 import hostlist
 from nested_lookup import nested_lookup, nested_update, nested_delete
+from multiprocessing import Process
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
@@ -301,6 +302,94 @@ class Helper():
             Message().show_success(f'{payload["name"]} cloned as {newname}.')
         else:
             Message().error_exit(response.content, response.status_code)
+        return True
+
+
+    def grab_osimage(self, table=None, data=None):
+        """
+        Method to grab an osimage for a node.
+        """
+        process1 = Process(target=Helper().loader, args=("OS Image Grabbing...",))
+        process1.start()
+        response = False
+        for remove in ['verbose', 'command', 'action']:
+            data.pop(remove, None)
+        uri = f'config/{table}/{data["name"]}/_osgrab'
+        data = self.prepare_payload(table, data)
+        request_data = {'config':{table:{data['name']: data}}}
+        print(f'uri => {uri}')
+        print(f'Payload => {request_data}')
+        self.logger.debug(f'Payload => {data}')
+        http_response = Rest().post_raw(uri, request_data)
+        if http_response.status_code == 200:
+            http_response = http_response.json()
+            if 'request_id' in http_response.keys():
+                uri = f'config/status/{http_response["request_id"]}'
+                def dig_grabbing_status(uri):
+                    result = Rest().get_raw(uri)
+                    if result.status_code == 404:
+                        process1.terminate()
+                        return True
+                    elif result.status_code == 200:
+                        http_response = result.json()
+                        if http_response['message']:
+                            message = http_response['message'].split(';;')
+                            for msg in message:
+                                sleep(2)
+                                Message().show_success(f'{msg}')
+                        sleep(2)
+                        return dig_grabbing_status(uri)
+                    else:
+                        return False
+                response = dig_grabbing_status(uri)
+        if response:
+            Message().show_success(f'[========] OS Image Grabbed for node {data["name"]}.')
+        else:
+            Message().error_exit('[X ERROR X] Try Again!')
+        return True
+
+
+    def push_osimage(self, table=None, data=None):
+        """
+        Method to push an osimage for a node or a group.
+        """
+        process1 = Process(target=Helper().loader, args=("OS Image Grabbing...",))
+        process1.start()
+        response = False
+        for remove in ['verbose', 'command', 'action']:
+            data.pop(remove, None)
+        uri = f'config/{table}/{data["name"]}/_ospush'
+        data = self.prepare_payload(table, data)
+        request_data = {'config':{table:{data['name']: data}}}
+        print(f'uri => {uri}')
+        print(f'Payload => {request_data}')
+        self.logger.debug(f'Payload => {data}')
+        http_response = Rest().post_raw(uri, request_data)
+        if http_response.status_code == 200:
+            http_response = http_response.json()
+            if 'request_id' in http_response.keys():
+                uri = f'config/status/{http_response["request_id"]}'
+                def dig_push_status(uri):
+                    result = Rest().get_raw(uri)
+                    if result.status_code == 404:
+                        process1.terminate()
+                        return True
+                    elif result.status_code == 200:
+                        http_response = result.json()
+                        if http_response['message']:
+                            message = http_response['message'].split(';;')
+                            for msg in message:
+                                sleep(2)
+                                Message().show_success(f'{msg}')
+                        sleep(2)
+                        return dig_push_status(uri)
+                    else:
+                        return False
+                response = dig_push_status(uri)
+        if response:
+            Message().show_success(f'[========] OS Image Pushed for {table}  {data["name"]}.')
+        else:
+            Message().error_exit('[X ERROR X] Try Again!')
         return True
 
 

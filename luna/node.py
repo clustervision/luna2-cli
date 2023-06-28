@@ -20,6 +20,7 @@ from luna.utils.log import Log
 from luna.utils.constant import actions
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
+from luna.utils.constant import BOOL_CHOICES, BOOL_META
 
 class Node():
     """
@@ -53,27 +54,36 @@ class Node():
         Method will provide all the arguments
         related to the Node class.
         """
-        node_menu = subparsers.add_parser('node', help='Node operations.')
+        node_menu = subparsers.add_parser('node', help='Compute Node operations.')
         node_args = node_menu.add_subparsers(dest='action')
-        node_list = node_args.add_parser('list', help='List Node')
+        node_list = node_args.add_parser('list', help='List All Nodes')
         Arguments().common_list_args(node_list)
-        node_show = node_args.add_parser('show', help='Show Node')
+        node_show = node_args.add_parser('show', help='Show A Node')
         node_show.add_argument('name', help='Name of the Node')
         Arguments().common_list_args(node_show)
-        node_add = node_args.add_parser('add', help='Add Node')
+        node_add = node_args.add_parser('add', help='Add A Node')
         Arguments().common_node_args(node_add, True)
-        node_change = node_args.add_parser('change', help='Change Node')
+        node_change = node_args.add_parser('change', help='Make Changes Into a Node')
         Arguments().common_node_args(node_change)
-        node_clone = node_args.add_parser('clone', help='Clone Node')
+        node_clone = node_args.add_parser('clone', help='Clone A Node')
         Arguments().common_node_args(node_clone)
         node_clone.add_argument('newnodename', help='New Name for the Node')
-        node_rename = node_args.add_parser('rename', help='Rename Node')
+        node_rename = node_args.add_parser('rename', help='Rename A Node')
         node_rename.add_argument('name', help='Name of the Node')
         node_rename.add_argument('newnodename', help='New Name for the Node')
         node_rename.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
-        node_remove = node_args.add_parser('remove', help='Remove Node')
+        node_remove = node_args.add_parser('remove', help='Remove A Node')
         node_remove.add_argument('name', help='Name of the Node')
         node_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        node_osgrab = node_args.add_parser('osgrab', help='Gran an OS Image for a Node')
+        node_osgrab.add_argument('name', help='Name of the Node')
+        node_osgrab.add_argument('-o', '--osimage', help='OS Image Name')
+        node_osgrab.add_argument('-b', '--bare', choices=BOOL_CHOICES, metavar=BOOL_META, help='Bare OS Image')
+        node_osgrab.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        node_ospush = node_args.add_parser('ospush', help='Push an OS Image for a Node')
+        node_ospush.add_argument('name', help='Name of the Node')
+        node_ospush.add_argument('-o', '--osimage', help='OS Image Name')
+        node_ospush.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_interfaces = node_args.add_parser('listinterface', help='List Node Interfaces')
         node_interfaces.add_argument('name', help='Name of the Node')
         Arguments().common_list_args(node_interfaces)
@@ -173,6 +183,20 @@ class Node():
         Method to remove a node in Luna Configuration.
         """
         return Helper().delete_record(self.table, self.args)
+
+
+    def osgrab_node(self):
+        """
+        Method to grab an osimage to a node.
+        """
+        return Helper().grab_osimage(self.table, self.args)
+
+
+    def ospush_node(self):
+        """
+        Method to push an osimage to a node.
+        """
+        return Helper().push_osimage(self.table, self.args)
 
 
     def clone_node(self):
