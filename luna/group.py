@@ -76,6 +76,10 @@ class Group():
         group_remove = group_args.add_parser('remove', help='Remove Group')
         group_remove.add_argument('name', help='Name of the Group')
         group_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        group_ospush = group_args.add_parser('ospush', help='Push an OS Image for a Group')
+        group_ospush.add_argument('name', help='Name of the Group')
+        group_ospush.add_argument('-o', '--osimage', help='OS Image Name')
+        group_ospush.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_interfaces = group_args.add_parser('listinterface', help='List Group Interfaces')
         group_interfaces.add_argument('name', help='Name of the Group')
         Arguments().common_list_args(group_interfaces)
@@ -172,6 +176,13 @@ class Group():
         Method to remove a group in Luna Configuration.
         """
         return Helper().delete_record(self.table, self.args)
+
+
+    def ospush_group(self):
+        """
+        Method to push an osimage to a group.
+        """
+        return Helper().push_osimage(self.table, self.args)
 
 
     def clone_group(self):
