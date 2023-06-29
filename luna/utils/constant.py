@@ -29,8 +29,7 @@ BOOL_KEYS = [
     'localinstall',
     'bootmenu',
     'localboot',
-    'service',
-    'bare'
+    'service'
 ]
 EDITOR_KEYS = ['options', 'content', 'comment', 'prescript', 'partscript', 'postscript']
 SERVICE_ACTIONS = ['start', 'stop', 'restart', 'reload', 'status']
