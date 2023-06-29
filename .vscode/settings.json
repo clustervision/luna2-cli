@@ -51,6 +51,7 @@
         "nodeid",
         "nodeinterface",
         "nodesecrets",
+        "nodry",
         "nsip",
         "ondemand",
         "osgrab",
