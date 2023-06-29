@@ -20,7 +20,7 @@ from luna.utils.log import Log
 from luna.utils.constant import actions
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
-from luna.utils.constant import BOOL_CHOICES, BOOL_META
+
 
 class Node():
     """
@@ -78,7 +78,7 @@ class Node():
         node_osgrab = node_args.add_parser('osgrab', help='Gran an OS Image for a Node')
         node_osgrab.add_argument('name', help='Name of the Node')
         node_osgrab.add_argument('-o', '--osimage', help='OS Image Name')
-        node_osgrab.add_argument('-b', '--bare', choices=BOOL_CHOICES, metavar=BOOL_META, help='Bare OS Image')
+        node_osgrab.add_argument('-b', '--bare', action='store_true', help='Bare OS Image')
         node_osgrab.add_argument('-no', '--nodry', action='store_true', help='No Dry flag to avoid dry run')
         node_osgrab.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_ospush = node_args.add_parser('ospush', help='Push an OS Image for a Node')
