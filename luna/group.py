@@ -21,6 +21,7 @@ from luna.utils.constant import actions
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
 
+
 class Group():
     """
     Group Class responsible to show, list,
@@ -79,6 +80,7 @@ class Group():
         group_ospush = group_args.add_parser('ospush', help='Push an OS Image for a Group')
         group_ospush.add_argument('name', help='Name of the Group')
         group_ospush.add_argument('-o', '--osimage', help='OS Image Name')
+        group_ospush.add_argument('-no', '--nodry', action='store_true', help='No Dry flag to avoid dry run')
         group_ospush.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_interfaces = group_args.add_parser('listinterface', help='List Group Interfaces')
         group_interfaces.add_argument('name', help='Name of the Group')

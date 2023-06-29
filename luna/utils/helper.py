@@ -317,8 +317,6 @@ class Helper():
         uri = f'config/{table}/{data["name"]}/_osgrab'
         data = self.prepare_payload(table, data)
         request_data = {'config':{table:{data['name']: data}}}
-        print(f'uri => {uri}')
-        print(f'Payload => {request_data}')
         self.logger.debug(f'Payload => {data}')
         http_response = Rest().post_raw(uri, request_data)
         if http_response.status_code == 200:
@@ -361,8 +359,6 @@ class Helper():
         uri = f'config/{table}/{data["name"]}/_ospush'
         data = self.prepare_payload(table, data)
         request_data = {'config':{table:{data['name']: data}}}
-        print(f'uri => {uri}')
-        print(f'Payload => {request_data}')
         self.logger.debug(f'Payload => {data}')
         http_response = Rest().post_raw(uri, request_data)
         if http_response.status_code == 200:

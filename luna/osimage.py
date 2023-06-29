@@ -21,6 +21,8 @@ from luna.utils.log import Log
 from luna.utils.constant import actions
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
+from luna.utils.constant import BOOL_CHOICES, BOOL_META
+
 
 class OSImage():
     """
@@ -64,6 +66,7 @@ class OSImage():
         Arguments().common_osimage_args(osimage_change)
         osimage_clone = osimage_args.add_parser('clone', help='Clone OSImage')
         Arguments().common_osimage_args(osimage_clone, True)
+        osimage_clone.add_argument('-b', '--bare', choices=BOOL_CHOICES, metavar=BOOL_META, help='Bare OS Image')
         osimage_clone.add_argument('newosimage', help='New OSImage Name')
         osimage_rename = osimage_args.add_parser('rename', help='Rename OSImage')
         osimage_rename.add_argument('name', help='OSImage Name')
