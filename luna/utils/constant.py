@@ -54,7 +54,7 @@ def actions(table=None):
     static = {
         "group": common_actions + member_action + ["ospush"] + interface_actions,
         "node": common_actions + ["osgrab", "ospush"] + interface_actions,
-        "network": common_actions + ["ipinfo", "nextip"],
+        "network": common_actions + ["reserve", "ipinfo", "nextip"],
         "osimage": common_actions + member_action + ["pack", "kernel"],
         "bmcsetup": common_actions + member_action,
         "otherdev": common_actions,
