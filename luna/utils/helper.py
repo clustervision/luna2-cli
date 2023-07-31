@@ -208,6 +208,33 @@ class Helper():
         return response
 
 
+    def reserved_ip(self, args=None):
+        """
+        This method will fetch all the reserved IP Address for a network.
+        """
+        response = False
+        get_list = Rest().get_data('network', args['name']+'/_list')
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
+        if get_list:
+            data = get_list['config']['network'][args["name"]]['taken']
+            data = Helper().prepare_json(data)
+            if args['raw']:
+                response = Presenter().show_json(data)
+            else:
+                num = 1
+                fields = ['S.No.', 'IP Address', 'Device Name']
+                rows = []
+                for each in data:
+                    new_row = [num, each['ipaddress'], each['device']]
+                    rows.append(new_row)
+                    num = num + 1
+                title = f'<< Reserved IP Addresses for Network {args["name"]} >>'
+                response = Presenter().show_table(title, fields, rows)
+        else:
+            response = Message().show_error(f'Network {args["name"]} not have any IP reserved.')
+        return response
+
+
     def add_record(self, table=None, data=None):
         """
         This method will add a new record.
@@ -241,8 +268,13 @@ class Helper():
             request_data = {'config':{table:{name: payload}}}
         else:
             request_data = {'config':{table: payload}}
+        if 'cluster' in table:
+            request_data = {'config':{table: payload}}
         self.logger.debug(f'Payload => {request_data}')
-        response = Rest().post_data(table, name, request_data)
+        if 'cluster' in table:
+            response = Rest().post_data(table, None, request_data)
+        else:
+            response = Rest().post_data(table, name, request_data)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
             if name:
