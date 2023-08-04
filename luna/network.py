@@ -148,6 +148,10 @@ class Network():
         uri = f'{self.args["name"]}/{self.args["ipaddress"]}'
         self.logger.debug(f'IPinfo URI => {uri}')
         ipinfo = Rest().get_data(self.table, uri)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
         self.logger.debug(f'IPinfo Response => {ipinfo}')
         if ipinfo:
             status = ipinfo['config']['network'][self.args["ipaddress"]]['status']
@@ -167,6 +171,10 @@ class Network():
         uri = f'{self.args["name"]}/_nextfreeip'
         self.logger.debug(f'NextIP URI => {uri}')
         nextip = Rest().get_data(self.table, uri)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
         self.logger.debug(f'NextIP Response => {nextip}')
         if nextip:
             ipaddress = nextip['config']['network'][self.args["name"]]['nextip']

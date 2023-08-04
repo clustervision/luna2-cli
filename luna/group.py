@@ -215,6 +215,10 @@ class Group():
         fields, rows = [], []
         self.logger.debug(f'Table => {self.table} and URI => {self.args["name"]}/interfaces')
         get_list = Rest().get_data(self.table, self.args['name']+'/interfaces')
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
         self.logger.debug(f'List Interfaces => {get_list}')
         if get_list:
             data = get_list['config'][self.table][self.args["name"]]['interfaces']
@@ -241,6 +245,10 @@ class Group():
         uri = self.args['name']+'/interfaces/'+self.args['interface']
         self.logger.debug(f'Table => {self.table} and URI => {uri}')
         get_list = Rest().get_data(self.table, uri)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
         self.logger.debug(f'List Interfaces => {get_list}')
         if get_list:
             data = get_list['config'][self.table][self.args["name"]]['interfaces'][0]
