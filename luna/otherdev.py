@@ -121,7 +121,7 @@ class OtherDev():
         """
         This method clone a other device.
         """
-        return Helper().clone_record(self.table, self.args, self.args["newotherdevname"])
+        return Helper().clone_record(self.table, self.args)
 
 
     def rename_otherdev(self):

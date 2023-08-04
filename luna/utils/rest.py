@@ -12,6 +12,8 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
+
+import types
 from configparser import RawConfigParser
 import os
 import sys
@@ -20,6 +22,7 @@ import jwt
 from luna.utils.log import Log
 from luna.utils.constant import INI_FILE, TOKEN_FILE
 from luna.utils.message import Message
+
 
 class Rest():
     """
@@ -77,6 +80,30 @@ class Rest():
         else:
             error.append(f'{option} is not found in {section} section in {INI_FILE}.')
         return response, error
+
+
+    def get_response(self, data=None):
+        """
+        This method will return the response object.
+        """
+        if data.content:
+            response = types.SimpleNamespace()
+            response.status_code = data.status_code
+            try:
+                json_message = data.json()
+                if 'request_id' in json_message:
+                    response.content = json_message
+                elif 'message' in json_message:
+                    response.content = json_message['message']
+                elif 'token' in json_message:
+                    response.content = json_message['token']
+                else:
+                    response.content = json_message
+            except requests.exceptions.JSONDecodeError:
+                response.content = data.content
+        else:
+            response = data
+        return response
 
 
     def token(self):
@@ -144,11 +171,12 @@ class Rest():
         try:
             call = requests.get(url=daemon_url, params=data, headers=headers, timeout=5)
             self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
-            response_json = call.json()
-            if 'message' in response_json:
-                Message().show_error(response_json["message"])
-            else:
-                response = response_json
+            response = self.get_response(call)
+            # response_json = call.json()
+            # if 'message' in response_json:
+            #     Message().show_error(response_json["message"])
+            # else:
+            #     response = response_json
         except requests.exceptions.ConnectionError:
             Message().error_exit(f'Request Timeout while {daemon_url}')
         except requests.exceptions.JSONDecodeError:
@@ -171,6 +199,7 @@ class Rest():
         self.logger.debug(f'POST DATA => {data}')
         try:
             response = requests.post(url=daemon_url, json=data, headers=headers, timeout=5)
+            response = self.get_response(response)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.ConnectionError:
             Message().error_exit(f'Request Timeout while {daemon_url}')
@@ -189,6 +218,7 @@ class Rest():
         self.logger.debug(f'GET URL => {daemon_url}')
         try:
             response = requests.get(url=daemon_url, headers=headers, timeout=5)
+            response = self.get_response(response)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.ConnectionError:
             Message().error_exit(f'Request Timeout while {daemon_url}')
@@ -207,6 +237,7 @@ class Rest():
         self.logger.debug(f'Clone URL => {daemon_url}')
         try:
             response = requests.post(url=daemon_url, json=data, headers=headers, timeout=5)
+            response = self.get_response(response)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.ConnectionError:
             Message().error_exit(f'Request Timeout while {daemon_url}')

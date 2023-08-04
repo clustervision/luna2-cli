@@ -111,7 +111,7 @@ class BMCSetup():
         """
         This method clone a bmcsetup.
         """
-        return Helper().clone_record(self.table, self.args, self.args["newbmcname"])
+        return Helper().clone_record(self.table, self.args)
 
 
     def rename_bmcsetup(self):

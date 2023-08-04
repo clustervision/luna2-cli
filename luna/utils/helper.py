@@ -19,9 +19,9 @@ import binascii
 import subprocess
 from random import randint
 from os import getpid
+from multiprocessing import Process
 import hostlist
 from nested_lookup import nested_lookup, nested_update, nested_delete
-from multiprocessing import Process
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
@@ -71,6 +71,10 @@ class Helper():
                 if content[0] is True:
                     if table:
                         get_list = Rest().get_data(table, payload['name'])
+                        if get_list.status_code == 200:
+                            get_list = get_list.content
+                        else:
+                            Message().error_exit(get_list.content, get_list.status_code)
                         if get_list:
                             value = nested_lookup(key, get_list)
                             if value:
@@ -132,6 +136,10 @@ class Helper():
         response = False
         fields, rows = [], []
         get_list = Rest().get_data(table)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
         self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config'][table]
@@ -160,6 +168,10 @@ class Helper():
         if 'name' in args:
             row_name = args['name']
         get_list = Rest().get_data(table, row_name)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
         self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             if row_name:
@@ -187,6 +199,10 @@ class Helper():
         """
         response = False
         get_list = Rest().get_data(table, args['name']+'/_list')
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
         self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config'][table][args["name"]]['members']
@@ -214,6 +230,10 @@ class Helper():
         """
         response = False
         get_list = Rest().get_data('network', args['name']+'/_list')
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
         self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config']['network'][args["name"]]['taken']
@@ -244,12 +264,17 @@ class Helper():
         payload = self.prepare_payload(None, data)
         request_data = {'config':{table:{payload['name']: payload}}}
         self.logger.debug(f'Payload => {request_data}')
-        response = Rest().post_data(table, payload['name'], request_data)
-        self.logger.debug(f'Response => {response}')
-        if response.status_code == 201:
-            Message().show_success(f'New {table.capitalize()}, {payload["name"]} created.')
+        record = Rest().get_data(table, payload['name'])
+        if record.status_code == 200:
+            message = f'{payload["name"]} already present in {table.capitalize()}'
+            Message().error_exit(message, record.status_code)
         else:
-            Message().error_exit(response.content, response.status_code)
+            response = Rest().post_data(table, payload['name'], request_data)
+            self.logger.debug(f'Response => {response}')
+            if response.status_code == 201:
+                Message().show_success(f'New {table.capitalize()}, {payload["name"]} created.')
+            else:
+                Message().error_exit(response.content, response.status_code)
         return True
 
 
@@ -274,7 +299,14 @@ class Helper():
         if 'cluster' in table:
             response = Rest().post_data(table, None, request_data)
         else:
-            response = Rest().post_data(table, name, request_data)
+            record = Rest().get_data(table, payload['name'])
+            if record.status_code == 200:
+                if len(payload) == 1:
+                    Message().error_exit('Kindly choose something to update.')
+                else:
+                    response = Rest().post_data(table, name, request_data)
+            else:
+                Message().error_exit(f'Kindly add the {payload["name"]} first', record.status_code)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
             if name:
@@ -319,7 +351,7 @@ class Helper():
         return True
 
 
-    def clone_record(self, table=None, data=None, newname=None):
+    def clone_record(self, table=None, data=None):
         """
         This method will clone a record.
         """
@@ -331,7 +363,7 @@ class Helper():
         response = Rest().post_clone(table, payload['name'], request_data)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 201:
-            Message().show_success(f'{payload["name"]} cloned as {newname}.')
+            Message().show_success(response.content)
         else:
             Message().error_exit(response.content, response.status_code)
         return True
@@ -383,7 +415,7 @@ class Helper():
         """
         Method to push an osimage for a node or a group.
         """
-        process1 = Process(target=Helper().loader, args=("OS Image Grabbing...",))
+        process1 = Process(target=Helper().loader, args=("OS Image Pushing...",))
         process1.start()
         response = False
         for remove in ['verbose', 'command', 'action']:

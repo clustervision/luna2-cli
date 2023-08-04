@@ -149,7 +149,7 @@ class OSImage():
         if result.status_code == 200:
             process1 = Process(target=Helper().loader, args=("OS Image Cloning...",))
             process1.start()
-            http_response = result.json()
+            http_response = result.content
             if 'request_id' in http_response.keys():
                 uri = f'config/status/{http_response["request_id"]}'
                 def dig_packing_status(uri):

@@ -171,6 +171,10 @@ class Secrets():
         if error is False:
             self.logger.debug(f'Secret URI => {uri}')
             get_list = Rest().get_data(uri)
+            if get_list.status_code == 200:
+                get_list = get_list.content
+            else:
+                Message().error_exit(get_list.content, get_list.status_code)
             self.logger.debug(f'Get List Data from Helper => {get_list}')
             if get_list:
                 data = get_list['config']['secrets']
@@ -215,6 +219,10 @@ class Secrets():
                 uri = f'{uri}/{self.args["secret"]}'
             self.logger.debug(f'Secret URI => {uri}')
             get_list = Rest().get_data(uri)
+            if get_list.status_code == 200:
+                get_list = get_list.content
+            else:
+                Message().error_exit(get_list.content, get_list.status_code)
             self.logger.debug(f'Get List Data from Helper => {get_list}')
             if get_list:
                 data = get_list['config']['secrets']

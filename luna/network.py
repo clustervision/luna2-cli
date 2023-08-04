@@ -57,9 +57,6 @@ class Network():
         Arguments().common_network_args(network_add, True)
         network_change = network_args.add_parser('change', help='Change Network')
         Arguments().common_network_args(network_change)
-        network_clone = network_args.add_parser('clone', help='Clone Network')
-        Arguments().common_network_args(network_clone, True)
-        network_clone.add_argument('newnetname', help='New Network Name')
         network_rename = network_args.add_parser('rename', help='Rename Network')
         network_rename.add_argument('name', help='Network Name')
         network_rename.add_argument('newnetname', help='New Network Name')
@@ -67,13 +64,10 @@ class Network():
         network_remove = network_args.add_parser('remove', help='Remove Network')
         network_remove.add_argument('name', help='Network Name')
         network_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
-
         network_taken = network_args.add_parser('reserve', help='List Reserved IP\'s for Network')
         network_taken.add_argument('name', help='Network Name')
         network_taken.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
         network_taken.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
-
-
         network_ipinfo = network_args.add_parser('ipinfo', help='Show Network IP Information')
         network_ipinfo.add_argument('name', help='Network Name')
         network_ipinfo.add_argument('ipaddress', help='IP Address from the Network')
@@ -126,13 +120,6 @@ class Network():
         return Helper().delete_record(self.table, self.args)
 
 
-    def clone_network(self):
-        """
-        This method clone a network.
-        """
-        return Helper().clone_record(self.table, self.args, self.args["newnetname"])
-
-
     def reserve_network(self):
         """
         This method will show all Nodes boots with the OSimage.
@@ -148,6 +135,10 @@ class Network():
         uri = f'{self.args["name"]}/{self.args["ipaddress"]}'
         self.logger.debug(f'IPinfo URI => {uri}')
         ipinfo = Rest().get_data(self.table, uri)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
         self.logger.debug(f'IPinfo Response => {ipinfo}')
         if ipinfo:
             status = ipinfo['config']['network'][self.args["ipaddress"]]['status']
@@ -167,6 +158,10 @@ class Network():
         uri = f'{self.args["name"]}/_nextfreeip'
         self.logger.debug(f'NextIP URI => {uri}')
         nextip = Rest().get_data(self.table, uri)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
         self.logger.debug(f'NextIP Response => {nextip}')
         if nextip:
             ipaddress = nextip['config']['network'][self.args["name"]]['nextip']
