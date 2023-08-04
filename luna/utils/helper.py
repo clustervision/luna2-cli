@@ -19,9 +19,9 @@ import binascii
 import subprocess
 from random import randint
 from os import getpid
+from multiprocessing import Process
 import hostlist
 from nested_lookup import nested_lookup, nested_update, nested_delete
-from multiprocessing import Process
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
@@ -266,7 +266,8 @@ class Helper():
         self.logger.debug(f'Payload => {request_data}')
         record = Rest().get_data(table, payload['name'])
         if record.status_code == 200:
-            Message().error_exit(f'{payload["name"]} already present in {table.capitalize()}', record.status_code)
+            message = f'{payload["name"]} already present in {table.capitalize()}'
+            Message().error_exit(message, record.status_code)
         else:
             response = Rest().post_data(table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
@@ -350,7 +351,7 @@ class Helper():
         return True
 
 
-    def clone_record(self, table=None, data=None, newname=None):
+    def clone_record(self, table=None, data=None):
         """
         This method will clone a record.
         """

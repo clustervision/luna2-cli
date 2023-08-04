@@ -13,7 +13,6 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 
-import json
 import types
 from configparser import RawConfigParser
 import os
@@ -23,6 +22,7 @@ import jwt
 from luna.utils.log import Log
 from luna.utils.constant import INI_FILE, TOKEN_FILE
 from luna.utils.message import Message
+
 
 class Rest():
     """
@@ -80,7 +80,7 @@ class Rest():
         else:
             error.append(f'{option} is not found in {section} section in {INI_FILE}.')
         return response, error
-    
+
 
     def get_response(self, data=None):
         """
@@ -91,7 +91,9 @@ class Rest():
             response.status_code = data.status_code
             try:
                 json_message = data.json()
-                if 'message' in json_message:
+                if 'request_id' in json_message:
+                    response.content = json_message
+                elif 'message' in json_message:
                     response.content = json_message['message']
                 elif 'token' in json_message:
                     response.content = json_message['token']

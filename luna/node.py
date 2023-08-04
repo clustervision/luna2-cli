@@ -222,7 +222,7 @@ class Node():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options']:
                 self.args.pop(remove, None)
-        return Helper().clone_record(self.table, self.args, self.args["newnodename"])
+        return Helper().clone_record(self.table, self.args)
 
 
     def listinterface(self):

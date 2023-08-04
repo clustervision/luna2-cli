@@ -204,7 +204,7 @@ class Group():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'options']:
                 self.args.pop(remove, None)
-        return Helper().clone_record(self.table, self.args, self.args["newgroupname"])
+        return Helper().clone_record(self.table, self.args)
 
 
     def listinterface(self):

@@ -130,7 +130,7 @@ class Switch():
         """
         This method clone a switch.
         """
-        return Helper().clone_record(self.table, self.args, self.args["newswitchname"])
+        return Helper().clone_record(self.table, self.args)
 
 
     def rename_switch(self):
