@@ -70,6 +70,7 @@ class Service():
         self.logger.debug(f'Service URL => {uri}')
         response = Rest().get_raw(self.route, uri)
         self.logger.debug(f'Response => {response}')
+        result = response
         content = response.json()
         status_code = response.status_code
         if self.args["action"] == 'status':
@@ -117,8 +118,8 @@ class Service():
                     action = self.args['action']
                     Message().show_success(f'[========] Service {service} {action} is finish.')
                 else:
-                    Message().error_exit('[X ERROR X] Try Again!')
+                    Message().error_exit(result.content, result.status_code)
             else:
                 process1.terminate()
-                Message().error_exit('[X ERROR X] Something is Wrong with Daemon.')
+                Message().error_exit(result.content, result.status_code)
         return response
