@@ -383,6 +383,7 @@ class Helper():
         request_data = {'config':{table:{data['name']: data}}}
         self.logger.debug(f'Payload => {data}')
         http_response = Rest().post_raw(uri, request_data)
+        result = http_response
         if http_response.status_code == 200:
             http_response = http_response.json()
             if 'request_id' in http_response.keys():
@@ -407,7 +408,7 @@ class Helper():
         if response:
             Message().show_success(f'[========] OS Image Grabbed for node {data["name"]}.')
         else:
-            Message().error_exit('[X ERROR X] Try Again!')
+            Message().error_exit(result.content, result.status_code)
         return True
 
 
@@ -425,6 +426,7 @@ class Helper():
         request_data = {'config':{table:{data['name']: data}}}
         self.logger.debug(f'Payload => {data}')
         http_response = Rest().post_raw(uri, request_data)
+        result = http_response
         if http_response.status_code == 200:
             http_response = http_response.json()
             if 'request_id' in http_response.keys():
@@ -449,7 +451,7 @@ class Helper():
         if response:
             Message().show_success(f'[========] OS Image Pushed for {table}  {data["name"]}.')
         else:
-            Message().error_exit('[X ERROR X] Try Again!')
+            Message().error_exit(result.content, result.status_code)
         return True
 
 

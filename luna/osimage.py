@@ -173,7 +173,7 @@ class OSImage():
         if response:
             Message().show_success(f'[========] OS Image {self.args["newosimage"]} Cloned.')
         else:
-            Message().error_exit('[X ERROR X] Try Again!')
+            Message().error_exit(result.content, result.status_code)
         return response
 
 
@@ -210,7 +210,7 @@ class OSImage():
         if response:
             Message().show_success(f'[========] Image {self.args["name"]} Packed.')
         else:
-            Message().error_exit('[X ERROR X] Try Again!')
+            Message().error_exit(result.content, result.status_code)
         return response
 
 

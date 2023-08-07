@@ -99,7 +99,7 @@ class Control():
                 if check:
                     Message().show_success('[========] Process Completed')
                 else:
-                    Message().error_exit('[X ERROR X] Try Again!')
+                    Message().error_exit(result.content, result.status_code)
         else:
             Message().show_error("Incorrect host list")
         return response
@@ -146,7 +146,7 @@ class Control():
                 if check:
                     Message().show_success('[========] Process Completed')
                 else:
-                    Message().error_exit('[X ERROR X] Try Again!')
+                    Message().error_exit(result.content, result.status_code)
         else:
             Message().show_error("Incorrect host list")
         return response
