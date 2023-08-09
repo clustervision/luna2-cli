@@ -358,7 +358,7 @@ class Secrets():
                 self.logger.debug(f'Payload => {request_data}')
                 response = Rest().post_clone(self.route, uri, request_data)
                 self.logger.debug(f'Response => {response}')
-                if response.status_code == 204:
+                if response.status_code == 201:
                     Message().show_success('Secret is Cloned.')
                 else:
                     Message().error_exit(response.content, response.status_code)
