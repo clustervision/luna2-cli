@@ -81,7 +81,7 @@ class Service():
                     service_name = list(content['monitor']['Service'].keys())
                     service_status = content['monitor']['Service'][service_name[0]]
                     Message().show_success(service_status)
-            elif status_code == 500:
+            elif status_code == 503:
                 service_name = list(content['monitor']['Service'].keys())
                 service_status = content['monitor']['Service'][service_name[0]]
                 Message().error_exit(service_status, status_code)
