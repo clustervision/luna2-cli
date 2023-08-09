@@ -160,6 +160,7 @@ class Arguments():
                                  metavar=BOOL_META, help='DHCP')
         parser.add_argument('-ds', '--dhcp_range_begin', help='DHCP Range Start')
         parser.add_argument('-de', '--dhcp_range_end', help='DHCP Range End')
+        parser.add_argument('-z', '--zone', help='Internal OR External Network Zone')
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
