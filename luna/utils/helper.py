@@ -121,6 +121,7 @@ class Helper():
             value = self.base64_decode(value)
             temp_file.write(value)
             temp_file.close()
+        subprocess.check_output(f"sed -i 's/\r$//' {editor}", shell=True)
         subprocess.call([editor, filename])
         with open(filename, 'rb') as file_data:
             response = self.base64_encode(file_data.read())

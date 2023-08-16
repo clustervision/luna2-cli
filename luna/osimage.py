@@ -65,6 +65,7 @@ class OSImage():
         Arguments().common_osimage_args(osimage_change)
         osimage_clone = osimage_args.add_parser('clone', help='Clone OSImage')
         Arguments().common_osimage_args(osimage_clone, True)
+        osimage_clone.add_argument('-nc', '--nocopy', action='store_true', help='No Copy OS Image')
         osimage_clone.add_argument('-b', '--bare', action='store_true', help='Bare OS Image')
         osimage_clone.add_argument('newosimage', help='New OSImage Name')
         osimage_rename = osimage_args.add_parser('rename', help='Rename OSImage')
