@@ -17,7 +17,7 @@ import os
 import sys
 from shutil import copy2
 
-INI_FILE = '/trinity/local/luna/config/luna.ini'
+INI_FILE = '/trinity/local/luna/cli/config/luna.ini'
 LOG_FOLDER = '/var/log/luna'
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 

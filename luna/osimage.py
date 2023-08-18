@@ -83,6 +83,7 @@ class OSImage():
         osimage_kernel.add_argument('-rd', '--initrdfile', help='INIT RD File')
         osimage_kernel.add_argument('-k', '--kernelfile', help='Kernel File')
         osimage_kernel.add_argument('-ver', '--kernelversion', help='Kernel Version')
+        osimage_kernel.add_argument('-b', '--bare', action='store_true', help='Bare OS Image(Exclude Packing)')
         osimage_kernel.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         return parser
 
@@ -226,10 +227,37 @@ class OSImage():
         request_data = {'config':{self.table:{payload['name']: payload}}}
         self.logger.debug(f'Payload => {request_data}')
         self.logger.debug(f'Change Kernel URI => {payload["name"]}/kernel')
-        response = Rest().post_data(self.table, payload['name']+'/kernel', request_data)
-        self.logger.debug(f'Response => {response}')
-        if response.status_code == 204:
+        result = Rest().post_data(self.table, payload['name']+'/kernel', request_data)
+        if result.status_code == 204:
             Message().show_success(f'OS Image {self.args["name"]} Kernel updated.')
+        elif result.status_code == 200:
+            process1 = Process(target=Helper().loader, args=("OS Image Kernel Update (Packing)...",))
+            process1.start()
+            response = False
+            http_response = result.content
+            if 'request_id' in http_response.keys():
+                uri = f'config/status/{http_response["request_id"]}'
+                def dig_packing_status(uri):
+                    result = Rest().get_raw(uri)
+                    if result.status_code == 404:
+                        process1.terminate()
+                        return True
+                    elif result.status_code == 200:
+                        http_response = result.json()
+                        if http_response['message']:
+                            message = http_response['message'].split(';;')
+                            for msg in message:
+                                sleep(2)
+                                Message().show_success(f'{msg}')
+                        sleep(2)
+                        return dig_packing_status(uri)
+                    else:
+                        return False
+                response = dig_packing_status(uri)
+            if response:
+                Message().show_success(f'[========] Image {self.args["name"]} Packed.')
+            else:
+                Message().error_exit(result.content, result.status_code)
         else:
-            Message().error_exit(f'{response.content}', response.status_code)
+            Message().error_exit(f'{result.content}', result.status_code)
         return True
