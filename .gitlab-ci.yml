@@ -1,0 +1,12 @@
+stages:
+  - package
+
+package:
+  stage: package
+  image: python:3.10.0-alpine
+  only:
+    - tags
+  script:
+    - pip install twine wheel
+    - python setup.py sdist bdist_wheel
+    - twine upload dist/*
