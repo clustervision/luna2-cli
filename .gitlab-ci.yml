@@ -53,7 +53,7 @@ build_package:
 
 deploy_to_remote:
   stage: deploy
-  # image: docker:stable
+  image: docker:stable
   # before_script:
     # - apk add python python-dev python pip
   script:
