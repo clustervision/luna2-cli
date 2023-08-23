@@ -56,5 +56,5 @@ deploy_to_remote:
   script:
     - apt-get update && apt-get install -y openssh-client  # Install SSH client if needed
     - scp dist/* SSH_USER@IPADDRESS:TEST_LOCATION
-  only:
-    - master  # Deploy only when changes are pushed to the master branch
+  # only:
+    # - master  # Deploy only when changes are pushed to the master branch
