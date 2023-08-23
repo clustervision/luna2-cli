@@ -47,6 +47,7 @@ stages:
 
 build_package:
   stage: build
+  image: python:3.10.0-alpine
   script:
     - python setup.py sdist bdist_wheel
 
