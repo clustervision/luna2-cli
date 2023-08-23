@@ -1,25 +1,59 @@
-image: docker:stable
+# image: docker:stable
+# stages:
+#  - test
+#  - build
+
+# before-script:
+#   - apk add python python-dev python pip
+
+# test1:
+# stage: test
+# script:
+#   - pytest
+
+# build:
+# stage: build
+#  - docker build -t $IMAGE_TAG .
+#  - docker push $IMAGE_TAG
+
+
+# stages:
+#   - package
+
+# package:
+#   stage: package
+#   image: python:3.10.0-alpine
+#   # only:
+#     # - development
+#     # - merge_requests
+#   before_script:
+#     - apk add python python-dev python pip
+#     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+#     - eval $(ssh-agent -s)
+#     - ssh-add <(echo "$SSH_PRIVATE_KEY")
+#     - mkdir -p ~/.ssh
+#     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+#   script:
+#     - pip install twine wheel
+#     - python setup.py sdist bdist_wheel
+#     # - twine upload dist/*
+#     - apt-get update -qq && apt-get install -y -qq lftp
+#     - scp -r dist/* $SSH_USER@$IPADDRESS:$TEST_LOCATION
+
+
 stages:
-  - package
+  - build
+  - deploy
 
-package:
-  stage: package
-  image: python:3.10.0-alpine
-  # only:
-    # - development
-    # - merge_requests
-  before_script:
-    - apk add python python-dev python pip
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-    - eval $(ssh-agent -s)
-    - ssh-add <(echo "$SSH_PRIVATE_KEY")
-    - mkdir -p ~/.ssh
-    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+build_package:
+  stage: build
   script:
-    - pip install twine wheel
     - python setup.py sdist bdist_wheel
-    # - twine upload dist/*
-    - apt-get update -qq && apt-get install -y -qq lftp
-    - scp -r dist/* $SSH_USER@$IPADDRESS:$TEST_LOCATION
 
-    
+deploy_to_remote:
+  stage: deploy
+  script:
+    - apt-get update && apt-get install -y openssh-client  # Install SSH client if needed
+    - scp dist/* SSH_USER@IPADDRESS:TEST_LOCATION
+  only:
+    - master  # Deploy only when changes are pushed to the master branch
