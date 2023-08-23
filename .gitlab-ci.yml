@@ -76,7 +76,7 @@
 
 stages:
   - build
-  - deploy
+  # - deploy
 
 build_package:
   stage: build
@@ -88,10 +88,10 @@ build_package:
   script:
     - python3 setup.py sdist bdist_wheel
 
-deploy_to_remote:
-  stage: deploy
-  script:
-    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+# deploy_to_remote:
+  # stage: deploy
+  # script:
+    # - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
     - ssh-add <(echo "$SSH_PRIVATE_KEY")
     - mkdir -p ~/.ssh
