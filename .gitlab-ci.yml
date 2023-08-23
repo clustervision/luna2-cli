@@ -9,6 +9,7 @@ package:
     # - development
     # - merge_requests
   before_script:
+    - apk add python python-dev python pip
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
     - ssh-add <(echo "$SSH_PRIVATE_KEY")
