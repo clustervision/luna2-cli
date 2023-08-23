@@ -54,8 +54,9 @@ build_package:
 deploy_to_remote:
   stage: deploy
   image: docker:stable
-  script:
+  before_script:
     - apk add python python-dev python pip
+  script:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
     - ssh-add <(echo "$SSH_PRIVATE_KEY")
