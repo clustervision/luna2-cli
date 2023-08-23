@@ -65,6 +65,9 @@ deploy_to_remote:
     # - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
 
     - apt-get update && apt-get install -y openssh-client  # Install SSH client if needed
+    - echo $SSH_USER
+    - echo $IPADDRESS
+    - echo $TEST_LOCATION
     - scp dist/* $SSH_USER@$IPADDRESS:$TEST_LOCATION
   # only:
     # - master  # Deploy only when changes are pushed to the master branch
