@@ -12,7 +12,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
-from shutil import copy2
+from time import time
 from setuptools import setup, find_packages
 
 PRE = "{Personal-Access-Token-Name}:{Personal-Access-Token}"
@@ -28,11 +28,13 @@ except ImportError: # for pip <= 9.0.3
 
 
 def new_version():
-    """This Method will create a New version and update the Version file."""
-    version = "0.0.0"
-    with open('VERSION.txt', 'r', encoding='utf-8') as ver:
-        version = ver.read()
-    copy2('VERSION.txt', 'luna/VERSION.txt')
+    """
+    This Method will create a New version and update the Version file.
+    """
+    time_now = int(time())
+    version = f'2.0.{time_now}'
+    with open('luna/VERSION.txt', 'w', encoding='utf-8') as ver:
+        ver.write(version)
     return version
 
 
