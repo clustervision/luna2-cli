@@ -53,8 +53,16 @@ build_package:
 
 deploy_to_remote:
   stage: deploy
+  image: docker:stable
   script:
-    - apt-get update && apt-get install -y openssh-client  # Install SSH client if needed
+    - apk add python python-dev python pip
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+
+    # - apt-get update && apt-get install -y openssh-client  # Install SSH client if needed
     - scp dist/* SSH_USER@IPADDRESS:TEST_LOCATION
   # only:
     # - master  # Deploy only when changes are pushed to the master branch
