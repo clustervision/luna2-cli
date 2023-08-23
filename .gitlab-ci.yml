@@ -93,12 +93,15 @@ build_package:
   # script:
     # - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
-    - ssh-add <(echo "$SSH_PRIVATE_KEY")
+    - ssh-add <(echo "$SSH_PRIVATE_KEY" | base64 -d)
     - mkdir -p ~/.ssh
     - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
     - echo $env:SSH_USER
     - echo $env:IPADDRESS
     - echo $env:TEST_LOCATION
+    - echo $SSH_USER
+    - echo $IPADDRESS
+    - echo $TEST_LOCATION
     - scp -r dist/* $env:SSH_USER@$env:IPADDRESS:$env:TEST_LOCATION
   # only:
     # - master  # Deploy only when changes are pushed to the master branch
