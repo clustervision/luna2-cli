@@ -6,7 +6,6 @@ package:
   image: python:3.10.0-alpine
   only:
     - development
-    - merge_requests
   script:
     - python setup.py sdist bdist_wheel
     - scp -r dist/* $SSH_USER@$IPADDRESS:$TEST_LOCATION

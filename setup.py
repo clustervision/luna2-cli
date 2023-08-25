@@ -39,7 +39,7 @@ def new_version():
 
 
 setup(
-	name = "luna",
+	name = "luna2-cli",
 	version = new_version(),
 	description = "Luna CLI tool to manage Luna Daemon",
 	long_description = "Luna CLI is a tool to manage Luna Daemon. It's a part of Trinity project.",
