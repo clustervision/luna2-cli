@@ -479,40 +479,6 @@ class Helper():
         return parser
 
 
-    def control_print(self, num=None, control_data=None):
-        """
-        This method will perform power option on node.
-        """
-        header = "| S.No. |     Node Name      |       Status       |"
-        hr_line = 'X-------------------------------------------------X'
-        rows = []
-        power_status = ['failed', 'off', 'on']
-        if 'control' in control_data:
-            if 'power' in control_data['control']:
-                for state in power_status:
-                    if control_data['control']['power'][state]['hostlist']:
-                        host_list = control_data['control']['power'][state]['hostlist'].split(',')
-                        for node in host_list:
-                            rows.append([num, node, state.capitalize()])
-                            num = num + 1
-
-        if rows:
-            for row in rows:
-                if row[0] == 1:
-                    Message().show_success(hr_line)
-                    Message().show_success(header)
-                    Message().show_success(hr_line)
-                row[0] = f'{row[0]}'.ljust(6)
-                row[1] = f'{row[1]}'.ljust(19)
-                if row[2] in ['Failed', 'Off', 'off']:
-                    row[2] = row[2].ljust(19)
-                if row[2] in ['on', 'On']:
-                    row[2] = row[2].ljust(19)
-                line = f'| {row[0]}| {row[1]}| {row[2]}|'
-                Message().show_success(line)
-        return num
-
-
     def loader(self, message=None):
         """
         This method is a loader, will run while transactions happens.
@@ -546,24 +512,60 @@ class Helper():
         return True
 
 
-    def dig_data(self, code=None, request_id=None, count=None):
+    def control_print(self, system=None, content=None, count=None):
         """
-        Data Digger for Control API's.
+        This method will parse the data for Control API's.
         """
-        sleep(2)
+        result = {}
+        possible_cases = ['ok', 'on', 'off']
+        if 'failed' in content['control']:
+            for key, value in content['control']['failed'].items():
+                result[key] = value
+
+        if system in content['control']:
+            for case in possible_cases:
+                if case in content['control'][system]:
+                    for key, value in content['control'][system][case].items():
+                        result[key] = case.upper()
+        result = dict(sorted(result.items()))
+
+        header = "| S.No. |     Node Name      |       Status                                              |"
+        hr_line = 'X----------------------------------------------------------------------------------------X'
+        rows = []
+        for key, value in result.items():
+            rows.append([count, key, value])
+            count = count + 1
+
+        if rows:
+            for row in rows:
+                if row[0] == 1:
+                    Message().show_success(hr_line)
+                    Message().show_success(header)
+                    Message().show_success(hr_line)
+                row[0] = f'{row[0]}'.ljust(6)
+                row[1] = f'{row[1]}'.ljust(19)
+                row[2] = f'{row[2]}'.ljust(58)
+                line = f'| {row[0]}| {row[1]}| {row[2]}|'
+                Message().show_success(line)
+        return count
+
+
+    def dig_control_status(self, request_id=None, count=None, system=None):
+        """
+        This method will fetch the status of Control API.
+        """
         uri = f'control/status/{request_id}'
-        response = Rest().get_raw(uri)
-        code = response.status_code
-        http_response = response.json()
-        if code == 200:
-            count = Helper().control_print(count, http_response)
-            return self.dig_data(code, request_id, count)
-        elif code == 404:
-            Message().show_success('X-------------------------------------------------X')
-            return True
+        sleep(2)
+        status = Rest().get_raw(uri)
+        status_json = status.json()
+        if status.status_code == 200:
+            count = Helper().control_print(system, status_json, count)
+            return self.dig_control_status(request_id, count, system)
+        elif status.status_code == 404:
+            Message().show_success('X----------------------------------------------------------------------------------------X')
         else:
-            Message().show_error(f"Something Went Wrong {code}")
-            return False
+            Message().show_error(f"Something Went Wrong {status.status_code}")
+            
 
 
     def filter_interface(self, table=None, data=None):

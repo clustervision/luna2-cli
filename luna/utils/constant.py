@@ -59,7 +59,12 @@ def actions(table=None):
         "osimage": common_actions + member_action + ["pack", "kernel"],
         "bmcsetup": common_actions + member_action,
         "otherdev": common_actions,
-        "switch" : common_actions
+        "switch" : common_actions,
+        "control" : ["power", "sel", "chassis", "redfish"],
+        "power" : ["on", "off", "status", "reset"],
+        "sel" : ["list", "clear"],
+        "chassis" : ["identify", "noidentify"],
+        "redfish" : ["upload", "setting"]
     }
     response = list(static[table])
     return response
@@ -67,30 +72,21 @@ def actions(table=None):
 
 def filter_columns(table=None):
     """
-    This method remove the unnecessary fields from
-    the dataset.
+    This method remove the unnecessary fields from the dataset.
     """
     response = False
     static = {
         'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
-        'cluster': ['name', 'hostname','ipaddress', 'technical_contacts', 'provision_method',
-                    'security'],
-        'controller': ['id', 'clusterid', 'hostname', 'status', 'ipaddress', 'serverport'],
-        'group': ['name', 'bmcsetupname', 'osimage', 'provision_fallback', 'interfaces'],
+        'group': ['name', 'bmcsetupname', 'osimage', 'roles', 'interfaces'],
         'groupinterface': ['interface', 'network', 'options'],
         'groupsecrets': ['Group', 'name', 'path', 'content'],
-        'ipaddress': ['id', 'ipaddress', 'subnet', 'network'],
-        'monitor': ['id', 'nodeid', 'status', 'state'],
         'network': ['name', 'network', 'ns_ip', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end'],
         'node': ['name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_uuid'],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
-        'osimage': ['name', 'kernelfile', 'path', 'imagefile', 'distribution', 'osrelease'],
+        'osimage': ['name', 'kernelversion', 'kernelfile', 'imagefile', 'path', 'distribution', 'osrelease'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
-        'roles': ['id', 'name', 'modules'],
-        'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],
-        'tracker': ['infohash', 'peer', 'ipaddress', 'port', 'status'],
-        'user': ['id', 'username', 'password', 'roleid', 'createdby', 'lastlogin', 'created']
+        'switch': ['name', 'network', 'oid', 'read', 'ipaddress']
     }
     response = list(static[table])
     return response
@@ -98,36 +94,47 @@ def filter_columns(table=None):
 
 def sortby(table=None):
     """
-    This method remove the unnecessary fields from
-    the dataset.
+    This method remove the unnecessary fields from the dataset.
     """
     response = False
     static = {
-        'cluster': ['name', 'ns_ip','ntp_server', 'provision_fallback', 'provision_method',
-                    'security', 'technical_contacts', 'user', 'debug'],
-        'controller': ['hostname', 'ipaddress','luna_config', 'serverport', 'status'],
-        'node': ['name', 'hostname', 'group', 'osimage', 'interfaces', 'localboot',
-                    'macaddress', 'switch', 'switchport', 'setupbmc', 'status', 'service',
-                    'prescript', 'partscript', 'postscript', 'netboot', 'localinstall',
-                    'bootmenu', 'provisionmethod', 'provisioninterface', 'provisionfallback',
-                    'tpmuuid', 'tpmpubkey', 'tpmsha256', 'unmanaged_bmc_users', 'comment'],
-        'group': ['name', 'bmcsetup', 'bmcsetupname', 'domain', 'interfaces', 'osimage',
-                    'prescript', 'partscript', 'postscript', 'netboot', 'localinstall',
-                    'bootmenu', 'provisionmethod', 'provisioninterface', 'provisionfallback',
-                    'unmanaged_bmc_users','comment'],
-        'bmcsetup': ['name', 'userid', 'username', 'password', 'netchannel', 'mgmtchannel',
-                        'unmanaged_bmc_users', 'comment'],
-        'osimage': ['name', 'dracutmodules', 'grab_filesystems', 'grab_exclude', 'initrdfile',
-                    'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions', 'path',
-                    'imagefile', 'distribution', 'osrelease', 'comment'],
+        'cluster': [
+            'name', 'controller', 'technical_contacts', 'provision_method', 'provision_fallback',
+            'nameserver_ip', 'forwardserver_ip', 'ntp_server', 'security', 'createnode_ondemand'
+            'user', 'debug'
+        ],
+        'node': [
+            'name', 'hostname', 'group', 'osimage', 'interfaces', 'status', 'vendor', 'assettag',
+            'position', 'switchport', 'setupbmc', 'bmcsetup', 'unmanaged_bmc_users', 'netboot',
+            'localboot', 'localinstall', 'bootmenu', 'roles', 'service', 'prescript', 'partscript',
+            'postscript','provision_interface', 'provision_method', 'provision_fallback',
+            'tpm_uuid', 'tpm_pubkey', 'tpm_sha256', 'comment', 'switch',  'macaddress'
+        ],
+        'group': [
+            'name', 'domain', 'osimage', 'interfaces', 'setupbmc', 'bmcsetupname',
+            'unmanaged_bmc_users', 'netboot', 'localinstall', 'bootmenu', 'roles', 'prescript',
+            'partscript', 'postscript', 'provision_interface', 'provision_method',
+            'provision_fallback', 'comment'
+        ],
+        'bmcsetup': [
+            'name', 'userid', 'username', 'password', 'netchannel', 'mgmtchannel',
+            'unmanaged_bmc_users', 'comment'
+        ],
+        'osimage': [
+            'name', 'dracutmodules', 'grab_filesystems', 'grab_exclude', 'initrdfile',
+            'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions', 'path', 'imagefile',
+            'distribution', 'osrelease', 'comment'
+        ],
         'switch': ['name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'comment'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network'],
         'groupinterface': ['interfacename', 'network'],
         'groupsecrets': ['Group', 'name', 'path', 'content'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
-        'network': ['name', 'network', 'ns_hostname', 'ns_ip', 'ntp_server', 'gateway', 'dhcp',
-                    'dhcp_range_begin', 'dhcp_range_end', 'comment']
+        'network': [
+            'name', 'network', 'ns_hostname', 'ns_ip', 'ntp_server', 'gateway', 'dhcp',
+            'dhcp_range_begin', 'dhcp_range_end', 'comment'
+        ]
     }
     response = list(static[table])
     return response

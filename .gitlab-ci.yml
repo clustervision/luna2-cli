@@ -1,14 +1,14 @@
-stages:
-  - package
+# stages:
+#   - package
 
-package:
-  stage: package
-  image: python:3.10.0-alpine
-  only:
-    - development
-  script:
-    - python setup.py sdist bdist_wheel
-    - scp -r dist/* $SSH_USER@$IPADDRESS:$TEST_LOCATION
+# package:
+#   stage: package
+#   image: python:3.10.0-alpine
+#   only:
+#     - development
+#   script:
+#     - python setup.py sdist bdist_wheel
+#     - scp -r dist/* $SSH_USER@$IPADDRESS:$TEST_LOCATION
 
 
 # # image: docker:stable

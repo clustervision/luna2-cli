@@ -31,7 +31,7 @@ try:
     from luna.otherdev import OtherDev
     from luna.secrets import Secrets
     from luna.service import Service
-    #from luna.control import Control
+    from luna.control import Control
     from luna.utils.message import Message
 
     classes = [
@@ -45,7 +45,7 @@ try:
         Node,
         Secrets,
         Service,
-        # Control
+        Control
     ]
 
 except KeyboardInterrupt:
