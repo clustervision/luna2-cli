@@ -120,7 +120,7 @@ def sortby(table=None):
             'unmanaged_bmc_users', 'comment'
         ],
         'osimage': [
-            'name', 'dracutmodules', 'grab_filesystems', 'grab_exclude', 'initrdfile',
+            'name', 'grab_filesystems', 'grab_exclude', 'initrdfile',
             'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions', 'path', 'imagefile',
             'distribution', 'osrelease', 'comment'
         ],
