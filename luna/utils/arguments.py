@@ -188,6 +188,7 @@ class Arguments():
         parser.add_argument('-img', '--imagefile', help='Imagefile UUID')
         parser.add_argument('-D', '--distribution', help='Distribution')
         parser.add_argument('-R', '--osrelease', help='OS release or version')
+        parser.add_argument('-sys', '--systemroot', help='System Root for OS Image')
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
