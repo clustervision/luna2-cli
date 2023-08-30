@@ -121,8 +121,8 @@ class Arguments():
                               metavar=BOOL_META, help='Local Install')
         parser.add_argument('-bm', '--bootmenu', choices=BOOL_CHOICES,
                               metavar=BOOL_META, help='Boot Menu')
-        parser.add_argument('-lb', '--localboot', choices=BOOL_CHOICES,
-                              metavar=BOOL_META, help='Local Boot')
+        # parser.add_argument('-lb', '--localboot', choices=BOOL_CHOICES,
+                            #   metavar=BOOL_META, help='Local Boot')
         parser.add_argument('-ser', '--service', choices=BOOL_CHOICES,
                               metavar=BOOL_META, help='Service')
         parser.add_argument('-s', '--status', help='Status')

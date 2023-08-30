@@ -28,7 +28,6 @@ BOOL_KEYS = [
     'netboot',
     'localinstall',
     'bootmenu',
-    'localboot',
     'service'
 ]
 EDITOR_KEYS = ['options', 'content', 'comment', 'prescript', 'partscript', 'postscript']
@@ -106,7 +105,7 @@ def sortby(table=None):
         'node': [
             'name', 'hostname', 'group', 'osimage', 'interfaces', 'status', 'vendor', 'assettag',
             'position', 'switchport', 'setupbmc', 'bmcsetup', 'unmanaged_bmc_users', 'netboot',
-            'localboot', 'localinstall', 'bootmenu', 'roles', 'service', 'prescript', 'partscript',
+            'localinstall', 'bootmenu', 'roles', 'service', 'prescript', 'partscript',
             'postscript','provision_interface', 'provision_method', 'provision_fallback',
             'tpm_uuid', 'tpm_pubkey', 'tpm_sha256', 'comment', 'switch',  'macaddress'
         ],

@@ -19,6 +19,7 @@ import os
 import sys
 import requests
 import jwt
+import urllib3
 from luna.utils.log import Log
 from luna.utils.constant import INI_FILE, TOKEN_FILE
 from luna.utils.message import Message
@@ -37,6 +38,7 @@ class Rest():
         self.logger = Log.get_logger()
         self.username, self.password, self.daemon, self.secret_key = self.get_ini_info()
         self.request_timeout = 30
+        urllib3.disable_warnings()
 
 
     def get_ini_info(self):
@@ -115,7 +117,7 @@ class Rest():
         daemon_url = f'{self.daemon}/token'
         self.logger.debug(f'Token URL => {daemon_url}')
         try:
-            call = requests.post(url=daemon_url, json=data, timeout=self.request_timeout)
+            call = requests.post(url=daemon_url, json=data, timeout=self.request_timeout, verify=False)
             self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
             if call.content:
                 data = call.json()
@@ -170,7 +172,7 @@ class Rest():
             daemon_url = f'{daemon_url}/{name}'
         self.logger.debug(f'GET URL => {daemon_url}')
         try:
-            call = requests.get(url=daemon_url, params=data, headers=headers, timeout=self.request_timeout)
+            call = requests.get(url=daemon_url, params=data, headers=headers, timeout=self.request_timeout, verify=False)
             self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
             response = self.get_response(call)
             # response_json = call.json()
@@ -199,7 +201,7 @@ class Rest():
         self.logger.debug(f'POST URL => {daemon_url}')
         self.logger.debug(f'POST DATA => {data}')
         try:
-            response = requests.post(url=daemon_url, json=data, headers=headers, timeout=self.request_timeout)
+            response = requests.post(url=daemon_url, json=data, headers=headers, timeout=self.request_timeout, verify=False)
             response = self.get_response(response)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.ConnectionError:
@@ -218,7 +220,7 @@ class Rest():
         daemon_url = f'{self.daemon}/config/{table}/{name}/_delete'
         self.logger.debug(f'GET URL => {daemon_url}')
         try:
-            response = requests.get(url=daemon_url, headers=headers, timeout=self.request_timeout)
+            response = requests.get(url=daemon_url, headers=headers, timeout=self.request_timeout, verify=False)
             response = self.get_response(response)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.ConnectionError:
@@ -237,7 +239,7 @@ class Rest():
         daemon_url = f'{self.daemon}/config/{table}/{name}/_clone'
         self.logger.debug(f'Clone URL => {daemon_url}')
         try:
-            response = requests.post(url=daemon_url, json=data, headers=headers, timeout=self.request_timeout)
+            response = requests.post(url=daemon_url, json=data, headers=headers, timeout=self.request_timeout, verify=False)
             response = self.get_response(response)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.ConnectionError:
@@ -258,7 +260,7 @@ class Rest():
             daemon_url = f'{daemon_url}/{name}'
         self.logger.debug(f'Status URL => {daemon_url}')
         try:
-            call = requests.get(url=daemon_url, params=data, headers=headers, timeout=self.request_timeout)
+            call = requests.get(url=daemon_url, params=data, headers=headers, timeout=self.request_timeout, verify=False)
             self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
             response = call.status_code
         except requests.exceptions.ConnectionError:
@@ -279,7 +281,7 @@ class Rest():
             daemon_url = f'{daemon_url}/{uri}'
         self.logger.debug(f'RAW URL => {daemon_url}')
         try:
-            response = requests.get(url=daemon_url, headers=headers, timeout=self.request_timeout)
+            response = requests.get(url=daemon_url, headers=headers, timeout=self.request_timeout, verify=False)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.ConnectionError:
             Message().error_exit(f'Request Timeout while {daemon_url}')
@@ -297,7 +299,7 @@ class Rest():
         daemon_url = f'{self.daemon}/{route}'
         self.logger.debug(f'Clone URL => {daemon_url}')
         try:
-            response = requests.post(url=daemon_url, json=payload, headers=headers, timeout=self.request_timeout)
+            response = requests.post(url=daemon_url, json=payload, headers=headers, timeout=self.request_timeout, verify=False)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.ConnectionError:
             Message().error_exit(f'Request Timeout while {daemon_url}')
