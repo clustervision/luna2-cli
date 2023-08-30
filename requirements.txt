@@ -5,3 +5,4 @@ pyfiglet==0.8.post1
 nested_lookup==0.2.25
 prettytable==3.8.0
 PyJWT==2.8.0
+urllib3==2.0.4
