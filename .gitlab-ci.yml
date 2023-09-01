@@ -14,6 +14,8 @@ package:
     - sshpass -p "$SSH_PASSWORD" scp -r -oStrictHostKeyChecking=no dist/* $SSH_USER@$IPADDRESS:$TEST_LOCATION
 
 
+
+
 # image: python:3.10.0-alpine
 
 # stages:
