@@ -38,7 +38,7 @@ class Rest():
         self.logger = Log.get_logger()
         self.username, self.password, self.daemon, self.secret_key, self.security = self.get_ini_info()
         self.request_timeout = 30
-        self.security = True if 'y' in self.security.lower() else False
+        self.security = True if self.security.lower() in ['y', 'yes', 'true']  else False
         urllib3.disable_warnings()
 
 
