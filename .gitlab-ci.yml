@@ -1,21 +1,13 @@
-image: python:3.10.0-alpine
 stages:
   - package
-  - deploy
 
 package:
   stage: package
+  image: python:3.10.0-alpine
   only:
     - gitlab
   script:
     - python setup.py sdist bdist_wheel
-
-
-deploy:
-  stage: deploy
-  only:
-    - gitlab
-  script:
     - apk add openssh-client
     - apk add sshpass
     - sshpass -p mirnEn5BevOdjut scp -r -oStrictHostKeyChecking=no dist/* repo@192.168.160.21:/revproxy/updates/trinityx/12.2/luna2/noarch/pip/stable/cli
