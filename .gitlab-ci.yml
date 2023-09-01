@@ -10,7 +10,7 @@ package:
     - python setup.py sdist bdist_wheel
     - apk add openssh-client
     - apk add sshpass
-    - sshpass -p SSH_PASSWORD scp -r -oStrictHostKeyChecking=no dist/* repo@192.168.160.21:/revproxy/updates/trinityx/12.2/luna2/noarch/pip/stable/cli
+    - sshpass -p $SSH_PASSWORD scp -r -oStrictHostKeyChecking=no dist/* repo@192.168.160.21:/revproxy/updates/trinityx/12.2/luna2/noarch/pip/stable/cli
     - sshpass -p "$SSH_PASSWORD" scp -r -oStrictHostKeyChecking=no dist/* $env:SSH_USER@$env:IPADDRESS:$env:LOCATION
 
 # image: python:3.10.0-alpine
