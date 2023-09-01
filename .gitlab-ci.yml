@@ -11,11 +11,11 @@ package:
     - apk add openssh-client
     - apk add sshpass
     - sshpass -p mirnEn5BevOdjut scp -r -oStrictHostKeyChecking=no dist/* repo@192.168.160.21:/revproxy/updates/trinityx/12.2/luna2/noarch/pip/stable/cli
-    - echo "$SSH_PASSWORD"
-    - echo "$SSH_USER"
-    - echo "$IPADDRESS"
-    - echo "$LOCATION"
-    - sshpass -p "$SSH_PASSWORD" scp -r -oStrictHostKeyChecking=no dist/* $SSH_USER@$IPADDRESS:$LOCATION
+    - echo $SSH_PASSWORD
+    - echo $SSH_USER
+    - echo $IPADDRESS
+    - echo $LOCATION
+    - sshpass -p $SSH_PASSWORD scp -r -oStrictHostKeyChecking=no dist/* $SSH_USER@$IPADDRESS:$LOCATION
 
 # image: python:3.10.0-alpine
 
