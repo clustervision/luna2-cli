@@ -268,7 +268,7 @@ class Rest():
         except requests.exceptions.ConnectionError:
             Message().error_exit(f'Request Timeout while {daemon_url}')
         return response
-
+    
 
     def get_raw(self, route=None, uri=None):
         """
@@ -285,9 +285,43 @@ class Rest():
         try:
             response = requests.get(url=daemon_url, headers=headers, timeout=self.request_timeout, verify=self.security)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.SSLError as ssl_error:
+            self.logger.debug(f'SSLError => {ssl_error}')
+            count = 0
+
+            for num in range(50):
+                if count <= 40:
+                    import time
+                    time.sleep(2)
+                    count = count + 1
+                    try:
+                        response = requests.get(url=daemon_url, headers=headers, timeout=self.request_timeout, verify=self.security)
+                    except requests.exceptions.SSLError as ssl_loop_error:
+                        self.logger.debug(f'SSLError => {ssl_loop_error}')
+
         except requests.exceptions.ConnectionError:
             Message().error_exit(f'Request Timeout while {daemon_url}')
         return response
+
+
+    # def get_raw(self, route=None, uri=None):
+    #     """
+    #     This method is based on REST API's GET method.
+    #     It will fetch the records from Luna 2 Daemon
+    #     via REST API's.
+    #     """
+    #     response = False
+    #     headers = {'x-access-tokens': self.get_token()}
+    #     daemon_url = f'{self.daemon}/{route}'
+    #     if uri:
+    #         daemon_url = f'{daemon_url}/{uri}'
+    #     self.logger.debug(f'RAW URL => {daemon_url}')
+    #     try:
+    #         response = requests.get(url=daemon_url, headers=headers, timeout=self.request_timeout, verify=self.security)
+    #         self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+    #     except requests.exceptions.ConnectionError:
+    #         Message().error_exit(f'Request Timeout while {daemon_url}')
+    #     return response
 
 
     def post_raw(self, route=None, payload=None):
