@@ -190,9 +190,63 @@ class OSImage():
         result = Rest().get_raw(uri)
         if result.status_code == 200:
             http_response = result.json()
+            if http_response['message']:
+                if len(http_response['message']) > 5:
+                    message = http_response['message'].split(';;')
+                    for msg in message:
+                        sleep(2)
+                        Message().show_success(f'{msg}')
+                else:
+                    Message().show_success(f'{http_response["message"]}')
+
             if 'request_id' in http_response.keys():
                 uri = f'config/status/{http_response["request_id"]}'
+
+
+                # import requests
+                # import json
+                # from time import sleep
+                # headers = {'x-access-tokens': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MCwiZXhwIjoxNjk0MTk0MTY3fQ.9OwoW4WanO6s-iSUKF5oyo5F1mJaHFIucm0ymsTooi0'}
+
+                # sleep(2)
+                # r = requests.get(f'https://controller.cluster:7050/config/status/{http_response["request_id"]}', headers=headers, timeout=5,
+                #                  verify=False)#, cert=('/trinity/local/etc/ssl/controller1.cluster.crt', '/trinity/local/etc/ssl/controller1.cluster.key'))
+                # print(f'Response {r.content} & HTTP Code {r.status_code}')
+                
+
+                # for line in r.iter_lines():
+                #     print(f'line -------->>>>>>>>>>>>>>>> {line}')
+                #     # filter out keep-alive new lines
+                #     if line:
+                #         decoded_line = line.decode('utf-8')
+                #         print(json.loads(decoded_line))
+                
+
+
+                # from urllib3.util import Retry
+                # from requests import Session
+                # from requests.adapters import HTTPAdapter
+
+                # s = Session()
+                # retries = Retry(
+                #     total=3,
+                #     backoff_factor=0.1,
+                #     status_forcelist=[502, 503, 504],
+                #     allowed_methods={'GET'},
+                # )
+                # s.mount('https://', HTTPAdapter(max_retries=retries))
+                # r = s.get(f'https://controller.cluster:7050/config/status/{http_response["request_id"]}', stream=True, headers=headers, timeout=5, verify=False)
+                # print(f'Response {r.content} & HTTP Code {r.status_code}')
+                # for line in r.iter_lines():
+
+                #     # filter out keep-alive new lines
+                #     if line:
+                #         decoded_line = line.decode('utf-8')
+                #         print(json.loads(decoded_line))
+
+
                 def dig_packing_status(uri):
+                    sleep(2)
                     result = Rest().get_raw(uri)
                     if result.status_code == 404:
                         process1.terminate()
@@ -200,11 +254,13 @@ class OSImage():
                     elif result.status_code == 200:
                         http_response = result.json()
                         if http_response['message']:
-                            message = http_response['message'].split(';;')
-                            for msg in message:
-                                sleep(2)
-                                Message().show_success(f'{msg}')
-                        sleep(2)
+                            if len(http_response['message']) > 5:
+                                message = http_response['message'].split(';;')
+                                for msg in message:
+                                    sleep(2)
+                                    Message().show_success(f'{msg}')
+                            else:
+                                Message().show_success(f'{http_response["message"]}')
                         return dig_packing_status(uri)
                     else:
                         return False
