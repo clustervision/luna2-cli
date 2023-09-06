@@ -190,9 +190,20 @@ class OSImage():
         result = Rest().get_raw(uri)
         if result.status_code == 200:
             http_response = result.json()
+            if http_response['message']:
+                if len(http_response['message']) > 5:
+                    message = http_response['message'].split(';;')
+                    for msg in message:
+                        sleep(2)
+                        Message().show_success(f'{msg}')
+                else:
+                    Message().show_success(f'{http_response["message"]}')
+
             if 'request_id' in http_response.keys():
                 uri = f'config/status/{http_response["request_id"]}'
+
                 def dig_packing_status(uri):
+                    sleep(2)
                     result = Rest().get_raw(uri)
                     if result.status_code == 404:
                         process1.terminate()
@@ -200,11 +211,13 @@ class OSImage():
                     elif result.status_code == 200:
                         http_response = result.json()
                         if http_response['message']:
-                            message = http_response['message'].split(';;')
-                            for msg in message:
-                                sleep(2)
-                                Message().show_success(f'{msg}')
-                        sleep(2)
+                            if len(http_response['message']) > 5:
+                                message = http_response['message'].split(';;')
+                                for msg in message:
+                                    sleep(2)
+                                    Message().show_success(f'{msg}')
+                            else:
+                                Message().show_success(f'{http_response["message"]}')
                         return dig_packing_status(uri)
                     else:
                         return False
@@ -235,9 +248,21 @@ class OSImage():
             process1.start()
             response = False
             http_response = result.content
+           
+            http_response = result.json()
+            if http_response['message']:
+                if len(http_response['message']) > 5:
+                    message = http_response['message'].split(';;')
+                    for msg in message:
+                        sleep(2)
+                        Message().show_success(f'{msg}')
+                else:
+                    Message().show_success(f'{http_response["message"]}')
+
             if 'request_id' in http_response.keys():
                 uri = f'config/status/{http_response["request_id"]}'
                 def dig_packing_status(uri):
+                    sleep(2)
                     result = Rest().get_raw(uri)
                     if result.status_code == 404:
                         process1.terminate()
@@ -249,7 +274,6 @@ class OSImage():
                             for msg in message:
                                 sleep(2)
                                 Message().show_success(f'{msg}')
-                        sleep(2)
                         return dig_packing_status(uri)
                     else:
                         return False
