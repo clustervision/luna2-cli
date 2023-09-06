@@ -18,87 +18,14 @@ from configparser import RawConfigParser
 import os
 import sys
 import requests
+from requests import Session
+from requests.adapters import HTTPAdapter
 import jwt
 import urllib3
+from urllib3.util import Retry
 from luna.utils.log import Log
 from luna.utils.constant import INI_FILE, TOKEN_FILE
 from luna.utils.message import Message
-
-
-
-
-import ssl
-import requests
-
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.poolmanager import PoolManager
-from requests.packages.urllib3.util import ssl_
-
-# CIPHERS = (
-#     'ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:'
-#     'ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:AES256-SHA'
-# )
-
-CIPHERS = (
-    'ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+HIGH:'
-    'DH+HIGH:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+HIGH:RSA+3DES:!aNULL:'
-    '!eNULL:!MD5'
-)
-
-from urllib3.util import Retry
-
-# s = requests.Session()
-# retries = Retry(
-#     total=30,
-#     backoff_factor=0.1,
-#     status_forcelist=[502, 503, 504],
-#     allowed_methods={'GET'},
-# )
-# s.mount('https://', HTTPAdapter(max_retries=retries))
-
-
-class aclass():
-
-    def __init__(self):
-        self.retries = Retry(
-            total=30,
-            backoff_factor=0.1,
-            status_forcelist=[502, 503, 504],
-            allowed_methods={'GET'},
-        )
-        HTTPAdapter(max_retries=self.retries)
-
-
-# class TlsAdapter(aclass):
-class TlsAdapter(HTTPAdapter):
-
-    def __init__(self, ssl_options=0, **kwargs):
-        self.ssl_options = ssl_options
-        super(TlsAdapter, self).__init__(**kwargs)
-
-    def init_poolmanager(self, *pool_args, **pool_kwargs):
-        ctx = ssl_.create_urllib3_context(ciphers=CIPHERS, cert_reqs=ssl.CERT_REQUIRED, options=self.ssl_options)
-        self.poolmanager = PoolManager(*pool_args, ssl_context=ctx, **pool_kwargs)
-
-import requests
-from requests.adapters import HTTPAdapter
-from requests.packages.urllib3.util.ssl_ import create_urllib3_context
-
-class DESAdapter(HTTPAdapter):
-# class DESAdapter(aclass):
-    """
-    A TransportAdapter that re-enables 3DES support in Requests.
-    """
-    def init_poolmanager(self, *args, **kwargs):
-        context = create_urllib3_context(ciphers=CIPHERS)
-        kwargs['ssl_context'] = context
-        return super(DESAdapter, self).init_poolmanager(*args, **kwargs)
-
-    def proxy_manager_for(self, *args, **kwargs):
-        context = create_urllib3_context(ciphers=CIPHERS)
-        kwargs['ssl_context'] = context
-        return super(DESAdapter, self).proxy_manager_for(*args, **kwargs)
-
 
 
 class Rest():
@@ -116,6 +43,14 @@ class Rest():
         self.request_timeout = 30
         self.security = True if self.security.lower() in ['y', 'yes', 'true']  else False
         urllib3.disable_warnings()
+        self.session = Session()
+        self.retries = Retry(
+            total= 60,
+            backoff_factor=0.1,
+            status_forcelist=[502, 503, 504],
+            allowed_methods={'GET', 'POST'},
+        )
+        self.session.mount('https://', HTTPAdapter(max_retries=self.retries))
 
 
     def get_ini_info(self):
@@ -195,7 +130,7 @@ class Rest():
         daemon_url = f'{self.daemon}/token'
         self.logger.debug(f'Token URL => {daemon_url}')
         try:
-            call = requests.post(url=daemon_url, json=data, timeout=self.request_timeout, verify=self.security)
+            call = self.session.post(daemon_url, json=data, stream=True, timeout=self.request_timeout, verify=self.security)
             self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
             if call.content:
                 data = call.json()
@@ -207,6 +142,8 @@ class Rest():
                     Message().error_exit(data["message"], call.status_code)
             else:
                 Message().error_exit(call.content, call.status_code)
+        except requests.exceptions.SSLError as ssl_loop_error:
+            self.logger.debug(f'SSLError => {ssl_loop_error}')
         except requests.exceptions.ConnectionError:
             Message().error_exit(f'Request Timeout while {daemon_url}')
         except requests.exceptions.JSONDecodeError:
@@ -250,14 +187,11 @@ class Rest():
             daemon_url = f'{daemon_url}/{name}'
         self.logger.debug(f'GET URL => {daemon_url}')
         try:
-            call = requests.get(url=daemon_url, params=data, headers=headers, timeout=self.request_timeout, verify=self.security)
-            self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
-            response = self.get_response(call)
-            # response_json = call.json()
-            # if 'message' in response_json:
-            #     Message().show_error(response_json["message"])
-            # else:
-            #     response = response_json
+            response = self.session.get(daemon_url, params=data, stream=True, headers=headers, timeout=self.request_timeout, verify=self.security)
+            response = self.get_response(response)
+            self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.SSLError as ssl_loop_error:
+            self.logger.debug(f'SSLError => {ssl_loop_error}')
         except requests.exceptions.ConnectionError:
             Message().error_exit(f'Request Timeout while {daemon_url}')
         except requests.exceptions.JSONDecodeError:
@@ -279,9 +213,11 @@ class Rest():
         self.logger.debug(f'POST URL => {daemon_url}')
         self.logger.debug(f'POST DATA => {data}')
         try:
-            response = requests.post(url=daemon_url, json=data, headers=headers, timeout=self.request_timeout, verify=self.security)
+            response = self.session.post(daemon_url, json=data, stream=True, headers=headers, timeout=self.request_timeout, verify=self.security)
             response = self.get_response(response)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.SSLError as ssl_loop_error:
+            self.logger.debug(f'SSLError => {ssl_loop_error}')
         except requests.exceptions.ConnectionError:
             Message().error_exit(f'Request Timeout while {daemon_url}')
         return response
@@ -298,9 +234,11 @@ class Rest():
         daemon_url = f'{self.daemon}/config/{table}/{name}/_delete'
         self.logger.debug(f'GET URL => {daemon_url}')
         try:
-            response = requests.get(url=daemon_url, headers=headers, timeout=self.request_timeout, verify=self.security)
+            response = self.session.get(daemon_url, stream=True, headers=headers, timeout=self.request_timeout, verify=self.security)
             response = self.get_response(response)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.SSLError as ssl_loop_error:
+            self.logger.debug(f'SSLError => {ssl_loop_error}')
         except requests.exceptions.ConnectionError:
             Message().error_exit(f'Request Timeout while {daemon_url}')
         return response
@@ -317,9 +255,11 @@ class Rest():
         daemon_url = f'{self.daemon}/config/{table}/{name}/_clone'
         self.logger.debug(f'Clone URL => {daemon_url}')
         try:
-            response = requests.post(url=daemon_url, json=data, headers=headers, timeout=self.request_timeout, verify=self.security)
+            response = self.session.post(daemon_url, json=data, stream=True, headers=headers, timeout=self.request_timeout, verify=self.security)
             response = self.get_response(response)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.SSLError as ssl_loop_error:
+            self.logger.debug(f'SSLError => {ssl_loop_error}')
         except requests.exceptions.ConnectionError:
             Message().error_exit(f'Request Timeout while {daemon_url}')
         return response
@@ -338,9 +278,11 @@ class Rest():
             daemon_url = f'{daemon_url}/{name}'
         self.logger.debug(f'Status URL => {daemon_url}')
         try:
-            call = requests.get(url=daemon_url, params=data, headers=headers, timeout=self.request_timeout, verify=self.security)
-            self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
-            response = call.status_code
+            response = self.session.get(daemon_url, params=data, stream=True, headers=headers, timeout=self.request_timeout, verify=self.security)
+            self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+            response = response.status_code
+        except requests.exceptions.SSLError as ssl_loop_error:
+            self.logger.debug(f'SSLError => {ssl_loop_error}')
         except requests.exceptions.ConnectionError:
             Message().error_exit(f'Request Timeout while {daemon_url}')
         return response
@@ -358,85 +300,15 @@ class Rest():
         if uri:
             daemon_url = f'{daemon_url}/{uri}'
         self.logger.debug(f'RAW URL => {daemon_url}')
-        # response = requests.get(url=daemon_url, headers=headers, timeout=self.request_timeout, verify=self.security) #### NOT WORKING
-      
-        # #### WORKING SOLUTION WITH MAX RETRY
-        # from urllib3.util import Retry
-        # from requests import Session
-        # from requests.adapters import HTTPAdapter
-        # s = Session()
-        # retries = Retry(
-        #     total=30,
-        #     backoff_factor=0.1,
-        #     status_forcelist=[502, 503, 504],
-        #     allowed_methods={'GET'},
-        # )
-        # s.mount('https://', HTTPAdapter(max_retries=retries))
-        # response = s.get(daemon_url, stream=True, headers=headers, timeout=5, verify=False)#, cert=('/trinity/local/etc/ssl/controller1.cluster.crt', '/trinity/local/etc/ssl/controller1.cluster.key'))
-        # # print(f'Response {response.content} & HTTP Code {response.status_code}')
-        # #### WORKING SOLUTION WITH MAX RETRY
-
-
-
-
-        # #### PROPER HANDSHAKE
-        # session = requests.session()
-        # adapter = TlsAdapter(ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1)
-        # session.mount("https://", adapter)
-
-        # response = session.request('GET', daemon_url, headers=headers, timeout=5, verify=False)
-        # print(response)
-        # print(f'Response {response.content} & HTTP Code {response.status_code}')
-        # #### PROPER HANDSHAKE
+        try:
+            response = self.session.get(daemon_url, stream=True, headers=headers, timeout=self.request_timeout, verify=self.security)
+            self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.SSLError as ssl_loop_error:
+            self.logger.debug(f'SSLError => {ssl_loop_error}')
+        except requests.exceptions.ConnectionError:
+            Message().error_exit(f'Request Timeout while {daemon_url}')
         
-
-
-        session = requests.Session()
-        session.mount(self.daemon, DESAdapter())
-        response = session.request('GET', daemon_url, headers=headers, timeout=5)
-
-
-        # print(f'Response {response.content} & HTTP Code {response.status_code}')
-        # try:
-        #     response = requests.get(url=daemon_url, headers=headers, timeout=self.request_timeout, verify=self.security)
-        #     self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
-        # except requests.exceptions.SSLError as ssl_error:
-        #     self.logger.debug(f'SSLError => {ssl_error}')
-        #     count = 0
-
-        #     for num in range(50):
-        #         if count <= 40:
-        #             import time
-        #             time.sleep(2)
-        #             count = count + 1
-        #             try:
-        #                 response = requests.get(url=daemon_url, headers=headers, timeout=self.request_timeout, verify=self.security)
-        #             except requests.exceptions.SSLError as ssl_loop_error:
-        #                 self.logger.debug(f'SSLError => {ssl_loop_error}')
-
-        # except requests.exceptions.ConnectionError:
-        #     Message().error_exit(f'Request Timeout while {daemon_url}')
         return response
-
-
-    # def get_raw(self, route=None, uri=None):
-    #     """
-    #     This method is based on REST API's GET method.
-    #     It will fetch the records from Luna 2 Daemon
-    #     via REST API's.
-    #     """
-    #     response = False
-    #     headers = {'x-access-tokens': self.get_token()}
-    #     daemon_url = f'{self.daemon}/{route}'
-    #     if uri:
-    #         daemon_url = f'{daemon_url}/{uri}'
-    #     self.logger.debug(f'RAW URL => {daemon_url}')
-    #     try:
-    #         response = requests.get(url=daemon_url, headers=headers, timeout=self.request_timeout, verify=self.security)
-    #         self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
-    #     except requests.exceptions.ConnectionError:
-    #         Message().error_exit(f'Request Timeout while {daemon_url}')
-    #     return response
 
 
     def post_raw(self, route=None, payload=None):
@@ -450,8 +322,10 @@ class Rest():
         daemon_url = f'{self.daemon}/{route}'
         self.logger.debug(f'Clone URL => {daemon_url}')
         try:
-            response = requests.post(url=daemon_url, json=payload, headers=headers, timeout=self.request_timeout, verify=self.security)
+            response = self.session.post(daemon_url, json=payload, stream=True, headers=headers, timeout=self.request_timeout, verify=self.security)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.SSLError as ssl_loop_error:
+            self.logger.debug(f'SSLError => {ssl_loop_error}')
         except requests.exceptions.ConnectionError:
             Message().error_exit(f'Request Timeout while {daemon_url}')
         return response
