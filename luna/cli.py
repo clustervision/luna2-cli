@@ -13,6 +13,7 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 import sys
+import urllib3
 try:
     import os
     from pathlib import Path
@@ -33,6 +34,7 @@ try:
     from luna.service import Service
     from luna.control import Control
     from luna.utils.message import Message
+    from luna.utils.rest import Rest
 
     classes = [
         Cluster,
@@ -83,6 +85,8 @@ class Cli():
         for cls in classes:
             cls(parser=self.parser, subparsers =self.subparsers)
         self.args = vars(self.parser.parse_args())
+        urllib3.disable_warnings()
+        Rest().daemon_validation()
         self.call_class()
         return True
 
@@ -119,7 +123,9 @@ class Cli():
 
 
     def get_version(self):
-        """This Method will fetch the current version of Luna CLI from VERSION File."""
+        """
+        This Method will fetch the current version of Luna CLI from VERSION File.
+        """
         current_dir = os.path.dirname(os.path.realpath(__file__))
         if 'luna' not in sys.argv[0]:
             current_dir = str(Path(current_dir).parent)
