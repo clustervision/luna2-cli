@@ -40,9 +40,10 @@ class Rest():
         """
         self.logger = Log.get_logger()
         self.username, self.password, self.daemon, self.secret_key, self.security = self.get_ini_info()
+        urllib3.disable_warnings()
+        self.daemon_validation()
         self.request_timeout = 30
         self.security = True if self.security.lower() in ['y', 'yes', 'true']  else False
-        urllib3.disable_warnings()
         self.session = Session()
         self.retries = Retry(
             total= 60,
@@ -51,6 +52,31 @@ class Rest():
             allowed_methods={'GET', 'POST'},
         )
         self.session.mount('https://', HTTPAdapter(max_retries=self.retries))
+
+
+    def daemon_validation(self):
+        """
+        This method will fetch a valid token for further use.
+        """
+        check = False
+        exception = 'ERROR'
+        daemon_url = f'{self.daemon}/version'
+        self.logger.debug(f'URL {daemon_url}')
+        try:
+            response = requests.get(url=daemon_url, timeout=2, verify=False)
+            self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
+        except requests.exceptions.SSLError as ssl_loop_error:
+            check = True
+            exception = f'{exception} :: {ssl_loop_error}'
+        except requests.exceptions.ConnectionError as conn_error:
+            check = True
+            exception = f'{exception} :: {conn_error}'
+        except requests.exceptions.ReadTimeout as time_error:
+            check = True
+            exception = f'{exception} :: {time_error}'
+        if check is True:
+            Message().error_exit(exception)
+        return check
 
 
     def get_ini_info(self):
