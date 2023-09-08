@@ -150,8 +150,8 @@ class Helper():
             else:
                 data = Helper().prepare_json(data, True)
                 fields, rows  = self.filter_data(table, data)
-                fields = list(map(lambda x: x.replace('tpm_uuid', 'tpm_present'), fields))
-                fields = list(map(lambda x: x.replace('ns_ip', 'nameserver'), fields))
+                # fields = list(map(lambda x: x.replace('tpm_uuid', 'tpm_present'), fields))
+                # fields = list(map(lambda x: x.replace('ns_ip', 'nameserver'), fields))
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
                 title = f' << {table.capitalize()} >>'

@@ -80,7 +80,7 @@ def filter_columns(table=None):
         'groupinterface': ['interface', 'network', 'options'],
         'groupsecrets': ['Group', 'name', 'path', 'content'],
         'network': ['name', 'network', 'ns_ip', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end'],
-        'node': ['name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_uuid'],
+        'node': ['name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_present'],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
         'osimage': ['name', 'kernelversion', 'kernelfile', 'imagefile', 'path', 'distribution', 'osrelease'],
