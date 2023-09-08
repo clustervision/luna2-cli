@@ -90,6 +90,7 @@
         "tpmuuid",
         "tsha",
         "Unmanaged",
+        "uplinkports",
         "userid"
     ]
 }
