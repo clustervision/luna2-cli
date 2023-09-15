@@ -21,7 +21,7 @@ from luna.utils.log import Log
 from luna.utils.constant import actions
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
-
+from luna.utils.presenter import Presenter
 
 class OSImage():
     """
@@ -34,11 +34,20 @@ class OSImage():
         self.args = args
         self.table = "osimage"
         self.actions = actions(self.table)
+        self.tag_actions = actions("tag_osimage")
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
             if self.args["action"] in self.actions:
-                call = methodcaller(f'{self.args["action"]}_osimage')
-                call(self)
+                if self.args["action"] == 'tag':
+                    if self.args["tag_action"] is None:
+                        call = methodcaller('list_tag')
+                        call(self)
+                    else:
+                        call = methodcaller(f'{self.args["tag_action"]}_tag')
+                        call(self)
+                else:
+                    call = methodcaller(f'{self.args["action"]}_osimage')
+                    call(self)
             else:
                 Message().show_warning(f'Kindly choose from {self.actions}.')
         else:
@@ -60,11 +69,13 @@ class OSImage():
         osimage_member.add_argument('name', help='OS Image Name')
         Arguments().common_list_args(osimage_member)
         osimage_add = osimage_args.add_parser('add', help='Add OSImage')
-        Arguments().common_osimage_args(osimage_add, True)
+        Arguments().common_osimage_args(osimage_add)
         osimage_change = osimage_args.add_parser('change', help='Change OSImage')
         Arguments().common_osimage_args(osimage_change)
+        osimage_change.add_argument('-t', '--tag', help='OS Image Tag')
         osimage_clone = osimage_args.add_parser('clone', help='Clone OSImage')
-        Arguments().common_osimage_args(osimage_clone, True)
+        Arguments().common_osimage_args(osimage_clone)
+        osimage_clone.add_argument('-t', '--tag', help='OS Image Tag')
         osimage_clone.add_argument('-nc', '--nocopy', action='store_true', help='No Copy OS Image')
         osimage_clone.add_argument('-b', '--bare', action='store_true', help='Bare OS Image')
         osimage_clone.add_argument('newosimage', help='New OSImage Name')
@@ -85,6 +96,26 @@ class OSImage():
         osimage_kernel.add_argument('-ver', '--kernelversion', help='Kernel Version')
         osimage_kernel.add_argument('-b', '--bare', action='store_true', help='Bare OS Image(Exclude Packing)')
         osimage_kernel.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+
+        tag_menu = osimage_args.add_parser('tag', help='Tag OS Image')
+        tag_menu.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        tag_menu.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        tag_args = tag_menu.add_subparsers(dest='tag_action')
+
+        tag_show = tag_args.add_parser('show', help='Show a OS Image Tag')
+        tag_show.add_argument('name', help='OSImage Name')
+        Arguments().common_list_args(tag_show)
+
+        tag_change = tag_args.add_parser('change', help='Change a OS Image Tag')
+        tag_change.add_argument('name', help='OSImage Name')
+        tag_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+
+        tag_remove = tag_args.add_parser('remove', help='Delete a OS Image Tag')
+        tag_remove.add_argument('name', help='OSImage Name')
+        tag_remove.add_argument('tag', help='OS Image Tag Name')
+        tag_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+
+
         return parser
 
 
@@ -285,3 +316,53 @@ class OSImage():
         else:
             Message().error_exit(f'{result.content}', result.status_code)
         return True
+
+
+    def list_tag(self):
+        """
+        This method list all osimage Tags.
+        """
+        return Helper().get_list("osimagetag", self.args)
+
+
+    def show_tag(self):
+        """
+        This method show a specific osimage tag.
+        """
+        
+        get_list = Rest().get_data("osimagetag", self.args['name'])
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
+        if get_list:
+            data = get_list['config']["osimagetag"]
+            if self.args['raw']:
+                json_data = Helper().prepare_json(data)
+                response = Presenter().show_json(json_data)
+            else:
+                data = Helper().prepare_json(data, True)
+                fields, rows  = Helper().filter_data("osimagetag", data)
+       
+                self.logger.debug(f'Fields => {fields}')
+                self.logger.debug(f'Rows => {rows}')
+                title = f' << OS Image Tags for {self.args["name"]} >>'
+                response = Presenter().show_table(title, fields, rows)
+        else:
+            response = Message().show_error(f'OS Image Tags is not found for {self.args["name"]}.')
+        return response
+
+
+    def change_tag(self):
+        """
+        This method update a osimage tag.
+        """
+        return Helper().update_record(self.table, self.args)
+
+
+    def remove_tag(self):
+        """
+        This method remove a osimage tag.
+        """
+        return Helper().delete_record(self.table, self.args)

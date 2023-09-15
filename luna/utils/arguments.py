@@ -54,6 +54,7 @@ class Arguments():
         parser.add_argument('-b', '--setupbmc', choices=BOOL_CHOICES,
                                metavar=BOOL_META, help='BMC Setup')
         parser.add_argument('-o', '--osimage', help='OS Image Name')
+        parser.add_argument('-ot', '--osimagetag', help='OS Image Tag')
         parser.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         parser.add_argument('-D', '--domain', help='Domain Name')
         parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
@@ -98,6 +99,7 @@ class Arguments():
         else:
             parser.add_argument('-g', '--group', help='Group Name')
         parser.add_argument('-o', '--osimage', help='OS Image Name')
+        parser.add_argument('-ot', '--osimagetag', help='OS Image Tag')
         parser.add_argument('-b', '--setupbmc', choices=BOOL_CHOICES,
                               metavar=BOOL_META, help='BMC Setup')
         parser.add_argument('-bmc', '--bmcsetup', help='BMC Setup')
@@ -121,8 +123,6 @@ class Arguments():
                               metavar=BOOL_META, help='Local Install')
         parser.add_argument('-bm', '--bootmenu', choices=BOOL_CHOICES,
                               metavar=BOOL_META, help='Boot Menu')
-        # parser.add_argument('-lb', '--localboot', choices=BOOL_CHOICES,
-                            #   metavar=BOOL_META, help='Local Boot')
         parser.add_argument('-ser', '--service', choices=BOOL_CHOICES,
                               metavar=BOOL_META, help='Service')
         parser.add_argument('-s', '--status', help='Status')
@@ -168,7 +168,7 @@ class Arguments():
         return parser
 
 
-    def common_osimage_args(self, parser=None, required=None):
+    def common_osimage_args(self, parser=None):
         """
         This method will provide the common osimage arguments.
         """
@@ -180,10 +180,7 @@ class Arguments():
         parser.add_argument('-m', '--kernelmodules', help='Kernel Modules')
         parser.add_argument('-o', '--kerneloptions', help='Kernel Options')
         parser.add_argument('-ver', '--kernelversion', help='Kernel Version')
-        if required:
-            parser.add_argument('-p', '--path', required=True, help='Path of image')
-        else:
-            parser.add_argument('-p', '--path', help='Path of image')
+        parser.add_argument('-p', '--path', help='Path of image')
         parser.add_argument('-img', '--imagefile', help='Imagefile UUID')
         parser.add_argument('-D', '--distribution', help='Distribution')
         parser.add_argument('-R', '--osrelease', help='OS release or version')
