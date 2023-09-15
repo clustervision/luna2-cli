@@ -866,9 +866,15 @@ class Helper():
         index_map = {v: i for i, v in enumerate(defined_keys)}
         data = sorted(data.items(), key=lambda pair: index_map[pair[0]])
         self.logger.debug(f'Sorted Data => {data}')
-        fields, rows = [], []
+        if table == "osimagetag":
+            osimage = ["OS Image\n"]
+            fields, rows = ["Tags\n"], ["Details\n"]
+        else:
+            fields, rows = [], []
         for key in data:
             fields.append(key[0])
+            if table == "osimagetag":
+                osimage.append(key[1]['osimage'])
             if isinstance(key[1], list):
                 new_list = []
                 for internal in key[1]:
@@ -883,14 +889,27 @@ class Helper():
                 new_list = []
             elif isinstance(key[1], dict):
                 new_list = []
+                num = 1
                 for internal in key[1]:
                     self.logger.debug(f'Key => {internal} and Value => {key[1][internal]}')
-                    in_key = internal
-                    in_val = key[1][internal]
-                    new_list.append(f'{in_key} = {in_val} ')
+                    if table == "osimagetag":
+                        if internal != "name":
+                            in_key = internal
+                            in_val = key[1][internal]
+                            if len(key[1]) == num:
+                                new_list.append(f'{in_key} = {in_val} \n')
+                            else:
+                                new_list.append(f'{in_key} = {in_val} ')
+                    else:
+                        in_key = internal
+                        in_val = key[1][internal]
+                        new_list.append(f'{in_key} = {in_val} ')
+                    num = num + 1
                 new_list = '\n'.join(new_list)
                 rows.append(new_list)
                 new_list = []
             else:
                 rows.append(key[1])
+        if table == "osimagetag":
+            return fields, osimage, rows
         return fields, rows

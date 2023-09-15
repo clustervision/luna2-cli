@@ -82,6 +82,23 @@ class Presenter():
         self.table.align = "l"
         Message().show_success(self.table)
         return True
+    
+
+    def show_table_col_more_fields(self, title=None, field=None, newfield=None, rows=None):
+        """
+        This method will fetch a records from
+        the Luna 2 Daemon Database
+        """
+        self.logger.debug(f'Fields => {field}')
+        self.logger.debug(f'Rows => {rows}')
+        self.table.title = title
+        self.table.add_column("Field", field)
+        self.table.add_column("Field", newfield)
+        self.table.add_column("Values", rows)
+        self.table.header = False
+        self.table.align = "l"
+        Message().show_success(self.table)
+        return True
 
 
     def table_only_rows(self, fields=None, rows=None):
