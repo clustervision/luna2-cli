@@ -37,7 +37,7 @@ class Message():
         sys.stdout.write(f'{message}.\n')
         self.logger.debug(f'Message => {message}')
         if code:
-            sys.stderr.write(f'HTTP ERROR :: {code}\n')
+            # sys.stderr.write(f'HTTP ERROR :: {code}\n')
             self.logger.debug(f'HTTP ERROR :: {code}')
         sys.exit(1)
 
