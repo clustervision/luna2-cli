@@ -35,7 +35,7 @@ try:
     from luna.control import Control
     from luna.utils.message import Message
     from luna.utils.rest import Rest
-
+    from luna.utils.message import Message
     classes = [
         Cluster,
         Network,
@@ -65,7 +65,8 @@ class Cli():
         self.parser = None
         self.subparsers = None
         self.args = None
-        Presenter().show_banner()
+        Message()
+        # Presenter().show_banner()
 
 
     def main(self):
@@ -85,8 +86,6 @@ class Cli():
         for cls in classes:
             cls(parser=self.parser, subparsers =self.subparsers)
         self.args = vars(self.parser.parse_args())
-        urllib3.disable_warnings()
-        Rest().daemon_validation()
         self.call_class()
         return True
 
@@ -113,6 +112,8 @@ class Cli():
                     call = globals()["OtherDev"]
                 else:
                     call = globals()[self.args["command"].capitalize()]
+                urllib3.disable_warnings()
+                Rest().daemon_validation()
                 call(self.args, self.parser, self.subparsers)
             else:
                 self.parser.print_help(sys.stderr)

@@ -41,7 +41,8 @@ TOOL_DESCRIPTION = '''\
         - This tool will be helpful to communicate with the luna daemon.
         - use -h or --help at any point where you are not sure what to use.
 '''
-TOOL_EPILOG = '© 2023 ClusterVision'
+# TOOL_EPILOG = '© 2023 ClusterVision'
+TOOL_EPILOG = ''
 
 
 def actions(table=None):
@@ -55,7 +56,7 @@ def actions(table=None):
         "group": common_actions + member_action + ["ospush"] + interface_actions,
         "node": common_actions + ["osgrab", "ospush"] + interface_actions,
         "network": network_actions + ["reserve", "ipinfo", "nextip"],
-        "osimage": common_actions + member_action + ["pack", "kernel"],
+        "osimage": common_actions + member_action + ["pack", "kernel", "tag"],
         "bmcsetup": common_actions + member_action,
         "otherdev": common_actions,
         "switch" : common_actions,
@@ -63,7 +64,8 @@ def actions(table=None):
         "power" : ["on", "off", "status", "reset"],
         "sel" : ["list", "clear"],
         "chassis" : ["identify", "noidentify"],
-        "redfish" : ["upload", "setting"]
+        "redfish" : ["upload", "setting"],
+        "tag_osimage" : ["change", "remove"]
     }
     response = list(static[table])
     return response
@@ -85,7 +87,8 @@ def filter_columns(table=None):
         'nodesecrets': ['Node', 'name', 'path', 'content'],
         'osimage': ['name', 'kernelversion', 'kernelfile', 'imagefile', 'path', 'distribution', 'osrelease'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
-        'switch': ['name', 'network', 'oid', 'read', 'ipaddress']
+        'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],
+        'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups']
     }
     response = list(static[table])
     return response
@@ -103,14 +106,14 @@ def sortby(table=None):
             'user', 'debug'
         ],
         'node': [
-            'name', 'hostname', 'group', 'osimage', 'interfaces', 'status', 'vendor', 'assettag',
-            'position', 'switchport', 'setupbmc', 'bmcsetup', 'unmanaged_bmc_users', 'netboot',
+            'name', 'hostname', 'group', 'osimage', 'osimagetag', 'interfaces', 'status', 'vendor', 'assettag',
+            'position', 'switch', 'switchport', 'setupbmc', 'bmcsetup', 'unmanaged_bmc_users', 'netboot',
             'localinstall', 'bootmenu', 'roles', 'service', 'prescript', 'partscript',
             'postscript','provision_interface', 'provision_method', 'provision_fallback',
-            'tpm_uuid', 'tpm_pubkey', 'tpm_sha256', 'comment', 'switch',  'macaddress'
+            'tpm_uuid', 'tpm_pubkey', 'tpm_sha256', 'comment',  'macaddress'
         ],
         'group': [
-            'name', 'domain', 'osimage', 'interfaces', 'setupbmc', 'bmcsetupname',
+            'name', 'domain', 'osimage', 'osimagetag', 'interfaces', 'setupbmc', 'bmcsetupname',
             'unmanaged_bmc_users', 'netboot', 'localinstall', 'bootmenu', 'roles', 'prescript',
             'partscript', 'postscript', 'provision_interface', 'provision_method',
             'provision_fallback', 'comment'
@@ -133,7 +136,8 @@ def sortby(table=None):
         'network': [
             'name', 'network', 'ns_hostname', 'ns_ip', 'ntp_server', 'gateway', 'dhcp',
             'dhcp_range_begin', 'dhcp_range_end', 'comment'
-        ]
+        ],
+        'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups']
     }
     response = list(static[table])
     return response
