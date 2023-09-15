@@ -66,14 +66,15 @@ class Rest():
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.SSLError as ssl_loop_error:
             check = True
-            exception = f'{exception} :: {ssl_loop_error}'
+            self.logger.debug(f'{exception} :: {ssl_loop_error}')
         except requests.exceptions.ConnectionError as conn_error:
             check = True
-            exception = f'{exception} :: {conn_error}'
+            self.logger.debug(f'{exception} :: {conn_error}')
         except requests.exceptions.ReadTimeout as time_error:
             check = True
-            exception = f'{exception} :: {time_error}'
+            self.logger.debug(f'{exception} :: {time_error}')
         if check is True:
+            exception = f'ERROR :: Unable to reach {daemon_url} Try again or check the configurations.'
             Message().error_exit(exception)
         return check
 

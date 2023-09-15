@@ -35,7 +35,7 @@ try:
     from luna.control import Control
     from luna.utils.message import Message
     from luna.utils.rest import Rest
-
+    from luna.utils.message import Message
     classes = [
         Cluster,
         Network,
@@ -65,7 +65,8 @@ class Cli():
         self.parser = None
         self.subparsers = None
         self.args = None
-        Presenter().show_banner()
+        Message()
+        # Presenter().show_banner()
 
 
     def main(self):

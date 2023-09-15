@@ -200,7 +200,7 @@ class Helper():
         This method fetch the nodes to the provided entity.
         """
         response = False
-        get_list = Rest().get_data(table, args['name']+'/_list')
+        get_list = Rest().get_data(table, args['name']+'/_member')
         if get_list.status_code == 200:
             get_list = get_list.content
         else:
@@ -213,7 +213,7 @@ class Helper():
                 response = Presenter().show_json(data)
             else:
                 num = 1
-                fields = ['S.No.', 'Nodes']
+                fields = ['#', 'Nodes']
                 rows = []
                 for member in data:
                     new_row = [num, member]
@@ -244,7 +244,7 @@ class Helper():
                 response = Presenter().show_json(data)
             else:
                 num = 1
-                fields = ['S.No.', 'IP Address', 'Device Name']
+                fields = ['#', 'IP Address', 'Device Name']
                 rows = []
                 for each in data:
                     new_row = [num, each['ipaddress'], each['device']]
@@ -530,7 +530,7 @@ class Helper():
                         result[key] = case.upper()
         result = dict(sorted(result.items()))
 
-        header = "| S.No. |     Node Name      |       Status                                              |"
+        header = "| #     |     Node Name      |       Status                                              |"
         hr_line = 'X----------------------------------------------------------------------------------------X'
         rows = []
         for key, value in result.items():
@@ -600,7 +600,7 @@ class Helper():
             final_rows.append(tmp)
         rows = final_rows
         # Adding Serial Numbers to the dataset
-        fields.insert(0, 'S. No.')
+        fields.insert(0, '#')
         num = 1
         for outer in rows:
             outer.insert(0, num)
@@ -657,7 +657,7 @@ class Helper():
             final_rows.append(tmp)
         rows = final_rows
         # Adding Serial Numbers to the dataset
-        fields.insert(0, 'S. No.')
+        fields.insert(0, '#')
         num = 1
         for outer in rows:
             outer.insert(0, num)
@@ -889,7 +889,7 @@ class Helper():
             colored_fields.append(newfield)
         fields = colored_fields
         # Adding Serial Numbers to the dataset
-        fields.insert(0, 'S. No.')
+        fields.insert(0, '#')
         num = 1
         for outer in rows:
             outer.insert(0, num)
@@ -922,7 +922,7 @@ class Helper():
             colored_fields.append(newfield)
         fields = colored_fields
         # Adding Serial Numbers to the dataset
-        fields.insert(0, 'S. No.')
+        fields.insert(0, '#')
         num = 1
         for outer in rows:
             outer.insert(0, num)
