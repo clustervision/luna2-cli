@@ -108,6 +108,7 @@ class OSImage():
 
         tag_change = tag_args.add_parser('change', help='Change a OS Image Tag')
         tag_change.add_argument('name', help='OSImage Name')
+        tag_change.add_argument('tag', help='OS Image Tag Name')
         tag_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
 
         tag_remove = tag_args.add_parser('remove', help='Delete a OS Image Tag')
@@ -329,7 +330,6 @@ class OSImage():
         """
         This method show a specific osimage tag.
         """
-        
         get_list = Rest().get_data("osimagetag", self.args['name'])
         if get_list.status_code == 200:
             get_list = get_list.content
@@ -344,7 +344,6 @@ class OSImage():
             else:
                 data = Helper().prepare_json(data, True)
                 fields, rows  = Helper().filter_data("osimagetag", data)
-       
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
                 title = f' << OS Image Tags for {self.args["name"]} >>'
@@ -358,11 +357,31 @@ class OSImage():
         """
         This method update a osimage tag.
         """
-        return Helper().update_record(self.table, self.args)
+        for remove in ['verbose', 'command', 'action', 'raw', 'tag_action']:
+            self.args.pop(remove, None)
+        request_data = {'config': {self.table: {self.args['name']: {'tag': self.args['tag']}}}}
+        self.logger.debug(f'Payload => {request_data}')
+        response = Rest().post_data(self.table, self.args['name'], request_data)
+        if response.status_code == 204:
+            Message().show_success(f'OS Image Tag Updated for {self.args["name"]}.')
+        else:
+            Message().error_exit(response.content, response.status_code)
+        return True
 
 
     def remove_tag(self):
         """
         This method remove a osimage tag.
         """
-        return Helper().delete_record(self.table, self.args)
+        route = f'/config/{self.table}/{self.args["name"]}/osimagetag/{self.args["tag"]}/_delete'
+        response = Rest().get_raw(route)
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 204:
+            Message().show_success(f'OS Image Tag {self.args["tag"]} is deleted for {self.args["name"]}.')
+        else:
+            if response.content:
+                message = response.json()
+                Message().error_exit(message["message"], response.status_code)
+            else:
+                Message().error_exit(f'OS Image Tag {self.args["tag"]} is deleted for {self.args["name"]}.', response.status_code)
+        return True
