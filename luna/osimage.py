@@ -343,11 +343,14 @@ class OSImage():
                 response = Presenter().show_json(json_data)
             else:
                 data = Helper().prepare_json(data, True)
-                fields, rows  = Helper().filter_data("osimagetag", data)
+                # fields, rows  = Helper().filter_data("osimagetag", data)
+                fields, osimage, rows  = Helper().filter_data_col("osimagetag", data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
                 title = f' << OS Image Tags for {self.args["name"]} >>'
-                response = Presenter().show_table(title, fields, rows)
+                # response = Presenter().show_table(title, fields, rows)
+                # response = Presenter().show_table_col(title, fields, rows)
+                response = Presenter().show_table_col_more_fields(title, fields, osimage, rows)
         else:
             response = Message().show_error(f'OS Image Tags is not found for {self.args["name"]}.')
         return response
