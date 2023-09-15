@@ -87,7 +87,8 @@ def filter_columns(table=None):
         'nodesecrets': ['Node', 'name', 'path', 'content'],
         'osimage': ['name', 'kernelversion', 'kernelfile', 'imagefile', 'path', 'distribution', 'osrelease'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
-        'switch': ['name', 'network', 'oid', 'read', 'ipaddress']
+        'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],
+        'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups']
     }
     response = list(static[table])
     return response
@@ -135,7 +136,8 @@ def sortby(table=None):
         'network': [
             'name', 'network', 'ns_hostname', 'ns_ip', 'ntp_server', 'gateway', 'dhcp',
             'dhcp_range_begin', 'dhcp_range_end', 'comment'
-        ]
+        ],
+        'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups']
     }
     response = list(static[table])
     return response

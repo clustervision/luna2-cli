@@ -74,7 +74,7 @@ class Rest():
             check = True
             self.logger.debug(f'{exception} :: {time_error}')
         if check is True:
-            exception = f'ERROR :: Unable to reach {daemon_url} Try again or check the configurations.'
+            exception = f'ERROR :: Unable to reach {daemon_url} Try again or check the configurations'
             Message().error_exit(exception)
         return check
 

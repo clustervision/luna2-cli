@@ -21,7 +21,7 @@ from luna.utils.log import Log
 from luna.utils.constant import actions
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
-
+from luna.utils.presenter import Presenter
 
 class OSImage():
     """
@@ -322,15 +322,36 @@ class OSImage():
         """
         This method list all osimage Tags.
         """
-        print(self.args)
-        # return Helper().get_list(self.table, self.args)
+        return Helper().get_list("osimagetag", self.args)
 
 
     def show_tag(self):
         """
         This method show a specific osimage tag.
         """
-        return Helper().show_data(self.table, self.args)
+        
+        get_list = Rest().get_data("osimagetag", self.args['name'])
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
+        if get_list:
+            data = get_list['config']["osimagetag"]
+            if self.args['raw']:
+                json_data = Helper().prepare_json(data)
+                response = Presenter().show_json(json_data)
+            else:
+                data = Helper().prepare_json(data, True)
+                fields, rows  = Helper().filter_data("osimagetag", data)
+       
+                self.logger.debug(f'Fields => {fields}')
+                self.logger.debug(f'Rows => {rows}')
+                title = f' << OS Image Tags for {self.args["name"]} >>'
+                response = Presenter().show_table(title, fields, rows)
+        else:
+            response = Message().show_error(f'OS Image Tags is not found for {self.args["name"]}.')
+        return response
 
 
     def change_tag(self):

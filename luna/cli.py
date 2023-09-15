@@ -86,8 +86,6 @@ class Cli():
         for cls in classes:
             cls(parser=self.parser, subparsers =self.subparsers)
         self.args = vars(self.parser.parse_args())
-        urllib3.disable_warnings()
-        Rest().daemon_validation()
         self.call_class()
         return True
 
@@ -114,6 +112,8 @@ class Cli():
                     call = globals()["OtherDev"]
                 else:
                     call = globals()[self.args["command"].capitalize()]
+                urllib3.disable_warnings()
+                Rest().daemon_validation()
                 call(self.args, self.parser, self.subparsers)
             else:
                 self.parser.print_help(sys.stderr)

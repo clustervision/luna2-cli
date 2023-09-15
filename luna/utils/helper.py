@@ -21,7 +21,7 @@ from random import randint
 from os import getpid
 from multiprocessing import Process
 import hostlist
-from nested_lookup import nested_lookup, nested_update, nested_delete
+from nested_lookup import nested_lookup, nested_update, nested_delete, nested_alter
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
@@ -682,31 +682,15 @@ class Helper():
         """
         This method will decode the base 64 string.
         """
-        # print(content)
         try:
             if content is not None:
-                content = base64.b64decode(content)
-                content = content.decode("utf-8")
-                # print(content)
+                content = base64.b64decode(content, validate=True).decode("utf-8")
         except binascii.Error:
             self.logger.debug(f'Base64 Decode Error => {content}')
         except UnicodeDecodeError:
             self.logger.debug(f'Base64 Unicode Decode Error => {content}')
         return content
 
-
-    def isBase64(self, sb):
-        try:
-            if isinstance(sb, str):
-                sb_bytes = bytes(sb, 'ascii')
-            elif isinstance(sb, bytes):
-                sb_bytes = sb
-            else:
-                raise ValueError("Argument must be string or bytes")
-            return base64.b64encode(base64.b64decode(sb_bytes)) == sb_bytes
-        except Exception:
-            return False
-    
 
     def update_dict(self, data=None):
         """
@@ -716,28 +700,36 @@ class Helper():
             if isinstance(value, str):
                 value = None if value == 'None' else value
                 if value is not  None:
-                    if self.isBase64(value) is True:
-                        data[key] = self.base64_decode(value)
-                        return self.update_dict(data)
+                    data[key] = self.base64_decode(value)
+                    return self.update_dict(data)
             else:
                 return self.update_dict(data)
         return data
-    
-    def callback(self, value):
-        
-        value = None if value == 'None' else value
-        value = True if value == 'True' else value
-        value = False if value == 'False' else value
+
+
+    def callback(self, value=None):
+        """
+        This method is a call back method for the nested lookup.
+        """
+        if isinstance(value, str):
+            if value.lower() == 'none':
+                value = None
+            elif value.lower() == 'true':
+                value = True
+            elif value.lower() == 'false':
+                value = False
+            elif value.lower() == 'null':
+                value = None
         response = value
         if value not in  [None, True, False] and isinstance(value, str):
-            if self.isBase64(value) is True and '=' in value:
-                # print(value)
-                response = self.base64_decode(value)
+            response = self.base64_decode(value)
         return response
     
 
-    def nested_dict(self, dictionary):
-        from nested_lookup import nested_alter
+    def nested_dict(self, dictionary=None):
+        """
+        This method will check the nested dictionary.
+        """
         for key, value in dictionary.items():
             if isinstance(value, str):
                 doc = nested_alter({key : value}, key, self.callback)
@@ -747,27 +739,28 @@ class Helper():
             elif isinstance(value, list):
                 return self.nested_list(dictionary, key, value)
         return dictionary
-    
-    def nested_list(self, dictionary, key, value):
-        from nested_lookup import nested_alter
-        alist = []
+
+
+    def nested_list(self, dictionary=None, key=None, value=None):
+        """
+        This method will check the list for a dictionary.
+        """
+        response = []
         if value:
             for occurrence in value:
                 if isinstance(occurrence, str):
                     doc = nested_alter({key : occurrence}, key, self.callback)
-                    alist.append(doc[key])
+                    response.append(doc[key])
                 elif isinstance(occurrence, dict):
-                    alist.append(self.nested_dict(occurrence))
-        dictionary[key] = alist
+                    response.append(self.nested_dict(occurrence))
+        dictionary[key] = response
         return dictionary
+
 
     def prepare_json(self, json_data=None, limit=False):
         """
         This method will decode the base 64 string.
         """
-        # print(json_data)
-        from nested_lookup import nested_alter
-        out = []
         if isinstance(json_data, dict):
             for key, value in json_data.items():
                 if isinstance(value, str):
@@ -785,84 +778,6 @@ class Helper():
                             elif isinstance(occurrence, dict):
                                 alist.append(self.nested_dict(occurrence))
                     json_data[key] = alist
-
-                    
-
-            # print(altered_document)
-            # out.append(altered_document)
-        # print(json_data)
-        # print(json_data)
-        # json_data = self.update_dict(json_data)
-        # print(json_data)
-
-        # tmp_dict = {}
-        # check = False
-        # for key in EDITOR_KEYS:
-        #     content = nested_lookup(key, json_data)
-
-        #     if content:
-        #         tmp_dict[key] = []
-        #         # nested_update(json_data, key=key, value=content)
-        #         for occurrence in content:
-        #             # occurrence = "ZWNobyB0bXBmcyAvIHRtcGZzIGRlZmF1bHRzIDAgMCA+PiAvc3lzcm9vdC9ldGMvZnN0YWI="
-        #             occurrence = None if occurrence in ['None', None] else occurrence
-        #             if occurrence not in [None, True, False]:
-        #                 if self.isBase64(occurrence) is True:
-        #                     occurrence = self.base64_decode(occurrence)
-        #                 # print(f'KEY: {key}: VALUE {occurrence} : STATUS: {self.isBase64(occurrence)}')
-        #             # else:
-        #                 # print(f'KEY: {key}: VALUE {occurrence}')
-        #             tmp_dict[key].append(occurrence)
-        # print(tmp_dict)
-        # print("\n")
-        # print("\n")
-        # print("\n")
-        # tmp_dict = {'options': 'ONE', 'options': 'TWO'}
-        # self.update_dict(json_data, tmp_dict)
-        # # for key, value in tmp_dict.items():
-        # #     json_data = nested_update(json_data, key=key, value=value)
-        # print(json_data)
-        # for key, value in tmp_dict.items():
-
-                    # if occurrence not in ['None', None, True, False]:
-                    # try:
-                    #     base64.b64decode(occurrence)
-                    #     check = True
-                    # except binascii.Error:
-                    #     check = False
-                    #     print("no correct base64")
-                    # # print(isBase64(occurrence))
-                    # if check is True:
-                    #     content = self.base64_decode(occurrence)
-                    #     print(f'key {key} : encoded {occurrence} decoded {content}')
-                    # else:
-                    #     print(f'key {key} : TEXT {occurrence}')
-
-                    # else:
-                        # print(f'key {key} : content {occurrence}')
-                
-
-
-                
-
-
-
-
-                
-                # if content[0] is not None:
-                #     try:
-                #         content = self.base64_decode(content[0])
-                #         if limit:
-                #             if len(content) and '<empty>' not in content:
-                #                 content = content[:60]
-                #                 if '\n' in content:
-                #                     content = content.removesuffix('\n')
-                #                 content = f'{content}...'
-                #         json_data = nested_update(json_data, key=key, value=content)
-                #     except TypeError:
-                #         self.logger.debug(f"Without any reason {content} is coming from api.")
-        # import sys
-        # sys.exit(0)
         return json_data
 
 
