@@ -364,7 +364,7 @@ class OSImage():
             self.args.pop(remove, None)
         request_data = {'config': {self.table: {self.args['name']: {'tag': self.args['tag']}}}}
         self.logger.debug(f'Payload => {request_data}')
-        response = Rest().post_data(self.table, self.args['name'], request_data)
+        response = Rest().post_data(self.table, f"{self.args['name']}/tag", request_data)
         if response.status_code == 204:
             Message().show_success(f'OS Image Tag Updated for {self.args["name"]}.')
         else:
