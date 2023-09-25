@@ -134,8 +134,8 @@ def sortby(table=None):
         'groupsecrets': ['Group', 'name', 'path', 'content'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
         'network': [
-            'name', 'network', 'ns_hostname', 'ns_ip', 'ntp_server', 'gateway', 'dhcp',
-            'dhcp_range_begin', 'dhcp_range_end', 'comment'
+            'name', 'network', 'gateway', 'ntp_server', 'nameserver_ip', 'dhcp',
+            'dhcp_range_begin', 'dhcp_range_end', 'shared', 'zone', 'comment'
         ],
         'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups']
     }
