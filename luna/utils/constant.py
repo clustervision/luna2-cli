@@ -81,7 +81,7 @@ def filter_columns(table=None):
         'group': ['name', 'bmcsetupname', 'osimage', 'roles', 'interfaces'],
         'groupinterface': ['interface', 'network', 'options'],
         'groupsecrets': ['Group', 'name', 'path', 'content'],
-        'network': ['name', 'network', 'ns_ip', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end'],
+        'network': ['name', 'network', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end'],
         'node': ['name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_present'],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
