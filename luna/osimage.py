@@ -215,8 +215,6 @@ class OSImage():
         """
         This method pack a osimage.
         """
-        process1 = Process(target=Helper().loader, args=("OS Image Packing...",))
-        process1.start()
         response = False
         uri = f'config/{self.table}/{self.args["name"]}/_pack'
         result = Rest().get_raw(uri)
@@ -232,6 +230,8 @@ class OSImage():
                     Message().show_success(f'{http_response["message"]}')
 
             if 'request_id' in http_response.keys():
+                process1 = Process(target=Helper().loader, args=("OS Image Packing...",))
+                process1.start()
                 uri = f'config/status/{http_response["request_id"]}'
 
                 def dig_packing_status(uri):
