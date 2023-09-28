@@ -154,6 +154,7 @@ class Arguments():
         else:
             parser.add_argument('-N', '--network', help='Network')
         parser.add_argument('-g', '--gateway', help='Gateway')
+        parser.add_argument('-t', '--type', help='Network Type')
         parser.add_argument('-nsip', '--nameserver_ip', help='NameServer IP')
         parser.add_argument('-ntp', '--ntp_server', help='NTP Server')
         parser.add_argument('-dhcp', '--dhcp', choices=BOOL_CHOICES,

@@ -81,7 +81,7 @@ def filter_columns(table=None):
         'group': ['name', 'bmcsetupname', 'osimage', 'roles', 'interfaces'],
         'groupinterface': ['interface', 'network', 'options'],
         'groupsecrets': ['Group', 'name', 'path', 'content'],
-        'network': ['name', 'network', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end'],
+        'network': ['name', 'network', 'type', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end'],
         'node': ['name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_present'],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
@@ -134,7 +134,7 @@ def sortby(table=None):
         'groupsecrets': ['Group', 'name', 'path', 'content'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
         'network': [
-            'name', 'network', 'gateway', 'ntp_server', 'nameserver_ip', 'dhcp',
+            'name', 'type', 'network', 'gateway', 'ntp_server', 'nameserver_ip', 'dhcp',
             'dhcp_range_begin', 'dhcp_range_end', 'shared', 'zone', 'comment'
         ],
         'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups']
