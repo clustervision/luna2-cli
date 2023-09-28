@@ -800,7 +800,7 @@ class Helper():
                 new_row.append(value['name'])
                 new_row.append(value['path'])
                 content = self.base64_decode(value['content'])
-                new_row.append(content[:60]+'...')
+                new_row.append(content[:60]+'...') if content is not None else new_row.append(content)
                 rows.append(new_row)
                 new_row = []
         for newfield in fields:
