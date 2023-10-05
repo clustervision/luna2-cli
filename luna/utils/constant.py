@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
- 
+
 # This code is part of the TrinityX software suite
 # Copyright (C) 2023  ClusterVision Solutions b.v.
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>
 
@@ -102,10 +102,13 @@ def filter_columns(table=None):
         'node': ['name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_present'],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
-        'osimage': ['name', 'kernelversion', 'kernelfile', 'imagefile', 'path', 'distribution', 'osrelease'],
+        'osimage': [
+            'name', 'kernelversion', 'kernelfile', 'imagefile', 'path', 'distribution', 'osrelease'
+        ],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],
-        'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups']
+        'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes',
+                       'groups']
     }
     response = list(static[table])
     return response
@@ -123,11 +126,11 @@ def sortby(table=None):
             'user', 'debug'
         ],
         'node': [
-            'name', 'hostname', 'group', 'osimage', 'osimagetag', 'interfaces', 'status', 'vendor', 'assettag',
-            'position', 'switch', 'switchport', 'setupbmc', 'bmcsetup', 'unmanaged_bmc_users', 'netboot',
-            'localinstall', 'bootmenu', 'roles', 'service', 'prescript', 'partscript',
-            'postscript','provision_interface', 'provision_method', 'provision_fallback',
-            'tpm_uuid', 'tpm_pubkey', 'tpm_sha256', 'comment',  'macaddress'
+            'name', 'hostname', 'group', 'osimage', 'osimagetag', 'interfaces', 'status', 'vendor',
+            'assettag', 'position', 'switch', 'switchport', 'setupbmc', 'bmcsetup',
+            'unmanaged_bmc_users', 'netboot', 'localinstall', 'bootmenu', 'roles', 'service',
+            'prescript', 'partscript', 'postscript','provision_interface', 'provision_method',
+            'provision_fallback', 'tpm_uuid', 'tpm_pubkey', 'tpm_sha256', 'comment',  'macaddress'
         ],
         'group': [
             'name', 'domain', 'osimage', 'osimagetag', 'interfaces', 'setupbmc', 'bmcsetupname',
@@ -154,7 +157,9 @@ def sortby(table=None):
             'name', 'type', 'network', 'gateway', 'ntp_server', 'nameserver_ip', 'dhcp',
             'dhcp_range_begin', 'dhcp_range_end', 'shared', 'zone', 'comment'
         ],
-        'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups']
+        'osimagetag': [
+            'osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups'
+        ]
     }
     response = list(static[table])
     return response

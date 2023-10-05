@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
- 
+
 # This code is part of the TrinityX software suite
 # Copyright (C) 2023  ClusterVision Solutions b.v.
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>
 
@@ -60,8 +60,7 @@ class Presenter():
 
     def show_json(self, json_data=None):
         """
-        This method will fetch all records from
-        the Luna 2 Daemon Database
+        This method will fetch all records from the Luna 2 Daemon Database
         """
         self.logger.debug(f'Jason Data => {json_data}')
         pretty = json.dumps(json_data, indent=2)
@@ -71,8 +70,7 @@ class Presenter():
 
     def show_table(self, title=None, fields=None, rows=None):
         """
-        This method will fetch a records from
-        the Luna 2 Daemon Database
+        This method will fetch a records from the Luna 2 Daemon Database
         """
         self.logger.debug(f'Fields => {fields}')
         self.logger.debug(f'Rows => {rows}')
@@ -87,8 +85,7 @@ class Presenter():
 
     def show_table_col(self, title=None, field=None, rows=None):
         """
-        This method will fetch a records from
-        the Luna 2 Daemon Database
+        This method will fetch a records from the Luna 2 Daemon Database
         """
         self.logger.debug(f'Fields => {field}')
         self.logger.debug(f'Rows => {rows}')
@@ -99,12 +96,11 @@ class Presenter():
         self.table.align = "l"
         Message().show_success(self.table)
         return True
-    
+
 
     def show_table_col_more_fields(self, title=None, field=None, newfield=None, rows=None):
         """
-        This method will fetch a records from
-        the Luna 2 Daemon Database
+        This method will fetch a records from the Luna 2 Daemon Database
         """
         self.logger.debug(f'Fields => {field}')
         self.logger.debug(f'Rows => {rows}')
@@ -120,8 +116,7 @@ class Presenter():
 
     def table_only_rows(self, fields=None, rows=None):
         """
-        This method will fetch a records from
-        the Luna 2 Daemon Database
+        This method will fetch a records from the Luna 2 Daemon Database
         """
         self.logger.debug(f'Rows => {rows}')
         self.table.field_names = fields

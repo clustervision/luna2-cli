@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
- 
+
 # This code is part of the TrinityX software suite
 # Copyright (C) 2023  ClusterVision Solutions b.v.
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>
 
@@ -105,7 +105,8 @@ class Control():
         response = False
         hostlist = Helper().get_hostlist(self.args['node'])
         if len(hostlist) == 1:
-            uri = f'{self.route}/action/{self.args["system"]}/{self.args["node"]}/_{self.args["action"]}'
+            uri = f'{self.route}/action/{self.args["system"]}'
+            uri = f'{uri}/{self.args["node"]}/_{self.args["action"]}'
             self.logger.debug(f'URI => {uri}')
             if 'file' in self.args:
                 if self.args['file']:
@@ -139,7 +140,15 @@ class Control():
             control_process.start()
             request_id = None
             uri = f'{self.route}/action/{self.args["system"]}/_{self.args["action"]}'
-            payload = {'control':{self.args['system']:{self.args['action']:{'hostlist':self.args['node']}}}}
+            payload = {
+                'control':{
+                    self.args['system']:{
+                        self.args['action']:{
+                            'hostlist':self.args['node']
+                        }
+                    }
+                }
+            }
             response = Rest().post_raw(uri, payload)
             self.logger.debug(f'HTTP STATUS => {response.status_code}')
             self.logger.debug(f'HTTP Response => {response.content}')

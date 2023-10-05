@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
- 
+
 # This code is part of the TrinityX software suite
 # Copyright (C) 2023  ClusterVision Solutions b.v.
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>
 
@@ -39,8 +39,7 @@ from luna.utils.message import Message
 
 class Service():
     """
-    Service Class responsible to perform service
-    based actions for predefined services.
+    Service Class responsible to perform service based actions for predefined services.
     """
 
     def __init__(self, args=None, parser=None, subparsers=None):
@@ -62,8 +61,7 @@ class Service():
 
     def get_arguments(self, parser, subparsers):
         """
-        Method will provide all the arguments
-        related to the Service class.
+        Method will provide all the arguments related to the Service class.
         """
         service_menu = subparsers.add_parser('service', help='Service operations.')
         service_args = service_menu.add_subparsers(dest='service')
