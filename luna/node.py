@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
- 
+
 # This code is part of the TrinityX software suite
 # Copyright (C) 2023  ClusterVision Solutions b.v.
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>
 
@@ -41,8 +41,7 @@ from luna.utils.arguments import Arguments
 
 class Node():
     """
-    Node Class responsible to show, list,
-    add, remove information for the Node
+    Node Class responsible to show, list, add, remove information for the Node
     """
 
     def __init__(self, args=None, parser=None, subparsers=None):
@@ -68,8 +67,7 @@ class Node():
 
     def get_arguments(self, parser, subparsers):
         """
-        Method will provide all the arguments
-        related to the Node class.
+        Method will provide all the arguments related to the Node class.
         """
         node_menu = subparsers.add_parser('node', help='Compute Node operations.')
         node_args = node_menu.add_subparsers(dest='action')
@@ -96,12 +94,14 @@ class Node():
         node_osgrab.add_argument('name', help='Name of the Node')
         node_osgrab.add_argument('-o', '--osimage', help='OS Image Name')
         node_osgrab.add_argument('-b', '--bare', action='store_true', help='Bare OS Image')
-        node_osgrab.add_argument('-no', '--nodry', action='store_true', help='No Dry flag to avoid dry run')
+        node_osgrab.add_argument('-no', '--nodry', action='store_true',
+                                 help='No Dry flag to avoid dry run')
         node_osgrab.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_ospush = node_args.add_parser('ospush', help='Push an OS Image for a Node')
         node_ospush.add_argument('name', help='Name of the Node')
         node_ospush.add_argument('-o', '--osimage', help='OS Image Name')
-        node_ospush.add_argument('-no', '--nodry', action='store_true', help='No Dry flag to avoid dry run')
+        node_ospush.add_argument('-no', '--nodry', action='store_true',
+                                 help='No Dry flag to avoid dry run')
         node_ospush.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         node_interfaces = node_args.add_parser('listinterface', help='List Node Interfaces')
         node_interfaces.add_argument('name', help='Name of the Node')
