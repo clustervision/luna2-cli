@@ -133,7 +133,7 @@ class Cli():
                 Rest().daemon_validation()
                 call(self.args, self.parser, self.subparsers)
             else:
-                self.parser.print_help(sys.stderr)
+                self.parser.print_help(sys.stdout)
                 sys.exit(0)
         except KeyboardInterrupt:
             sys.stderr.write("\nKeyboard Interrupted\n")
