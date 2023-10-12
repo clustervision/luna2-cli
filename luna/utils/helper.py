@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
- 
+
 # This code is part of the TrinityX software suite
 # Copyright (C) 2023  ClusterVision Solutions b.v.
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>
 
@@ -547,8 +547,10 @@ class Helper():
                         result[key] = case.upper()
         result = dict(sorted(result.items()))
 
-        header = "| #     |     Node Name      |       Status                                              |"
-        hr_line = 'X----------------------------------------------------------------------------------------X'
+        header = "| #     |     Node Name      |       "
+        header += "Status                                              |"
+        hr_line = 'X--------------------------------------------'
+        hr_line += '--------------------------------------------X'
         rows = []
         for key, value in result.items():
             rows.append([count, key, value])
@@ -580,10 +582,11 @@ class Helper():
             count = Helper().control_print(system, status_json, count)
             return self.dig_control_status(request_id, count, system)
         elif status.status_code == 404:
-            Message().show_success('X----------------------------------------------------------------------------------------X')
+            hr_line = 'X--------------------------------------------'
+            hr_line += '--------------------------------------------X'
+            Message().show_success(hr_line)
         else:
             Message().show_error(f"Something Went Wrong {status.status_code}")
-            
 
 
     def filter_interface(self, table=None, data=None):
@@ -744,7 +747,7 @@ class Helper():
         if value not in  [None, True, False] and isinstance(value, str):
             response = self.base64_decode(value)
         return response
-    
+
 
     def nested_dict(self, dictionary=None):
         """
@@ -781,6 +784,7 @@ class Helper():
         """
         This method will decode the base 64 string.
         """
+        self.logger.debug(f'Data Limit => {limit}')
         if isinstance(json_data, dict):
             for key, value in json_data.items():
                 if isinstance(value, str):
@@ -789,15 +793,15 @@ class Helper():
                 elif isinstance(value, dict):
                     json_data[key] = self.nested_dict(value)
                 elif isinstance(value, list):
-                    alist = []
+                    final_list = []
                     if value:
                         for occurrence in value:
                             if isinstance(occurrence, str):
                                 doc = nested_alter({key : occurrence}, key, self.callback)
-                                alist.append(doc[key])
+                                final_list.append(doc[key])
                             elif isinstance(occurrence, dict):
-                                alist.append(self.nested_dict(occurrence))
-                    json_data[key] = alist
+                                final_list.append(self.nested_dict(occurrence))
+                    json_data[key] = final_list
         return json_data
 
 
@@ -817,7 +821,10 @@ class Helper():
                 new_row.append(value['name'])
                 new_row.append(value['path'])
                 content = self.base64_decode(value['content'])
-                new_row.append(content[:60]+'...') if content is not None else new_row.append(content)
+                if content is not None:
+                    new_row.append(content[:60]+'...')
+                else:
+                    new_row.append(content)
                 rows.append(new_row)
                 new_row = []
         for newfield in fields:
@@ -874,8 +881,7 @@ class Helper():
 
     def filter_data_col(self, table=None, data=None):
         """
-        This method will generate the data as for
-        row format
+        This method will generate the data as for row format
         """
         self.logger.debug(f'Table => {table} and Data => {data}')
         defined_keys = sortby(table)
@@ -886,15 +892,9 @@ class Helper():
         index_map = {v: i for i, v in enumerate(defined_keys)}
         data = sorted(data.items(), key=lambda pair: index_map[pair[0]])
         self.logger.debug(f'Sorted Data => {data}')
-        if table == "osimagetag":
-            osimage = ["OS Image\n"]
-            fields, rows = ["Tags\n"], ["Details\n"]
-        else:
-            fields, rows = [], []
+        fields, rows = [], []
         for key in data:
             fields.append(key[0])
-            if table == "osimagetag":
-                osimage.append(key[1]['osimage'])
             if isinstance(key[1], list):
                 new_list = []
                 for internal in key[1]:
@@ -912,24 +912,64 @@ class Helper():
                 num = 1
                 for internal in key[1]:
                     self.logger.debug(f'Key => {internal} and Value => {key[1][internal]}')
-                    if table == "osimagetag":
-                        if internal != "name":
-                            in_key = internal
-                            in_val = key[1][internal]
-                            if len(key[1]) == num:
-                                new_list.append(f'{in_key} = {in_val} \n')
-                            else:
-                                new_list.append(f'{in_key} = {in_val} ')
-                    else:
-                        in_key = internal
-                        in_val = key[1][internal]
-                        new_list.append(f'{in_key} = {in_val} ')
+                    in_key = internal
+                    in_val = key[1][internal]
+                    new_list.append(f'{in_key} = {in_val} ')
                     num = num + 1
                 new_list = '\n'.join(new_list)
                 rows.append(new_list)
                 new_list = []
             else:
                 rows.append(key[1])
-        if table == "osimagetag":
-            return fields, osimage, rows
         return fields, rows
+
+
+    def filter_osimage_col(self, table=None, data=None):
+        """
+        This method will generate the data as for row format
+        """
+        self.logger.debug(f'Table => {table} and Data => {data}')
+        defined_keys = sortby(table)
+        self.logger.debug(f'Fields => {defined_keys}')
+        for new_key in list(data.keys()):
+            if new_key not in defined_keys:
+                defined_keys.append(new_key)
+        index_map = {v: i for i, v in enumerate(defined_keys)}
+        data = sorted(data.items(), key=lambda pair: index_map[pair[0]])
+        self.logger.debug(f'Sorted Data => {data}')
+        osimage = ["OS Image\n"]
+        fields, rows = ["Tags\n"], ["Details\n"]
+        for key in data:
+            fields.append(key[0])
+            osimage.append(key[1]['osimage'])
+            if isinstance(key[1], list):
+                new_list = []
+                for internal in key[1]:
+                    for internal_val in internal:
+                        self.logger.debug(f'Key: {internal_val} Value: {internal[internal_val]}')
+                        if internal_val == "interface":
+                            new_list.append(f'{internal_val} = {internal[internal_val]}')
+                        else:
+                            new_list.append(f'  {internal_val} = {internal[internal_val]}')
+                new_list = '\n'.join(new_list)
+                rows.append(new_list)
+                new_list = []
+            elif isinstance(key[1], dict):
+                new_list = []
+                num = 1
+                for internal in key[1]:
+                    self.logger.debug(f'Key => {internal} and Value => {key[1][internal]}')
+                    if internal != "name":
+                        in_key = internal
+                        in_val = key[1][internal]
+                        if len(key[1]) == num:
+                            new_list.append(f'{in_key} = {in_val} \n')
+                        else:
+                            new_list.append(f'{in_key} = {in_val} ')
+                    num = num + 1
+                new_list = '\n'.join(new_list)
+                rows.append(new_list)
+                new_list = []
+            else:
+                rows.append(key[1])
+        return fields, osimage, rows
