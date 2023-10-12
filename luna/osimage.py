@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
- 
+
 # This code is part of the TrinityX software suite
 # Copyright (C) 2023  ClusterVision Solutions b.v.
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>
 
@@ -111,7 +111,8 @@ class OSImage():
         osimage_kernel.add_argument('-rd', '--initrdfile', help='INIT RD File')
         osimage_kernel.add_argument('-k', '--kernelfile', help='Kernel File')
         osimage_kernel.add_argument('-ver', '--kernelversion', help='Kernel Version')
-        osimage_kernel.add_argument('-b', '--bare', action='store_true', help='Bare OS Image(Exclude Packing)')
+        osimage_kernel.add_argument('-b', '--bare', action='store_true',
+                                    help='Bare OS Image(Exclude Packing)')
         osimage_kernel.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
 
         tag_menu = osimage_args.add_parser('tag', help='Tag OS Image')
@@ -198,10 +199,10 @@ class OSImage():
         self.logger.debug(f'Payload => {request_data}')
         result = Rest().post_clone(self.table, payload['name'], request_data)
         if result.status_code == 200:
-            process1 = Process(target=Helper().loader, args=("OS Image Cloning...",))
-            process1.start()
             http_response = result.content
             if 'request_id' in http_response.keys():
+                process1 = Process(target=Helper().loader, args=("OS Image Cloning...",))
+                process1.start()
                 uri = f'config/status/{http_response["request_id"]}'
                 def dig_packing_status(uri):
                     result = Rest().get_raw(uri)
@@ -293,11 +294,8 @@ class OSImage():
         if result.status_code == 204:
             Message().show_success(f'OS Image {self.args["name"]} Kernel updated.')
         elif result.status_code == 200:
-            process1 = Process(target=Helper().loader, args=("OS Image Kernel Update (Packing)...",))
-            process1.start()
             response = False
             http_response = result.content
-           
             http_response = result.json()
             if http_response['message']:
                 if len(http_response['message']) > 5:
@@ -309,6 +307,8 @@ class OSImage():
                     Message().show_success(f'{http_response["message"]}')
 
             if 'request_id' in http_response.keys():
+                process1 = Process(target=Helper().loader, args=("OS Image Kernel Updating...",))
+                process1.start()
                 uri = f'config/status/{http_response["request_id"]}'
                 def dig_packing_status(uri):
                     sleep(2)
@@ -361,7 +361,7 @@ class OSImage():
             else:
                 data = Helper().prepare_json(data, True)
                 # fields, rows  = Helper().filter_data("osimagetag", data)
-                fields, osimage, rows  = Helper().filter_data_col("osimagetag", data)
+                fields, osimage, rows  = Helper().filter_osimage_col("osimagetag", data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
                 title = f' << OS Image Tags for {self.args["name"]} >>'
@@ -397,11 +397,14 @@ class OSImage():
         response = Rest().get_raw(route)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
-            Message().show_success(f'OS Image Tag {self.args["tag"]} is deleted for {self.args["name"]}.')
+            Message().show_success(f'Tag {self.args["tag"]} is deleted for {self.args["name"]}.')
         else:
             if response.content:
                 message = response.json()
                 Message().error_exit(message["message"], response.status_code)
             else:
-                Message().error_exit(f'OS Image Tag {self.args["tag"]} is deleted for {self.args["name"]}.', response.status_code)
+                Message().error_exit(
+                    f'Tag {self.args["tag"]} is deleted for {self.args["name"]}.',
+                    response.status_code
+                )
         return True

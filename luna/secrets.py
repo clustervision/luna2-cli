@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
- 
+
 # This code is part of the TrinityX software suite
 # Copyright (C) 2023  ClusterVision Solutions b.v.
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>
 
@@ -173,8 +173,7 @@ class Secrets():
 
     def list_secrets(self):
         """
-        Method to list Secrets all or only node or
-        only group depending on the arguments.
+        Method to list Secrets all or only node or only group depending on the arguments.
         """
         error = False
         uri = self.route
@@ -309,8 +308,7 @@ class Secrets():
 
     def change_secrets(self):
         """
-        Method to change Secrets for node or group
-        depending on the arguments.
+        Method to change Secrets for node or group depending on the arguments.
         """
         response = False
         if self.args['entity'] is not None:
@@ -349,8 +347,7 @@ class Secrets():
 
     def clone_secrets(self):
         """
-        Method to Clone Secrets for node or group
-        depending on the arguments.
+        Method to Clone Secrets for node or group depending on the arguments.
         """
         response = False
         if self.args['entity'] is not None:
@@ -386,8 +383,7 @@ class Secrets():
 
     def remove_secrets(self):
         """
-        Method to remove a Secrets for node or group
-        depending on the arguments.
+        Method to remove a Secrets for node or group depending on the arguments.
         """
         response = False
         abort = False

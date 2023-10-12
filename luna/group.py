@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
- 
+
 # This code is part of the TrinityX software suite
 # Copyright (C) 2023  ClusterVision Solutions b.v.
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>
 
@@ -41,8 +41,7 @@ from luna.utils.arguments import Arguments
 
 class Group():
     """
-    Group Class responsible to show, list,
-    add, remove information for the Group
+    Group Class responsible to show, list, add, remove information for the Group
     """
 
     def __init__(self, args=None, parser=None, subparsers=None):
@@ -97,7 +96,8 @@ class Group():
         group_ospush = group_args.add_parser('ospush', help='Push an OS Image for a Group')
         group_ospush.add_argument('name', help='Name of the Group')
         group_ospush.add_argument('-o', '--osimage', help='OS Image Name')
-        group_ospush.add_argument('-no', '--nodry', action='store_true', help='No Dry flag to avoid dry run')
+        group_ospush.add_argument('-no', '--nodry', action='store_true',
+                                  help='No Dry flag to avoid dry run')
         group_ospush.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         group_interfaces = group_args.add_parser('listinterface', help='List Group Interfaces')
         group_interfaces.add_argument('name', help='Name of the Group')

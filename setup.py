@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
- 
+
 # This code is part of the TrinityX software suite
 # Copyright (C) 2023  ClusterVision Solutions b.v.
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>
 
@@ -34,11 +34,13 @@ from setuptools import setup, find_packages
 
 PRE = "{Personal-Access-Token-Name}:{Personal-Access-Token}"
 
-try: # for pip >= 10
+try:
+    # for pip >= 10
     from pip._internal.req import parse_requirements
     install_requirements = list(parse_requirements('requirements.txt', session='hack'))
     requirements = [str(ir.requirement) for ir in install_requirements]
-except ImportError: # for pip <= 9.0.3
+except ImportError:
+    # for pip <= 9.0.3
     from pip.req import parse_requirements
     install_requirements = parse_requirements('requirements.txt', session='hack')
     requirements = [str(ir.req) for ir in install_requirements]
