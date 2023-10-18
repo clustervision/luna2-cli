@@ -704,9 +704,9 @@ class Helper():
         """
         try:
             if content is not None:
-                content = content.replace("\n", "\\n")
-                content = content.replace("\r", "\\r")
-                content = content.replace("\t", "\\t")
+                content = content.replace("\\n", "\n")
+                content = content.replace("\\r", "\r")
+                content = content.replace("\\t", "\t")
                 content = base64.b64decode(content, validate=True).decode("utf-8")
         except binascii.Error:
             self.logger.debug(f'Base64 Decode Error => {content}')
