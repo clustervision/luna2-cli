@@ -110,7 +110,7 @@ class Arguments():
         This method will provide the common node arguments.
         """
         parser.add_argument('name', help='Name of the Node')
-        parser.add_argument('-host', '--hostname',help='Hostname')
+        # parser.add_argument('-host', '--hostname',help='Hostname')
         if required:
             parser.add_argument('-g', '--group', required=True, help='Group Name')
         else:
