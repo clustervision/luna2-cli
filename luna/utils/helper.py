@@ -704,9 +704,9 @@ class Helper():
         """
         try:
             if content is not None:
-                content = content.replace("\n", "\\n")
-                content = content.replace("\r", "\\r")
-                content = content.replace("\t", "\\t")
+                content = content.replace("\\n", "\n")
+                content = content.replace("\\r", "\r")
+                content = content.replace("\\t", "\t")
                 content = base64.b64decode(content, validate=True).decode("utf-8")
         except binascii.Error:
             self.logger.debug(f'Base64 Decode Error => {content}')
@@ -749,22 +749,22 @@ class Helper():
         return response
 
 
-    def nested_dict(self, dictionary=None):
+    def nested_dict(self, dictionary=None, limit=False):
         """
         This method will check the nested dictionary.
         """
         for key, value in dictionary.items():
             if isinstance(value, str):
                 doc = nested_alter({key : value}, key, self.callback)
-                dictionary[key] = doc[key]
+                dictionary[key] = self.less_content(doc[key], limit)
             elif isinstance(value, dict):
-                return self.nested_dict(dictionary)
+                return self.nested_dict(dictionary, limit)
             elif isinstance(value, list):
-                return self.nested_list(dictionary, key, value)
+                return self.nested_list(dictionary, key, value, limit)
         return dictionary
 
 
-    def nested_list(self, dictionary=None, key=None, value=None):
+    def nested_list(self, dictionary=None, key=None, value=None, limit=False):
         """
         This method will check the list for a dictionary.
         """
@@ -773,11 +773,21 @@ class Helper():
             for occurrence in value:
                 if isinstance(occurrence, str):
                     doc = nested_alter({key : occurrence}, key, self.callback)
-                    response.append(doc[key])
+                    response.append(self.less_content(doc[key], limit))
                 elif isinstance(occurrence, dict):
-                    response.append(self.nested_dict(occurrence))
+                    response.append(self.nested_dict(occurrence, limit))
         dictionary[key] = response
         return dictionary
+
+
+    def less_content(self, content=None, limit=False):
+        """
+        This method will reduce the length of the content.
+        """
+        if limit:
+            if len(content) > 60:
+                content = content[:60]+' ...'
+        return content
 
 
     def prepare_json(self, json_data=None, limit=False):
@@ -789,18 +799,18 @@ class Helper():
             for key, value in json_data.items():
                 if isinstance(value, str):
                     doc = nested_alter({key : value}, key, self.callback)
-                    json_data[key] = doc[key]
+                    json_data[key] = self.less_content(doc[key], limit)
                 elif isinstance(value, dict):
-                    json_data[key] = self.nested_dict(value)
+                    json_data[key] = self.nested_dict(value, limit)
                 elif isinstance(value, list):
                     final_list = []
                     if value:
                         for occurrence in value:
                             if isinstance(occurrence, str):
                                 doc = nested_alter({key : occurrence}, key, self.callback)
-                                final_list.append(doc[key])
+                                final_list.append(self.less_content(doc[key], limit))
                             elif isinstance(occurrence, dict):
-                                final_list.append(self.nested_dict(occurrence))
+                                final_list.append(self.nested_dict(occurrence, limit))
                     json_data[key] = final_list
         return json_data
 
@@ -857,7 +867,11 @@ class Helper():
                 new_row.append(value['name'])
                 new_row.append(value['path'])
                 content = self.base64_decode(value['content'])
-                new_row.append(content)
+                if content is not None:
+                    new_row.append(content[:60]+'...')
+                else:
+                    new_row.append(content)
+                # new_row.append(content)
                 rows.append(new_row)
                 new_row = []
         for newfield in fields:

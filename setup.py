@@ -23,7 +23,7 @@ Setup file, will build the pip package for the project.
 """
 __author__      = "Sumit Sharma"
 __copyright__   = "Copyright 2022, Luna2 Project [CLI]"
-__license__     = "MIT"
+__license__     = "GPL"
 __version__     = "2.0"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
@@ -86,7 +86,7 @@ setup(
 		'Development Status :: Beta',
 		'Environment :: Console',
 		'Intended Audience :: System Administrators',
-		'License :: MIT',
+		'License :: GPL',
 		'Operating System :: RockyLinux :: CentOS :: RedHat',
 		'Programming Language :: Python',
 		'Topic :: Trinity :: Luna'
