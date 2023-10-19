@@ -794,6 +794,7 @@ class Helper():
         """
         This method will decode the base 64 string.
         """
+        self.logger.debug(f'Data Limit => {limit}')
         if isinstance(json_data, dict):
             for key, value in json_data.items():
                 if isinstance(value, str):
