@@ -783,8 +783,9 @@ class Helper():
         This method will reduce the length of the content.
         """
         if limit:
-            if len(content) > 60:
-                content = content[:60]+' ...'
+            if content not in  [None, True, False] and isinstance(content, str):
+                if len(content) > 60:
+                    content = content[:60]+' ...'
         return content
 
 
