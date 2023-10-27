@@ -704,9 +704,7 @@ class Helper():
         """
         try:
             if content is not None:
-                content = content.replace("\\n", "\n")
-                content = content.replace("\\r", "\r")
-                content = content.replace("\\t", "\t")
+                content = content.replace("\r", "\\r")
                 content = base64.b64decode(content, validate=True).decode("utf-8")
         except binascii.Error:
             self.logger.debug(f'Base64 Decode Error => {content}')
@@ -785,8 +783,9 @@ class Helper():
         This method will reduce the length of the content.
         """
         if limit:
-            if len(content) > 60:
-                content = content[:60]+' ...'
+            if content not in  [None, True, False] and isinstance(content, str):
+                if len(content) > 60:
+                    content = content[:60]+' ...'
         return content
 
 
