@@ -69,6 +69,8 @@ class Cluster():
         cluster_change.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='NTP IP')
         cluster_change.add_argument('-o', '--createnode_ondemand', choices=BOOL_CHOICES,
                                     metavar=BOOL_META, help='On Demand Nodes')
+        cluster_change.add_argument('-nx', '--nextnode_discover', choices=BOOL_CHOICES,
+                                    metavar=BOOL_META, help='Discover Next Node')
         cluster_change.add_argument('-ns', '--nameserver_ip', help='Name Server IP')
         cluster_change.add_argument('-fs', '--forwardserver_ip', help='Forward Server IP')
         cluster_change.add_argument('-c', '--technical_contacts',  help='Technical Contact')
