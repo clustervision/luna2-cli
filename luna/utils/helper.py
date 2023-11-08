@@ -753,8 +753,11 @@ class Helper():
         """
         for key, value in dictionary.items():
             if isinstance(value, str):
-                doc = nested_alter({key : value}, key, self.callback)
-                dictionary[key] = self.less_content(doc[key], limit)
+                if key in EDITOR_KEYS:
+                    doc = nested_alter({key : value}, key, self.callback)
+                    dictionary[key] = self.less_content(doc[key], limit)
+                else:
+                    dictionary[key] = value
             elif isinstance(value, dict):
                 return self.nested_dict(dictionary, limit)
             elif isinstance(value, list):
@@ -770,8 +773,11 @@ class Helper():
         if value:
             for occurrence in value:
                 if isinstance(occurrence, str):
-                    doc = nested_alter({key : occurrence}, key, self.callback)
-                    response.append(self.less_content(doc[key], limit))
+                    if key in EDITOR_KEYS:
+                        doc = nested_alter({key : occurrence}, key, self.callback)
+                        response.append(self.less_content(doc[key], limit))
+                    else:
+                        response.append(occurrence)
                 elif isinstance(occurrence, dict):
                     response.append(self.nested_dict(occurrence, limit))
         dictionary[key] = response
@@ -797,8 +803,11 @@ class Helper():
         if isinstance(json_data, dict):
             for key, value in json_data.items():
                 if isinstance(value, str):
-                    doc = nested_alter({key : value}, key, self.callback)
-                    json_data[key] = self.less_content(doc[key], limit)
+                    if key in EDITOR_KEYS:
+                        doc = nested_alter({key : value}, key, self.callback)
+                        json_data[key] = self.less_content(doc[key], limit)
+                    else:
+                        json_data[key] = value
                 elif isinstance(value, dict):
                     json_data[key] = self.nested_dict(value, limit)
                 elif isinstance(value, list):
