@@ -94,10 +94,10 @@ class Arguments():
                                metavar=BOOL_META, help='Boot Menu')
         parser.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         parser.add_argument('-if', '--interface', help='Interface Name')
-        parser.add_argument('-N', '--network', help='Interface Network Name')
-        parser.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
+        parser.add_argument('-N', '--network', help='Interface Network Name. * Interface is Required.')
+        parser.add_argument('-O', '--options', action='store_true', help='Interfaces Options. * Interface is Required.')
         parser.add_argument('-qo', '--quick-options', dest='options',
-                                metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
+                                metavar="File-Path OR In-Line", help='Options File-Path OR In-Line. * Interface is Required.')
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
@@ -110,7 +110,6 @@ class Arguments():
         This method will provide the common node arguments.
         """
         parser.add_argument('name', help='Name of the Node')
-        # parser.add_argument('-host', '--hostname',help='Hostname')
         if required:
             parser.add_argument('-g', '--group', required=True, help='Group Name')
         else:
@@ -151,12 +150,12 @@ class Arguments():
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         parser.add_argument('-if', '--interface', help='Interface Name')
-        parser.add_argument('-N', '--network', help='Interface Network Name')
-        parser.add_argument('-I', '--ipaddress', help='Interfaces IP Address')
-        parser.add_argument('-M', '--macaddress', help='Interfaces MAC Address')
-        parser.add_argument('-O', '--options', action='store_true', help='Interfaces Options')
+        parser.add_argument('-N', '--network', help='Interface Network Name. * Interface is Required.')
+        parser.add_argument('-I', '--ipaddress', help='Interfaces IP Address. * Interface is Required.')
+        parser.add_argument('-M', '--macaddress', help='Interfaces MAC Address. * Interface is Required.')
+        parser.add_argument('-O', '--options', action='store_true', help='Interfaces Options. * Interface is Required.')
         parser.add_argument('-qo', '--quick-options', dest='options',
-                                metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
+                                metavar="File-Path OR In-Line", help='Options File-Path OR In-Line. * Interface is Required.')
         parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         return parser
 
