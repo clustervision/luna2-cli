@@ -191,8 +191,12 @@ class Arguments():
         This method will provide the common osimage arguments.
         """
         parser.add_argument('name', help='OSImage Name')
-        parser.add_argument('-gf', '--grab_filesystems', help='Grab Filesystems')
-        parser.add_argument('-ge', '--grab_exclude', help='Grab Excludes')
+        parser.add_argument('-gf', '--grab_filesystems', action='store_true', help='Grab Filesystems')
+        parser.add_argument('-qgf', '--quick-grab_filesystems', dest='grab_filesystems',
+                                metavar="File-Path OR In-Line", help='Grab Filesystems File-Path OR In-Line')
+        parser.add_argument('-ge', '--grab_exclude', action='store_true', help='Grab Excludes')
+        parser.add_argument('-qge', '--quick-grab_exclude', dest='grab_exclude',
+                                metavar="File-Path OR In-Line", help='Grab Excludes File-Path OR In-Line')
         parser.add_argument('-rd', '--initrdfile', help='INIT RD File')
         parser.add_argument('-k', '--kernelfile', help='Kernel File')
         parser.add_argument('-m', '--kernelmodules', help='Kernel Modules')
