@@ -47,7 +47,7 @@ BOOL_KEYS = [
     'bootmenu',
     'service'
 ]
-EDITOR_KEYS = ['options', 'content', 'comment', 'prescript', 'partscript', 'postscript']
+EDITOR_KEYS = ['options', 'content', 'comment', 'prescript', 'partscript', 'postscript', 'grab_filesystems', 'grab_exclude']
 SERVICE_ACTIONS = ['start', 'stop', 'restart', 'reload', 'status']
 SERVICES = ['dhcp', 'dns', 'luna2']
 BANNER_NAME = 'Luna 2 CLI'
