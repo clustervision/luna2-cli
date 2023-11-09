@@ -146,6 +146,8 @@ class Node():
         """
         Method to add new node in Luna Configuration.
         """
+        if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
+            Message().error_exit("ERROR :: Kindly supply the interface in order to use the network, ipaddress, macaddress or options.")
         interface = {}
         if self.args['interface']:
             interface['interface'] = self.args['interface']
@@ -170,6 +172,8 @@ class Node():
         """
         Method to change a node in Luna Configuration.
         """
+        if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
+            Message().error_exit("ERROR :: Kindly supply the interface in order to use the network, ipaddress, macaddress or options.")
         interface = {}
         if self.args['interface']:
             interface['interface'] = self.args['interface']
@@ -222,6 +226,8 @@ class Node():
         """
         Method to rename a node in Luna Configuration.
         """
+        if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
+            Message().error_exit("ERROR :: Kindly supply the interface in order to use the network, ipaddress, macaddress or options.")
         interface = {}
         if self.args['interface']:
             interface['interface'] = self.args['interface']

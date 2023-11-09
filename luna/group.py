@@ -147,6 +147,8 @@ class Group():
         """
         Method to add new group in Luna Configuration.
         """
+        if self.args['interface'] is None and (self.args['network'] or self.args['options']):
+            Message().error_exit("ERROR :: Kindly supply the interface in order to use the network or options.")
         interface = {}
         if self.args['interface']:
             interface['interface'] = self.args['interface']
@@ -167,6 +169,8 @@ class Group():
         """
         Method to change a group in Luna Configuration.
         """
+        if self.args['interface'] is None and (self.args['network'] or self.args['options']):
+            Message().error_exit("ERROR :: Kindly supply the interface in order to use the network or options.")
         interface = {}
         if self.args['interface']:
             interface['interface'] = self.args['interface']
@@ -208,6 +212,8 @@ class Group():
         """
         Method to rename a group in Luna Configuration.
         """
+        if self.args['interface'] is None and (self.args['network'] or self.args['options']):
+            Message().error_exit("ERROR :: Kindly supply the interface in order to use the network or options.")
         interface = {}
         if self.args['interface']:
             interface['interface'] = self.args['interface']
