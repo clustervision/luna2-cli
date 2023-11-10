@@ -36,6 +36,7 @@ from luna.utils.log import Log
 from luna.utils.constant import actions
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
+from luna.utils.presenter import Presenter
 
 class Network():
     """
@@ -48,10 +49,16 @@ class Network():
         self.args = args
         self.table = "network"
         self.actions = actions(self.table)
+        dns_action = ''
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
             if self.args["action"] in self.actions:
-                call = methodcaller(f'{self.args["action"]}_network')
+                if self.args["action"] == "dns":
+                    if self.args["dns"]:
+                        dns_action = f'_{self.args["dns"]}'
+                    call = methodcaller(f'network_{self.args["action"]}{dns_action}')
+                else:
+                    call = methodcaller(f'{self.args["action"]}_network')
                 call(self)
             else:
                 Message().show_warning(f'Kindly choose from {self.actions}.')
@@ -92,6 +99,24 @@ class Network():
         network_nextip = network_args.add_parser('nextip', help='Show Next Available IP Address')
         network_nextip.add_argument('name', help='Network Name')
         network_nextip.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        network_dns = network_args.add_parser('dns', help='Show DNS List for a Network')
+        network_dns.add_argument('name', help='Network Name')
+        Arguments().common_list_args(network_dns)
+        network_dns_args = network_dns.add_subparsers(dest='dns')
+        network_dns_add = network_dns_args.add_parser('add', help='Add DNS Entry')
+        # network_dns_add.add_argument('name', help='Network Name')
+        network_dns_add.add_argument('host', help='Host Name')
+        network_dns_add.add_argument('ipaddress', help='IP Address')
+        network_dns_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        network_dns_change = network_dns_args.add_parser('change', help='Change DNS Entry')
+        # network_dns_change.add_argument('name', help='Network Name')
+        network_dns_change.add_argument('host', help='Host Name')
+        network_dns_change.add_argument('ipaddress', help='IP Address')
+        network_dns_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        network_dns_remove = network_dns_args.add_parser('remove', help='Remove DNS Entry')
+        # network_dns_remove.add_argument('name', help='Network Name')
+        network_dns_remove.add_argument('host', help='Host Name')
+        network_dns_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         return parser
 
 
@@ -187,3 +212,55 @@ class Network():
             else:
                 response = Message().show_warning(f'IP not available on {self.args["ipaddress"]}.')
         return response
+
+    def network_dns(self):
+        """
+        This method list all networks.
+        """
+        response = False
+        fields, rows = [], []
+        get_list = Rest().get_data(f'dns/{self.args["name"]}')
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
+        if get_list:
+            data = get_list['config']['dns'][self.args['name']]
+            if self.args['raw']:
+                json_data = Helper().prepare_json(data)
+                response = Presenter().show_json(json_data)
+            else:
+                data = Helper().prepare_json(data, True)
+                fields, rows  = Helper().filter_interface('dns', data)
+                self.logger.debug(f'Fields => {fields}')
+                self.logger.debug(f'Rows => {rows}')
+                title = f' << DNS Entries For Network {self.args["name"]} >>'
+                response = Presenter().show_table(title, fields, rows)
+        else:
+            response = Message().show_error(f'{self.args["name"]} is not found.')
+        return response
+
+
+    def network_dns_add(self):
+        """
+        This method add a network.
+        """
+        print(f'Arguments Supplied => {self.args}')
+        # return Helper().add_record(self.table, self.args)
+
+
+    def network_dns_change(self):
+        """
+        This method update a network.
+        """
+        print(f'Arguments Supplied => {self.args}')
+        # return Helper().update_record(self.table, self.args)
+
+
+    def network_dns_remove(self):
+        """
+        This method remove a network.
+        """
+        print(f'Arguments Supplied => {self.args}')
+        # return Helper().delete_record(self.table, self.args)

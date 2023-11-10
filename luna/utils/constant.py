@@ -72,7 +72,7 @@ def actions(table=None):
     static = {
         "group": common_actions + member_action + ["ospush"] + interface_actions,
         "node": common_actions + ["osgrab", "ospush"] + interface_actions,
-        "network": network_actions + ["reserve", "ipinfo", "nextip"],
+        "network": network_actions + ["reserve", "ipinfo", "nextip", "dns"],
         "osimage": common_actions + member_action + ["pack", "kernel", "tag"],
         "bmcsetup": common_actions + member_action,
         "otherdev": common_actions,
@@ -99,6 +99,7 @@ def filter_columns(table=None):
         'groupinterface': ['interface', 'network', 'options'],
         'groupsecrets': ['Group', 'name', 'path', 'content'],
         'network': ['name', 'network', 'type', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end'],
+        'dns': ['host', 'ipaddress'],
         'node': ['name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_present'],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
@@ -154,8 +155,8 @@ def sortby(table=None):
         'groupsecrets': ['Group', 'name', 'path', 'content'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
         'network': [
-            'name', 'type', 'network', 'gateway', 'ntp_server', 'nameserver_ip', 'dhcp',
-            'dhcp_range_begin', 'dhcp_range_end', 'shared', 'zone', 'comment'
+            'name', 'type', 'network', 'gateway', 'gateway_metric', 'ntp_server', 'nameserver_ip',
+            'dhcp', 'dhcp_range_begin', 'dhcp_range_end', 'shared', 'zone', 'comment'
         ],
         'osimagetag': [
             'osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups'
