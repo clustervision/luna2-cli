@@ -215,7 +215,7 @@ class Network():
 
     def network_dns(self):
         """
-        This method list all networks.
+        This method list all DNS entries.
         """
         response = False
         fields, rows = [], []
@@ -244,23 +244,43 @@ class Network():
 
     def network_dns_add(self):
         """
-        This method add a network.
+        This method add a DNS entry.
         """
-        print(f'Arguments Supplied => {self.args}')
-        # return Helper().add_record(self.table, self.args)
+        request_data = {'config': {'dns': {self.args['name']: [{'host': self.args['host'], 'ipaddress':self.args['ipaddress']}]}}}
+        self.logger.debug(f'Payload => {request_data}')
+        response = Rest().post_data('dns', self.args['name'], request_data)
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 201:
+            Message().show_success(response.content)
+        else:
+            Message().error_exit(response.content, response.status_code)
+        return True
 
 
     def network_dns_change(self):
         """
-        This method update a network.
+        This method update a DNS entry.
         """
-        print(f'Arguments Supplied => {self.args}')
-        # return Helper().update_record(self.table, self.args)
+        request_data = {'config': {'dns': {self.args['name']: [{'host': self.args['host'], 'ipaddress':self.args['ipaddress']}]}}}
+        self.logger.debug(f'Payload => {request_data}')
+        response = Rest().post_data('dns', self.args['name'], request_data)
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 201:
+            Message().show_success(response.content)
+        else:
+            Message().error_exit(response.content, response.status_code)
+        return True
 
 
     def network_dns_remove(self):
         """
-        This method remove a network.
+        This method remove a DNS entry.
         """
-        print(f'Arguments Supplied => {self.args}')
-        # return Helper().delete_record(self.table, self.args)
+        name = f"{self.args['name']}/{self.args['host']}"
+        response = Rest().get_delete('dns', name)
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 204:
+            Message().show_success(f'{self.args["host"]} DNS entry is removed.')
+        else:
+            Message().error_exit(response.content, response.status_code)
+        return True
