@@ -50,6 +50,7 @@ try:
     from luna.secrets import Secrets
     from luna.service import Service
     from luna.control import Control
+    from luna.monitor import Monitor
     from luna.utils.message import Message
     from luna.utils.rest import Rest
     from luna.utils.message import Message
@@ -64,7 +65,8 @@ try:
         Node,
         Secrets,
         Service,
-        Control
+        Control,
+        Monitor
     ]
 
 except KeyboardInterrupt:
