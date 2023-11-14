@@ -38,6 +38,7 @@ from random import randint
 from os import getpid
 from multiprocessing import Process
 import hostlist
+from termcolor import colored
 from nested_lookup import nested_lookup, nested_update, nested_delete, nested_alter
 from luna.utils.rest import Rest
 from luna.utils.log import Log
@@ -603,7 +604,20 @@ class Helper():
             val_row = []
             for ele in data:
                 if field_key in list(ele.keys()):
-                    val_row.append(ele[field_key])
+                    if ele[field_key] == 'in progress':
+                        val_row.append(colored('in progress', 'green'))
+                    elif ele[field_key] == 'queued':
+                        val_row.append(colored('queued', 'yellow'))
+                    elif ele[field_key] == 1:
+                        val_row.append(colored('yes', 'green'))
+                    elif ele[field_key] == 0:
+                        val_row.append(colored('no', 'yellow'))
+                    elif ele[field_key] == 'maintask':
+                        val_row.append(colored('Main Task', 'blue'))
+                    elif ele[field_key] == 'subtask':
+                        val_row.append(colored('Sub Task', 'magenta'))
+                    else:
+                        val_row.append(ele[field_key])
                 else:
                     val_row.append("--NA--")
                 self.logger.debug(f'Element => {ele}')

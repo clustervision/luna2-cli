@@ -109,7 +109,9 @@ def filter_columns(table=None):
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],
         'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes',
-                       'groups']
+                       'groups'],
+        'status': ['username_initiator', 'request_id', 'read', 'message', 'created'],
+        'queue': ['username_initiator', 'request_id', 'level', 'status', 'subsystem', 'task', 'created']
     }
     response = list(static[table])
     return response
