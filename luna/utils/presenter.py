@@ -76,7 +76,7 @@ class Presenter():
         self.logger.debug(f'Rows => {rows}')
         self.table.title = title
         self.table.field_names = fields
-        if '\\n' in str(rows):
+        if '\\n' in str(rows) or '<< Monitor' in str(title):
             self.table.align = "l"
         self.table.add_rows(rows)
         Message().show_success(self.table)

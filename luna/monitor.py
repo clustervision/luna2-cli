@@ -31,9 +31,11 @@ __status__      = "Development"
 
 import json
 from luna.utils.rest import Rest
+from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.log import Log
 from luna.utils.message import Message
+from luna.utils.arguments import Arguments
 
 class Monitor():
     """
@@ -65,9 +67,9 @@ class Monitor():
         monitor.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         monitor_menu = monitor.add_subparsers(dest='action')
         monitor_status = monitor_menu.add_parser('status', help='Get Monitor Status.')
-        monitor_status.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        Arguments().common_list_args(monitor_status)
         monitor_queue = monitor_menu.add_parser('queue', help='Get Monitor Queue Status.')
-        monitor_queue.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        Arguments().common_list_args(monitor_queue)
         return parser
 
 
@@ -77,13 +79,33 @@ class Monitor():
         """
         response = False
         route = 'monitor/status'
-        data = Rest().get_raw(route)
-        if data.content:
-            data = data.content.decode("utf-8")
+        fields, rows = [], []
+        get_list = Rest().get_raw(route)
+        self.logger.debug(f'Getting status data => {get_list}')
+        if get_list.content:
+            data = get_list.content.decode("utf-8")
             data = json.loads(data)
-            response = Presenter().show_json(data)
+            data = data['monitor']['status']
+            if data:
+                if self.args['raw']:
+                    json_data = Helper().prepare_json(data)
+                    response = Presenter().show_json(json_data)
+                else:
+                    data = Helper().prepare_json(data, True)
+                    fields, rows  = Helper().filter_interface('status', data)
+                    fields = list(map(lambda x: x.replace('username_initiator', 'Initiate By'), fields))
+                    fields = list(map(lambda x: x.replace('request_id', 'Request ID'), fields))
+                    fields = list(map(lambda x: x.replace('read', 'Read'), fields))
+                    fields = list(map(lambda x: x.replace('message', 'Message'), fields))
+                    fields = list(map(lambda x: x.replace('created', 'Created On'), fields))
+                    self.logger.debug(f'Fields => {fields}')
+                    self.logger.debug(f'Rows => {rows}')
+                    title = ' << Monitor Status >>'
+                    response = Presenter().show_table(title, fields, rows)
+            else:
+                Message().show_success('Status Messages are empty.')
         else:
-            Message().show_error('Monitor Status is Empty.')
+            response = Message().show_error('Monitor Status is not working at this moment.')
         return response
 
 
@@ -93,11 +115,33 @@ class Monitor():
         """
         response = False
         route = 'monitor/queue'
-        data = Rest().get_raw(route)
-        if data.content:
-            data = data.content.decode("utf-8")
+        fields, rows = [], []
+        get_list = Rest().get_raw(route)
+        self.logger.debug(f'Getting status data => {get_list}')
+        if get_list.content:
+            data = get_list.content.decode("utf-8")
             data = json.loads(data)
-            response = Presenter().show_json(data)
+            data = data['monitor']['queue']
+            if data:
+                if self.args['raw']:
+                    json_data = Helper().prepare_json(data)
+                    response = Presenter().show_json(json_data)
+                else:
+                    data = Helper().prepare_json(data, True)
+                    fields, rows  = Helper().filter_interface('queue', data)
+                    fields = list(map(lambda x: x.replace('username_initiator', 'Initiate By'), fields))
+                    fields = list(map(lambda x: x.replace('request_id', 'Request ID'), fields))
+                    fields = list(map(lambda x: x.replace('level', 'Level'), fields))
+                    fields = list(map(lambda x: x.replace('status', 'Status'), fields))
+                    fields = list(map(lambda x: x.replace('subsystem', 'Sub System'), fields))
+                    fields = list(map(lambda x: x.replace('task', 'Task'), fields))
+                    fields = list(map(lambda x: x.replace('created', 'Created On'), fields))
+                    self.logger.debug(f'Fields => {fields}')
+                    self.logger.debug(f'Rows => {rows}')
+                    title = ' << Monitor Queue >>'
+                    response = Presenter().show_table(title, fields, rows)
+            else:
+                Message().show_success('Monitor Queue is empty.')
         else:
-            Message().show_error('Monitor Queue is Empty.')
+            response = Message().show_error('Monitor Queue is not working at this moment.')
         return response

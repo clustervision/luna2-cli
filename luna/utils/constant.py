@@ -47,7 +47,7 @@ BOOL_KEYS = [
     'bootmenu',
     'service'
 ]
-EDITOR_KEYS = ['options', 'content', 'comment', 'prescript', 'partscript', 'postscript', 'grab_filesystems', 'grab_exclude']
+EDITOR_KEYS = ['options', 'content', 'comment', 'prescript', 'partscript', 'postscript', 'grab_filesystems', 'grab_exclude', 'kerneloptions']
 SERVICE_ACTIONS = ['start', 'stop', 'restart', 'reload', 'status']
 SERVICES = ['dhcp', 'dns', 'luna2']
 BANNER_NAME = 'Luna 2 CLI'
@@ -109,7 +109,9 @@ def filter_columns(table=None):
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],
         'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes',
-                       'groups']
+                       'groups'],
+        'status': ['username_initiator', 'request_id', 'read', 'message', 'created'],
+        'queue': ['username_initiator', 'request_id', 'level', 'status', 'subsystem', 'task', 'created']
     }
     response = list(static[table])
     return response
