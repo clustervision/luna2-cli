@@ -201,7 +201,9 @@ class Arguments():
         parser.add_argument('-rd', '--initrdfile', help='INIT RD File')
         parser.add_argument('-k', '--kernelfile', help='Kernel File')
         parser.add_argument('-m', '--kernelmodules', help='Kernel Modules')
-        parser.add_argument('-o', '--kerneloptions', help='Kernel Options')
+        parser.add_argument('-o', '--kerneloptions', action='store_true', help='Kernel Options')
+        parser.add_argument('-qo', '--quick-kerneloptions', dest='kerneloptions',
+                                metavar="File-Path OR In-Line", help='Kernel Options File-Path OR In-Line')
         parser.add_argument('-ver', '--kernelversion', help='Kernel Version')
         parser.add_argument('-p', '--path', help='Path of image')
         parser.add_argument('-img', '--imagefile', help='Imagefile UUID')
