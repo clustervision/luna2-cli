@@ -298,7 +298,7 @@ class Secrets():
                 response = Rest().post_data(self.route, uri, request_data)
                 self.logger.debug(f'Response => {response}')
                 if response.status_code == 201:
-                    Message().show_success(f'Secret for {entity} is created.')
+                    Message().show_success(response.content)
                 else:
                     Message().error_exit(response.content, response.status_code)
         else:
@@ -337,7 +337,7 @@ class Secrets():
                 response = Rest().post_data(self.route, uri, request_data)
                 self.logger.debug(f'Response => {response}')
                 if response.status_code == 204:
-                    Message().show_success(f'Secret for {entity} is update.')
+                    Message().show_success(f'{entity.capitalize()} {entity_name} secret {pre_payload["name"]} is update.')
                 else:
                     Message().error_exit(response.content, response.status_code)
         else:
@@ -373,7 +373,7 @@ class Secrets():
                 response = Rest().post_clone(self.route, uri, request_data)
                 self.logger.debug(f'Response => {response}')
                 if response.status_code == 201:
-                    Message().show_success('Secret is Cloned.')
+                    Message().show_success(response.content)
                 else:
                     Message().error_exit(response.content, response.status_code)
         else:
@@ -404,7 +404,7 @@ class Secrets():
                 response = Rest().get_delete(self.route, uri)
                 self.logger.debug(f'Response => {response}')
                 if response.status_code == 204:
-                    Message().show_success('Secret is Deleted.')
+                    Message().show_success(f'{entity.capitalize()} {entity_name} secret {payload["secret"]} is removed.')
                 else:
                     Message().error_exit(response.content, response.status_code)
         else:

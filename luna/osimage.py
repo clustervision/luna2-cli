@@ -292,7 +292,7 @@ class OSImage():
         self.logger.debug(f'Change Kernel URI => {payload["name"]}/kernel')
         result = Rest().post_data(self.table, payload['name']+'/kernel', request_data)
         if result.status_code == 204:
-            Message().show_success(f'OS Image {self.args["name"]} Kernel updated.')
+            Message().show_success(f'OS Image {self.args["name"]} Kernel is updated.')
         elif result.status_code == 200:
             response = False
             http_response = result.content
@@ -383,7 +383,7 @@ class OSImage():
         self.logger.debug(f'Payload => {request_data}')
         response = Rest().post_data(self.table, f"{self.args['name']}/tag", request_data)
         if response.status_code == 204:
-            Message().show_success(f'OS Image Tag Updated for {self.args["name"]}.')
+            Message().show_success(f'OS Image {self.args["name"]} Tag {self.args["tag"]} is Updated.')
         else:
             Message().error_exit(response.content, response.status_code)
         return True
@@ -397,7 +397,7 @@ class OSImage():
         response = Rest().get_raw(route)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
-            Message().show_success(f'Tag {self.args["tag"]} is deleted for {self.args["name"]}.')
+            Message().show_success(f'OS Image {self.args["name"]} Tag {self.args["tag"]} is removed.')
         else:
             if response.content:
                 message = response.json()
