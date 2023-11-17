@@ -220,13 +220,13 @@ class Network():
         response = False
         fields, rows = [], []
         get_list = Rest().get_data(f'dns/{self.args["name"]}')
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
         if isinstance(get_list.content, dict):
         # if get_list.status_code == 200: ### ==>> Status code should be 404, if no dns entries.
             get_list = get_list.content
         else:
             Message().error_exit(get_list.content, get_list.status_code)
             get_list = None
-        self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config']['dns'][self.args['name']]
             if self.args['raw']:
@@ -282,7 +282,7 @@ class Network():
         response = Rest().get_delete('dns', name)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
-            Message().show_success(f'{self.args["host"]} DNS entry is removed.')
+            Message().show_success(f'Network {self.args["name"]} DNS entry {self.args["host"]} is removed.')
         else:
             Message().error_exit(response.content, response.status_code)
         return True

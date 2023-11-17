@@ -292,7 +292,7 @@ class Helper():
             response = Rest().post_data(table, payload['name'], request_data)
             self.logger.debug(f'Response => {response}')
             if response.status_code == 201:
-                Message().show_success(f'New {table.capitalize()}, {payload["name"]} created.')
+                Message().show_success(response.content)
             else:
                 Message().error_exit(response.content, response.status_code)
         return True
@@ -330,9 +330,9 @@ class Helper():
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
             if name:
-                Message().show_success(f'{table.capitalize()}, {name} updated.')
+                Message().show_success(f'{table.capitalize()} {name} is updated.')
             else:
-                Message().show_success(f'{table.capitalize()} updated.')
+                Message().show_success(f'{table.capitalize()} is updated.')
         else:
             Message().error_exit(response.content, response.status_code)
         return True
@@ -348,7 +348,7 @@ class Helper():
         response = Rest().get_delete(table, data['name'])
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
-            Message().show_success(f'{table.capitalize()}, {data["name"]} is deleted.')
+            Message().show_success(f'{table.capitalize()} {data["name"]} is removed.')
         else:
             Message().error_exit(response.content, response.status_code)
         return True
@@ -365,7 +365,7 @@ class Helper():
         response = Rest().post_data(table, data['name'], request_data)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
-            Message().show_success(f'{data["name"]} renamed to {newname}.')
+            Message().show_success(f'{table.capitalize()} {data["name"]} is renamed to {newname}.')
         else:
             Message().error_exit(response.content, response.status_code)
         return True
