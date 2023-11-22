@@ -249,7 +249,7 @@ class Helper():
         This method will fetch all the reserved IP Address for a network.
         """
         response = False
-        get_list = Rest().get_data('network', args['name']+'/_list')
+        get_list = Rest().get_data('network', args['name']+'/_member')
         if get_list.status_code == 200:
             get_list = get_list.content
         else:
