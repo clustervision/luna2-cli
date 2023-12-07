@@ -104,7 +104,7 @@ def filter_columns(table=None):
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
         'osimage': [
-            'name', 'kernelversion', 'kernelfile', 'imagefile', 'path', 'distribution', 'osrelease'
+            'name', 'kernelversion', 'path', 'distribution', 'osrelease'
         ],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],

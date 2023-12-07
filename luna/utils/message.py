@@ -51,7 +51,7 @@ class Message():
         """
         This method will print the standard error and exit from program.
         """
-        sys.stdout.write(f'{message}.\n')
+        sys.stderr.write(f'{message}.\n')
         self.logger.debug(f'Message => {message}')
         if code:
             # sys.stderr.write(f'HTTP ERROR :: {code}\n')
@@ -63,7 +63,7 @@ class Message():
         """
         This method will print the standard error.
         """
-        sys.stdout.write(f'{message}\n')
+        sys.stderr.write(f'{message}\n')
         self.logger.debug(f'Message => {message}')
         return True
 
