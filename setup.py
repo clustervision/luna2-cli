@@ -98,3 +98,5 @@ setup(
 	]
 )
 # python setup.py sdist bdist_wheel
+# Copy file luna/luna  to  /etc/bash_completion.d/luna for bash completion
+# and run command su for immediate effect.
