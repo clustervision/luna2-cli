@@ -969,21 +969,28 @@ class Helper():
         """
         response = deepcopy(data)
         for key, value in data.items():
+            script = True if 'part' in key or 'post' in key or 'pre' in key else False
             if '_source' in key:
                 raw_name = key.replace('_source', '')
                 if isinstance(data[raw_name], str):
                     default_value = data[raw_name].rstrip()
-                    if len(default_value) == 0 :
-                        default_value = '<EMPTY>'
+                    if len(default_value) == 0:
+                        default_value = '<empty>'
                 else:
                     default_value = data[raw_name]
                 if value in data:
-                    response[raw_name] = f'{default_value} ({data[value]})'
+                    if script is True and default_value != '<empty>':
+                        response[raw_name] = f'({data[value]}) {default_value}'
+                    else:
+                        response[raw_name] = f'{default_value} ({data[value]})'
                 else:
                     if str(value) == str(table):
                         response[raw_name] = f'{default_value}'
                     else:
-                        response[raw_name] = f'{default_value} ({value})'
+                        if script is True and default_value != '<empty>':
+                            response[raw_name] = f'({value}) {default_value}'
+                        else:
+                            response[raw_name] = f'{default_value} ({value})'
                 del response[key]
         return response
 
