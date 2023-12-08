@@ -2,4 +2,7 @@ include requirements.txt
 include VERSION.txt
 include LICENSE.txt
 include README.md
+include luna/*
 include luna/utils/*
+include luna/addons/*
+include luna/addons/bash_completion.sh
