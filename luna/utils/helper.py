@@ -37,6 +37,7 @@ import subprocess
 from random import randint
 from os import getpid
 from multiprocessing import Process
+from copy import deepcopy
 import hostlist
 from termcolor import colored
 from nested_lookup import nested_lookup, nested_update, nested_delete, nested_alter
@@ -922,6 +923,7 @@ class Helper():
         self.logger.debug(f'Table => {table} and Data => {data}')
         defined_keys = sortby(table)
         self.logger.debug(f'Fields => {defined_keys}')
+        data = self.merge_source(data)
         for new_key in list(data.keys()):
             if new_key not in defined_keys:
                 defined_keys.append(new_key)
@@ -958,6 +960,29 @@ class Helper():
             else:
                 rows.append(key[1])
         return fields, rows
+
+
+    def merge_source(self, data=None):
+        """
+        This method will merge *_source field to the real field with braces and remove the
+        *_source keys from the output.
+        """
+        response = deepcopy(data)
+        for key, value in data.items():
+            if '_source' in key:
+                raw_name = key.replace('_source', '')
+                if isinstance(data[raw_name], str):
+                    default_value = data[raw_name].rstrip()
+                    if len(default_value) == 0 :
+                        default_value = '<EMPTY>'
+                else:
+                    default_value = data[raw_name]
+                if value in data:
+                    response[raw_name] = f'{default_value} ({data[value]})'
+                else:
+                    response[raw_name] = f'{default_value} ({value})'
+                del response[key]
+        return response
 
 
     def filter_osimage_col(self, table=None, data=None):

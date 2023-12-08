@@ -98,7 +98,8 @@ class Cli():
             prog = 'luna',
             formatter_class = RawDescriptionHelpFormatter,
             description = dedent(TOOL_DESCRIPTION),
-            epilog = TOOL_EPILOG)
+            epilog = TOOL_EPILOG
+        )
         self.parser.add_argument('-V', '--version', action='version', version=f'%(prog)s {ver}')
         self.parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
