@@ -923,7 +923,7 @@ class Helper():
         self.logger.debug(f'Table => {table} and Data => {data}')
         defined_keys = sortby(table)
         self.logger.debug(f'Fields => {defined_keys}')
-        data = self.merge_source(data)
+        data = self.merge_source(table, data)
         for new_key in list(data.keys()):
             if new_key not in defined_keys:
                 defined_keys.append(new_key)
@@ -962,7 +962,7 @@ class Helper():
         return fields, rows
 
 
-    def merge_source(self, data=None):
+    def merge_source(self, table=None, data=None):
         """
         This method will merge *_source field to the real field with braces and remove the
         *_source keys from the output.
@@ -980,7 +980,10 @@ class Helper():
                 if value in data:
                     response[raw_name] = f'{default_value} ({data[value]})'
                 else:
-                    response[raw_name] = f'{default_value} ({value})'
+                    if str(value) == str(table):
+                        response[raw_name] = f'{default_value}'
+                    else:
+                        response[raw_name] = f'{default_value} ({value})'
                 del response[key]
         return response
 
