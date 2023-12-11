@@ -147,6 +147,7 @@ class Node():
         Method to add new node in Luna Configuration.
         """
         hostlist = Helper().get_hostlist(self.args['name'])
+        hostlist = Helper().luna_hostlist(hostlist)
         if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
             Message().error_exit("ERROR :: Kindly supply the interface in order to use the network, ipaddress, macaddress or options.")
         interface = {}
@@ -202,6 +203,7 @@ class Node():
         Method to change a node in Luna Configuration.
         """
         hostlist = Helper().get_hostlist(self.args['name'])
+        hostlist = Helper().luna_hostlist(hostlist)
         if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
             Message().error_exit("ERROR :: Kindly supply the interface in order to use the network, ipaddress, macaddress or options.")
         interface = {}
@@ -264,6 +266,7 @@ class Node():
         Method to remove a node in Luna Configuration.
         """
         hostlist = Helper().get_hostlist(self.args['name'])
+        hostlist = Helper().luna_hostlist(hostlist)
         record = Rest().get_data(self.table)
         if record.status_code == 200:
             if 'config' in record.content:
@@ -298,6 +301,7 @@ class Node():
         Method to grab an osimage to a node.
         """
         hostlist = Helper().get_hostlist(self.args['name'])
+        hostlist = Helper().luna_hostlist(hostlist)
         record = Rest().get_data(self.table)
         if record.status_code == 200:
             if 'config' in record.content:
@@ -333,6 +337,7 @@ class Node():
         Method to push an osimage to a node.
         """
         hostlist = Helper().get_hostlist(self.args['name'])
+        hostlist = Helper().luna_hostlist(hostlist)
         record = Rest().get_data(self.table)
         if record.status_code == 200:
             if 'config' in record.content:
@@ -367,6 +372,7 @@ class Node():
         Method to rename a node in Luna Configuration.
         """
         hostlist = Helper().get_hostlist(self.args['newnodename'])
+        hostlist = Helper().luna_hostlist(hostlist)
         if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
             Message().error_exit("ERROR :: Kindly supply the interface in order to use the network, ipaddress, macaddress or options.")
         interface = {}
