@@ -34,6 +34,7 @@ from time import time, sleep
 import base64
 import binascii
 import subprocess
+import re
 from random import randint
 from os import getpid
 from multiprocessing import Process
@@ -487,6 +488,27 @@ class Helper():
             self.logger.debug(f'Expanded hostlist: {response}.')
         except hostlist.BadHostlist:
             self.logger.debug(f'Hostlist is incorrect: {raw_hosts}.')
+        return response
+
+
+    def luna_hostlist(self, raw_hosts=None):
+        """
+        This method will perform power option on node.
+        """
+        response = []
+        for each in raw_hosts:
+            if '..' in each:
+                host_range = re.findall(r'\d+', each)
+                if len(host_range) != 2:
+                    Message().error_exit(f"Incorrect Hostlist: {each}")
+                rectify = each.replace('..', '')
+                for raw in host_range:
+                    rectify = rectify.replace(raw, '')
+                rectify = f'{rectify}[{host_range[0]}-{host_range[1]}]'
+                rectify = self.get_hostlist(rectify)
+                response = response + rectify
+            else:
+                response.append(each)
         return response
 
 

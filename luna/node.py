@@ -146,6 +146,8 @@ class Node():
         """
         Method to add new node in Luna Configuration.
         """
+        hostlist = Helper().get_hostlist(self.args['name'])
+        hostlist = Helper().luna_hostlist(hostlist)
         if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
             Message().error_exit("ERROR :: Kindly supply the interface in order to use the network, ipaddress, macaddress or options.")
         interface = {}
@@ -165,13 +167,43 @@ class Node():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options']:
                 self.args.pop(remove, None)
-        return Helper().add_record(self.table, self.args)
+            if len(hostlist) != 1 and 'ipaddress' in interface or 'macaddress' in interface:
+                Message().error_exit('Interface IP Address or MAC Address can not be use with the hostlist, Kindly provide the single node or remove the IP Address and MAC Address.')
+        record = Rest().get_data(self.table)
+        if record.status_code == 200:
+            if 'config' in record.content:
+                if self.table in record.content['config']:
+                    records = list(record.content['config'][self.table].keys())
+                    if any(x in records for x in hostlist) is False:
+                        if hostlist:
+                            for each in hostlist:
+                                if each not in records:
+                                    self.args['name'] = each
+                                    Helper().add_record(self.table, self.args)
+                        else:
+                            Message().error_exit(f'Node Hostlist is: {hostlist}')
+                    else:
+                        for each in hostlist:
+                            if each in records:
+                                Message().show_error(f'Node already present in database: {each}')
+
+                else:
+                    Message().error_exit('Node are not available at this moment.')
+            elif 'message' in record.content:
+                Message().error_exit(record.content['message'])
+            else:
+                Message().error_exit('Node are not available at this moment.')
+        else:
+            Message().error_exit('Node are not available at this moment.')
+        # return Helper().add_record(self.table, self.args)
 
 
     def change_node(self):
         """
         Method to change a node in Luna Configuration.
         """
+        hostlist = Helper().get_hostlist(self.args['name'])
+        hostlist = Helper().luna_hostlist(hostlist)
         if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
             Message().error_exit("ERROR :: Kindly supply the interface in order to use the network, ipaddress, macaddress or options.")
         interface = {}
@@ -191,7 +223,35 @@ class Node():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options']:
                 self.args.pop(remove, None)
-        return Helper().update_record(self.table, self.args)
+            if len(hostlist) != 1 and 'ipaddress' in interface or 'macaddress' in interface:
+                Message().error_exit('Interface IP Address or MAC Address can not be use with the hostlist, Kindly provide the single node or remove the IP Address and MAC Address.')
+        record = Rest().get_data(self.table)
+        if record.status_code == 200:
+            if 'config' in record.content:
+                if self.table in record.content['config']:
+                    records = list(record.content['config'][self.table].keys())
+                    if all(x in records for x in hostlist) is True:
+                        if hostlist:
+                            for each in hostlist:
+                                if each in records:
+                                    self.args['name'] = each
+                                    Helper().update_record(self.table, self.args)
+                        else:
+                            Message().error_exit(f'Node Hostlist is: {hostlist}')
+                    else:
+                        for each in hostlist:
+                            if each  not in records:
+                                Message().show_error(f'Node is not present in database: {each}')
+
+                else:
+                    Message().error_exit('Node are not available at this moment.')
+            elif 'message' in record.content:
+                Message().error_exit(record.content['message'])
+            else:
+                Message().error_exit('Node are not available at this moment.')
+        else:
+            Message().error_exit('Node are not available at this moment.')
+        # return Helper().update_record(self.table, self.args)
 
 
     def rename_node(self):
@@ -205,27 +265,114 @@ class Node():
         """
         Method to remove a node in Luna Configuration.
         """
-        return Helper().delete_record(self.table, self.args)
+        hostlist = Helper().get_hostlist(self.args['name'])
+        hostlist = Helper().luna_hostlist(hostlist)
+        record = Rest().get_data(self.table)
+        if record.status_code == 200:
+            if 'config' in record.content:
+                if self.table in record.content['config']:
+                    records = list(record.content['config'][self.table].keys())
+                    if all(x in records for x in hostlist) is True:
+                        if hostlist:
+                            for each in hostlist:
+                                if each in records:
+                                    self.args['name'] = each
+                                    Helper().delete_record(self.table, self.args)
+                        else:
+                            Message().error_exit(f'Node Hostlist is: {hostlist}')
+                    else:
+                        for each in hostlist:
+                            if each  not in records:
+                                Message().show_error(f'Node is not present in database: {each}')
+
+                else:
+                    Message().error_exit('Node are not available at this moment.')
+            elif 'message' in record.content:
+                Message().error_exit(record.content['message'])
+            else:
+                Message().error_exit('Node are not available at this moment.')
+        else:
+            Message().error_exit('Node are not available at this moment.')
+        # return Helper().delete_record(self.table, self.args)
 
 
     def osgrab_node(self):
         """
         Method to grab an osimage to a node.
         """
-        return Helper().grab_osimage(self.table, self.args)
+        hostlist = Helper().get_hostlist(self.args['name'])
+        hostlist = Helper().luna_hostlist(hostlist)
+        record = Rest().get_data(self.table)
+        if record.status_code == 200:
+            if 'config' in record.content:
+                if self.table in record.content['config']:
+                    records = list(record.content['config'][self.table].keys())
+                    if all(x in records for x in hostlist) is True:
+                        if hostlist:
+                            for each in hostlist:
+                                if each in records:
+                                    self.args['name'] = each
+                                    Helper().grab_osimage(self.table, self.args)
+                        else:
+                            Message().error_exit(f'Node Hostlist is: {hostlist}')
+                    else:
+                        for each in hostlist:
+                            if each  not in records:
+                                Message().show_error(f'Node is not present in database: {each}')
+
+                else:
+                    Message().error_exit('Node are not available at this moment.')
+            elif 'message' in record.content:
+                Message().error_exit(record.content['message'])
+            else:
+                Message().error_exit('Node are not available at this moment.')
+        else:
+            Message().error_exit('Node are not available at this moment.')
+
+        # return Helper().grab_osimage(self.table, self.args)
 
 
     def ospush_node(self):
         """
         Method to push an osimage to a node.
         """
-        return Helper().push_osimage(self.table, self.args)
+        hostlist = Helper().get_hostlist(self.args['name'])
+        hostlist = Helper().luna_hostlist(hostlist)
+        record = Rest().get_data(self.table)
+        if record.status_code == 200:
+            if 'config' in record.content:
+                if self.table in record.content['config']:
+                    records = list(record.content['config'][self.table].keys())
+                    if all(x in records for x in hostlist) is True:
+                        if hostlist:
+                            for each in hostlist:
+                                if each in records:
+                                    self.args['name'] = each
+                                    Helper().push_osimage(self.table, self.args)
+                        else:
+                            Message().error_exit(f'Node Hostlist is: {hostlist}')
+                    else:
+                        for each in hostlist:
+                            if each  not in records:
+                                Message().show_error(f'Node is not present in database: {each}')
+
+                else:
+                    Message().error_exit('Node are not available at this moment.')
+            elif 'message' in record.content:
+                Message().error_exit(record.content['message'])
+            else:
+                Message().error_exit('Node are not available at this moment.')
+        else:
+            Message().error_exit('Node are not available at this moment.')
+        # return Helper().push_osimage(self.table, self.args)
 
 
     def clone_node(self):
         """
         Method to rename a node in Luna Configuration.
         """
+        hostlist = Helper().get_hostlist(self.args['newnodename'])
+        hostlist = Helper().luna_hostlist(hostlist)
         if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
             Message().error_exit("ERROR :: Kindly supply the interface in order to use the network, ipaddress, macaddress or options.")
         interface = {}
@@ -245,7 +392,35 @@ class Node():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options']:
                 self.args.pop(remove, None)
-        return Helper().clone_record(self.table, self.args)
+            if len(hostlist) != 1 and 'ipaddress' in interface or 'macaddress' in interface:
+                Message().error_exit('Interface IP Address or MAC Address can not be use with the hostlist, Kindly provide the single node or remove the IP Address and MAC Address.')
+        record = Rest().get_data(self.table)
+        if record.status_code == 200:
+            if 'config' in record.content:
+                if self.table in record.content['config']:
+                    records = list(record.content['config'][self.table].keys())
+                    if all(x in records for x in hostlist) is False:
+                        if hostlist:
+                            for each in hostlist:
+                                if each not in records:
+                                    self.args['newnodename'] = each
+                                    Helper().clone_record(self.table, self.args)
+                        else:
+                            Message().error_exit(f'Node Hostlist is: {hostlist}')
+                    else:
+                        for each in hostlist:
+                            if each in records:
+                                Message().show_error(f'Node already present in database: {each}')
+
+                else:
+                    Message().error_exit('Node are not available at this moment.')
+            elif 'message' in record.content:
+                Message().error_exit(record.content['message'])
+            else:
+                Message().error_exit('Node are not available at this moment.')
+        else:
+            Message().error_exit('Node are not available at this moment.')
+        # return Helper().clone_record(self.table, self.args)
 
 
     def listinterface(self):
