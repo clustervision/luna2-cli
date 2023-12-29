@@ -167,7 +167,7 @@ class Node():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options']:
                 self.args.pop(remove, None)
-            if len(hostlist) != 1 and 'ipaddress' in interface or 'macaddress' in interface:
+            if len(hostlist) > 1 and ('ipaddress' in interface or 'macaddress' in interface):
                 Message().error_exit('Interface IP Address or MAC Address can not be use with the hostlist, Kindly provide the single node or remove the IP Address and MAC Address.')
         record = Rest().get_data(self.table)
         if record.status_code == 200:
@@ -223,7 +223,7 @@ class Node():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options']:
                 self.args.pop(remove, None)
-            if len(hostlist) != 1 and 'ipaddress' in interface or 'macaddress' in interface:
+            if len(hostlist) > 1 and ('ipaddress' in interface or 'macaddress' in interface):
                 Message().error_exit('Interface IP Address or MAC Address can not be use with the hostlist, Kindly provide the single node or remove the IP Address and MAC Address.')
         record = Rest().get_data(self.table)
         if record.status_code == 200:
@@ -392,7 +392,7 @@ class Node():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options']:
                 self.args.pop(remove, None)
-            if len(hostlist) != 1 and 'ipaddress' in interface or 'macaddress' in interface:
+            if len(hostlist) > 1 and ('ipaddress' in interface or 'macaddress' in interface):
                 Message().error_exit('Interface IP Address or MAC Address can not be use with the hostlist, Kindly provide the single node or remove the IP Address and MAC Address.')
         record = Rest().get_data(self.table)
         if record.status_code == 200:
