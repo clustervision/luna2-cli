@@ -42,6 +42,7 @@ from copy import deepcopy
 import hostlist
 from termcolor import colored
 from nested_lookup import nested_lookup, nested_update, nested_delete, nested_alter
+from nested_lookup import get_all_keys
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
@@ -304,6 +305,7 @@ class Helper():
         """
         This method will update a record.
         """
+        response = None
         for remove in ['verbose', 'command', 'action']:
             data.pop(remove, None)
         if 'raw' in data:
@@ -326,18 +328,101 @@ class Helper():
                 if len(payload) == 1:
                     Message().error_exit('Kindly choose something to update.')
                 else:
-                    response = Rest().post_data(table, name, request_data)
+                    db_data = record.content
+                    db_data = db_data['config'][table][name]
+                    update = self.compare_data(payload, db_data)
+                    if update is True:
+                        response = Rest().post_data(table, name, request_data)
+                    else:
+                        Message().error_exit('Nothing is changed, Kindly change something to update')
             else:
                 Message().error_exit(f'Kindly add the {payload["name"]} first', record.status_code)
         self.logger.debug(f'Response => {response}')
-        if response.status_code == 204:
-            if name:
-                Message().show_success(f'{table.capitalize()} {name} is updated.')
+        if response:
+            if response.status_code == 204:
+                if name:
+                    Message().show_success(f'{table.capitalize()} {name} is updated.')
+                else:
+                    Message().show_success(f'{table.capitalize()} is updated.')
             else:
-                Message().show_success(f'{table.capitalize()} is updated.')
-        else:
-            Message().error_exit(response.content, response.status_code)
+                Message().error_exit(response.content, response.status_code)
         return True
+
+
+    def compare_data(self, payload=None, db_data=None):
+        """
+        This method will compare the payload data with the original data.
+        """
+        check = False
+        print("-------------------------------------------------------")
+        filtered_data = deepcopy(db_data)
+        for key, value in db_data.items():
+            if key not in payload:
+                del filtered_data[key]
+            else:
+                if value == payload[key]:
+                    del filtered_data[key]
+                    del payload[key]
+        print(payload)
+        print(filtered_data)
+        for key, value in payload.items():
+            if isinstance(value, dict):
+                for each_key, each_value in value.items():
+                    print(each_key)
+                    print(each_value)
+                    pass
+            elif isinstance(value, list):
+                for each in value:
+                    print(each)
+            # content = nested_lookup(key, filtered_data)
+            # print(content)
+
+        # filtered_data = nested_delete(filtered_data, value=None)
+
+        # payload_keys = get_all_keys(payload)
+        # data_keys = get_all_keys(filtered_data)
+        # print(payload_keys)
+        # print(data_keys)
+
+        # for each_key, each_value in zip(payload.items(), filtered_data.items()):
+        #     # content = nested_lookup(each_key, filtered_data)
+        #     print(each_key)
+        #     print(each_value)
+        
+
+            # def nested_dict(dictionary1=None, dictionary2=None):
+            #     """
+            #     This is a nested dictionary checker
+            #     """
+            #     for each_key, each_value in dictionary1.items():
+            #         if each_key == dictionary2[each_key]:
+            #             if each_value == each_value
+            
+            # if isinstance(value, dict):
+            #     update = self.nested_dict(value, db_data[key])
+            # if isinstance(value, dict):
+            #     for each_key, each_value in value.items():
+            #         if each_key != db_data[key]:
+            #             pass
+
+            # elif isinstance(value, list):
+            #     for each_node in value:
+            #         if isinstance(each_node, dict):
+            #             for db_each in db_data[key]:
+            #                 for internal_key, internal_value in each_node.items():
+            #                     if internal_key in db_each:
+            #                         pass
+            #             print(db_data[key])
+            #         print(each_node)
+            #         if each_node != None:
+            #             pass
+            # elif db_data[key] != value:
+            #     update = True
+            #     print(db_data[key])
+            #     print(value)
+        print("-------------------------------------------------------")
+        return check
+        
 
 
     def delete_record(self, table=None, data=None):
