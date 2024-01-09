@@ -145,7 +145,12 @@ class Network():
         """
         This method update a network.
         """
-        return Helper().update_record(self.table, self.args)
+        change = Helper().compare_data(self.table, self.args)
+        if change is True:
+            Helper().update_record(self.table, self.args)
+        else:
+            Message().show_error('Nothing is changed, Kindly change something to update')
+        # return Helper().update_record(self.table, self.args)
 
 
     def rename_network(self):

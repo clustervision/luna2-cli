@@ -492,6 +492,7 @@ class Node():
         """
         Method to change a node interfaces in Luna Configuration.
         """
+        real_args = deepcopy(self.args)
         uri = self.table+'/'+self.args['name']+'/interfaces'
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
@@ -518,12 +519,18 @@ class Node():
             del payload['name']
             request_data = {'config': {self.table: {node_name: payload}}}
             self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_data(self.table, node_name+'/interfaces', request_data)
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 204:
-                Message().show_success(f'Node {node_name} Interface {interface["interface"]} is updated.')
+
+            change = Helper().compare_data(self.table, real_args)
+            if change is True:
+                response = Rest().post_data(self.table, node_name+'/interfaces', request_data)
+                self.logger.debug(f'Response => {response}')
+                if response.status_code == 204:
+                    Message().show_success(f'Node {node_name} Interface {interface["interface"]} is updated.')
+                else:
+                    Message().error_exit(response.content, response.status_code)
             else:
-                Message().error_exit(response.content, response.status_code)
+                Message().show_error('Nothing is changed, Kindly change something to update')
+
         else:
             Message().show_error('Nothing to update.')
         return True

@@ -356,8 +356,6 @@ class Helper():
         self.logger.debug(f'Get List Data from Helper => {db_data}')
         db_data = db_data['config'][table][data['name']]
         db_data = Helper().prepare_json(db_data)
-        db_data = self.remove_none(db_data)
-
         for remove in ['verbose', 'command', 'action']:
             data.pop(remove, None)
         data = {k: v for k, v in data.items() if v is not None}
