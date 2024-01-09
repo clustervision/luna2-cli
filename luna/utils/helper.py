@@ -328,13 +328,7 @@ class Helper():
                 if len(payload) == 1:
                     Message().error_exit('Kindly choose something to update.')
                 else:
-                    db_data = record.content
-                    db_data = db_data['config'][table][name]
-                    update = self.compare_data(payload, db_data)
-                    if update is True:
-                        response = Rest().post_data(table, name, request_data)
-                    else:
-                        Message().error_exit('Nothing is changed, Kindly change something to update')
+                    response = Rest().post_data(table, name, request_data)
             else:
                 Message().error_exit(f'Kindly add the {payload["name"]} first', record.status_code)
         self.logger.debug(f'Response => {response}')
@@ -349,80 +343,68 @@ class Helper():
         return True
 
 
-    def compare_data(self, payload=None, db_data=None):
+    def compare_data(self, table=None, data=None):
         """
         This method will compare the payload data with the original data.
         """
         check = False
-        print("-------------------------------------------------------")
-        filtered_data = deepcopy(db_data)
-        for key, value in db_data.items():
-            if key not in payload:
-                del filtered_data[key]
+        db_data = Rest().get_data(table, data['name'])
+        if db_data.status_code == 200:
+            db_data = db_data.content
+        else:
+            Message().error_exit(db_data.content, db_data.status_code)
+        self.logger.debug(f'Get List Data from Helper => {db_data}')
+        db_data = db_data['config'][table][data['name']]
+        db_data = Helper().prepare_json(db_data)
+        db_data = self.remove_none(db_data)
+
+        for remove in ['verbose', 'command', 'action']:
+            data.pop(remove, None)
+        data = {k: v for k, v in data.items() if v is not None}
+        for key, value in data.items():
+            if key in EDITOR_KEYS:
+                if value is False:
+                    data = nested_delete(data, key)
+        final_data = deepcopy(data)
+        for key, value in data.items():
+            if key in db_data:
+                if db_data[key] != value:
+                    self.logger.debug(f"key   {key} value   {db_data[key]} value   {value}")
+                    check = True
+                del final_data[key]
+
+        if 'interface' in final_data:
+            uri = data['name']+'/interfaces/'+final_data['interface']
+            interface_data = Rest().get_data(table, uri)
+            if interface_data.status_code == 200:
+                interface_data = interface_data.content
+                interface_data = interface_data['config'][table][data["name"]]['interfaces'][0]
+                interface_data = Helper().prepare_json(interface_data)
+                interface_data = self.remove_none(interface_data)
+                for key, value in final_data.items():
+                    if key not in interface_data:
+                        check = True
+                        self.logger.debug(f"-----------------------different~~~~~   {key}")
+                    else:
+                        if value != interface_data[key]:
+                            check = True
+                            self.logger.debug(f"-----------------------different   {key}")
             else:
-                if value == payload[key]:
-                    del filtered_data[key]
-                    del payload[key]
-        print(payload)
-        print(filtered_data)
-        for key, value in payload.items():
-            if isinstance(value, dict):
-                for each_key, each_value in value.items():
-                    print(each_key)
-                    print(each_value)
-                    pass
-            elif isinstance(value, list):
-                for each in value:
-                    print(each)
-            # content = nested_lookup(key, filtered_data)
-            # print(content)
-
-        # filtered_data = nested_delete(filtered_data, value=None)
-
-        # payload_keys = get_all_keys(payload)
-        # data_keys = get_all_keys(filtered_data)
-        # print(payload_keys)
-        # print(data_keys)
-
-        # for each_key, each_value in zip(payload.items(), filtered_data.items()):
-        #     # content = nested_lookup(each_key, filtered_data)
-        #     print(each_key)
-        #     print(each_value)
-        
-
-            # def nested_dict(dictionary1=None, dictionary2=None):
-            #     """
-            #     This is a nested dictionary checker
-            #     """
-            #     for each_key, each_value in dictionary1.items():
-            #         if each_key == dictionary2[each_key]:
-            #             if each_value == each_value
-            
-            # if isinstance(value, dict):
-            #     update = self.nested_dict(value, db_data[key])
-            # if isinstance(value, dict):
-            #     for each_key, each_value in value.items():
-            #         if each_key != db_data[key]:
-            #             pass
-
-            # elif isinstance(value, list):
-            #     for each_node in value:
-            #         if isinstance(each_node, dict):
-            #             for db_each in db_data[key]:
-            #                 for internal_key, internal_value in each_node.items():
-            #                     if internal_key in db_each:
-            #                         pass
-            #             print(db_data[key])
-            #         print(each_node)
-            #         if each_node != None:
-            #             pass
-            # elif db_data[key] != value:
-            #     update = True
-            #     print(db_data[key])
-            #     print(value)
-        print("-------------------------------------------------------")
+                check = True
         return check
-        
+
+
+    def remove_none(self, data=None):
+        """
+        This method will remove the None values recursively from the object.
+        """
+        if isinstance(data, (list, tuple, set)):
+            return type(data)(self.remove_none(x) for x in data if x is not None)
+        elif isinstance(data, dict):
+            return type(data)((self.remove_none(k), self.remove_none(v))
+            for k, v in data.items() if k is not None and v is not None)
+        else:
+            return data
 
 
     def delete_record(self, table=None, data=None):

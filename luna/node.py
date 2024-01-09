@@ -30,6 +30,7 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 from operator import methodcaller
+from copy import deepcopy
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
@@ -202,6 +203,7 @@ class Node():
         """
         Method to change a node in Luna Configuration.
         """
+        real_args = deepcopy(self.args)
         hostlist = Helper().get_hostlist(self.args['name'])
         hostlist = Helper().luna_hostlist(hostlist)
         if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
@@ -235,7 +237,11 @@ class Node():
                             for each in hostlist:
                                 if each in records:
                                     self.args['name'] = each
-                                    Helper().update_record(self.table, self.args)
+                                    change = Helper().compare_data(self.table, real_args)
+                                    if change is True:
+                                        Helper().update_record(self.table, self.args)
+                                    else:
+                                        Message().show_error('Nothing is changed, Kindly change something to update')
                         else:
                             Message().error_exit(f'Node Hostlist is: {hostlist}')
                     else:
