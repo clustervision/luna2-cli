@@ -30,6 +30,7 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 from operator import methodcaller
+from copy import deepcopy
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
@@ -169,6 +170,7 @@ class Group():
         """
         Method to change a group in Luna Configuration.
         """
+        real_args = deepcopy(self.args)
         if self.args['interface'] is None and (self.args['network'] or self.args['options']):
             Message().error_exit("ERROR :: Kindly supply the interface in order to use the network or options.")
         interface = {}
@@ -184,7 +186,12 @@ class Group():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'options']:
                 self.args.pop(remove, None)
-        return Helper().update_record(self.table, self.args)
+        change = Helper().compare_data(self.table, real_args)
+        if change is True:
+            Helper().update_record(self.table, self.args)
+        else:
+            Message().show_error('Nothing is changed, Kindly change something to update')
+        # return Helper().update_record(self.table, self.args)
 
 
     def rename_group(self):
@@ -296,6 +303,7 @@ class Group():
         """
         Method to change a Group interfaces in Luna Configuration.
         """
+        real_args = deepcopy(self.args)
         uri = self.table+'/'+self.args['name']+'/interfaces'
         group_name = self.args['name']
         self.args['name'] = self.args['interface']
@@ -319,15 +327,21 @@ class Group():
             del payload['name']
             request_data = {'config': {self.table: {group_name: payload}}}
             self.logger.debug(f'Payload => {request_data}')
-            response = Rest().post_data(self.table, group_name+'/interfaces', request_data)
-            self.logger.debug(f'Response => {response}')
-            if response.status_code == 204:
-                Message().show_success(f'Group {group_name} Interface {interface["interface"]} is updated.')
+
+            change = Helper().compare_data(self.table, real_args)
+            if change is True:
+                response = Rest().post_data(self.table, group_name+'/interfaces', request_data)
+                self.logger.debug(f'Response => {response}')
+                if response.status_code == 204:
+                    Message().show_success(f'Group {group_name} Interface {interface["interface"]} is updated.')
+                else:
+                    Message().error_exit(response.content, response.status_code)
             else:
-                Message().error_exit(response.content, response.status_code)
+                Message().show_error('Nothing is changed, Kindly change something to update')
+
         else:
             Message().show_error('Nothing to update.')
-        return response
+        return True
 
 
     def removeinterface(self):
