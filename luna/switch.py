@@ -78,6 +78,7 @@ class Switch():
         switch_add.add_argument('-o', '--oid', help='OID')
         switch_add.add_argument('-u', '--uplinkports', help='Write community')
         switch_add.add_argument('-c', '--comment', action='store_true', help='Comment')
+        switch_add.add_argument('-nn', '--nonetwork', action='store_true', help='No network verification')
         switch_add.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         switch_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
@@ -91,6 +92,7 @@ class Switch():
         switch_change.add_argument('-o', '--oid', help='OID')
         switch_change.add_argument('-u', '--uplinkports', help='Write community')
         switch_change.add_argument('-c', '--comment', action='store_true', help='Comment')
+        switch_change.add_argument('-nn', '--nonetwork', action='store_true', help='No network verification')
         switch_change.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         switch_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
