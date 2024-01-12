@@ -75,6 +75,7 @@ class OtherDev():
         otherdev_add.add_argument('-ip', '--ipaddress', help='IP Address')
         otherdev_add.add_argument('-m', '--macaddress', help='MAC Address')
         otherdev_add.add_argument('-c', '--comment', action='store_true', help='Comment')
+        otherdev_add.add_argument('-nn', '--nonetwork', action='store_true', help='No network verification')
         otherdev_add.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         otherdev_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
@@ -84,6 +85,7 @@ class OtherDev():
         otherdev_change.add_argument('-ip', '--ipaddress', help='IP Address')
         otherdev_change.add_argument('-m', '--macaddress', help='MAC Address')
         otherdev_change.add_argument('-c', '--comment', action='store_true', help='Comment')
+        otherdev_change.add_argument('-nn', '--nonetwork', action='store_true', help='No network verification')
         otherdev_change.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         otherdev_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
