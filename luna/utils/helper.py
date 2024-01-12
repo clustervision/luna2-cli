@@ -42,6 +42,7 @@ from copy import deepcopy
 import hostlist
 from termcolor import colored
 from nested_lookup import nested_lookup, nested_update, nested_delete, nested_alter
+from nested_lookup import get_all_keys
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
@@ -304,6 +305,7 @@ class Helper():
         """
         This method will update a record.
         """
+        response = None
         for remove in ['verbose', 'command', 'action']:
             data.pop(remove, None)
         if 'raw' in data:
@@ -330,14 +332,77 @@ class Helper():
             else:
                 Message().error_exit(f'Kindly add the {payload["name"]} first', record.status_code)
         self.logger.debug(f'Response => {response}')
-        if response.status_code == 204:
-            if name:
-                Message().show_success(f'{table.capitalize()} {name} is updated.')
+        if response:
+            if response.status_code == 204:
+                if name:
+                    Message().show_success(f'{table.capitalize()} {name} is updated.')
+                else:
+                    Message().show_success(f'{table.capitalize()} is updated.')
             else:
-                Message().show_success(f'{table.capitalize()} is updated.')
-        else:
-            Message().error_exit(response.content, response.status_code)
+                Message().error_exit(response.content, response.status_code)
         return True
+
+
+    def compare_data(self, table=None, data=None):
+        """
+        This method will compare the payload data with the original data.
+        """
+        check = False
+        db_data = Rest().get_data(table, data['name'])
+        if db_data.status_code == 200:
+            db_data = db_data.content
+        else:
+            Message().error_exit(db_data.content, db_data.status_code)
+        self.logger.debug(f'Get List Data from Helper => {db_data}')
+        db_data = db_data['config'][table][data['name']]
+        db_data = Helper().prepare_json(db_data)
+        for remove in ['verbose', 'command', 'action']:
+            data.pop(remove, None)
+        data = {k: v for k, v in data.items() if v is not None}
+        for key, value in data.items():
+            if key in EDITOR_KEYS:
+                if value is False:
+                    data = nested_delete(data, key)
+        final_data = deepcopy(data)
+        for key, value in data.items():
+            if key in db_data:
+                if db_data[key] != value:
+                    self.logger.debug(f"key   {key} value   {db_data[key]} value   {value}")
+                    check = True
+                del final_data[key]
+
+        if 'interface' in final_data:
+            uri = data['name']+'/interfaces/'+final_data['interface']
+            interface_data = Rest().get_data(table, uri)
+            if interface_data.status_code == 200:
+                interface_data = interface_data.content
+                interface_data = interface_data['config'][table][data["name"]]['interfaces'][0]
+                interface_data = Helper().prepare_json(interface_data)
+                interface_data = self.remove_none(interface_data)
+                for key, value in final_data.items():
+                    if key not in interface_data:
+                        check = True
+                        self.logger.debug(f"-----------------------different~~~~~   {key}")
+                    else:
+                        if value != interface_data[key]:
+                            check = True
+                            self.logger.debug(f"-----------------------different   {key}")
+            else:
+                check = True
+        return check
+
+
+    def remove_none(self, data=None):
+        """
+        This method will remove the None values recursively from the object.
+        """
+        if isinstance(data, (list, tuple, set)):
+            return type(data)(self.remove_none(x) for x in data if x is not None)
+        elif isinstance(data, dict):
+            return type(data)((self.remove_none(k), self.remove_none(v))
+            for k, v in data.items() if k is not None and v is not None)
+        else:
+            return data
 
 
     def delete_record(self, table=None, data=None):
