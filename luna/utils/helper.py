@@ -80,6 +80,19 @@ class Helper():
         return raw_data
 
 
+    def get_correct_option(self, table=None, name=None, interface=None):
+        """
+        This method will get the correct option value for the interface.
+        """
+        value = ''
+        uri = name+'/interfaces/'+interface
+        get_data = Rest().get_data(table, uri)
+        if get_data.status_code == 200:
+            value = nested_lookup('options', get_data.content)
+            value = value[0]
+        return value
+
+
     def prepare_payload(self, table=None, raw_data=None):
         """
         This method will prepare the payload.
@@ -97,9 +110,14 @@ class Helper():
                         else:
                             Message().error_exit(get_list.content, get_list.status_code)
                         if get_list:
-                            value = nested_lookup(key, get_list)
-                            if value:
-                                content = self.open_editor(key, value[0], payload)
+                            if key == 'options':
+                                interface = nested_lookup('interface', raw_data)
+                                value = self.get_correct_option(table, raw_data['name'], interface[0])
+                            else:
+                                value = nested_lookup(key, get_list)
+                                value = value[0]
+                            if isinstance(value, str):
+                                content = self.open_editor(key, value, payload)
                                 payload = nested_update(payload, key=key, value=content)
                     else:
                         content = self.open_editor(key, None, payload)
