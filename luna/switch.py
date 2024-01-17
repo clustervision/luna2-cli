@@ -77,6 +77,7 @@ class Switch():
         switch_add.add_argument('-w', '--rw', help='Write community')
         switch_add.add_argument('-o', '--oid', help='OID')
         switch_add.add_argument('-u', '--uplinkports', help='Write community')
+        switch_add.add_argument('-vd', '--vendor', help='Add Switch Vendor Name')
         switch_add.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_add.add_argument('-nn', '--nonetwork', action='store_true', help='No network verification')
         switch_add.add_argument('-qc', '--quick-comment', dest='comment',
@@ -91,6 +92,7 @@ class Switch():
         switch_change.add_argument('-w', '--rw', help='Write community')
         switch_change.add_argument('-o', '--oid', help='OID')
         switch_change.add_argument('-u', '--uplinkports', help='Write community')
+        switch_change.add_argument('-vd', '--vendor', help='Change Switch Vendor Name')
         switch_change.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_change.add_argument('-nn', '--nonetwork', action='store_true', help='No network verification')
         switch_change.add_argument('-qc', '--quick-comment', dest='comment',
@@ -106,6 +108,7 @@ class Switch():
         switch_clone.add_argument('-w', '--rw', help='Write community')
         switch_clone.add_argument('-o', '--oid', help='OID')
         switch_clone.add_argument('-u', '--uplinkports', help='Write community')
+        switch_clone.add_argument('-vd', '--vendor', help='Clone Switch Vendor Name')
         switch_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_clone.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
