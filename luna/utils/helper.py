@@ -394,17 +394,20 @@ class Helper():
             interface_data = Rest().get_data(table, uri)
             if interface_data.status_code == 200:
                 interface_data = interface_data.content
-                interface_data = interface_data['config'][table][data["name"]]['interfaces'][0]
-                interface_data = Helper().prepare_json(interface_data)
-                interface_data = self.remove_none(interface_data)
-                for key, value in final_data.items():
-                    if key not in interface_data:
-                        check = True
-                        self.logger.debug(f"-----------------------different~~~~~   {key}")
-                    else:
-                        if value != interface_data[key]:
+                if isinstance(interface_data, str):
+                    check = True
+                else:
+                    interface_data = interface_data['config'][table][data["name"]]['interfaces'][0]
+                    interface_data = Helper().prepare_json(interface_data)
+                    interface_data = self.remove_none(interface_data)
+                    for key, value in final_data.items():
+                        if key not in interface_data:
                             check = True
-                            self.logger.debug(f"-----------------------different   {key}")
+                            self.logger.debug(f"-----------------------different~~~~~   {key}")
+                        else:
+                            if value != interface_data[key]:
+                                check = True
+                                self.logger.debug(f"-----------------------different   {key}")
             else:
                 check = True
         return check
