@@ -74,6 +74,7 @@ class OtherDev():
         otherdev_add.add_argument('-N', '--network', help='Network Name')
         otherdev_add.add_argument('-ip', '--ipaddress', help='IP Address')
         otherdev_add.add_argument('-m', '--macaddress', help='MAC Address')
+        otherdev_add.add_argument('-vd', '--vendor', help='Add Other Device Vendor Name')
         otherdev_add.add_argument('-c', '--comment', action='store_true', help='Comment')
         otherdev_add.add_argument('-nn', '--nonetwork', action='store_true', help='No network verification')
         otherdev_add.add_argument('-qc', '--quick-comment', dest='comment',
@@ -84,6 +85,7 @@ class OtherDev():
         otherdev_change.add_argument('-N', '--network', help='Network')
         otherdev_change.add_argument('-ip', '--ipaddress', help='IP Address')
         otherdev_change.add_argument('-m', '--macaddress', help='MAC Address')
+        otherdev_change.add_argument('-vd', '--vendor', help='Change Other Device Vendor Name')
         otherdev_change.add_argument('-c', '--comment', action='store_true', help='Comment')
         otherdev_change.add_argument('-nn', '--nonetwork', action='store_true', help='No network verification')
         otherdev_change.add_argument('-qc', '--quick-comment', dest='comment',
@@ -95,6 +97,7 @@ class OtherDev():
         otherdev_clone.add_argument('-N', '--network', help='Network')
         otherdev_clone.add_argument('-ip', '--ipaddress', help='IP Address')
         otherdev_clone.add_argument('-m', '--macaddress', help='MAC Address')
+        otherdev_clone.add_argument('-vd', '--vendor', help='Clone Other Device Vendor Name')
         otherdev_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
         otherdev_clone.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
