@@ -195,8 +195,11 @@ class Node():
             else:
                 Message().error_exit('Node are not available at this moment.')
         else:
-            Message().error_exit('Node are not available at this moment.')
-        # return Helper().add_record(self.table, self.args)
+            for each in hostlist:
+                self.args['name'] = each
+                Helper().add_record(self.table, self.args)
+        return True
+
 
 
     def change_node(self):
