@@ -240,6 +240,7 @@ class Node():
                             for each in hostlist:
                                 if each in records:
                                     self.args['name'] = each
+                                    real_args['name'] = each
                                     change = Helper().compare_data(self.table, real_args)
                                     if change is True:
                                         Helper().update_record(self.table, self.args)
