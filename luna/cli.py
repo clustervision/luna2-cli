@@ -101,7 +101,7 @@ class Cli():
             epilog = TOOL_EPILOG
         )
         self.parser.add_argument('-V', '--version', action='version', version=f'%(prog)s {ver}')
-        self.parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        self.parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
         for cls in classes:
             cls(parser=self.parser, subparsers =self.subparsers)

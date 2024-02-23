@@ -73,25 +73,25 @@ class Control():
         power_menu = power_parser.add_subparsers(dest='action')
         for action in actions('power'):
             action_parser = power_menu.add_parser(action, help=f'Node(s) {action.capitalize()}', usage='%(prog)s [-h] [-v] [node|hostlist]')
-            action_parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+            action_parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
             action_parser.add_argument('node', help='Node Name or Node Hostlist')
         sel_parser = control_args.add_parser('sel', help='Sel Operations')
         sel_menu = sel_parser.add_subparsers(dest='action')
         for action in actions('sel'):
             action_parser = sel_menu.add_parser(action, help=f'Node(s) {action.capitalize()}', usage='%(prog)s [-h] [-v] [node|hostlist]')
-            action_parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+            action_parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
             action_parser.add_argument('node', help='Node Name or Node Hostlist')
         chassis_parser = control_args.add_parser('chassis', help='Chassis Operations')
         chassis_menu = chassis_parser.add_subparsers(dest='action')
         for action in actions('chassis'):
             action_parser = chassis_menu.add_parser(action, help=f'Node(s) {action.capitalize()}', usage='%(prog)s [-h] [-v] [node|hostlist]')
-            action_parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+            action_parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
             action_parser.add_argument('node', help='Node Name or Node Hostlist')
         redfish_parser = control_args.add_parser('redfish', help='RedFish Operations')
         redfish_menu = redfish_parser.add_subparsers(dest='action')
         for action in actions('redfish'):
             action_parser = redfish_menu.add_parser(action, help=f'Node(s) {action.capitalize()}', usage='%(prog)s [-h] [-v] [node|hostlist]')
-            action_parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+            action_parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
             action_parser.add_argument('node', help='Node Name or Node Hostlist')
             action_parser.add_argument('-f', '--file', type=FileType('r'), help='File Path')
         return parser

@@ -388,6 +388,8 @@ class Helper():
                     self.logger.debug(f"key   {key} value   {db_data[key]} value   {value}")
                     check = True
                 del final_data[key]
+            else:
+                check = True
 
         if 'interface' in final_data:
             uri = data['name']+'/interfaces/'+final_data['interface']
@@ -602,8 +604,8 @@ class Helper():
         """
         This method will provide the common list and show arguments..
         """
-        parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
-        parser.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        parser.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
         return parser
 
 

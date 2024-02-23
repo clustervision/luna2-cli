@@ -76,10 +76,10 @@ class OtherDev():
         otherdev_add.add_argument('-m', '--macaddress', help='MAC Address')
         otherdev_add.add_argument('-vd', '--vendor', help='Add Other Device Vendor Name')
         otherdev_add.add_argument('-c', '--comment', action='store_true', help='Comment')
-        otherdev_add.add_argument('-nn', '--nonetwork', action='store_true', help='No network verification')
+        otherdev_add.add_argument('-nn', '--nonetwork', action='store_true', default=None, help='No network verification')
         otherdev_add.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        otherdev_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        otherdev_add.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         otherdev_change = otherdev_args.add_parser('change', help='Change Other Devices')
         otherdev_change.add_argument('name', help='Other Device Name')
         otherdev_change.add_argument('-N', '--network', help='Network')
@@ -87,10 +87,10 @@ class OtherDev():
         otherdev_change.add_argument('-m', '--macaddress', help='MAC Address')
         otherdev_change.add_argument('-vd', '--vendor', help='Change Other Device Vendor Name')
         otherdev_change.add_argument('-c', '--comment', action='store_true', help='Comment')
-        otherdev_change.add_argument('-nn', '--nonetwork', action='store_true', help='No network verification')
+        otherdev_change.add_argument('-nn', '--nonetwork', action='store_true', default=None, help='No network verification')
         otherdev_change.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        otherdev_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        otherdev_change.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         otherdev_clone = otherdev_args.add_parser('clone', help='Clone Other Devices')
         otherdev_clone.add_argument('name', help='Other Device Name')
         otherdev_clone.add_argument('newotherdevname', help='New Other Device Name')
@@ -101,14 +101,14 @@ class OtherDev():
         otherdev_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
         otherdev_clone.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        otherdev_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        otherdev_clone.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         otherdev_rename = otherdev_args.add_parser('rename', help='Rename Other Devices')
         otherdev_rename.add_argument('name', help='Other Device Name')
         otherdev_rename.add_argument('newotherdevname', help='New Other Device Name')
-        otherdev_rename.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        otherdev_rename.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         otherdev_remove = otherdev_args.add_parser('remove', help='Remove Other Devices')
         otherdev_remove.add_argument('name', help='Other Device Name')
-        otherdev_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        otherdev_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
 

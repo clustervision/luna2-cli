@@ -90,16 +90,16 @@ class Group():
         group_rename = group_args.add_parser('rename', help='Rename Group.')
         group_rename.add_argument('name', help='Name of the Group')
         group_rename.add_argument('newgroupname', help='New Name for the Group')
-        group_rename.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        group_rename.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         group_remove = group_args.add_parser('remove', help='Remove Group')
         group_remove.add_argument('name', help='Name of the Group')
-        group_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        group_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         group_ospush = group_args.add_parser('ospush', help='Push an OS Image for a Group')
         group_ospush.add_argument('name', help='Name of the Group')
         group_ospush.add_argument('-o', '--osimage', help='OS Image Name')
-        group_ospush.add_argument('-no', '--nodry', action='store_true',
+        group_ospush.add_argument('-no', '--nodry', action='store_true', default=None,
                                   help='No Dry flag to avoid dry run')
-        group_ospush.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        group_ospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         group_interfaces = group_args.add_parser('listinterface', help='List Group Interfaces')
         group_interfaces.add_argument('name', help='Name of the Group')
         Arguments().common_list_args(group_interfaces)
@@ -115,11 +115,11 @@ class Group():
                                       help='Interfaces Options')
         change_interface.add_argument('-qo', '--quick-options', dest='options',
                                 metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
-        change_interface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        change_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         remove_interface = group_args.add_parser('removeinterface', help='Remove Group Interface')
         remove_interface.add_argument('name', help='Name of the Group')
         remove_interface.add_argument('interface', help='Name of the Group Interface')
-        remove_interface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        remove_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
 

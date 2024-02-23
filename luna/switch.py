@@ -79,10 +79,10 @@ class Switch():
         switch_add.add_argument('-u', '--uplinkports', help='Write community')
         switch_add.add_argument('-vd', '--vendor', help='Add Switch Vendor Name')
         switch_add.add_argument('-c', '--comment', action='store_true', help='Comment')
-        switch_add.add_argument('-nn', '--nonetwork', action='store_true', help='No network verification')
+        switch_add.add_argument('-nn', '--nonetwork', action='store_true', default=None, help='No network verification')
         switch_add.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        switch_add.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        switch_add.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         switch_change = switch_args.add_parser('change', help='Change Switch')
         switch_change.add_argument('name', help='Switch Name')
         switch_change.add_argument('-N', '--network', help='Network')
@@ -94,10 +94,10 @@ class Switch():
         switch_change.add_argument('-u', '--uplinkports', help='Write community')
         switch_change.add_argument('-vd', '--vendor', help='Change Switch Vendor Name')
         switch_change.add_argument('-c', '--comment', action='store_true', help='Comment')
-        switch_change.add_argument('-nn', '--nonetwork', action='store_true', help='No network verification')
+        switch_change.add_argument('-nn', '--nonetwork', action='store_true', default=None, help='No network verification')
         switch_change.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        switch_change.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        switch_change.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         switch_clone = switch_args.add_parser('clone', help='Clone Switch')
         switch_clone.add_argument('name', help='Switch Name')
         switch_clone.add_argument('newswitchname', help='New Switch Name')
@@ -112,14 +112,14 @@ class Switch():
         switch_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_clone.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        switch_clone.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        switch_clone.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         switch_rename = switch_args.add_parser('rename', help='Rename Switch')
         switch_rename.add_argument('name', help='Switch Name')
         switch_rename.add_argument('newswitchname', help='New Switch Name')
-        switch_rename.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        switch_rename.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         switch_remove = switch_args.add_parser('remove', help='Remove Switch')
         switch_remove.add_argument('name', help='Switch Name')
-        switch_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        switch_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
 

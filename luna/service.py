@@ -71,7 +71,7 @@ class Service():
             for action in SERVICE_ACTIONS:
                 action_help = f'{action.capitalize()} {name.upper()} Service'
                 action_args = service_parser.add_parser(action, help=action_help)
-                action_args.add_argument('-v', '--verbose', action='store_true',
+                action_args.add_argument('-v', '--verbose', action='store_true', default=None,
                                          help='Verbose Mode')
         return parser
 
