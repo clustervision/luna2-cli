@@ -766,6 +766,7 @@ class Helper():
         self.logger.debug(f'Fields => {fields}')
         for field_key in fields:
             val_row = []
+            num = 1
             for ele in data:
                 if field_key in list((data[ele].keys())):
                     if isinstance(data[ele][field_key], list):
@@ -786,9 +787,39 @@ class Helper():
                         else:
                             val_row.append(False)
                     else:
-                        val_row.append(data[ele][field_key])
+                        if table == "network":
+                            if field_key == "network":
+                                network = data[ele][field_key]
+                                if "network_ipv6" in data[ele].keys():
+                                    if data[ele]['network_ipv6'] not in ['', None]:
+                                        network = f'{data[ele][field_key]} \n {data[ele]["network_ipv6"]}'
+                                network = network if num == len(data) else f'{network} \n'
+                                val_row.append(network)
+                         
+                            
+                            elif field_key == "dhcp_range_begin":
+                                dhcp_range_begin = data[ele][field_key]
+                                if "dhcp_range_begin_ipv6" in data[ele].keys():
+                                    if data[ele]['network_ipv6'] not in ['', None]:
+                                        dhcp_range_begin = f'{data[ele][field_key]} \n {data[ele]["dhcp_range_begin_ipv6"]}'
+                                dhcp_range_begin = dhcp_range_begin if num == len(data) else f'{dhcp_range_begin} \n'
+                                val_row.append(dhcp_range_begin)
+                           
+                            
+                            elif field_key == "dhcp_range_end":
+                                dhcp_range_end = data[ele][field_key]
+                                if "dhcp_range_end_ipv6" in data[ele].keys():
+                                    if data[ele]['network_ipv6'] not in ['', None]:
+                                        dhcp_range_end = f'{data[ele][field_key]} \n {data[ele]["dhcp_range_end_ipv6"]}'
+                                dhcp_range_end = dhcp_range_end if num == len(data) else f'{dhcp_range_end} \n'
+                                val_row.append(dhcp_range_end)
+                            else:
+                                val_row.append(data[ele][field_key])
+                        else:
+                            val_row.append(data[ele][field_key])
                 else:
                     val_row.append("--NA--")
+                num = num + 1
             rows.append(val_row)
             self.logger.debug(f'Each Row => {val_row}')
             val_row = []
@@ -1030,6 +1061,7 @@ class Helper():
         """
         This method will generate the data as for row format
         """
+        # self.table = "network"
         self.logger.debug(f'Table => {table} and Data => {data}')
         defined_keys = sortby(table)
         self.logger.debug(f'Fields => {defined_keys}')
@@ -1069,6 +1101,10 @@ class Helper():
                 new_list = []
             else:
                 rows.append(key[1])
+            if table == "network":
+                if key[0] in ["zone", "dhcp_range_end", "dhcp_range_end_ipv6"]:
+                    fields.append('')
+                    rows.append('')
         return fields, rows
 
 
