@@ -792,8 +792,8 @@ class Helper():
                                 network = data[ele][field_key]
                                 if "network_ipv6" in data[ele].keys():
                                     if data[ele]['network_ipv6'] not in ['', None]:
-                                        network = f'{data[ele][field_key]} \n {data[ele]["network_ipv6"]}'
-                                network = network if num == len(data) else f'{network} \n'
+                                        network = f'{data[ele][field_key]}\n{data[ele]["network_ipv6"]}'
+                                network = network if num == len(data) else f'{network}\n'
                                 val_row.append(network)
                          
                             
@@ -801,8 +801,8 @@ class Helper():
                                 dhcp_range_begin = data[ele][field_key]
                                 if "dhcp_range_begin_ipv6" in data[ele].keys():
                                     if data[ele]['network_ipv6'] not in ['', None]:
-                                        dhcp_range_begin = f'{data[ele][field_key]} \n {data[ele]["dhcp_range_begin_ipv6"]}'
-                                dhcp_range_begin = dhcp_range_begin if num == len(data) else f'{dhcp_range_begin} \n'
+                                        dhcp_range_begin = f'{data[ele][field_key]}\n{data[ele]["dhcp_range_begin_ipv6"]}'
+                                dhcp_range_begin = dhcp_range_begin if num == len(data) else f'{dhcp_range_begin}\n'
                                 val_row.append(dhcp_range_begin)
                            
                             
@@ -810,8 +810,8 @@ class Helper():
                                 dhcp_range_end = data[ele][field_key]
                                 if "dhcp_range_end_ipv6" in data[ele].keys():
                                     if data[ele]['network_ipv6'] not in ['', None]:
-                                        dhcp_range_end = f'{data[ele][field_key]} \n {data[ele]["dhcp_range_end_ipv6"]}'
-                                dhcp_range_end = dhcp_range_end if num == len(data) else f'{dhcp_range_end} \n'
+                                        dhcp_range_end = f'{data[ele][field_key]}\n{data[ele]["dhcp_range_end_ipv6"]}'
+                                dhcp_range_end = dhcp_range_end if num == len(data) else f'{dhcp_range_end}\n'
                                 val_row.append(dhcp_range_end)
                             else:
                                 val_row.append(data[ele][field_key])
