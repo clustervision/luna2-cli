@@ -169,6 +169,7 @@ class Arguments():
             parser.add_argument('-N', '--network', required=True, help='Network')
         else:
             parser.add_argument('-N', '--network', help='Network')
+            parser.add_argument('-cl', '--clear', metavar=['ipv4', 'ipv6'], help='Clear IPv4 or IPv6 configurations.')
         parser.add_argument('-g', '--gateway', help='Gateway')
         parser.add_argument('-gm', '--gateway_metric', type=int, help='Gateway Metric')
         parser.add_argument('-t', '--type', help='Network Type')
