@@ -64,7 +64,7 @@ class Monitor():
         Method will provide all the arguments related to the Monitor class.
         """
         monitor = subparsers.add_parser('monitor', help='Get Monitor Status.')
-        monitor.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        monitor.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         monitor_menu = monitor.add_subparsers(dest='action')
         monitor_status = monitor_menu.add_parser('status', help='Get Monitor Status.')
         Arguments().common_list_args(monitor_status)

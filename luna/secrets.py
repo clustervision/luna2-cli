@@ -66,32 +66,32 @@ class Secrets():
         secrets_args = secrets_menu.add_subparsers(dest='action')
         ## >>>>>>> Secrets Command >>>>>>> list
         list_secrets = secrets_args.add_parser('list', help='List Secrets')
-        list_secrets.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
-        list_secrets.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
+        list_secrets.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        list_secrets.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
         list_parser = list_secrets.add_subparsers(dest='entity')
         list_node = list_parser.add_parser('node', help='List Node Secrets')
         list_node.add_argument('name', help='Name of the Node')
         list_node.add_argument('-s', '--secret', help='Name of the Secret')
-        list_node.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        list_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        list_node.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
+        list_node.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         list_group = list_parser.add_parser('group', help='List Group Secrets')
         list_group.add_argument('name', help='Name of the Group')
         list_group.add_argument('-s', '--secret', help='Name of the Secret')
-        list_group.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        list_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        list_group.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
+        list_group.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> show
         show_secrets = secrets_args.add_parser('show', help='Show Secrets')
         show_parser = show_secrets.add_subparsers(dest='entity')
         show_node = show_parser.add_parser('node', help='Show Node Secrets')
         show_node.add_argument('name', help='Name of the Node')
         show_node.add_argument('-s', '--secret', help='Name of the Secret')
-        show_node.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        show_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        show_node.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
+        show_node.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         show_group = show_parser.add_parser('group', help='Show Group Secrets')
         show_group.add_argument('name', help='Name of the Group')
         show_group.add_argument('secret', help='Name of the Secret')
-        show_group.add_argument('-R', '--raw', action='store_true', help='Raw JSON output')
-        show_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        show_group.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
+        show_group.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> add
         change_secrets = secrets_args.add_parser('add', help='Add A New Secret')
         change_parser = change_secrets.add_subparsers(dest='entity')
@@ -103,7 +103,7 @@ class Secrets():
         change_node.add_argument('-qc', '--quick-content', dest='content',
                                 metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
         change_node.add_argument('-p', '--path', help='Path of the Secret')
-        change_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        change_node.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         change_group = change_parser.add_parser('group', help='Add A Group Secrets')
         change_group.add_argument('name', help='Name of the Group')
         change_group.add_argument('secret', help='Name of the Secret')
@@ -112,7 +112,7 @@ class Secrets():
         change_group.add_argument('-qc', '--quick-content', dest='content',
                                 metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
         change_group.add_argument('--path', '-p', help='Path of the Secret')
-        change_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        change_group.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> change
         change_secrets = secrets_args.add_parser('change', help='Change Secrets')
         change_parser = change_secrets.add_subparsers(dest='entity')
@@ -124,7 +124,7 @@ class Secrets():
         change_node.add_argument('-qc', '--quick-content', dest='content',
                                 metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
         change_node.add_argument('-p', '--path', help='Path of the Secret')
-        change_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        change_node.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         change_group = change_parser.add_parser('group', help='Change Group Secrets')
         change_group.add_argument('name', help='Name of the Group')
         change_group.add_argument('secret', help='Name of the Secret')
@@ -133,7 +133,7 @@ class Secrets():
         change_group.add_argument('-qc', '--quick-content', dest='content',
                                 metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
         change_group.add_argument('--path', '-p', help='Path of the Secret')
-        change_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        change_group.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> clone
         clone_secrets = secrets_args.add_parser('clone', help='Clone Secrets')
         clone_parser = clone_secrets.add_subparsers(dest='entity')
@@ -146,7 +146,7 @@ class Secrets():
         clone_node.add_argument('-qc', '--quick-content', dest='content',
                                 metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
         clone_node.add_argument('--path', '-p', help='Path of the Secret')
-        clone_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        clone_node.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         clone_group = clone_parser.add_parser('group', help='Clone Group Secrets')
         clone_group.add_argument('name', help='Name of the Group')
         clone_group.add_argument('secret', help='Name of the Secret')
@@ -156,18 +156,18 @@ class Secrets():
         clone_group.add_argument('-qc', '--quick-content', dest='content',
                                 metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
         clone_group.add_argument('--path', '-p', help='Path of the Secret')
-        clone_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        clone_group.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> delete
         remove_secrets = secrets_args.add_parser('remove', help='Remove Secrets')
         remove_parser = remove_secrets.add_subparsers(dest='entity')
         remove_node = remove_parser.add_parser('node', help='Remove Node Secrets')
         remove_node.add_argument('name', help='Name of the Node')
         remove_node.add_argument('secret', help='Name of the Secret')
-        remove_node.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        remove_node.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         remove_group = remove_parser.add_parser('group', help='Remove Group Secrets')
         remove_group.add_argument('name', help='Name of the Group')
         remove_group.add_argument('secret', help='Name of the Secret')
-        remove_group.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        remove_group.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
 

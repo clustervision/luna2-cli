@@ -82,10 +82,10 @@ class BMCSetup():
         bmcsetup_rename = bmcsetup_args.add_parser('rename', help='Rename BMC Setup')
         bmcsetup_rename.add_argument('name', help='BMC Setup Name')
         bmcsetup_rename.add_argument('newbmcname', help='New BMC Setup Name')
-        bmcsetup_rename.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        bmcsetup_rename.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         bmcsetup_remove = bmcsetup_args.add_parser('remove', help='Remove BMC Setup')
         bmcsetup_remove.add_argument('name', help='BMC Setup Name')
-        bmcsetup_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        bmcsetup_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
 

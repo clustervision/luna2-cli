@@ -87,23 +87,23 @@ class Node():
         node_rename = node_args.add_parser('rename', help='Rename A Node')
         node_rename.add_argument('name', help='Name of the Node')
         node_rename.add_argument('newnodename', help='New Name for the Node')
-        node_rename.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        node_rename.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_remove = node_args.add_parser('remove', help='Remove A Node')
         node_remove.add_argument('name', help='Name of the Node')
-        node_remove.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        node_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_osgrab = node_args.add_parser('osgrab', help='Gran an OS Image for a Node')
         node_osgrab.add_argument('name', help='Name of the Node')
         node_osgrab.add_argument('-o', '--osimage', help='OS Image Name')
-        node_osgrab.add_argument('-b', '--bare', action='store_true', help='Bare OS Image(Exclude Packing)')
-        node_osgrab.add_argument('-no', '--nodry', action='store_true',
+        node_osgrab.add_argument('-b', '--bare', action='store_true', default=None, help='Bare OS Image(Exclude Packing)')
+        node_osgrab.add_argument('-no', '--nodry', action='store_true', default=None,
                                  help='No Dry flag to avoid dry run')
-        node_osgrab.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        node_osgrab.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_ospush = node_args.add_parser('ospush', help='Push an OS Image for a Node')
         node_ospush.add_argument('name', help='Name of the Node')
         node_ospush.add_argument('-o', '--osimage', help='OS Image Name')
-        node_ospush.add_argument('-no', '--nodry', action='store_true',
+        node_ospush.add_argument('-no', '--nodry', action='store_true', default=None,
                                  help='No Dry flag to avoid dry run')
-        node_ospush.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        node_ospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_interfaces = node_args.add_parser('listinterface', help='List Node Interfaces')
         node_interfaces.add_argument('name', help='Name of the Node')
         Arguments().common_list_args(node_interfaces)
@@ -121,11 +121,11 @@ class Node():
                                       help='Interfaces Options')
         change_interface.add_argument('-qo', '--quick-options', dest='options',
                                 metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
-        change_interface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        change_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         remove_interface = node_args.add_parser('removeinterface', help='Remove Node Interface')
         remove_interface.add_argument('name', help='Name of the Node')
         remove_interface.add_argument('interface', help='Name of the Node Interface')
-        remove_interface.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        remove_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
 
