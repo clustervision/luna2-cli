@@ -63,7 +63,9 @@ TOOL_EPILOG = ''
 
 
 def actions(table=None):
-    """This method provide the actions for the class."""
+    """
+    This method provide the actions for the class.
+    """
     response = False
     common_actions = ["list", "show", "add", "change", "rename", "clone", "remove"]
     network_actions = ["list", "show", "add", "change", "rename", "remove"]
@@ -157,8 +159,10 @@ def sortby(table=None):
         'groupsecrets': ['Group', 'name', 'path', 'content'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
         'network': [
-            'name', 'type', 'network', 'gateway', 'gateway_metric', 'ntp_server', 'nameserver_ip',
-            'dhcp', 'dhcp_range_begin', 'dhcp_range_end', 'shared', 'zone', 'comment'
+            'name', 'type', 'zone','network', 'gateway', 'nameserver_ip', 'dhcp_range_begin',
+            'dhcp_range_end', 'network_ipv6', 'gateway_ipv6', 'nameserver_ip_ipv6',
+            'dhcp_range_begin_ipv6', 'dhcp_range_end_ipv6', 'dhcp', 'gateway_metric', 'ntp_server',
+            'shared', 'comment'
         ],
         'osimagetag': [
             'osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups'
