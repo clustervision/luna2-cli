@@ -76,6 +76,7 @@ class Cluster():
         cluster_change.add_argument('-c', '--technical_contacts',  help='Technical Contact')
         cluster_change.add_argument('-pm', '--provision_method', help='Provision Method')
         cluster_change.add_argument('-pf', '--provision_fallback', help='Provision Fallback')
+        cluster_change.add_argument('-ds', '--domain_search', help='Domain Search')
         cluster_change.add_argument('-s', '--security', choices=BOOL_CHOICES,
                                     metavar=BOOL_META, help='Security')
         cluster_change.add_argument('-d', '--debug', choices=BOOL_CHOICES,
