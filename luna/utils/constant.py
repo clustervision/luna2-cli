@@ -127,8 +127,8 @@ def sortby(table=None):
     static = {
         'cluster': [
             'name', 'controller', 'technical_contacts', 'provision_method', 'provision_fallback',
-            'nameserver_ip', 'forwardserver_ip', 'ntp_server', 'security', 'createnode_ondemand'
-            'user', 'debug'
+            'nameserver_ip', 'forwardserver_ip', 'domain_search', 'ntp_server', 'security',
+            'createnode_ondemand', 'user', 'debug'
         ],
         'node': [
             'name', 'hostname', 'group', 'osimage', 'osimagetag', 'interfaces', 'status', 'vendor',
