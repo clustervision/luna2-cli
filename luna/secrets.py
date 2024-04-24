@@ -278,29 +278,37 @@ class Secrets():
                 if len(self.args["secret"]) == 1:
                     uri = f'{uri}/{self.args["secret"][0]}'
             self.logger.debug(f'Secret URI => {uri}')
-            entity = self.args['entity']
-            del self.args['entity']
-            entity_name = self.args['name']
-            for remove in ['verbose', 'command', 'action', 'name']:
-                self.args.pop(remove, None)
-            if self.args['content'] is False:
-                self.args.pop('content', None)
-            if self.args['path'] is None:
-                self.args.pop('path', None)
-            self.args['name'] = self.args['secret']
-            self.args.pop('secret', None)
-            pre_payload = {entity_name: [self.args], 'name': self.args['name']}
-            payload = Helper().prepare_payload(None, pre_payload)
-            payload.pop('name', None)
-            if payload:
-                request_data = {'config': {self.route: {entity: payload}}}
-                self.logger.debug(f'Payload => {request_data}')
-                response = Rest().post_data(self.route, uri, request_data)
-                self.logger.debug(f'Response => {response}')
-                if response.status_code == 201:
-                    Message().show_success(response.content)
-                else:
-                    Message().error_exit(response.content, response.status_code)
+            secret_uri = f'{self.route}/{self.args["entity"]}/{self.args["name"]}'
+            secret_uri = f'{secret_uri}/{self.args["secret"]}'
+            self.logger.debug(f'Secret URI => {secret_uri}')
+            get_list = Rest().get_data(secret_uri)
+            if get_list.status_code == 200:
+                message = f'{self.args["secret"]} already present in {self.args["entity"]}'
+                Message().error_exit(message, get_list.status_code)
+            else:
+                entity = self.args['entity']
+                del self.args['entity']
+                entity_name = self.args['name']
+                for remove in ['verbose', 'command', 'action', 'name']:
+                    self.args.pop(remove, None)
+                if self.args['content'] is False:
+                    self.args.pop('content', None)
+                if self.args['path'] is None:
+                    self.args.pop('path', None)
+                self.args['name'] = self.args['secret']
+                self.args.pop('secret', None)
+                pre_payload = {entity_name: [self.args], 'name': self.args['name']}
+                payload = Helper().prepare_payload(None, pre_payload)
+                payload.pop('name', None)
+                if payload:
+                    request_data = {'config': {self.route: {entity: payload}}}
+                    self.logger.debug(f'Payload => {request_data}')
+                    response = Rest().post_data(self.route, uri, request_data)
+                    self.logger.debug(f'Response => {response}')
+                    if response.status_code == 201:
+                        Message().show_success(response.content)
+                    else:
+                        Message().error_exit(response.content, response.status_code)
         else:
             response = Message().show_error('Either select node or group')
         return response
@@ -312,34 +320,44 @@ class Secrets():
         """
         response = False
         if self.args['entity'] is not None:
-            uri = f'{self.args["entity"]}/{self.args["name"]}'
-            if self.args['secret'] is not None:
-                if len(self.args["secret"]) == 1:
-                    uri = f'{uri}/{self.args["secret"][0]}'
-            self.logger.debug(f'Secret URI => {uri}')
-            entity = self.args['entity']
-            del self.args['entity']
-            entity_name = self.args['name']
-            for remove in ['verbose', 'command', 'action', 'name']:
-                self.args.pop(remove, None)
-            if self.args['content'] is False:
-                self.args.pop('content', None)
-            if self.args['path'] is None:
-                self.args.pop('path', None)
-            self.args['name'] = self.args['secret']
-            self.args.pop('secret', None)
-            pre_payload = {entity_name: [self.args], 'name': self.args['name']}
-            payload = Helper().prepare_payload(f'{self.route}/{uri}', pre_payload)
-            payload.pop('name', None)
-            if payload:
-                request_data = {'config': {self.route: {entity: payload}}}
-                self.logger.debug(f'Payload => {request_data}')
-                response = Rest().post_data(self.route, uri, request_data)
-                self.logger.debug(f'Response => {response}')
-                if response.status_code == 204:
-                    Message().show_success(f'{entity.capitalize()} {entity_name} secret {pre_payload["name"]} is update.')
-                else:
-                    Message().error_exit(response.content, response.status_code)
+
+
+            secret_uri = f'{self.route}/{self.args["entity"]}/{self.args["name"]}'
+            secret_uri = f'{secret_uri}/{self.args["secret"]}'
+            self.logger.debug(f'Secret URI => {secret_uri}')
+            get_list = Rest().get_data(secret_uri)
+            if get_list.status_code != 200:
+                message = f'Kindly add the {self.args["secret"]} first in {self.args["entity"]}'
+                Message().error_exit(message, get_list.status_code)
+            else:
+                uri = f'{self.args["entity"]}/{self.args["name"]}'
+                if self.args['secret'] is not None:
+                    if len(self.args["secret"]) == 1:
+                        uri = f'{uri}/{self.args["secret"][0]}'
+                self.logger.debug(f'Secret URI => {uri}')
+                entity = self.args['entity']
+                del self.args['entity']
+                entity_name = self.args['name']
+                for remove in ['verbose', 'command', 'action', 'name']:
+                    self.args.pop(remove, None)
+                if self.args['content'] is False:
+                    self.args.pop('content', None)
+                if self.args['path'] is None:
+                    self.args.pop('path', None)
+                self.args['name'] = self.args['secret']
+                self.args.pop('secret', None)
+                pre_payload = {entity_name: [self.args], 'name': self.args['name']}
+                payload = Helper().prepare_payload(f'{self.route}/{uri}', pre_payload)
+                payload.pop('name', None)
+                if payload:
+                    request_data = {'config': {self.route: {entity: payload}}}
+                    self.logger.debug(f'Payload => {request_data}')
+                    response = Rest().post_data(self.route, uri, request_data)
+                    self.logger.debug(f'Response => {response}')
+                    if response.status_code == 204:
+                        Message().show_success(f'{entity.capitalize()} {entity_name} secret {pre_payload["name"]} is update.')
+                    else:
+                        Message().error_exit(response.content, response.status_code)
         else:
             response = Message().show_error('Either select node or group')
         return response
