@@ -59,11 +59,14 @@ class Cluster():
         """
         Method will provide all the arguments related to the Cluster class.
         """
+        controllers = Helper().get_controllers()
         cluster_menu = subparsers.add_parser('cluster', help='Cluster Information.')
         Arguments().common_list_args(cluster_menu)
         cluster_args = cluster_menu.add_subparsers(dest='action')
         cluster_change = cluster_args.add_parser('change', help='Change Cluster')
         cluster_change.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        for controller in controllers:
+            cluster_change.add_argument(f"--{controller}", metavar='<IP Address>', help=f"Controller {controller}")
         cluster_change.add_argument('-n', '--name', help='New Name For Cluster')
         cluster_change.add_argument('-u', '--user', help='Cluster User')
         cluster_change.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='NTP IP')

@@ -35,6 +35,7 @@ import base64
 import binascii
 import subprocess
 import re
+import urllib3
 from random import randint
 from os import getpid
 from multiprocessing import Process
@@ -198,6 +199,39 @@ class Helper():
                 response = Presenter().show_table(title, fields, rows)
         else:
             response = Message().show_error(f'{table} is not found.')
+        return response
+
+
+    def get_controllers(self, detail=None):
+        """
+        Method to show a switch in Luna Configuration. Detail True will return the full details.
+        """
+        # print("--------Detail True---------")
+        # print(Helper().get_controllers(detail=True))
+        # print("---------Detail False--------")
+        # print(Helper().get_controllers(detail=False))
+        # print("--------Detail None---------")
+        # print(Helper().get_controllers())
+        # print("---------END--------")
+
+        response = {'controllers': []} if detail is True else []
+        urllib3.disable_warnings()
+        check = Rest().daemon_validation(parser=True)
+        if check is not True:
+            get_list = Rest().get_data('cluster')
+            if get_list.status_code == 200:
+                get_list = get_list.content
+            else:
+                Message().error_exit(get_list.content, get_list.status_code)
+            self.logger.debug(f'Get List Data from Helper => {get_list}')
+            if get_list:
+                data = get_list['config']['cluster']
+                json_data = Helper().prepare_json(data)
+                for key, value in json_data.items():
+                    if isinstance(value, dict):
+                        response['controllers'].append(json_data[key]) if detail is True else response.append(key) # pylint: disable=W0106
+            else:
+                response = Message().show_error('Cluster is unavailable at this moment.')
         return response
 
 

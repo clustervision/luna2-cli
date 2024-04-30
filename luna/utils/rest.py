@@ -70,7 +70,7 @@ class Rest():
         self.session.mount('https://', HTTPAdapter(max_retries=self.retries))
 
 
-    def daemon_validation(self):
+    def daemon_validation(self, parser=None):
         """
         This method will fetch a valid token for further use.
         """
@@ -90,7 +90,7 @@ class Rest():
         except requests.exceptions.ReadTimeout as time_error:
             check = True
             self.logger.debug(f'{exception} :: {time_error}')
-        if check is True:
+        if check is True and parser is not True:
             exception = f'ERROR :: Unable to reach {daemon_url} Try again or check the config'
             Message().error_exit(exception)
         return check
