@@ -70,6 +70,7 @@ class Network():
         """
         Method will provide all the arguments related to the Network class.
         """
+        controllers = Helper().get_controllers()
         network_menu = subparsers.add_parser('network', help='Network operations.')
         network_args = network_menu.add_subparsers(dest='action')
         network_list = network_args.add_parser('list', help='List Networks')
@@ -78,8 +79,12 @@ class Network():
         network_show.add_argument('name', help='Network Name')
         Arguments().common_list_args(network_show)
         network_add = network_args.add_parser('add', help='Add Network')
+        for controller in controllers:
+            network_add.add_argument(f"--{controller}", metavar='<IP Address>', help=f"Controller {controller}")
         Arguments().common_network_args(network_add, True)
         network_change = network_args.add_parser('change', help='Change Network')
+        for controller in controllers:
+            network_change.add_argument(f"--{controller}", metavar='<IP Address>', help=f"Controller {controller}")
         Arguments().common_network_args(network_change)
         network_rename = network_args.add_parser('rename', help='Rename Network')
         network_rename.add_argument('name', help='Network Name')
