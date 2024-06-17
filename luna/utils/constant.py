@@ -98,8 +98,8 @@ def filter_columns(table=None):
     static = {
         'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
         'group': ['name', 'bmcsetupname', 'osimage', 'roles', 'interfaces'],
-        'groupinterface': ['interface', 'network', 'options'],
-        'groupsecrets': ['Group', 'name', 'path', 'content'],
+        'groupinterface': ['interface', 'network', 'options', 'valnid'],
+        'groupsecrets': ['Group', 'name', 'path', 'content', 'valnid'],
         'network': ['name', 'network', 'type', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end'],
         'dns': ['host', 'ipaddress'],
         'node': ['name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_present'],
@@ -155,8 +155,8 @@ def sortby(table=None):
         ],
         'switch': ['name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'comment'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
-        'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network'],
-        'groupinterface': ['interfacename', 'network'],
+        'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'valnid'],
+        'groupinterface': ['interfacename', 'network', 'valnid'],
         'groupsecrets': ['Group', 'name', 'path', 'content'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
         'network': [
