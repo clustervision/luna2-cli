@@ -98,6 +98,7 @@ class Arguments():
         parser.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         parser.add_argument('-if', '--interface', help='Interface Name')
         parser.add_argument('-N', '--network', help='Interface Network Name. * Interface is Required.')
+        parser.add_argument('-vlan', '--vlanid', help='Interface VLAN ID. * Interface is Required.')
         parser.add_argument('-O', '--options', action='store_true', help='Interfaces Options. * Interface is Required.')
         parser.add_argument('-qo', '--quick-options', dest='options',
                                 metavar="File-Path OR In-Line", help='Options File-Path OR In-Line. * Interface is Required.')
@@ -156,6 +157,7 @@ class Arguments():
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         parser.add_argument('-if', '--interface', help='Interface Name')
         parser.add_argument('-N', '--network', help='Interface Network Name. * Interface is Required.')
+        parser.add_argument('-vlan', '--vlanid', help='Interface VLAN ID. * Interface is Required.')
         parser.add_argument('-I', '--ipaddress', help='Interfaces IP Address. * Interface is Required.')
         parser.add_argument('-M', '--macaddress', help='Interfaces MAC Address. * Interface is Required.')
         parser.add_argument('-O', '--options', action='store_true', help='Interfaces Options. * Interface is Required.')

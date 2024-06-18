@@ -111,6 +111,7 @@ class Group():
         change_interface.add_argument('name', help='Name of the Group')
         change_interface.add_argument('interface', help='Group Interface Name')
         change_interface.add_argument('-N', '--network', help='Network Name')
+        change_interface.add_argument('-vlan', '--vlanid', help='VLAN ID')
         change_interface.add_argument('-O', '--options', action='store_true',
                                       help='Interfaces Options')
         change_interface.add_argument('-qo', '--quick-options', dest='options',
@@ -155,13 +156,15 @@ class Group():
             interface['interface'] = self.args['interface']
             if self.args['network']:
                 interface['network'] = self.args['network']
+            if self.args['vlanid']:
+                interface['vlanid'] = self.args['vlanid']
             if self.args['options']:
                 interface['options'] = self.args['options']
             elif self.args['options'] == '':
                 interface['options'] = self.args['options']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'options']:
+            for remove in ['interface', 'network', 'options', 'vlanid']:
                 self.args.pop(remove, None)
         return Helper().add_record(self.table, self.args)
 
@@ -178,13 +181,15 @@ class Group():
             interface['interface'] = self.args['interface']
             if self.args['network']:
                 interface['network'] = self.args['network']
+            if self.args['vlanid']:
+                interface['vlanid'] = self.args['vlanid']
             if self.args['options']:
                 interface['options'] = self.args['options']
             elif self.args['options'] == '':
                 interface['options'] = self.args['options']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'options']:
+            for remove in ['interface', 'network', 'options', 'vlanid']:
                 self.args.pop(remove, None)
         change = Helper().compare_data(self.table, real_args)
         if change is True:
@@ -226,13 +231,15 @@ class Group():
             interface['interface'] = self.args['interface']
             if self.args['network']:
                 interface['network'] = self.args['network']
+            if self.args['vlanid']:
+                interface['vlanid'] = self.args['vlanid']
             if self.args['options']:
                 interface['options'] = self.args['options']
             elif self.args['options'] == '':
                 interface['options'] = self.args['options']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'options']:
+            for remove in ['interface', 'network', 'options', 'vlanid']:
                 self.args.pop(remove, None)
         return Helper().clone_record(self.table, self.args)
 
@@ -314,13 +321,15 @@ class Group():
             interface['interface'] = self.args['interface']
             if self.args['network']:
                 interface['network'] = self.args['network']
+            if self.args['vlanid']:
+                interface['vlanid'] = self.args['vlanid']
             if self.args['options']:
                 interface['options'] = self.args['options']
             elif self.args['options'] == '':
                 interface['options'] = self.args['options']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'options']:
+            for remove in ['interface', 'network', 'options', 'vlanid']:
                 self.args.pop(remove, None)
         payload = Helper().prepare_payload(uri, self.args)
         if payload:

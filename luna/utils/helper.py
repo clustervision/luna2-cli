@@ -740,6 +740,7 @@ class Helper():
         This method will generate the data as for
         row format from the interface
         """
+        
         self.logger.debug(f'table => {table}')
         self.logger.debug(f'data => {data}')
         fields, rows, colored_fields = [], [], []
