@@ -72,6 +72,9 @@ class Arguments():
                                metavar=BOOL_META, help='BMC Setup')
         parser.add_argument('-o', '--osimage', help='OS Image Name')
         parser.add_argument('-ot', '--osimagetag', help='OS Image Tag')
+        parser.add_argument('-ko', '--kerneloptions', action='store_true', help='Kernel Options')
+        parser.add_argument('-qko', '--quick-kerneloptions', dest='kerneloptions',
+                                metavar="File-Path OR In-Line", help='Kernel Options File-Path OR In-Line')
         parser.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         parser.add_argument('-D', '--domain', help='Domain Name')
         parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
@@ -116,6 +119,8 @@ class Arguments():
             parser.add_argument('-g', '--group', help='Group Name')
         parser.add_argument('-o', '--osimage', help='OS Image Name')
         parser.add_argument('-ot', '--osimagetag', help='OS Image Tag')
+        parser.add_argument('-qko', '--quick-kerneloptions', dest='kerneloptions',
+                                metavar="File-Path OR In-Line", help='Kernel Options File-Path OR In-Line')
         parser.add_argument('-b', '--setupbmc', choices=BOOL_CHOICES,
                               metavar=BOOL_META, help='BMC Setup')
         parser.add_argument('-bmc', '--bmcsetup', help='BMC Setup')

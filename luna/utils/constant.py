@@ -131,16 +131,17 @@ def sortby(table=None):
             'createnode_ondemand', 'user', 'debug'
         ],
         'node': [
-            'name', 'hostname', 'group', 'osimage', 'osimagetag', 'interfaces', 'status', 'vendor',
-            'assettag', 'position', 'switch', 'switchport', 'setupbmc', 'bmcsetup',
-            'unmanaged_bmc_users', 'netboot', 'localinstall', 'bootmenu', 'roles', 'service',
-            'prescript', 'partscript', 'postscript','provision_interface', 'provision_method',
-            'provision_fallback', 'tpm_uuid', 'tpm_pubkey', 'tpm_sha256', 'comment',  'macaddress'
+            'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
+            'status', 'vendor', 'assettag', 'position', 'switch', 'switchport', 'setupbmc',
+            'bmcsetup', 'unmanaged_bmc_users', 'netboot', 'localinstall', 'bootmenu', 'roles',
+            'service', 'prescript', 'partscript', 'postscript','provision_interface',
+            'provision_method', 'provision_fallback', 'tpm_uuid', 'tpm_pubkey', 'tpm_sha256',
+            'comment',  'macaddress'
         ],
         'group': [
-            'name', 'domain', 'osimage', 'osimagetag', 'interfaces', 'setupbmc', 'bmcsetupname',
-            'unmanaged_bmc_users', 'netboot', 'localinstall', 'bootmenu', 'roles', 'prescript',
-            'partscript', 'postscript', 'provision_interface', 'provision_method',
+            'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces', 'setupbmc',
+            'bmcsetupname', 'unmanaged_bmc_users', 'netboot', 'localinstall', 'bootmenu', 'roles',
+            'prescript', 'partscript', 'postscript', 'provision_interface', 'provision_method',
             'provision_fallback', 'comment'
         ],
         'bmcsetup': [
