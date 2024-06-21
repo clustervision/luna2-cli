@@ -61,6 +61,17 @@ class Arguments():
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
+    
+
+    def common_cloud_args(self, parser=None):
+        """
+        This method will provide the common Cloud arguments.
+        """
+        parser.add_argument('name', help='Cloud Provider Name')
+        parser.add_argument('-t', '--type', help='Type of Cloud Provider')
+        parser.add_argument('-c', '--comment', action='store_true', help='Comment')
+        parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        return parser
 
 
     def common_group_args(self, parser=None):
@@ -127,6 +138,7 @@ class Arguments():
         parser.add_argument('-bmc', '--bmcsetup', help='BMC Setup')
         parser.add_argument('-sw', '--switch', help='Switch Name')
         parser.add_argument('-sp', '--switchport', help='Switch Port')
+        parser.add_argument('-cl', '--cloud', help='Cloud Name')
         parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
         parser.add_argument('-qpre', '--quick-prescript', dest='prescript',
                         metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')

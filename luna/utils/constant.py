@@ -72,6 +72,7 @@ def actions(table=None):
     interface_actions = ["listinterface", "showinterface", "changeinterface", "removeinterface"]
     member_action = ["member"]
     static = {
+        "cloud" : network_actions,
         "group": common_actions + member_action + ["ospush"] + interface_actions,
         "node": common_actions + ["osgrab", "ospush"] + interface_actions,
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns"],
@@ -96,6 +97,7 @@ def filter_columns(table=None):
     """
     response = False
     static = {
+        'cloud': ['name', 'type'],
         'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
         'group': ['name', 'bmcsetupname', 'osimage', 'roles', 'interfaces'],
         'groupinterface': ['interface', 'network', 'options', 'vlanid'],
@@ -130,9 +132,10 @@ def sortby(table=None):
             'nameserver_ip', 'forwardserver_ip', 'domain_search', 'ntp_server', 'security',
             'createnode_ondemand', 'user', 'debug'
         ],
+        'cloud': ['name', 'type'],
         'node': [
             'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
-            'status', 'vendor', 'assettag', 'position', 'switch', 'switchport', 'setupbmc',
+            'status', 'vendor', 'assettag', 'position', 'switch', 'switchport', 'cloud', 'setupbmc',
             'bmcsetup', 'unmanaged_bmc_users', 'netboot', 'localinstall', 'bootmenu', 'roles',
             'service', 'prescript', 'partscript', 'postscript','provision_interface',
             'provision_method', 'provision_fallback', 'tpm_uuid', 'tpm_pubkey', 'tpm_sha256',
