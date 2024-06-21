@@ -43,6 +43,7 @@ try:
     from luna.group import Group
     from luna.osimage import OSImage
     from luna.cluster import Cluster
+    from luna.cloud import Cloud
     from luna.bmcsetup import BMCSetup
     from luna.node import Node
     from luna.switch import Switch
@@ -56,6 +57,7 @@ try:
     from luna.utils.message import Message
     classes = [
         Cluster,
+        Cloud,
         Network,
         OSImage,
         BMCSetup,

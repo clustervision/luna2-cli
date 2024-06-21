@@ -72,6 +72,7 @@ def actions(table=None):
     interface_actions = ["listinterface", "showinterface", "changeinterface", "removeinterface"]
     member_action = ["member"]
     static = {
+        "cloud" : network_actions,
         "group": common_actions + member_action + ["ospush"] + interface_actions,
         "node": common_actions + ["osgrab", "ospush"] + interface_actions,
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns"],

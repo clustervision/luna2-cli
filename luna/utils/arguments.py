@@ -61,6 +61,19 @@ class Arguments():
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
+    
+
+    def common_cloud_args(self, parser=None):
+        """
+        This method will provide the common Cloud arguments.
+        """
+        parser.add_argument('name', help='Cloud Provider Name')
+        parser.add_argument('-nt', '--netchannel', type=int, help='Network Channel')
+        parser.add_argument('-mt', '--mgmtchannel', type=int, help='Management Channel')
+        parser.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
+        parser.add_argument('-c', '--comment', action='store_true', help='Comment')
+        parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        return parser
 
 
     def common_group_args(self, parser=None):
