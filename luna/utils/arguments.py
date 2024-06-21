@@ -138,6 +138,7 @@ class Arguments():
         parser.add_argument('-bmc', '--bmcsetup', help='BMC Setup')
         parser.add_argument('-sw', '--switch', help='Switch Name')
         parser.add_argument('-sp', '--switchport', help='Switch Port')
+        parser.add_argument('-cl', '--cloud', help='Cloud Name')
         parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
         parser.add_argument('-qpre', '--quick-prescript', dest='prescript',
                         metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')

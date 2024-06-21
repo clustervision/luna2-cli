@@ -135,7 +135,7 @@ def sortby(table=None):
         'cloud': ['name', 'type'],
         'node': [
             'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
-            'status', 'vendor', 'assettag', 'position', 'switch', 'switchport', 'setupbmc',
+            'status', 'vendor', 'assettag', 'position', 'switch', 'switchport', 'cloud', 'setupbmc',
             'bmcsetup', 'unmanaged_bmc_users', 'netboot', 'localinstall', 'bootmenu', 'roles',
             'service', 'prescript', 'partscript', 'postscript','provision_interface',
             'provision_method', 'provision_fallback', 'tpm_uuid', 'tpm_pubkey', 'tpm_sha256',
