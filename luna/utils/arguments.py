@@ -68,9 +68,7 @@ class Arguments():
         This method will provide the common Cloud arguments.
         """
         parser.add_argument('name', help='Cloud Provider Name')
-        parser.add_argument('-nt', '--netchannel', type=int, help='Network Channel')
-        parser.add_argument('-mt', '--mgmtchannel', type=int, help='Management Channel')
-        parser.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
+        parser.add_argument('-t', '--type', help='Type of Cloud Provider')
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser

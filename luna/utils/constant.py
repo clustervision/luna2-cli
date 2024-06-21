@@ -97,6 +97,7 @@ def filter_columns(table=None):
     """
     response = False
     static = {
+        'cloud': ['name', 'type'],
         'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
         'group': ['name', 'bmcsetupname', 'osimage', 'roles', 'interfaces'],
         'groupinterface': ['interface', 'network', 'options', 'vlanid'],
@@ -131,6 +132,7 @@ def sortby(table=None):
             'nameserver_ip', 'forwardserver_ip', 'domain_search', 'ntp_server', 'security',
             'createnode_ondemand', 'user', 'debug'
         ],
+        'cloud': ['name', 'type'],
         'node': [
             'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
             'status', 'vendor', 'assettag', 'position', 'switch', 'switchport', 'setupbmc',
