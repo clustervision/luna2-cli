@@ -117,7 +117,7 @@ class Helper():
                             else:
                                 value = nested_lookup(key, get_list)
                                 value = value[0]
-                            if isinstance(value, str):
+                            if isinstance(value, (str, type(None))):
                                 content = self.open_editor(key, value, payload)
                                 payload = nested_update(payload, key=key, value=content)
                     else:
@@ -141,10 +141,8 @@ class Helper():
 
     def open_editor(self, key=None, value=None, payload=None):
         """
-        This Method will open a default text editor to
-        write the multiline text for keys such as comment,
-        prescript, postscript, partscript, content etc. but
-        not limited to them only.
+        This Method will open a default text editor to write the multiline text for keys such as
+        comment, prescript, postscript, partscript, content etc. but not limited to them only.
         """
         response = ''
         editor = str(os.path.abspath(__file__)).replace('helper.py', 'editor.sh')
@@ -163,6 +161,7 @@ class Helper():
             temp_file.close()
         subprocess.check_output(f"sed -i 's/\r$//' {editor}", shell=True)
         subprocess.call([editor, filename])
+        subprocess.check_output(f"sed -i 's/\r$//' {filename}", shell=True)
         with open(filename, 'rb') as file_data:
             response = self.base64_encode(file_data.read())
         os.remove(filename)
