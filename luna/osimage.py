@@ -281,8 +281,7 @@ class OSImage():
 
     def kernel_osimage(self):
         """
-        This method change kernel version and pack
-        a osimage again.
+        This method change kernel version and pack a osimage again.
         """
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
@@ -296,7 +295,6 @@ class OSImage():
         elif result.status_code == 200:
             response = False
             http_response = result.content
-            http_response = result.json()
             if http_response['message']:
                 if len(http_response['message']) > 5:
                     message = http_response['message'].split(';;')
