@@ -89,9 +89,7 @@ class Arguments():
         parser.add_argument('-bmc', '--bmcsetupname', help='BMC Setup Name')
         parser.add_argument('-D', '--domain', help='Domain Name')
         parser.add_argument('-r', '--roles', help='Roles')
-        parser.add_argument('-scr', '--scripts', action='store_true', help='Scripts')
-        parser.add_argument('-qscr', '--quick-scripts', dest='scripts',
-                        metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
+        parser.add_argument('-scr', '--scripts', help='Scripts')
         parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
         parser.add_argument('-qpre', '--quick-prescript', dest='prescript',
                         metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
@@ -143,9 +141,7 @@ class Arguments():
         parser.add_argument('-sp', '--switchport', help='Switch Port')
         parser.add_argument('-cl', '--cloud', help='Cloud Name')
         parser.add_argument('-r', '--roles', help='Roles')
-        parser.add_argument('-scr', '--scripts', action='store_true', help='Scripts')
-        parser.add_argument('-qscr', '--quick-scripts', dest='scripts',
-                        metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
+        parser.add_argument('-scr', '--scripts', help='Scripts')
         parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
         parser.add_argument('-qpre', '--quick-prescript', dest='prescript',
                         metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
