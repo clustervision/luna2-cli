@@ -161,7 +161,7 @@ class Node():
                 interface['vlanid'] = self.args['vlanid']
             if self.args['ipaddress']:
                 interface['ipaddress'] = self.args['ipaddress']
-            if self.args['macaddress']:
+            if self.args['macaddress'] or self.args['macaddress'] == '':
                 interface['macaddress'] = self.args['macaddress']
             if self.args['options']:
                 interface['options'] = self.args['options']
@@ -208,7 +208,7 @@ class Node():
     def change_node(self):
         """
         Method to change a node in Luna Configuration.
-        """
+        """        
         real_args = deepcopy(self.args)
         hostlist = Helper().get_hostlist(self.args['name'])
         hostlist = Helper().luna_hostlist(hostlist)
@@ -223,7 +223,7 @@ class Node():
                 interface['vlanid'] = self.args['vlanid']
             if self.args['ipaddress']:
                 interface['ipaddress'] = self.args['ipaddress']
-            if self.args['macaddress']:
+            if self.args['macaddress'] or self.args['macaddress'] == '':
                 interface['macaddress'] = self.args['macaddress']
             if self.args['options']:
                 interface['options'] = self.args['options']
@@ -399,7 +399,7 @@ class Node():
                 interface['vlanid'] = self.args['vlanid']
             if self.args['ipaddress']:
                 interface['ipaddress'] = self.args['ipaddress']
-            if self.args['macaddress']:
+            if self.args['macaddress'] or self.args['macaddress'] == '':
                 interface['macaddress'] = self.args['macaddress']
             if self.args['options']:
                 interface['options'] = self.args['options']
@@ -516,7 +516,7 @@ class Node():
                 interface['vlanid'] = self.args['vlanid']
             if self.args['ipaddress']:
                 interface['ipaddress'] = self.args['ipaddress']
-            if self.args['macaddress']:
+            if self.args['macaddress'] or self.args['macaddress'] == '':
                 interface['macaddress'] = self.args['macaddress']
             if self.args['options']:
                 interface['options'] = self.args['options']
