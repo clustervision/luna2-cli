@@ -256,7 +256,10 @@ class Helper():
             if args['raw']:
                 response = Presenter().show_json(json_data)
             else:
-                data = Helper().prepare_json(data, True)
+                limit = True
+                if "full_scripts" in args:
+                    limit = False if args["full_scripts"] == True else True
+                data = Helper().prepare_json(data, limit)
                 fields, rows  = self.filter_data_col(table, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
@@ -981,7 +984,14 @@ class Helper():
         if limit:
             if content not in  [None, True, False] and isinstance(content, str):
                 if len(content) > 60:
-                    content = content[:60]+' ...'
+                    if "\n" in content:
+                        total_lines = content.count('\n')
+                        last_line = f"\n{total_lines-3} More lines..."
+                        content = content.split('\n', 3)
+                        content = '\n'.join(content[:3])
+                        content = f"{content}{last_line}"
+                    else:
+                        content = content[:60]+' ...'
         return content
 
 
@@ -1136,7 +1146,11 @@ class Helper():
             else:
                 rows.append(key[1])
             if table == "network":
-                if key[0] in ["zone", "dhcp_range_end", "dhcp_range_end_ipv6"]:
+                if key[0] in ["zone", "dhcp_range_end", "dhcp_range_end_ipv6", "prescript", "partscript", "postscript"]:
+                    fields.append('')
+                    rows.append('')
+            if table in ["node", "group"]:
+                if key[0] in ["scripts", "prescript", "partscript", "postscript"]:
                     fields.append('')
                     rows.append('')
         return fields, rows

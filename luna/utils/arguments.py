@@ -102,8 +102,6 @@ class Arguments():
         parser.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
         parser.add_argument('-nb', '--netboot', choices=BOOL_CHOICES,
                                metavar=BOOL_META, help='Network Boot')
-        parser.add_argument('-li', '--localinstall', choices=BOOL_CHOICES,
-                               metavar=BOOL_META, help='Local Install')
         parser.add_argument('-bm', '--bootmenu', choices=BOOL_CHOICES,
                                metavar=BOOL_META, help='Boot Menu')
         parser.add_argument('-ubu', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
@@ -154,8 +152,6 @@ class Arguments():
         parser.add_argument('-fb', '--provision_fallback', help='Provision Fallback')
         parser.add_argument('-nb', '--netboot', choices=BOOL_CHOICES,
                               metavar=BOOL_META, help='Network Boot')
-        parser.add_argument('-li', '--localinstall', choices=BOOL_CHOICES,
-                              metavar=BOOL_META, help='Local Install')
         parser.add_argument('-bm', '--bootmenu', choices=BOOL_CHOICES,
                               metavar=BOOL_META, help='Boot Menu')
         parser.add_argument('-ser', '--service', choices=BOOL_CHOICES,

@@ -77,6 +77,7 @@ class Node():
         node_show = node_args.add_parser('show', help='Show A Node')
         node_show.add_argument('name', help='Name of the Node')
         Arguments().common_list_args(node_show)
+        node_show.add_argument('-f', '--full-scripts', action='store_true', default=None, help='Show the Full Scripts')
         node_add = node_args.add_parser('add', help='Add A Node')
         Arguments().common_node_args(node_add, True)
         node_change = node_args.add_parser('change', help='Make Changes Into a Node')
@@ -161,7 +162,7 @@ class Node():
                 interface['vlanid'] = self.args['vlanid']
             if self.args['ipaddress']:
                 interface['ipaddress'] = self.args['ipaddress']
-            if self.args['macaddress']:
+            if self.args['macaddress'] or self.args['macaddress'] == '':
                 interface['macaddress'] = self.args['macaddress']
             if self.args['options']:
                 interface['options'] = self.args['options']
@@ -208,7 +209,7 @@ class Node():
     def change_node(self):
         """
         Method to change a node in Luna Configuration.
-        """
+        """        
         real_args = deepcopy(self.args)
         hostlist = Helper().get_hostlist(self.args['name'])
         hostlist = Helper().luna_hostlist(hostlist)
@@ -223,7 +224,7 @@ class Node():
                 interface['vlanid'] = self.args['vlanid']
             if self.args['ipaddress']:
                 interface['ipaddress'] = self.args['ipaddress']
-            if self.args['macaddress']:
+            if self.args['macaddress'] or self.args['macaddress'] == '':
                 interface['macaddress'] = self.args['macaddress']
             if self.args['options']:
                 interface['options'] = self.args['options']
@@ -399,7 +400,7 @@ class Node():
                 interface['vlanid'] = self.args['vlanid']
             if self.args['ipaddress']:
                 interface['ipaddress'] = self.args['ipaddress']
-            if self.args['macaddress']:
+            if self.args['macaddress'] or self.args['macaddress'] == '':
                 interface['macaddress'] = self.args['macaddress']
             if self.args['options']:
                 interface['options'] = self.args['options']
@@ -516,7 +517,7 @@ class Node():
                 interface['vlanid'] = self.args['vlanid']
             if self.args['ipaddress']:
                 interface['ipaddress'] = self.args['ipaddress']
-            if self.args['macaddress']:
+            if self.args['macaddress'] or self.args['macaddress'] == '':
                 interface['macaddress'] = self.args['macaddress']
             if self.args['options']:
                 interface['options'] = self.args['options']
