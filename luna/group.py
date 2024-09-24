@@ -77,6 +77,7 @@ class Group():
         group_show = group_args.add_parser('show', help='Show Group')
         group_show.add_argument('name', help='Name of the Group')
         Arguments().common_list_args(group_show)
+        group_show.add_argument('-f', '--full-scripts', action='store_true', default=None, help='Show the Full Scripts')
         group_member = group_args.add_parser('member', help='Group Used by Nodes')
         group_member.add_argument('name', help='Name of the Group')
         Arguments().common_list_args(group_member)

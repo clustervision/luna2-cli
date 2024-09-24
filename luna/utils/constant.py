@@ -135,14 +135,14 @@ def sortby(table=None):
         'node': [
             'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
             'status', 'vendor', 'assettag', 'position', 'switch', 'switchport', 'cloud', 'setupbmc',
-            'bmcsetup', 'unmanaged_bmc_users', 'netboot', 'bootmenu', 'roles', 'service',
+            'bmcsetup', 'unmanaged_bmc_users', 'netboot', 'bootmenu', 'service', 'roles', 'scripts',
             'prescript', 'partscript', 'postscript','provision_interface', 'provision_method',
             'provision_fallback', 'tpm_uuid', 'tpm_pubkey', 'tpm_sha256', 'comment',  'macaddress'
         ],
         'group': [
             'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces', 'setupbmc',
-            'bmcsetupname', 'unmanaged_bmc_users', 'netboot', 'bootmenu', 'roles', 'prescript',
-            'partscript', 'postscript', 'provision_interface', 'provision_method',
+            'bmcsetupname', 'unmanaged_bmc_users', 'netboot', 'bootmenu', 'roles', 'scripts',
+            'prescript', 'partscript', 'postscript', 'provision_interface', 'provision_method',
             'provision_fallback', 'comment'
         ],
         'bmcsetup': [
