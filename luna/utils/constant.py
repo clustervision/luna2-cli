@@ -40,6 +40,8 @@ BOOL_KEYS = [
     'debug',
     'security',
     'createnode_ondemand',
+    'createnode_macashost',
+    'nextnode_discover',
     'dhcp',
     'setupbmc',
     'netboot',
@@ -99,16 +101,15 @@ def filter_columns(table=None):
         'cloud': ['name', 'type'],
         'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
         'group': ['name', 'bmcsetupname', 'osimage', 'roles', 'interfaces'],
-        'groupinterface': ['interface', 'network', 'options', 'vlanid'],
+        'groupinterface': ['interface', 'network', 'options', 'vlanid', 'dhcp'],
         'groupsecrets': ['Group', 'name', 'path', 'content'],
-        'network': ['name', 'network', 'type', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end'],
+        'network': ['name', 'network', 'type', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end',
+                    'dhcp_nodes_in_pool'],
         'dns': ['host', 'ipaddress'],
-        'node': ['name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_present'],
-        'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options', 'vlanid'],
+        'node': ['name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_present', 'interfaces'],
+        'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options', 'vlanid', 'dhcp'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
-        'osimage': [
-            'name', 'kernelversion', 'path', 'distribution', 'osrelease'
-        ],
+        'osimage': ['name', 'kernelversion', 'path', 'distribution', 'osrelease'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],
         'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes',
@@ -129,7 +130,7 @@ def sortby(table=None):
         'cluster': [
             'name', 'controller', 'technical_contacts', 'provision_method', 'provision_fallback',
             'nameserver_ip', 'forwardserver_ip', 'domain_search', 'ntp_server', 'security',
-            'createnode_ondemand', 'user', 'debug'
+            'nextnode_discover', 'createnode_ondemand', 'createnode_macashost', 'user', 'debug'
         ],
         'cloud': ['name', 'type'],
         'node': [

@@ -47,6 +47,8 @@ class Cluster():
         if self.args:
             if self.args["action"] is None:
                 self.cluster_info()
+            elif self.args["action"] == 'show':
+                self.cluster_info()
             elif self.args["action"] == 'change':
                 self.change_cluster()
             else:
@@ -63,26 +65,30 @@ class Cluster():
         cluster_menu = subparsers.add_parser('cluster', help='Cluster Information.')
         Arguments().common_list_args(cluster_menu)
         cluster_args = cluster_menu.add_subparsers(dest='action')
+        cluster_show = cluster_args.add_parser('show', help='Show Cluster configuration details')
+        cluster_show.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         cluster_change = cluster_args.add_parser('change', help='Change Cluster')
         cluster_change.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         for controller in controllers:
-            cluster_change.add_argument(f"--{controller}", metavar='<IP Address>', help=f"Controller {controller}")
+            cluster_change.add_argument(f"--{controller}", metavar='<IP Address>', help=f"Controller {controller} IP address")
         cluster_change.add_argument('-n', '--name', help='New Name For Cluster')
         cluster_change.add_argument('-u', '--user', help='Cluster User')
-        cluster_change.add_argument('-ntp', '--ntp_server', metavar='N.N.N.N', help='NTP IP')
-        cluster_change.add_argument('-o', '--createnode_ondemand', choices=BOOL_CHOICES,
+        cluster_change.add_argument('-T', '--ntp_server', metavar='N.N.N.N', help='NTP IP address')
+        cluster_change.add_argument('-C', '--createnode_ondemand', choices=BOOL_CHOICES,
                                     metavar=BOOL_META, help='On Demand Nodes')
-        cluster_change.add_argument('-nx', '--nextnode_discover', choices=BOOL_CHOICES,
+        cluster_change.add_argument('-M', '--createnode_macashost', choices=BOOL_CHOICES,
+                                    metavar=BOOL_META, help='On Demand Nodes use macaddress as hostname')
+        cluster_change.add_argument('-N', '--nextnode_discover', choices=BOOL_CHOICES,
                                     metavar=BOOL_META, help='Discover Next Node')
-        cluster_change.add_argument('-ns', '--nameserver_ip', help='Name Server IP')
-        cluster_change.add_argument('-fs', '--forwardserver_ip', help='Forward Server IP')
-        cluster_change.add_argument('-c', '--technical_contacts',  help='Technical Contact')
-        cluster_change.add_argument('-pm', '--provision_method', help='Provision Method')
-        cluster_change.add_argument('-pf', '--provision_fallback', help='Provision Fallback')
-        cluster_change.add_argument('-ds', '--domain_search', help='Domain Search')
+        cluster_change.add_argument('-ns', '--nameserver_ip', help='Name Server IP address')
+        cluster_change.add_argument('-fs', '--forwardserver_ip', help='DNS Forward Server IP address')
+        cluster_change.add_argument('-t', '--technical_contacts',  help='Technical Contact')
+        cluster_change.add_argument('-p', '--provision_method', help='Provision Method')
+        cluster_change.add_argument('-f', '--provision_fallback', help='Provision Fallback')
+        cluster_change.add_argument('-d', '--domain_search', help='Domain Search')
         cluster_change.add_argument('-s', '--security', choices=BOOL_CHOICES,
                                     metavar=BOOL_META, help='Security')
-        cluster_change.add_argument('-d', '--debug', choices=BOOL_CHOICES,
+        cluster_change.add_argument('--debug', choices=BOOL_CHOICES,
                                     metavar=BOOL_META, help='Debug Mode')
         return parser
 

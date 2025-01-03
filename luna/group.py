@@ -98,7 +98,7 @@ class Group():
         group_ospush = group_args.add_parser('ospush', help='Push an OS Image for a Group')
         group_ospush.add_argument('name', help='Name of the Group')
         group_ospush.add_argument('-o', '--osimage', help='OS Image Name')
-        group_ospush.add_argument('-no', '--nodry', action='store_true', default=None,
+        group_ospush.add_argument('--nodry', action='store_true', default=None,
                                   help='No Dry flag to avoid dry run')
         group_ospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         group_interfaces = group_args.add_parser('listinterface', help='List Group Interfaces')
@@ -112,10 +112,10 @@ class Group():
         change_interface.add_argument('name', help='Name of the Group')
         change_interface.add_argument('interface', help='Group Interface Name')
         change_interface.add_argument('-N', '--network', help='Network Name')
-        change_interface.add_argument('-vlan', '--vlanid', help='VLAN ID')
+        change_interface.add_argument('-L', '--vlanid', help='VLAN ID')
         change_interface.add_argument('-O', '--options', action='store_true',
                                       help='Interfaces Options')
-        change_interface.add_argument('-qo', '--quick-options', dest='options',
+        change_interface.add_argument('-qO', '--quick-options', dest='options',
                                 metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
         change_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         remove_interface = group_args.add_parser('removeinterface', help='Remove Group Interface')
@@ -163,9 +163,11 @@ class Group():
                 interface['options'] = self.args['options']
             elif self.args['options'] == '':
                 interface['options'] = self.args['options']
+            if self.args['dhcp']:
+                interface['dhcp'] = self.args['dhcp']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'options', 'vlanid']:
+            for remove in ['interface', 'network', 'options', 'vlanid', 'dhcp']:
                 self.args.pop(remove, None)
         return Helper().add_record(self.table, self.args)
 
@@ -188,9 +190,11 @@ class Group():
                 interface['options'] = self.args['options']
             elif self.args['options'] == '':
                 interface['options'] = self.args['options']
+            if self.args['dhcp']:
+                interface['dhcp'] = self.args['dhcp']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'options', 'vlanid']:
+            for remove in ['interface', 'network', 'options', 'vlanid', 'dhcp']:
                 self.args.pop(remove, None)
         change = Helper().compare_data(self.table, real_args)
         if change is True:
