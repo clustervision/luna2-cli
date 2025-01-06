@@ -136,7 +136,30 @@ class Node():
         """
         Method to list all nodes from Luna Configuration.
         """
-        return Helper().get_list(self.table, self.args)
+        response = False
+        fields, rows = [], []
+        get_list = Rest().get_data(self.table)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
+        if get_list:
+            data = get_list['config'][self.table]
+            if 'raw' in self.args and self.args['raw']:
+                json_data = Helper().prepare_json(data)
+                # print(json_data)
+                response = Presenter().show_json(json_data)
+            else:
+                data = Helper().prepare_json(data, True)
+                fields, rows  = Helper().filter_nodelist_col(self.table, data)
+                self.logger.debug(f'Fields => {fields}')
+                self.logger.debug(f'Rows => {rows}')
+                title = f' << {self.table.capitalize()} >>'
+                response = Presenter().show_table(title, fields, rows)
+        else:
+            response = Message().show_error(f'{table} is not found.')
+        return response
 
 
     def show_node(self):
