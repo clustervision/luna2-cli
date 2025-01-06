@@ -1269,7 +1269,6 @@ class Helper():
                                 if 'macaddress' in internal:
                                     internal_macaddress.append(f"{internal_interface} = {internal['macaddress']}")
                                 if internal_interface:
-                                    #for internal_val in ['macaddress','network','dhcp','ipaddress','ipaddress_ipv6']:
                                     for internal_val in ['ipaddress','ipaddress_ipv6']:
                                         if internal_val in internal and internal[internal_val]:
                                             in_key = internal_val
@@ -1277,7 +1276,6 @@ class Helper():
                                             interface_details += in_val + ' '
                                     if 'dhcp' in internal and internal['dhcp']:
                                         interface_details += 'dhcp '
-                                    #new_list.append(f'{internal_interface} = {interface_details} ')
                                     internal_ipaddress.append(f'{internal_interface} = {interface_details} ')
                             internal_macaddress = '\n'.join(internal_macaddress)
                             internal_ipaddress = '\n'.join(internal_ipaddress)
@@ -1307,6 +1305,7 @@ class Helper():
         rows.append(ipaddress_row)
         colored_fields.append('MAC addresses')
         colored_fields.append('IP addresses')
+        # removing the column for interfaces. it's empty at this stage anyways
         index_for_interfaces = colored_fields.index('interfaces')
         del colored_fields[index_for_interfaces]
         del rows[index_for_interfaces]

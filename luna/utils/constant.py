@@ -130,7 +130,8 @@ def sortby(table=None):
         'cluster': [
             'name', 'controller', 'technical_contacts', 'provision_method', 'provision_fallback',
             'nameserver_ip', 'forwardserver_ip', 'domain_search', 'ntp_server', 'security',
-            'nextnode_discover', 'createnode_ondemand', 'createnode_macashost', 'user', 'debug'
+            'nextnode_discover', 'createnode_ondemand', 'createnode_macashost', 'packing_bootpause',
+            'user', 'debug'
         ],
         'cloud': ['name', 'type'],
         'node': [
