@@ -107,6 +107,8 @@ def filter_columns(table=None):
                     'dhcp_nodes_in_pool'],
         'dns': ['host', 'ipaddress'],
         'node': ['name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_present', 'interfaces'],
+                 #'prescript', 'prescript_source', 'partscript', 'partscript_source',
+                 #'postscript', 'postscript_source'],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options', 'vlanid', 'dhcp'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
         'osimage': ['name', 'kernelversion', 'path', 'distribution', 'osrelease'],
@@ -138,7 +140,8 @@ def sortby(table=None):
             'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
             'status', 'vendor', 'assettag', 'position', 'switch', 'switchport', 'cloud', 'setupbmc',
             'bmcsetup', 'unmanaged_bmc_users', 'netboot', 'bootmenu', 'service', 'roles', 'scripts',
-            'prescript', 'partscript', 'postscript','provision_interface', 'provision_method',
+            'prescript_source', 'prescript', 'partscript_source', 'partscript', 'postscript_source',
+            'postscript', 'provision_interface', 'provision_method',
             'provision_fallback', 'tpm_uuid', 'tpm_pubkey', 'tpm_sha256', 'comment',  'macaddress'
         ],
         'group': [
@@ -173,4 +176,18 @@ def sortby(table=None):
         ]
     }
     response = list(static[table])
+    return response
+
+
+def divider(table=None):
+    """
+    This method returns when a divider after what field is desired for a table
+    """
+    response = False
+    static = {
+        'node': ['scripts', 'prescript', 'partscript', 'postscript'],
+        'group': ['scripts', 'prescript', 'partscript', 'postscript']
+    }
+    if table in static:
+        response = list(static[table])
     return response

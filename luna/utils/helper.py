@@ -47,7 +47,7 @@ from nested_lookup import get_all_keys
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
-from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby
+from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby, divider
 from luna.utils.message import Message
 
 
@@ -185,7 +185,6 @@ class Helper():
             data = get_list['config'][table]
             if args['raw']:
                 json_data = Helper().prepare_json(data)
-                # print(json_data)
                 response = Presenter().show_json(json_data)
             else:
                 data = Helper().prepare_json(data, True)
@@ -256,6 +255,7 @@ class Helper():
             if args['raw']:
                 response = Presenter().show_json(json_data)
             else:
+                div = divider(table)
                 limit = True
                 if "full_scripts" in args:
                     limit = False if args["full_scripts"] == True else True
@@ -264,7 +264,7 @@ class Helper():
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
                 title = f'{table.capitalize()} => {data["name"]}'
-                response = Presenter().show_table_col(title, fields, rows)
+                response = Presenter().show_table_col(title, fields, rows, div)
         else:
             response = Message().show_error(f'{args["name"]} is not found in {table}.')
         return response
@@ -1109,7 +1109,10 @@ class Helper():
         self.logger.debug(f'Table => {table} and Data => {data}')
         defined_keys = sortby(table)
         self.logger.debug(f'Fields => {defined_keys}')
-        data = self.merge_source(table, data)
+        merge_exception = None
+        if table == 'node':
+            merge_exception = ["prescript", "partscript", "postscript"]
+        data = self.merge_source(table, data, merge_exception)
         for new_key in list(data.keys()):
             if new_key not in defined_keys:
                 defined_keys.append(new_key)
@@ -1149,14 +1152,15 @@ class Helper():
                 if key[0] in ["zone", "dhcp_range_end", "dhcp_range_end_ipv6", "prescript", "partscript", "postscript"]:
                     fields.append('')
                     rows.append('')
-            if table in ["node", "group"]:
-                if key[0] in ["scripts", "prescript", "partscript", "postscript"]:
-                    fields.append('')
-                    rows.append('')
+            #if table in ["node", "group"]:
+            #    #if key[0] in ["scripts", "prescript", "partscript", "postscript"]:
+            #    if key[0] in ["prescript", "partscript", "postscript"]:
+            #        fields.append('')
+            #        rows.append('')
         return fields, rows
 
 
-    def merge_source(self, table=None, data=None):
+    def merge_source(self, table=None, data=None, exception=None):
         """
         This method will merge *_source field to the real field with braces and remove the
         *_source keys from the output.
@@ -1166,6 +1170,15 @@ class Helper():
             script = True if 'part' in key or 'post' in key or 'pre' in key else False
             if '_source' in key:
                 raw_name = key.replace('_source', '')
+                if exception and raw_name in exception:
+                    default_value = data[key]
+                    response[key] = f'({default_value})'
+                    default_value = data[raw_name].rstrip()
+                    if len(default_value) == 0:
+                        response[raw_name] = '<empty>'
+                    else:
+                        response[raw_name] = default_value
+                    continue
                 if isinstance(data[raw_name], str):
                     default_value = data[raw_name].rstrip()
                     if len(default_value) == 0:
@@ -1252,7 +1265,31 @@ class Helper():
         self.logger.debug(f'Fields => {fields}')
         macaddress_row = []
         ipaddress_row = []
+#        for field_key in fields:
+#            if field_key in ['prescript', 'partscript', 'postscript']:
+#                for ele in data:
+#                    print(f"ELE: [{ele}]")
+#                    if field_key in data[ele].keys():
+#                        print(f"{field_key} in {ele}")
+#                    if field_key+'_source' in data[ele].keys():
+#                        if isinstance(data[ele][field_key+'_source'], str):
+#                            print(f"{field_key}_source: [{data[ele][field_key+'_source']}]")
+#                            if data[ele][field_key+'_source'] not in ['default','group','cluster']:
+#                                print(f"{field_key} is different")
+#                        del data[ele][field_key+'_source']
+#                    else:
+#                        print(f"{field_key}_source not in {ele}: {data[ele]}")
+#                    if field_key in data[ele]:
+#                        del data[ele][field_key]
+#                    if field_key+'_source' in data[ele]:
+#                        del data[ele][field_key+'_source']
+#                fields.remove(field_key)
+#                if field_key+'_source' in fields:
+#                    print(f"am here [{field_key}]")
+#                    fields.remove(field_key+'_source')
         for field_key in fields:
+#            if field_key in ['prescript', 'partscript', 'postscript']:
+#               continue
             val_row = []
             num = 1
             for ele in data:

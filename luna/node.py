@@ -148,7 +148,6 @@ class Node():
             data = get_list['config'][self.table]
             if 'raw' in self.args and self.args['raw']:
                 json_data = Helper().prepare_json(data)
-                # print(json_data)
                 response = Presenter().show_json(json_data)
             else:
                 data = Helper().prepare_json(data, True)

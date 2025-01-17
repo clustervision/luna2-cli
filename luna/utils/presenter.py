@@ -83,15 +83,27 @@ class Presenter():
         return True
 
 
-    def show_table_col(self, title=None, field=None, rows=None):
+    def show_table_col(self, title=None, field=None, rows=None, divider=None):
         """
         This method will fetch a records from the Luna 2 Daemon Database
         """
         self.logger.debug(f'Fields => {field}')
         self.logger.debug(f'Rows => {rows}')
         self.table.title = title
-        self.table.add_column("Field", field)
-        self.table.add_column("Values", rows)
+        #self.table.add_column("Field", field)
+        #self.table.add_column("Values", rows)
+
+        self.table.field_names = ['Field', 'Values']        
+        while len(field)>0:
+            try:
+                ffield = field.pop(0)
+                frow  = rows.pop(0)
+                if divider and ffield in divider:
+                    self.table.add_row([ffield, frow], divider=True)
+                else:
+                    self.table.add_row([ffield, frow])
+            except:
+                pass
         self.table.header = False
         self.table.align = "l"
         Message().show_success(self.table)
