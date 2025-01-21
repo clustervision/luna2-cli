@@ -234,7 +234,11 @@ class Node():
     def change_node(self):
         """
         Method to change a node in Luna Configuration.
-        """        
+        """
+        local = False
+        if 'local' in self.args:
+            local = self.args['local']
+            del self.args['local']
         real_args = deepcopy(self.args)
         hostlist = Helper().get_hostlist(self.args['name'])
         hostlist = Helper().luna_hostlist(hostlist)
@@ -276,7 +280,7 @@ class Node():
                                     real_args['name'] = each
                                     change = Helper().compare_data(self.table, real_args)
                                     if change is True:
-                                        Helper().update_record(self.table, self.args)
+                                        Helper().update_record(self.table, self.args, local)
                                     else:
                                         Message().show_error('Nothing is changed, Kindly change something to update')
                         else:

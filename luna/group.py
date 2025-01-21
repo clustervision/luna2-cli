@@ -200,6 +200,10 @@ class Group():
         """
         Method to change a group in Luna Configuration.
         """
+        local = False
+        if 'local' in self.args:
+            local = self.args['local']
+            del self.args['local']
         real_args = deepcopy(self.args)
         if self.args['interface'] is None and (self.args['network'] or self.args['options']):
             Message().error_exit("ERROR :: Kindly supply the interface in order to use the network or options.")
@@ -222,7 +226,7 @@ class Group():
                 self.args.pop(remove, None)
         change = Helper().compare_data(self.table, real_args)
         if change is True:
-            Helper().update_record(self.table, self.args)
+            Helper().update_record(self.table, self.args, local)
         else:
             Message().show_error('Nothing is changed, Kindly change something to update')
         # return Helper().update_record(self.table, self.args)

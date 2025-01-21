@@ -94,7 +94,7 @@ class Helper():
         return value
 
 
-    def prepare_payload(self, table=None, raw_data=None):
+    def prepare_payload(self, table=None, raw_data=None, local=False):
         """
         This method will prepare the payload.
         """
@@ -111,6 +111,12 @@ class Helper():
                         else:
                             Message().error_exit(get_list.content, get_list.status_code)
                         if get_list:
+                            _source = nested_lookup(key+'_source', get_list)
+                            if _source:
+                                if 'default' in _source:
+                                    Message().show_warning(f"WARNING :: {key} contents are 'default'. changes will be set locally")
+                                elif table not in _source and not local:
+                                    Message().error_exit(f'WARNING :: {key} is currently inherited from parent. use --local to override')
                             if key == 'options':
                                 interface = nested_lookup('interface', raw_data)
                                 value = self.get_correct_option(table, raw_data['name'], interface[0])
@@ -355,7 +361,7 @@ class Helper():
         return True
 
 
-    def update_record(self, table=None, data=None):
+    def update_record(self, table=None, data=None, local=False):
         """
         This method will update a record.
         """
@@ -364,7 +370,7 @@ class Helper():
             data.pop(remove, None)
         if 'raw' in data:
             data.pop('raw', None)
-        payload = self.prepare_payload(table, data)
+        payload = self.prepare_payload(table, data, local)
         name = None
         if 'name' in payload:
             name = payload['name']

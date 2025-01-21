@@ -118,6 +118,7 @@ class Arguments():
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         parser.add_argument('-v', '--verbose', action='store_true', help='Verbose Mode')
+        parser.add_argument('--local', action='store_true', default=None, help='Allow local item changes')
         return parser
 
 
@@ -179,6 +180,7 @@ class Arguments():
         parser.add_argument('-qo', '--quick-options', dest='options',
                                 metavar="File-Path OR In-Line", help='Options File-Path OR In-Line. * Interface is Required.')
         parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        parser.add_argument('--local', action='store_true', default=None, help='Allow local item changes')
         return parser
 
 
