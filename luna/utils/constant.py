@@ -137,7 +137,7 @@ def sortby(table=None):
         ],
         'cloud': ['name', 'type'],
         'node': [
-            'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
+            'info', 'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
             'status', 'vendor', 'assettag', 'position', 'switch', 'switchport', 'cloud', 'setupbmc',
             'bmcsetup', 'unmanaged_bmc_users', 'netboot', 'bootmenu', 'service', 'roles', 'scripts',
             'prescript_source', 'prescript', 'partscript_source', 'partscript', 'postscript_source',
@@ -145,7 +145,7 @@ def sortby(table=None):
             'provision_fallback', 'tpm_uuid', 'tpm_pubkey', 'tpm_sha256', 'comment',  'macaddress'
         ],
         'group': [
-            'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces', 'setupbmc',
+            'info', 'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces', 'setupbmc',
             'bmcsetupname', 'unmanaged_bmc_users', 'netboot', 'bootmenu', 'roles', 'scripts',
             'prescript', 'partscript', 'postscript', 'provision_interface', 'provision_method',
             'provision_fallback', 'comment'
@@ -185,8 +185,8 @@ def divider(table=None):
     """
     response = False
     static = {
-        'node': ['scripts', 'prescript', 'partscript', 'postscript'],
-        'group': ['scripts', 'prescript', 'partscript', 'postscript']
+        'node': ['info','scripts', 'prescript', 'partscript', 'postscript'],
+        'group': ['info','scripts', 'prescript', 'partscript', 'postscript']
     }
     if table in static:
         response = list(static[table])

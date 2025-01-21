@@ -801,6 +801,14 @@ class Helper():
         fields, rows, colored_fields = [], [], []
         fields = filter_columns(table)
         self.logger.debug(f'Fields => {fields}')
+        datacopy=data.copy()
+        for ele in datacopy.keys():
+            if '_override' in datacopy[ele]:
+                if datacopy[ele]['_override'] and 'name' in datacopy[ele]:
+                    data[ele]['name'] = f"{data[ele]['name']} *"
+                del data[ele]['_override']
+                if '_override' in fields:
+                    fields.remove('_override')
         for field_key in fields:
             val_row = []
             num = 1
@@ -1113,6 +1121,12 @@ class Helper():
         if table == 'node':
             merge_exception = ["prescript", "partscript", "postscript"]
         data = self.merge_source(table, data, merge_exception)
+        datacopy=data.copy()
+        for key in datacopy.keys():
+            if key == '_override':
+                if data[key]:
+                    data['info']="Config differs from parent - local overrides"
+                del data[key]
         for new_key in list(data.keys()):
             if new_key not in defined_keys:
                 defined_keys.append(new_key)
@@ -1152,11 +1166,6 @@ class Helper():
                 if key[0] in ["zone", "dhcp_range_end", "dhcp_range_end_ipv6", "prescript", "partscript", "postscript"]:
                     fields.append('')
                     rows.append('')
-            #if table in ["node", "group"]:
-            #    #if key[0] in ["scripts", "prescript", "partscript", "postscript"]:
-            #    if key[0] in ["prescript", "partscript", "postscript"]:
-            #        fields.append('')
-            #        rows.append('')
         return fields, rows
 
 
@@ -1265,28 +1274,14 @@ class Helper():
         self.logger.debug(f'Fields => {fields}')
         macaddress_row = []
         ipaddress_row = []
-#        for field_key in fields:
-#            if field_key in ['prescript', 'partscript', 'postscript']:
-#                for ele in data:
-#                    print(f"ELE: [{ele}]")
-#                    if field_key in data[ele].keys():
-#                        print(f"{field_key} in {ele}")
-#                    if field_key+'_source' in data[ele].keys():
-#                        if isinstance(data[ele][field_key+'_source'], str):
-#                            print(f"{field_key}_source: [{data[ele][field_key+'_source']}]")
-#                            if data[ele][field_key+'_source'] not in ['default','group','cluster']:
-#                                print(f"{field_key} is different")
-#                        del data[ele][field_key+'_source']
-#                    else:
-#                        print(f"{field_key}_source not in {ele}: {data[ele]}")
-#                    if field_key in data[ele]:
-#                        del data[ele][field_key]
-#                    if field_key+'_source' in data[ele]:
-#                        del data[ele][field_key+'_source']
-#                fields.remove(field_key)
-#                if field_key+'_source' in fields:
-#                    print(f"am here [{field_key}]")
-#                    fields.remove(field_key+'_source')
+        datacopy=data.copy()
+        for ele in datacopy.keys():
+            if '_override' in datacopy[ele]:
+                if datacopy[ele]['_override'] and 'name' in datacopy[ele]:
+                    data[ele]['name'] = f"{data[ele]['name']} *"
+                del data[ele]['_override']
+                if '_override' in fields:
+                    fields.remove('_override')
         for field_key in fields:
 #            if field_key in ['prescript', 'partscript', 'postscript']:
 #               continue
