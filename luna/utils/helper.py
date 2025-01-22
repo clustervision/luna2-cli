@@ -97,6 +97,7 @@ class Helper():
     def prepare_payload(self, table=None, raw_data=None, local=False):
         """
         This method will prepare the payload.
+        if local is true, it allows to edit local, now inherited data
         """
         raw_data = self.choice_to_bool(raw_data)
         payload = {k: v for k, v in raw_data.items() if v is not None}
