@@ -98,7 +98,7 @@ class Group():
         group_ospush = group_args.add_parser('ospush', help='Push an OS Image for a Group')
         group_ospush.add_argument('name', help='Name of the Group')
         group_ospush.add_argument('-o', '--osimage', help='OS Image Name')
-        group_ospush.add_argument('-no', '--nodry', action='store_true', default=None,
+        group_ospush.add_argument('--nodry', action='store_true', default=None,
                                   help='No Dry flag to avoid dry run')
         group_ospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         group_interfaces = group_args.add_parser('listinterface', help='List Group Interfaces')
@@ -112,10 +112,10 @@ class Group():
         change_interface.add_argument('name', help='Name of the Group')
         change_interface.add_argument('interface', help='Group Interface Name')
         change_interface.add_argument('-N', '--network', help='Network Name')
-        change_interface.add_argument('-vlan', '--vlanid', help='VLAN ID')
+        change_interface.add_argument('-L', '--vlanid', help='VLAN ID')
         change_interface.add_argument('-O', '--options', action='store_true',
                                       help='Interfaces Options')
-        change_interface.add_argument('-qo', '--quick-options', dest='options',
+        change_interface.add_argument('-qO', '--quick-options', dest='options',
                                 metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
         change_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         remove_interface = group_args.add_parser('removeinterface', help='Remove Group Interface')
@@ -129,7 +129,31 @@ class Group():
         """
         Method to list all groups from Luna Configuration.
         """
-        return Helper().get_list(self.table, self.args)
+        #return Helper().get_list(self.table, self.args)
+        response = False
+        fields, rows = [], []
+        get_list = Rest().get_data(self.table)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
+        if get_list:
+            data = get_list['config'][self.table]
+            if 'raw' in self.args and self.args['raw']:
+                json_data = Helper().prepare_json(data)
+                response = Presenter().show_json(json_data)
+            else:
+                data = Helper().prepare_json(data, True)
+                fields, rows  = Helper().filter_data(self.table, data)
+                self.logger.debug(f'Fields => {fields}')
+                self.logger.debug(f'Rows => {rows}')
+                title = f' << {self.table.capitalize()} >>'
+                response = Presenter().show_table(title, fields, rows)
+        else:
+            response = Message().show_error(f'{table} is not found.')
+        return response
+
 
 
     def show_group(self):
@@ -163,9 +187,11 @@ class Group():
                 interface['options'] = self.args['options']
             elif self.args['options'] == '':
                 interface['options'] = self.args['options']
+            if self.args['dhcp']:
+                interface['dhcp'] = self.args['dhcp']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'options', 'vlanid']:
+            for remove in ['interface', 'network', 'options', 'vlanid', 'dhcp']:
                 self.args.pop(remove, None)
         return Helper().add_record(self.table, self.args)
 
@@ -174,6 +200,10 @@ class Group():
         """
         Method to change a group in Luna Configuration.
         """
+        local = False
+        if 'local' in self.args:
+            local = self.args['local']
+            del self.args['local']
         real_args = deepcopy(self.args)
         if self.args['interface'] is None and (self.args['network'] or self.args['options']):
             Message().error_exit("ERROR :: Kindly supply the interface in order to use the network or options.")
@@ -188,13 +218,15 @@ class Group():
                 interface['options'] = self.args['options']
             elif self.args['options'] == '':
                 interface['options'] = self.args['options']
+            if self.args['dhcp']:
+                interface['dhcp'] = self.args['dhcp']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'options', 'vlanid']:
+            for remove in ['interface', 'network', 'options', 'vlanid', 'dhcp']:
                 self.args.pop(remove, None)
         change = Helper().compare_data(self.table, real_args)
         if change is True:
-            Helper().update_record(self.table, self.args)
+            Helper().update_record(self.table, self.args, local)
         else:
             Message().show_error('Nothing is changed, Kindly change something to update')
         # return Helper().update_record(self.table, self.args)

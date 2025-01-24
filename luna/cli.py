@@ -89,6 +89,24 @@ class Cli():
         Message()
         # Presenter().show_banner()
 
+    def get_parser(self):
+        """
+        using shtab from parent directory: shtab --shell=bash luna.cli.get_parser
+        """
+        ver = self.get_version()
+        self.parser = ArgumentParser(
+            prog = 'luna',
+            formatter_class = RawDescriptionHelpFormatter,
+            description = dedent(TOOL_DESCRIPTION),
+            epilog = TOOL_EPILOG
+        )
+        self.parser.add_argument('-V', '--version', action='version', version=f'%(prog)s {ver}')
+        self.parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
+        for cls in classes:
+            cls(parser=self.parser, subparsers =self.subparsers)
+        print(f"{self.parser}")
+        return self.parser
 
     def main(self):
         """
@@ -180,4 +198,7 @@ def run_tool():
     except KeyboardInterrupt:
         sys.stderr.write("\nKeyboard Interrupted.\n")
         sys.exit(1)
+
+def get_parser():
+    return Cli().get_parser()
  

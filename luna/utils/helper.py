@@ -47,7 +47,7 @@ from nested_lookup import get_all_keys
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
-from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby
+from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby, divider
 from luna.utils.message import Message
 
 
@@ -94,9 +94,10 @@ class Helper():
         return value
 
 
-    def prepare_payload(self, table=None, raw_data=None):
+    def prepare_payload(self, table=None, raw_data=None, local=False):
         """
         This method will prepare the payload.
+        if local is true, it allows to edit local, now inherited data
         """
         raw_data = self.choice_to_bool(raw_data)
         payload = {k: v for k, v in raw_data.items() if v is not None}
@@ -111,6 +112,12 @@ class Helper():
                         else:
                             Message().error_exit(get_list.content, get_list.status_code)
                         if get_list:
+                            _source = nested_lookup(key+'_source', get_list)
+                            if _source:
+                                if 'default' in _source:
+                                    Message().show_warning(f"WARNING :: {key} contents are 'default'. changes will be set locally")
+                                elif table not in _source and not local:
+                                    Message().error_exit(f'WARNING :: {key} is currently inherited from parent. use --local to override')
                             if key == 'options':
                                 interface = nested_lookup('interface', raw_data)
                                 value = self.get_correct_option(table, raw_data['name'], interface[0])
@@ -185,7 +192,6 @@ class Helper():
             data = get_list['config'][table]
             if args['raw']:
                 json_data = Helper().prepare_json(data)
-                # print(json_data)
                 response = Presenter().show_json(json_data)
             else:
                 data = Helper().prepare_json(data, True)
@@ -256,6 +262,7 @@ class Helper():
             if args['raw']:
                 response = Presenter().show_json(json_data)
             else:
+                div = divider(table)
                 limit = True
                 if "full_scripts" in args:
                     limit = False if args["full_scripts"] == True else True
@@ -264,7 +271,7 @@ class Helper():
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
                 title = f'{table.capitalize()} => {data["name"]}'
-                response = Presenter().show_table_col(title, fields, rows)
+                response = Presenter().show_table_col(title, fields, rows, div)
         else:
             response = Message().show_error(f'{args["name"]} is not found in {table}.')
         return response
@@ -355,7 +362,7 @@ class Helper():
         return True
 
 
-    def update_record(self, table=None, data=None):
+    def update_record(self, table=None, data=None, local=False):
         """
         This method will update a record.
         """
@@ -364,7 +371,7 @@ class Helper():
             data.pop(remove, None)
         if 'raw' in data:
             data.pop('raw', None)
-        payload = self.prepare_payload(table, data)
+        payload = self.prepare_payload(table, data, local)
         name = None
         if 'name' in payload:
             name = payload['name']
@@ -801,6 +808,14 @@ class Helper():
         fields, rows, colored_fields = [], [], []
         fields = filter_columns(table)
         self.logger.debug(f'Fields => {fields}')
+        datacopy=data.copy()
+        for ele in datacopy.keys():
+            if '_override' in datacopy[ele]:
+                if datacopy[ele]['_override'] and 'name' in datacopy[ele]:
+                    data[ele]['name'] = f"{data[ele]['name']} *"
+                del data[ele]['_override']
+                if '_override' in fields:
+                    fields.remove('_override')
         for field_key in fields:
             val_row = []
             num = 1
@@ -1109,7 +1124,16 @@ class Helper():
         self.logger.debug(f'Table => {table} and Data => {data}')
         defined_keys = sortby(table)
         self.logger.debug(f'Fields => {defined_keys}')
-        data = self.merge_source(table, data)
+        merge_exception = None
+        if table == 'node':
+            merge_exception = ["prescript", "partscript", "postscript"]
+        data = self.merge_source(table, data, merge_exception)
+        datacopy=data.copy()
+        for key in datacopy.keys():
+            if key == '_override':
+                if data[key]:
+                    data['info']="Config differs from parent - local overrides"
+                del data[key]
         for new_key in list(data.keys()):
             if new_key not in defined_keys:
                 defined_keys.append(new_key)
@@ -1149,14 +1173,10 @@ class Helper():
                 if key[0] in ["zone", "dhcp_range_end", "dhcp_range_end_ipv6", "prescript", "partscript", "postscript"]:
                     fields.append('')
                     rows.append('')
-            if table in ["node", "group"]:
-                if key[0] in ["scripts", "prescript", "partscript", "postscript"]:
-                    fields.append('')
-                    rows.append('')
         return fields, rows
 
 
-    def merge_source(self, table=None, data=None):
+    def merge_source(self, table=None, data=None, exception=None):
         """
         This method will merge *_source field to the real field with braces and remove the
         *_source keys from the output.
@@ -1166,6 +1186,15 @@ class Helper():
             script = True if 'part' in key or 'post' in key or 'pre' in key else False
             if '_source' in key:
                 raw_name = key.replace('_source', '')
+                if exception and raw_name in exception:
+                    default_value = data[key]
+                    response[key] = f'({default_value})'
+                    default_value = data[raw_name].rstrip()
+                    if len(default_value) == 0:
+                        response[raw_name] = '<empty>'
+                    else:
+                        response[raw_name] = default_value
+                    continue
                 if isinstance(data[raw_name], str):
                     default_value = data[raw_name].rstrip()
                     if len(default_value) == 0:
@@ -1238,3 +1267,100 @@ class Helper():
             else:
                 rows.append(key[1])
         return fields, osimage, rows
+
+
+    def filter_nodelist_col(self, table=None, data=None):
+        """
+        This method will generate the data as for
+        row format
+        """
+        self.logger.debug(f'Table => {table}')
+        self.logger.debug(f'Data => {data}')
+        fields, rows, colored_fields = [], [], []
+        fields = filter_columns(table)
+        self.logger.debug(f'Fields => {fields}')
+        macaddress_row = []
+        ipaddress_row = []
+        datacopy=data.copy()
+        for ele in datacopy.keys():
+            if '_override' in datacopy[ele]:
+                if datacopy[ele]['_override'] and 'name' in datacopy[ele]:
+                    data[ele]['name'] = f"{data[ele]['name']} *"
+                del data[ele]['_override']
+                if '_override' in fields:
+                    fields.remove('_override')
+        for field_key in fields:
+#            if field_key in ['prescript', 'partscript', 'postscript']:
+#               continue
+            val_row = []
+            num = 1
+            for ele in data:
+                if field_key in list((data[ele].keys())):
+                    if isinstance(data[ele][field_key], list):
+                        new_list = []
+                        if field_key == 'interfaces':
+                            internal_macaddress = []
+                            internal_ipaddress = []
+                            for internal in data[ele][field_key]:
+                                internal_interface, interface_details = None, ''
+                                if 'interface' in internal:
+                                    internal_interface = internal['interface']
+                                if 'macaddress' in internal:
+                                    internal_macaddress.append(f"{internal_interface} = {internal['macaddress']}")
+                                if internal_interface:
+                                    for internal_val in ['ipaddress','ipaddress_ipv6']:
+                                        if internal_val in internal and internal[internal_val]:
+                                            in_key = internal_val
+                                            in_val = internal[internal_val]
+                                            interface_details += in_val + ' '
+                                    if 'dhcp' in internal and internal['dhcp']:
+                                        interface_details += 'dhcp '
+                                    internal_ipaddress.append(f'{internal_interface} = {interface_details} ')
+                            internal_macaddress = '\n'.join(internal_macaddress)
+                            internal_ipaddress = '\n'.join(internal_ipaddress)
+                            macaddress_row.append(internal_macaddress)
+                            ipaddress_row.append(internal_ipaddress)
+                        else:
+                            for internal in data[ele][field_key]:
+                                for internal_val in internal:
+                                    self.logger.debug(f'Key => {internal_val}')
+                                    self.logger.debug(f'Value => {internal[internal_val]}')
+                                    in_key = internal_val
+                                    in_val = internal[internal_val]
+                                    new_list.append(f'{in_key} = {in_val} ')
+                        new_list = '\n'.join(new_list)
+                        val_row.append(new_list)
+                        new_list = []
+                    else:
+                        val_row.append(data[ele][field_key])
+                else:
+                    val_row.append("--NA--")
+                num = num + 1
+            rows.append(val_row)
+            self.logger.debug(f'Each Row => {val_row}')
+            val_row = []
+            colored_fields.append(field_key)
+        rows.append(macaddress_row)
+        rows.append(ipaddress_row)
+        colored_fields.append('MAC addresses')
+        colored_fields.append('IP addresses')
+        # removing the column for interfaces. it's empty at this stage anyways
+        index_for_interfaces = colored_fields.index('interfaces')
+        del colored_fields[index_for_interfaces]
+        del rows[index_for_interfaces]
+        fields = colored_fields
+        final_rows = []
+        for array in range(len(rows[0])) :
+            tmp = []
+            for element in rows:
+                tmp.append(element[array])
+            final_rows.append(tmp)
+        rows = final_rows
+        # Adding Serial Numbers to the dataset
+        fields.insert(0, '#')
+        num = 1
+        for outer in rows:
+            outer.insert(0, num)
+            num = num + 1
+        # Adding Serial Numbers to the dataset
+        return fields, rows

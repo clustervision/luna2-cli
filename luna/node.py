@@ -96,13 +96,13 @@ class Node():
         node_osgrab.add_argument('name', help='Name of the Node')
         node_osgrab.add_argument('-o', '--osimage', help='OS Image Name')
         node_osgrab.add_argument('-b', '--bare', action='store_true', default=None, help='Bare OS Image(Exclude Packing)')
-        node_osgrab.add_argument('-no', '--nodry', action='store_true', default=None,
+        node_osgrab.add_argument('--nodry', action='store_true', default=None,
                                  help='No Dry flag to avoid dry run')
         node_osgrab.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_ospush = node_args.add_parser('ospush', help='Push an OS Image for a Node')
         node_ospush.add_argument('name', help='Name of the Node')
         node_ospush.add_argument('-o', '--osimage', help='OS Image Name')
-        node_ospush.add_argument('-no', '--nodry', action='store_true', default=None,
+        node_ospush.add_argument('--nodry', action='store_true', default=None,
                                  help='No Dry flag to avoid dry run')
         node_ospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_interfaces = node_args.add_parser('listinterface', help='List Node Interfaces')
@@ -116,12 +116,13 @@ class Node():
         change_interface.add_argument('name', help='Name of the Node')
         change_interface.add_argument('interface', help='Name of the Node Interface')
         change_interface.add_argument('-N', '--network', help='Network Name')
-        change_interface.add_argument('-vlan', '--vlanid', help='VLAN ID')
+        change_interface.add_argument('-L', '--vlanid', help='VLAN ID')
         change_interface.add_argument('-I', '--ipaddress', help='IP Address')
         change_interface.add_argument('-M', '--macaddress', help='MAC Address')
+        change_interface.add_argument('-D', '--dhcp', action='store_true', default=None, help='toggle dhcp')
         change_interface.add_argument('-O', '--options', action='store_true',
                                       help='Interfaces Options')
-        change_interface.add_argument('-qo', '--quick-options', dest='options',
+        change_interface.add_argument('-qO', '--quick-options', dest='options',
                                 metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
         change_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         remove_interface = node_args.add_parser('removeinterface', help='Remove Node Interface')
@@ -135,7 +136,29 @@ class Node():
         """
         Method to list all nodes from Luna Configuration.
         """
-        return Helper().get_list(self.table, self.args)
+        response = False
+        fields, rows = [], []
+        get_list = Rest().get_data(self.table)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
+        if get_list:
+            data = get_list['config'][self.table]
+            if 'raw' in self.args and self.args['raw']:
+                json_data = Helper().prepare_json(data)
+                response = Presenter().show_json(json_data)
+            else:
+                data = Helper().prepare_json(data, True)
+                fields, rows  = Helper().filter_nodelist_col(self.table, data)
+                self.logger.debug(f'Fields => {fields}')
+                self.logger.debug(f'Rows => {rows}')
+                title = f' << {self.table.capitalize()} >>'
+                response = Presenter().show_table(title, fields, rows)
+        else:
+            response = Message().show_error(f'{table} is not found.')
+        return response
 
 
     def show_node(self):
@@ -166,11 +189,13 @@ class Node():
                 interface['macaddress'] = self.args['macaddress']
             if self.args['options']:
                 interface['options'] = self.args['options']
+            if self.args['dhcp']:
+                interface['dhcp'] = self.args['dhcp']
             elif self.args['options'] == '':
                 interface['options'] = self.args['options']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'vlanid']:
+            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'vlanid', 'dhcp']:
                 self.args.pop(remove, None)
             if len(hostlist) > 1 and ('ipaddress' in interface or 'macaddress' in interface):
                 Message().error_exit('Interface IP Address or MAC Address can not be use with the hostlist, Kindly provide the single node or remove the IP Address and MAC Address.')
@@ -209,7 +234,11 @@ class Node():
     def change_node(self):
         """
         Method to change a node in Luna Configuration.
-        """        
+        """
+        local = False
+        if 'local' in self.args:
+            local = self.args['local']
+            del self.args['local']
         real_args = deepcopy(self.args)
         hostlist = Helper().get_hostlist(self.args['name'])
         hostlist = Helper().luna_hostlist(hostlist)
@@ -230,9 +259,11 @@ class Node():
                 interface['options'] = self.args['options']
             elif self.args['options'] == '':
                 interface['options'] = self.args['options']
+            if self.args['dhcp']:
+                interface['dhcp'] = self.args['dhcp']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'vlanid']:
+            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'vlanid', 'dhcp']:
                 self.args.pop(remove, None)
             if len(hostlist) > 1 and ('ipaddress' in interface or 'macaddress' in interface):
                 Message().error_exit('Interface IP Address or MAC Address can not be use with the hostlist, Kindly provide the single node or remove the IP Address and MAC Address.')
@@ -249,7 +280,7 @@ class Node():
                                     real_args['name'] = each
                                     change = Helper().compare_data(self.table, real_args)
                                     if change is True:
-                                        Helper().update_record(self.table, self.args)
+                                        Helper().update_record(self.table, self.args, local)
                                     else:
                                         Message().show_error('Nothing is changed, Kindly change something to update')
                         else:
@@ -406,9 +437,11 @@ class Node():
                 interface['options'] = self.args['options']
             elif self.args['options'] == '':
                 interface['options'] = self.args['options']
+            if self.args['dhcp'] == '':
+                interface['dhcp'] = self.args['dhcp']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'vlanid']:
+            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'vlanid', 'dhcp']:
                 self.args.pop(remove, None)
             if len(hostlist) > 1 and ('ipaddress' in interface or 'macaddress' in interface):
                 Message().error_exit('Interface IP Address or MAC Address can not be use with the hostlist, Kindly provide the single node or remove the IP Address and MAC Address.')
@@ -521,11 +554,13 @@ class Node():
                 interface['macaddress'] = self.args['macaddress']
             if self.args['options']:
                 interface['options'] = self.args['options']
+            if self.args['dhcp']:
+                interface['dhcp'] = self.args['dhcp']
             elif self.args['options'] == '':
                 interface['options'] = self.args['options']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'vlanid']:
+            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'vlanid', 'dhcp']:
                 self.args.pop(remove, None)
         payload = Helper().prepare_payload(uri, self.args)
         if payload:
