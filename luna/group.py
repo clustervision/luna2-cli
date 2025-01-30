@@ -113,6 +113,7 @@ class Group():
         change_interface.add_argument('interface', help='Group Interface Name')
         change_interface.add_argument('-N', '--network', help='Network Name')
         change_interface.add_argument('-L', '--vlanid', help='VLAN ID')
+        change_interface.add_argument('-D', '--dhcp', action='store_true', default=None, help='toggle dhcp')
         change_interface.add_argument('-O', '--options', action='store_true',
                                       help='Interfaces Options')
         change_interface.add_argument('-qO', '--quick-options', dest='options',
