@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # This code is part of the TrinityX software suite
-# Copyright (C) 2023  ClusterVision Solutions b.v.
+# Copyright (C) 2025  ClusterVision Solutions b.v.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,9 +26,9 @@ Logger Object have basic methods: debug, error, info, critical and warnings.
 
 """
 __author__      = 'Sumit Sharma'
-__copyright__   = 'Copyright 2022, Luna2 Project'
+__copyright__   = 'Copyright 2025, Luna2 Project'
 __license__     = 'GPL'
-__version__     = '2.0'
+__version__     = '2.1'
 __maintainer__  = 'Sumit Sharma'
 __email__       = 'sumit.sharma@clustervision.com'
 __status__      = 'Development'

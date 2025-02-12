@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # This code is part of the TrinityX software suite
-# Copyright (C) 2023  ClusterVision Solutions b.v.
+# Copyright (C) 2025  ClusterVision Solutions b.v.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,9 +22,9 @@
 Setup file, will build the pip package for the project.
 """
 __author__      = "Sumit Sharma"
-__copyright__   = "Copyright 2022, Luna2 Project [CLI]"
+__copyright__   = "Copyright 2025, Luna2 Project [CLI]"
 __license__     = "GPL"
-__version__     = "2.0"
+__version__     = "2.1"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
@@ -51,7 +51,7 @@ def new_version():
     This Method will create a New version and update the Version file.
     """
     time_now = int(time())
-    version = f'2.0.{time_now}'
+    version = f'2.1.{time_now}'
     with open('luna/VERSION.txt', 'w', encoding='utf-8') as ver:
         ver.write(version)
     return version
