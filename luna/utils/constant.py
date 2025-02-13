@@ -123,6 +123,26 @@ def filter_columns(table=None):
     return response
 
 
+def overrides(table=None):
+    """
+    This method has information regarding what could be an override for what table: node, group, cluster, etc
+    """
+    response = False
+    static = {
+        'node': [
+            'osimage', 'osimagetag', 'kerneloptions', 'setupbmc', 'bmcsetup', 'netboot', 'bootmenu',
+            'roles', 'scripts', 'prescript', 'partscript', 'postscript', 'provision_interface',
+            'provision_method', 'provision_fallback'
+        ],
+        'group': [
+            'provision_method', 'provision_fallback'
+        ]
+    }
+    if table and table in static:
+        response = list(static[table])
+    return response
+
+
 def sortby(table=None):
     """
     This method remove the unnecessary fields from the dataset.
@@ -137,12 +157,13 @@ def sortby(table=None):
         ],
         'cloud': ['name', 'type'],
         'node': [
-            'info', 'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
-            'status', 'vendor', 'assettag', 'position', 'switch', 'switchport', 'cloud', 'setupbmc',
-            'bmcsetup', 'unmanaged_bmc_users', 'netboot', 'bootmenu', 'service', 'roles', 'scripts',
-            'prescript_source', 'prescript', 'partscript_source', 'partscript', 'postscript_source',
-            'postscript', 'provision_interface', 'provision_method',
-            'provision_fallback', 'tpm_uuid', 'tpm_pubkey', 'tpm_sha256', 'comment',  'macaddress'
+            'info', 'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions',
+            'interfaces', 'status', 'vendor', 'assettag', 'position', 'switch', 'switchport',
+            'cloud', 'setupbmc', 'bmcsetup', 'unmanaged_bmc_users', 'netboot', 'bootmenu',
+            'service', 'roles', 'scripts', 'prescript_source', 'prescript', 'partscript_source',
+            'partscript', 'postscript_source', 'postscript', 'provision_interface',
+            'provision_method', 'provision_fallback', 'tpm_uuid', 'tpm_pubkey', 'tpm_sha256',
+            'comment',  'macaddress'
         ],
         'group': [
             'info', 'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces', 'setupbmc',
@@ -185,7 +206,8 @@ def divider(table=None):
     """
     response = False
     static = {
-        'node': ['info','scripts', 'prescript', 'partscript', 'postscript'],
+        'node': ['info','scripts', 'prescript', 'partscript', 'postscript',
+                 'scripts *', 'prescript *', 'partscript *', 'postscript *'],
         'group': ['info','scripts', 'prescript', 'partscript', 'postscript']
     }
     if table in static:

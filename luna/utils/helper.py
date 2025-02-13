@@ -47,7 +47,7 @@ from nested_lookup import get_all_keys
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
-from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby, divider
+from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby, divider, overrides
 from luna.utils.message import Message
 
 
@@ -1127,7 +1127,7 @@ class Helper():
         merge_exception = None
         if table == 'node':
             merge_exception = ["prescript", "partscript", "postscript"]
-        data = self.merge_source(table, data, merge_exception)
+        data, override = self.merge_source(table, data, merge_exception)
         datacopy=data.copy()
         for key in datacopy.keys():
             if key == '_override':
@@ -1142,7 +1142,10 @@ class Helper():
         self.logger.debug(f'Sorted Data => {data}')
         fields, rows = [], []
         for key in data:
-            fields.append(key[0])
+            key_name = key[0]
+            if key_name in override:
+                key_name += ' *'
+            fields.append(key_name)
             if isinstance(key[1], list):
                 new_list = []
                 for internal in key[1]:
@@ -1182,10 +1185,15 @@ class Helper():
         *_source keys from the output.
         """
         response = deepcopy(data)
+        override = overrides(table)
+        resp_overrides = []
         for key, value in data.items():
             script = True if 'part' in key or 'post' in key or 'pre' in key else False
             if '_source' in key:
                 raw_name = key.replace('_source', '')
+                if table == value:
+                    if raw_name in override:
+                        resp_overrides.append(raw_name)
                 if exception and raw_name in exception:
                     default_value = data[key]
                     response[key] = f'({default_value})'
@@ -1215,7 +1223,7 @@ class Helper():
                         else:
                             response[raw_name] = f'{default_value} ({value})'
                 del response[key]
-        return response
+        return response, resp_overrides
 
 
     def filter_osimage_col(self, table=None, data=None):
