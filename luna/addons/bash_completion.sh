@@ -208,6 +208,8 @@ _shtab_luna_monitor_queue_option_strings=('-h' '--help' '-v' '--verbose' '-R' '-
 
 _shtab_luna_pos_0_choices=('cluster' 'cloud' 'network' 'osimage' 'bmcsetup' 'switch' 'otherdev' 'group' 'node' 'secrets' 'service' 'control' 'monitor')
 _shtab_luna_cluster_pos_0_choices=('show' 'change')
+_shtab_luna_cluster_change__P_choices=('y' 'yes' 'n' 'no' '')
+_shtab_luna_cluster_change___packing_bootpause_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_cluster_change__C_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_cluster_change___createnode_ondemand_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_cluster_change__M_choices=('y' 'yes' 'n' 'no' '')
