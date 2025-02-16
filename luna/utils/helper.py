@@ -1001,10 +1001,11 @@ class Helper():
                 if len(content) > 60:
                     if "\n" in content:
                         total_lines = content.count('\n')
-                        last_line = f"\n{total_lines-3} More lines..."
-                        content = content.split('\n', 3)
-                        content = '\n'.join(content[:3])
-                        content = f"{content}{last_line}"
+                        if total_lines-3 > 0:
+                            last_line = f"\n{total_lines-3} More lines..."
+                            content = content.split('\n', 3)
+                            content = '\n'.join(content[:3])
+                            content = f"{content}{last_line}"
                     else:
                         content = content[:60]+' ...'
         return content
