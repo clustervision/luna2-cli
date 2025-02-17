@@ -74,6 +74,8 @@ class Cluster():
         cluster_change.add_argument('-n', '--name', help='New Name For Cluster')
         cluster_change.add_argument('-u', '--user', help='Cluster User')
         cluster_change.add_argument('-T', '--ntp_server', metavar='N.N.N.N', help='NTP IP address')
+        cluster_change.add_argument('-P', '--packing_bootpause', choices=BOOL_CHOICES,
+                                    metavar=BOOL_META, help='Node booting paused until osimage packing is finished')
         cluster_change.add_argument('-C', '--createnode_ondemand', choices=BOOL_CHOICES,
                                     metavar=BOOL_META, help='On Demand Nodes')
         cluster_change.add_argument('-M', '--createnode_macashost', choices=BOOL_CHOICES,
