@@ -135,7 +135,7 @@ def overrides(table=None):
             'provision_method', 'provision_fallback'
         ],
         'group': [
-            'provision_method', 'provision_fallback', 'kerneloptions', 'osimagetag'
+            'provision_method', 'provision_interface', 'provision_fallback', 'kerneloptions', 'osimagetag'
         ]
     }
     if table and table in static:
