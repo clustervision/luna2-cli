@@ -1016,7 +1016,12 @@ class Helper():
         This method will decode the base 64 string.
         """
         self.logger.debug(f'Data Limit => {limit}')
-        if isinstance(json_data, dict):
+        if isinstance(json_data, list):
+            new_json_data=[]
+            for list_data in json_data:
+                new_json_data.append(self.prepare_json(list_data, limit))
+            return new_json_data
+        elif isinstance(json_data, dict):
             for key, value in json_data.items():
                 if isinstance(value, str):
                     if key in EDITOR_KEYS:
