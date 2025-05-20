@@ -79,12 +79,10 @@ class Network():
         network_show.add_argument('name', help='Network Name')
         Arguments().common_list_args(network_show)
         network_add = network_args.add_parser('add', help='Add Network')
-        for controller in controllers:
-            network_add.add_argument(f"--{controller}", metavar='<IP Address>', help=f"Controller {controller}")
         Arguments().common_network_args(network_add, True)
         network_change = network_args.add_parser('change', help='Change Network')
         for controller in controllers:
-            network_change.add_argument(f"--{controller}", metavar='<IP Address>', help=f"Controller {controller}")
+            network_change.add_argument(f"--{controller}", metavar='<IP Address>', help=f"Changing the IP address for Controller {controller}")
         Arguments().common_network_args(network_change)
         network_rename = network_args.add_parser('rename', help='Rename Network')
         network_rename.add_argument('name', help='Network Name')
