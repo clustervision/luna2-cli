@@ -35,10 +35,9 @@ from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
 from luna.utils.log import Log
-from luna.utils.constant import actions
+from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
-
 
 class Group():
     """
@@ -116,7 +115,8 @@ class Group():
         change_interface.add_argument('-P', '--vlan_parent', help='VLAN parent interface')
         change_interface.add_argument('-B', '--bond_mode', help='Bonding mode')
         change_interface.add_argument('-A', '--bond_slaves', help='Bonding interface slaves')
-        change_interface.add_argument('-D', '--dhcp', action='store_true', default=None, help='toggle dhcp')
+        change_interface.add_argument('-D', '--dhcp', choices=BOOL_CHOICES,
+                               metavar=BOOL_META, help='toggle dhcp')
         change_interface.add_argument('-O', '--options', action='store_true',
                                       help='Interfaces Options')
         change_interface.add_argument('-qO', '--quick-options', dest='options',
