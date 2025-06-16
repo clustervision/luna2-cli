@@ -63,6 +63,39 @@ class Helper():
         self.logger = Log.get_logger()
 
 
+    @staticmethod
+    def get_all_names(table):
+        """
+        Return a sorted list of all names for the given table (e.g. 'node', 'group', 'osimage', 'network').
+        """
+        try:
+            get_list = Rest().get_data(table)
+            if get_list.status_code == 200:
+                content = get_list.content
+                if content and "config" in content and table in content["config"]:
+                    return sorted(content["config"][table].keys())
+        except Exception:
+            pass
+        return []
+
+
+    def node_name_completer(self, prefix, parsed_args, **kwargs):
+        print(prefix)
+        return [n for n in self.get_all_names("node") if n.startswith(prefix)]
+
+    def group_name_completer(self, prefix, parsed_args, **kwargs):
+        return [n for n in self.get_all_names("group") if n.startswith(prefix)]
+
+    def osimage_name_completer(self, prefix, parsed_args, **kwargs):
+        return [n for n in self.get_all_names("osimage") if n.startswith(prefix)]
+
+    def network_name_completer(self, prefix, parsed_args, **kwargs):
+        return [n for n in self.get_all_names("network") if n.startswith(prefix)]
+
+    def empty_completer(self, prefix, parsed_args, **kwargs):
+        return []
+
+
     def choice_to_bool(self, raw_data=None):
         """
         This method will convert string choices to
