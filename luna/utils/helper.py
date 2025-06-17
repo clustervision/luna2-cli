@@ -80,7 +80,6 @@ class Helper():
 
 
     def node_name_completer(self, prefix, parsed_args, **kwargs):
-        print(prefix)
         return [n for n in self.get_all_names("node") if n.startswith(prefix)]
 
     def group_name_completer(self, prefix, parsed_args, **kwargs):

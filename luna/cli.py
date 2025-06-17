@@ -128,9 +128,10 @@ class Cli():
             cls(parser=self.parser, subparsers =self.subparsers)
         
         argcomplete.autocomplete(self.parser)
-        # args = parser.parse_args()
-
-        self.args = vars(self.parser.parse_args())
+        try:
+            self.args = vars(self.parser.parse_args())
+        except SystemExit as e:
+            sys.exit(e.code)
         self.call_class()
         return True
 

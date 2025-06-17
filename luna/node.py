@@ -29,7 +29,8 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
-import argparse
+# import argparse
+# import argcomplete
 from operator import methodcaller
 from copy import deepcopy
 from luna.utils.helper import Helper
@@ -53,6 +54,8 @@ class Node():
         self.actions = actions(self.table)
         self.table_cap = self.table.capitalize()
         self.interface = "nodeinterface"
+        # print(self.args)
+        # self.get_arguments(parser, subparsers)
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
             if self.args["action"] in self.actions:
@@ -76,6 +79,8 @@ class Node():
         node_list = node_args.add_parser('list', help='List All Nodes')
         Arguments().common_list_args(node_list)
         node_show = node_args.add_parser('show', help='Show A Node')
+        # name_arg = node_show.add_argument('name', help='Name of the Node')
+        # name_arg.completer = Helper().node_name_completer
         node_show.add_argument('name', help='Name of the Node').completer = Helper().node_name_completer
         # node_show.add_argument("name", help="Node name").completer = Helper().node_name_completer
         Arguments().common_list_args(node_show)
@@ -172,7 +177,7 @@ class Node():
         Method to show a node in Luna Configuration.
         """
         print(self.args)
-        print(Helper().get_all_names("node"))
+        # print(Helper().get_all_names("node"))
         # return Helper().show_data(self.table, self.args)
 
 
