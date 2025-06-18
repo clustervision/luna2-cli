@@ -51,8 +51,6 @@ BOOL_KEYS = [
 EDITOR_KEYS = ['options', 'content', 'comment', 'prescript', 'partscript', 'postscript', 'grab_filesystems', 'grab_exclude', 'kerneloptions']
 SERVICE_ACTIONS = ['start', 'stop', 'restart', 'reload', 'status']
 SERVICES = ['dhcp', 'dns', 'luna2']
-BANNER_NAME = 'Luna 2 CLI'
-BANNER_STYLE= "digital"
 TOOL_DESCRIPTION = '''\
     Manage Luna Cluster
     --------------------------------
@@ -108,8 +106,6 @@ def filter_columns(table=None):
                     'dhcp_nodes_in_pool'],
         'dns': ['host', 'ipaddress'],
         'node': ['name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_present', 'interfaces'],
-                 #'prescript', 'prescript_source', 'partscript', 'partscript_source',
-                 #'postscript', 'postscript_source'],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options',
                           'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],

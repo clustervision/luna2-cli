@@ -29,8 +29,10 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
-import argparse
+
 from luna.utils.constant import BOOL_CHOICES, BOOL_META
+from luna.utils.helper import Helper
+
 
 class Arguments():
     """
@@ -50,7 +52,6 @@ class Arguments():
         """
         This method will provide the common bmcsetup arguments.
         """
-        parser.add_argument('name', help='BMC Setup Name')
         parser.add_argument('-i', '--userid', type=int, help='UserID')
         parser.add_argument('-u', '--username', help='Username')
         parser.add_argument('-p', '--password', help='Password')
@@ -68,7 +69,6 @@ class Arguments():
         """
         This method will provide the common Cloud arguments.
         """
-        parser.add_argument('name', help='Cloud Provider Name')
         parser.add_argument('-t', '--type', help='Type of Cloud Provider')
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
@@ -79,10 +79,9 @@ class Arguments():
         """
         This method will provide the common group arguments.
         """
-        parser.add_argument('name', help='Name of the Group')
         parser.add_argument('-e', '--setupbmc', choices=BOOL_CHOICES,
                                metavar=BOOL_META, help='BMC Setup')
-        parser.add_argument('-o', '--osimage', help='OS Image Name')
+        parser.add_argument('-o', '--osimage', help='OS Image Name').completer = Helper().name_completer("osimage")
         parser.add_argument('-t', '--osimagetag', help='OS Image Tag')
         parser.add_argument('-k', '--kerneloptions', action='store_true', help='Kernel Options')
         parser.add_argument('-qk', '--quick-kerneloptions', dest='kerneloptions',
@@ -109,7 +108,7 @@ class Arguments():
                                metavar=BOOL_META, help='Boot Menu')
         parser.add_argument('-U', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
         parser.add_argument('-if', '--interface', help='Interface Name')
-        parser.add_argument('-N', '--network', help='Interface Network Name. * Interface is Required.')
+        parser.add_argument('-N', '--network', help='Interface Network Name. * Interface is Required.').completer = Helper().name_completer("network")
         parser.add_argument('-L', '--vlanid', help='Interface VLAN ID. * Interface is Required.')
         parser.add_argument('-P', '--vlan_parent', help='Interface VLAN parent interface. * Interface is Required.')
         parser.add_argument('-B', '--bond_mode', help='Interface bonding mode. * Interface is Required.')
@@ -130,12 +129,11 @@ class Arguments():
         """
         This method will provide the common node arguments.
         """
-        parser.add_argument('name', help='Name of the Node')
         if required:
             parser.add_argument('-g', '--group', required=True, help='Group Name')
         else:
             parser.add_argument('-g', '--group', help='Group Name')
-        parser.add_argument('-o', '--osimage', help='OS Image Name')
+        parser.add_argument('-o', '--osimage', help='OS Image Name').completer = Helper().name_completer("osimage")
         parser.add_argument('-t', '--osimagetag', help='OS Image Tag')
         parser.add_argument('-k', '--kerneloptions', action='store_true', help='Kernel Options')
         parser.add_argument('-qk', '--quick-kerneloptions', dest='kerneloptions',
@@ -175,7 +173,7 @@ class Arguments():
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         parser.add_argument('-if', '--interface', help='Interface Name')
-        parser.add_argument('-N', '--network', help='Interface Network Name. * Interface is Required.')
+        parser.add_argument('-N', '--network', help='Interface Network Name. * Interface is Required.').completer = Helper().name_completer("network")
         parser.add_argument('-L', '--vlanid', help='Interface VLAN ID. * Interface is Required.')
         parser.add_argument('-P', '--vlan_parent', help='Interface VLAN parent interface. * Interface is Required.')
         parser.add_argument('-B', '--bond_mode', help='Interface bonding mode. * Interface is Required.')
@@ -195,7 +193,6 @@ class Arguments():
         """
         This method will provide the common network arguments.
         """
-        parser.add_argument('name', help='Network Name')
         if required:
             parser.add_argument('-N', '--network', required=True, help='Network ip-address/cidr')
         else:
@@ -225,7 +222,6 @@ class Arguments():
         """
         This method will provide the common osimage arguments.
         """
-        parser.add_argument('name', help='OSImage Name')
         parser.add_argument('-G', '--grab_filesystems', action='store_true', help='Grab Filesystems')
         parser.add_argument('-qG', '--quick-grab_filesystems', dest='grab_filesystems',
                                 metavar="File-Path OR In-Line", help='Grab Filesystems File-Path OR In-Line')

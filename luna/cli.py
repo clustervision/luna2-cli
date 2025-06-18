@@ -36,8 +36,8 @@ try:
     from pathlib import Path
     from textwrap import dedent
     from argparse import ArgumentParser, RawDescriptionHelpFormatter
+    import argcomplete
     from luna.utils.constant import TOOL_DESCRIPTION, TOOL_EPILOG, LOG_DIR, VERSION_FILE
-    # from luna.utils.presenter import Presenter
     from luna.utils.log import Log
     from luna.network import Network
     from luna.group import Group
@@ -87,7 +87,6 @@ class Cli():
         self.subparsers = None
         self.args = None
         Message()
-        # Presenter().show_banner()
 
     def get_parser(self):
         """
@@ -125,6 +124,8 @@ class Cli():
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
         for cls in classes:
             cls(parser=self.parser, subparsers =self.subparsers)
+        
+        argcomplete.autocomplete(self.parser, always_complete_options=False)
         self.args = vars(self.parser.parse_args())
         self.call_class()
         return True

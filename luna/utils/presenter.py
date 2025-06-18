@@ -31,10 +31,9 @@ __status__      = "Development"
 
 import json
 from prettytable import PrettyTable
-import pyfiglet
 from luna.utils.log import Log
-from luna.utils.constant import BANNER_NAME, BANNER_STYLE
 from luna.utils.message import Message
+
 
 class Presenter():
     """
@@ -47,15 +46,6 @@ class Presenter():
         """
         self.logger = Log.get_logger()
         self.table = PrettyTable()
-
-
-    def show_banner(self):
-        """
-        This method will show the banner
-        """
-        banner = pyfiglet.figlet_format(BANNER_NAME, font=BANNER_STYLE)
-        Message().show_success(banner)
-        return True
 
 
     def show_json(self, json_data=None):
@@ -90,11 +80,9 @@ class Presenter():
         self.logger.debug(f'Fields => {field}')
         self.logger.debug(f'Rows => {rows}')
         self.table.title = title
-        #self.table.add_column("Field", field)
-        #self.table.add_column("Values", rows)
 
         self.table.field_names = ['Field', 'Values']        
-        while len(field)>0:
+        while len(field) > 0:
             try:
                 ffield = field.pop(0)
                 frow  = rows.pop(0)
@@ -102,8 +90,8 @@ class Presenter():
                     self.table.add_row([ffield, frow], divider=True)
                 else:
                     self.table.add_row([ffield, frow])
-            except:
-                pass
+            except Exception as table_error:
+                self.logger.debug(f'Show Table Column Exception => {table_error}')
         self.table.header = False
         self.table.align = "l"
         Message().show_success(self.table)

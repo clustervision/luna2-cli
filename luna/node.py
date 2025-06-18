@@ -29,6 +29,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
+
 from operator import methodcaller
 from copy import deepcopy
 from luna.utils.helper import Helper
@@ -75,47 +76,50 @@ class Node():
         node_list = node_args.add_parser('list', help='List All Nodes')
         Arguments().common_list_args(node_list)
         node_show = node_args.add_parser('show', help='Show A Node')
-        node_show.add_argument('name', help='Name of the Node')
+        node_show.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_show)
         node_show.add_argument('-f', '--full-scripts', action='store_true', default=None, help='Show the Full Scripts')
         node_add = node_args.add_parser('add', help='Add A Node')
+        node_add.add_argument('name', help='Name of the Node')
         Arguments().common_node_args(node_add, True)
         node_change = node_args.add_parser('change', help='Make Changes Into a Node')
+        node_change.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_node_args(node_change)
         node_clone = node_args.add_parser('clone', help='Clone A Node')
+        node_clone.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_node_args(node_clone)
         node_clone.add_argument('newnodename', help='New Name for the Node')
         node_rename = node_args.add_parser('rename', help='Rename A Node')
-        node_rename.add_argument('name', help='Name of the Node')
+        node_rename.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         node_rename.add_argument('newnodename', help='New Name for the Node')
         node_rename.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_remove = node_args.add_parser('remove', help='Remove A Node')
-        node_remove.add_argument('name', help='Name of the Node')
+        node_remove.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         node_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_osgrab = node_args.add_parser('osgrab', help='Gran an OS Image for a Node')
-        node_osgrab.add_argument('name', help='Name of the Node')
-        node_osgrab.add_argument('-o', '--osimage', help='OS Image Name')
+        node_osgrab.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_osgrab.add_argument('-o', '--osimage', help='OS Image Name').completer = Helper().name_completer("osimage")
         node_osgrab.add_argument('-b', '--bare', action='store_true', default=None, help='Bare OS Image(Exclude Packing)')
         node_osgrab.add_argument('--nodry', action='store_true', default=None,
                                  help='No Dry flag to avoid dry run')
         node_osgrab.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_ospush = node_args.add_parser('ospush', help='Push an OS Image for a Node')
-        node_ospush.add_argument('name', help='Name of the Node')
-        node_ospush.add_argument('-o', '--osimage', help='OS Image Name')
+        node_ospush.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_ospush.add_argument('-o', '--osimage', help='OS Image Name').completer = Helper().name_completer("osimage")
         node_ospush.add_argument('--nodry', action='store_true', default=None,
                                  help='No Dry flag to avoid dry run')
         node_ospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_interfaces = node_args.add_parser('listinterface', help='List Node Interfaces')
-        node_interfaces.add_argument('name', help='Name of the Node')
+        node_interfaces.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_interfaces)
         node_interface = node_args.add_parser('showinterface', help='Show Node Interface')
-        node_interface.add_argument('name', help='Name of the Node')
-        node_interface.add_argument('interface', help='Name of the Node Interface')
+        node_interface.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_interface.add_argument('interface', help='Name of the Node Interface').completer = Helper().interface_name_completer(self.table)
         Arguments().common_list_args(node_interface)
         change_interface = node_args.add_parser('changeinterface', help='Change Node Interface')
-        change_interface.add_argument('name', help='Name of the Node')
-        change_interface.add_argument('interface', help='Name of the Node Interface')
-        change_interface.add_argument('-N', '--network', help='Network Name')
+        change_interface.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        change_interface.add_argument('interface', help='Name of the Node Interface').completer = Helper().interface_name_completer(self.table)
+        change_interface.add_argument('-N', '--network', help='Network Name').completer = Helper().name_completer("network")
         change_interface.add_argument('-L', '--vlanid', help='VLAN ID')
         change_interface.add_argument('-P', '--vlan_parent', help='VLAN parent interface')
         change_interface.add_argument('-B', '--bond_mode', help='Bonding mode')
@@ -130,8 +134,8 @@ class Node():
                                 metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
         change_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         remove_interface = node_args.add_parser('removeinterface', help='Remove Node Interface')
-        remove_interface.add_argument('name', help='Name of the Node')
-        remove_interface.add_argument('interface', help='Name of the Node Interface')
+        remove_interface.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        remove_interface.add_argument('interface', help='Name of the Node Interface').completer = Helper().interface_name_completer(self.table)
         remove_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
@@ -161,7 +165,7 @@ class Node():
                 title = f' << {self.table.capitalize()} >>'
                 response = Presenter().show_table(title, fields, rows)
         else:
-            response = Message().show_error(f'{table} is not found.')
+            response = Message().show_error(f'{self.table} is not found.')
         return response
 
 
