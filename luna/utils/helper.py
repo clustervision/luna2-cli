@@ -35,15 +35,14 @@ import base64
 import binascii
 import subprocess
 import re
-import urllib3
 from random import randint
 from os import getpid
 from multiprocessing import Process
 from copy import deepcopy
+import urllib3
 import hostlist
 from termcolor import colored
 from nested_lookup import nested_lookup, nested_update, nested_delete, nested_alter
-from nested_lookup import get_all_keys
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
@@ -66,7 +65,7 @@ class Helper():
     @staticmethod
     def get_all_names(table):
         """
-        Return a sorted list of all names for the given table (e.g. 'node', 'group', 'osimage', 'network').
+        Return a sorted list of all names for the given table (e.g. 'node', 'osimage', 'network').
         """
         try:
             get_list = Rest().get_data(table)
@@ -79,20 +78,71 @@ class Helper():
         return []
 
 
-    def node_name_completer(self, prefix, parsed_args, **kwargs):
-        return [n for n in self.get_all_names("node") if n.startswith(prefix)]
+    def name_completer(self, kind):
+        """
+        This method returns a completer function for the given kind of resource.
+        """
+        def completer(prefix, parsed_args, **kwargs):
+            """
+            Completer function that returns a list of names starting with the given prefix.
+            """
+            self.logger.info(f"prefix: {type(prefix)} {prefix}")
+            return [n for n in self.get_all_names(kind) if n.startswith(prefix)]
+        return completer
 
-    def group_name_completer(self, prefix, parsed_args, **kwargs):
-        return [n for n in self.get_all_names("group") if n.startswith(prefix)]
 
-    def osimage_name_completer(self, prefix, parsed_args, **kwargs):
-        return [n for n in self.get_all_names("osimage") if n.startswith(prefix)]
+    def secret_name_completer(self, kind, entity=None):
+        """
+        This method returns a completer function for the given kind of resource.
+        """
+        def completer(prefix, parsed_args, **kwargs):
+            """
+            Completer function that returns a list of names starting with the given prefix.
+            """
+            self.logger.info(f"prefix: {type(prefix)} {prefix}")
+            self.logger.info(f"parsed_args: {type(parsed_args)} {parsed_args}")
+            self.logger.info(f"kind: {type(kind)} {kind}")
+            self.logger.info(f"entity: {type(entity)} {entity}")
+            entity_name = parsed_args.name
+            uri = f'{kind}/{entity}/{entity_name}'
+            self.logger.info(uri)
+            get_list = Rest().get_data(uri)
+            if get_list.status_code == 200:
+                self.logger.info(get_list)
+                get_list = get_list.content
+                self.logger.info(get_list)
+                node_secrets = get_list['config']['secrets'][entity][entity_name]
+                return [item['name'] for item in node_secrets]
+            else:
+                self.logger.error(f"Failed to fetch secrets for {entity_name}: {get_list.content}")
+                return []
+        return completer
 
-    def network_name_completer(self, prefix, parsed_args, **kwargs):
-        return [n for n in self.get_all_names("network") if n.startswith(prefix)]
 
-    def empty_completer(self, prefix, parsed_args, **kwargs):
-        return []
+    def interface_name_completer(self, kind):
+        """
+        This method returns a completer function for the given kind of resource.
+        """
+        def completer(prefix, parsed_args, **kwargs):
+            """
+            Completer function that returns a list of names starting with the given prefix.
+            """
+            self.logger.info(f"prefix: {type(prefix)} {prefix}")
+            self.logger.info(f"parsed_args: {type(parsed_args)} {parsed_args}")
+            self.logger.info(f"kind: {type(kind)} {kind}")
+            entity_name = parsed_args.name
+            get_list = Rest().get_data(kind, entity_name+'/interfaces')
+            self.logger.info(f"entity_name: {type(entity_name)} {entity_name}")
+            self.logger.info(f"get_list.status_code: {type(get_list.status_code)} {get_list.status_code}")
+            if get_list.status_code == 200:
+                get_list = get_list.content
+                node_interfaces = get_list['config'][kind][entity_name]['interfaces']
+                self.logger.info(node_interfaces)
+                return [item['interface'] for item in node_interfaces]
+            else:
+                self.logger.error(f"Failed to fetch secrets for {entity_name}: {get_list.content}")
+                return []
+        return completer
 
 
     def choice_to_bool(self, raw_data=None):

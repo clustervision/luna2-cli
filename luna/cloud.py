@@ -66,14 +66,15 @@ class Cloud():
         cloud_list = cloud_args.add_parser('list', help='List All Cloud Providers')
         Arguments().common_list_args(cloud_list)
         cloud_show = cloud_args.add_parser('show', help='Show Cloud Providers')
-        cloud_show.add_argument('name', help='Cloud Provider Name')
+        cloud_show.add_argument('name', help='Cloud Provider Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(cloud_show)
         cloud_add = cloud_args.add_parser('add', help='Add Cloud Provider')
         Arguments().common_cloud_args(cloud_add)
         cloud_change = cloud_args.add_parser('change', help='Change a Cloud Provider')
+        cloud_change.add_argument('name', help='Cloud Provider Name').completer = Helper().name_completer(self.table)
         Arguments().common_cloud_args(cloud_change)
         cloud_remove = cloud_args.add_parser('remove', help='Remove Cloud Provider')
-        cloud_remove.add_argument('name', help='Cloud Provider Name')
+        cloud_remove.add_argument('name', help='Cloud Provider Name').completer = Helper().name_completer(self.table)
         cloud_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
