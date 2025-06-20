@@ -86,7 +86,7 @@ class Arguments():
         parser.add_argument('-k', '--kerneloptions', action='store_true', help='Kernel Options')
         parser.add_argument('-qk', '--quick-kerneloptions', dest='kerneloptions',
                                 metavar="File-Path OR In-Line", help='Kernel Options File-Path OR In-Line')
-        parser.add_argument('-b', '--bmcsetupname', help='BMC Setup Name')
+        parser.add_argument('-b', '--bmcsetupname', help='BMC Setup Name').completer = Helper().name_completer("bmcsetup")
         parser.add_argument('-d', '--domain', help='Domain Name')
         parser.add_argument('-r', '--roles', help='Roles')
         parser.add_argument('-s', '--scripts', help='Scripts')
@@ -107,7 +107,7 @@ class Arguments():
         parser.add_argument('-m', '--bootmenu', choices=BOOL_CHOICES,
                                metavar=BOOL_META, help='Boot Menu')
         parser.add_argument('-U', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        parser.add_argument('-if', '--interface', help='Interface Name')
+        parser.add_argument('-if', '--interface', help='Interface Name').completer = Helper().interface_name_completer("group")
         parser.add_argument('-N', '--network', help='Interface Network Name. * Interface is Required.').completer = Helper().name_completer("network")
         parser.add_argument('-L', '--vlanid', help='Interface VLAN ID. * Interface is Required.')
         parser.add_argument('-P', '--vlan_parent', help='Interface VLAN parent interface. * Interface is Required.')
@@ -132,7 +132,7 @@ class Arguments():
         if required:
             parser.add_argument('-g', '--group', required=True, help='Group Name')
         else:
-            parser.add_argument('-g', '--group', help='Group Name')
+            parser.add_argument('-g', '--group', help='Group Name').completer = Helper().name_completer("group")
         parser.add_argument('-o', '--osimage', help='OS Image Name').completer = Helper().name_completer("osimage")
         parser.add_argument('-t', '--osimagetag', help='OS Image Tag')
         parser.add_argument('-k', '--kerneloptions', action='store_true', help='Kernel Options')
@@ -141,9 +141,9 @@ class Arguments():
         parser.add_argument('-e', '--setupbmc', choices=BOOL_CHOICES,
                               metavar=BOOL_META, help='BMC Setup')
         parser.add_argument('-b', '--bmcsetup', help='BMC Setup')
-        parser.add_argument('--switch', help='Switch Name')
+        parser.add_argument('--switch', help='Switch Name').completer = Helper().name_completer("switch")
         parser.add_argument('--switchport', help='Switch Port')
-        parser.add_argument('--cloud', help='Cloud Name')
+        parser.add_argument('--cloud', help='Cloud Name').completer = Helper().name_completer("cloud")
         parser.add_argument('-r', '--roles', help='Roles')
         parser.add_argument('-s', '--scripts', help='Scripts')
         parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
@@ -172,7 +172,7 @@ class Arguments():
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        parser.add_argument('-if', '--interface', help='Interface Name')
+        parser.add_argument('-if', '--interface', help='Interface Name').completer = Helper().interface_name_completer("node")
         parser.add_argument('-N', '--network', help='Interface Network Name. * Interface is Required.').completer = Helper().name_completer("network")
         parser.add_argument('-L', '--vlanid', help='Interface VLAN ID. * Interface is Required.')
         parser.add_argument('-P', '--vlan_parent', help='Interface VLAN parent interface. * Interface is Required.')
