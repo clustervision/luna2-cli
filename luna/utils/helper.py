@@ -194,7 +194,7 @@ class Helper():
                         else:
                             Message().error_exit(get_list.content, get_list.status_code)
                         if get_list:
-                            _source = nested_lookup(key+'_source', get_list)
+                            _source = nested_lookup('_'+key+'_source', get_list)
                             if _source:
                                 if 'default' in _source:
                                     Message().show_warning(f"WARNING :: {key} contents are 'default'. changes will be set locally")
@@ -1279,6 +1279,8 @@ class Helper():
             script = True if 'part' in key or 'post' in key or 'pre' in key else False
             if '_source' in key:
                 raw_name = key.replace('_source', '')
+                if raw_name[0] == '_':
+                    raw_name = raw_name[1:]
                 if table == value:
                     if raw_name in override:
                         resp_overrides.append(raw_name)
