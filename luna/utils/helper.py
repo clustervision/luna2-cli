@@ -1264,6 +1264,7 @@ class Helper():
                 if key[0] in ["zone", "dhcp_range_end", "dhcp_range_end_ipv6", "prescript", "partscript", "postscript"]:
                     fields.append('')
                     rows.append('')
+        fields = ['source' if item.startswith('_') else item for item in fields]
         return fields, rows
 
 
