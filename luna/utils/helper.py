@@ -1220,7 +1220,7 @@ class Helper():
         for key in datacopy.keys():
             if key == '_override':
                 if data[key]:
-                    data['info']="Config differs from parent - local overrides"
+                    data['info'] = "Config differs from parent - local overrides"
                 del data[key]
         for new_key in list(data.keys()):
             if new_key not in defined_keys:
@@ -1264,6 +1264,7 @@ class Helper():
                 if key[0] in ["zone", "dhcp_range_end", "dhcp_range_end_ipv6", "prescript", "partscript", "postscript"]:
                     fields.append('')
                     rows.append('')
+        fields = ['source' if item.startswith('_') else item for item in fields]
         return fields, rows
 
 
