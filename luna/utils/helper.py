@@ -1220,7 +1220,7 @@ class Helper():
         for key in datacopy.keys():
             if key == '_override':
                 if data[key]:
-                    data['info']="Config differs from parent - local overrides"
+                    data['info'] = "Config differs from parent - local overrides"
                 del data[key]
         for new_key in list(data.keys()):
             if new_key not in defined_keys:
