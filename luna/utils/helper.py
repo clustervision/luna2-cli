@@ -1415,6 +1415,11 @@ class Helper():
                                     if 'dhcp' in internal and internal['dhcp']:
                                         interface_details += 'dhcp '
                                     internal_ipaddress.append(f'{internal_interface} = {interface_details} ')
+                            # adding a nasty dirty space when we have multiple interfaces. spacer.
+                            if len(internal_macaddress)>1 or len(internal_ipaddress)>1:
+                                internal_ipaddress.append('')
+                                internal_macaddress.append('')
+                            # --
                             internal_macaddress = '\n'.join(internal_macaddress)
                             internal_ipaddress = '\n'.join(internal_ipaddress)
                             macaddress_row.append(internal_macaddress)
