@@ -120,6 +120,7 @@ class Node():
         change_interface.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         change_interface.add_argument('interface', help='Name of the Node Interface').completer = Helper().interface_name_completer(self.table)
         change_interface.add_argument('-N', '--network', help='Network Name').completer = Helper().name_completer("network")
+        change_interface.add_argument('--mtu', help='MTU size')
         change_interface.add_argument('-L', '--vlanid', help='VLAN ID')
         change_interface.add_argument('-P', '--vlan_parent', help='VLAN parent interface')
         change_interface.add_argument('-B', '--bond_mode', help='Bonding mode')
@@ -201,15 +202,16 @@ class Node():
                 interface['ipaddress'] = self.args['ipaddress']
             if self.args['macaddress'] or self.args['macaddress'] == '':
                 interface['macaddress'] = self.args['macaddress']
-            if self.args['options']:
+            if self.args['options'] or self.args['options'] == '':
                 interface['options'] = self.args['options']
+            if self.args['mtu'] or self.args['mtu'] == '':
+                interface['mtu'] = self.args['mtu']
             if self.args['dhcp']:
                 interface['dhcp'] = self.args['dhcp']
-            elif self.args['options'] == '':
-                interface['options'] = self.args['options']
+
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
+            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'mtu', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
                 self.args.pop(remove, None)
             if len(hostlist) > 1 and ('ipaddress' in interface or 'macaddress' in interface):
                 Message().error_exit('Interface IP Address or MAC Address can not be use with the hostlist, Kindly provide the single node or remove the IP Address and MAC Address.')
@@ -275,15 +277,15 @@ class Node():
                 interface['ipaddress'] = self.args['ipaddress']
             if self.args['macaddress'] or self.args['macaddress'] == '':
                 interface['macaddress'] = self.args['macaddress']
-            if self.args['options']:
+            if self.args['options'] or self.args['options'] == '':
                 interface['options'] = self.args['options']
-            elif self.args['options'] == '':
-                interface['options'] = self.args['options']
+            if self.args['mtu'] or self.args['mtu'] == '':
+                interface['mtu'] = self.args['mtu']
             if self.args['dhcp']:
                 interface['dhcp'] = self.args['dhcp']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
+            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'mtu', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
                 self.args.pop(remove, None)
             if len(hostlist) > 1 and ('ipaddress' in interface or 'macaddress' in interface):
                 Message().error_exit('Interface IP Address or MAC Address can not be use with the hostlist, Kindly provide the single node or remove the IP Address and MAC Address.')
@@ -459,15 +461,15 @@ class Node():
                 interface['ipaddress'] = self.args['ipaddress']
             if self.args['macaddress'] or self.args['macaddress'] == '':
                 interface['macaddress'] = self.args['macaddress']
-            if self.args['options']:
+            if self.args['options'] or self.args['options'] == '':
                 interface['options'] = self.args['options']
-            elif self.args['options'] == '':
-                interface['options'] = self.args['options']
+            if self.args['mtu'] or self.args['mtu'] == '':
+                interface['mtu'] = self.args['mtu']
             if self.args['dhcp'] == '':
                 interface['dhcp'] = self.args['dhcp']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
+            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'mtu', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
                 self.args.pop(remove, None)
             if len(hostlist) > 1 and ('ipaddress' in interface or 'macaddress' in interface):
                 Message().error_exit('Interface IP Address or MAC Address can not be use with the hostlist, Kindly provide the single node or remove the IP Address and MAC Address.')
@@ -584,15 +586,15 @@ class Node():
                 interface['ipaddress'] = self.args['ipaddress']
             if self.args['macaddress'] or self.args['macaddress'] == '':
                 interface['macaddress'] = self.args['macaddress']
-            if self.args['options']:
+            if self.args['options'] or self.args['options'] == '':
                 interface['options'] = self.args['options']
+            if self.args['mtu'] or self.args['mtu'] == '':
+                interface['mtu'] = self.args['mtu']
             if self.args['dhcp']:
                 interface['dhcp'] = self.args['dhcp']
-            elif self.args['options'] == '':
-                interface['options'] = self.args['options']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
+            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'mtu', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
                 self.args.pop(remove, None)
         payload = Helper().prepare_payload(uri, self.args)
         if payload:

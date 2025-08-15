@@ -113,6 +113,7 @@ class Group():
         change_interface = group_args.add_parser('changeinterface', help='Change Group Interface')
         change_interface.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
         change_interface.add_argument('interface', help='Group Interface Name').completer = Helper().interface_name_completer(self.table)
+        change_interface.add_argument('--mtu', help='MTU size')
         change_interface.add_argument('-N', '--network', help='Network Name').completer = Helper().name_completer("network")
         change_interface.add_argument('-L', '--vlanid', help='VLAN ID')
         change_interface.add_argument('-P', '--vlan_parent', help='VLAN parent interface')
@@ -196,15 +197,15 @@ class Group():
                 interface['bond_mode'] = self.args['bond_mode']
             if self.args['bond_slaves']:
                 interface['bond_slaves'] = self.args['bond_slaves']
-            if self.args['options']:
+            if self.args['options'] or self.args['options'] == '':
                 interface['options'] = self.args['options']
-            elif self.args['options'] == '':
-                interface['options'] = self.args['options']
+            if self.args['mtu'] or self.args['mtu'] == '':
+                interface['mtu'] = self.args['mtu']
             if self.args['dhcp']:
                 interface['dhcp'] = self.args['dhcp']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'options', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
+            for remove in ['interface', 'network', 'options', 'mtu', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
                 self.args.pop(remove, None)
         return Helper().add_record(self.table, self.args)
 
@@ -233,15 +234,15 @@ class Group():
                 interface['bond_mode'] = self.args['bond_mode']
             if self.args['bond_slaves']:
                 interface['bond_slaves'] = self.args['bond_slaves']
-            if self.args['options']:
+            if self.args['options'] or self.args['options'] == '':
                 interface['options'] = self.args['options']
-            elif self.args['options'] == '':
-                interface['options'] = self.args['options']
+            if self.args['mtu'] or self.args['mtu'] == '':
+                interface['mtu'] = self.args['mtu']
             if self.args['dhcp']:
                 interface['dhcp'] = self.args['dhcp']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'options', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
+            for remove in ['interface', 'network', 'options', 'mtu', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
                 self.args.pop(remove, None)
         change = Helper().compare_data(self.table, real_args)
         if change is True:
@@ -291,15 +292,15 @@ class Group():
                 interface['bond_mode'] = self.args['bond_mode']
             if self.args['bond_slaves']:
                 interface['bond_slaves'] = self.args['bond_slaves']
-            if self.args['options']:
+            if self.args['options'] or self.args['options'] == '':
                 interface['options'] = self.args['options']
-            elif self.args['options'] == '':
-                interface['options'] = self.args['options']
+            if self.args['mtu'] or self.args['mtu'] == '':
+                interface['mtu'] = self.args['mtu']
             if self.args['dhcp']:
                 interface['dhcp'] = self.args['dhcp']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'options', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
+            for remove in ['interface', 'network', 'options', 'mtu', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
                 self.args.pop(remove, None)
         return Helper().clone_record(self.table, self.args)
 
@@ -389,15 +390,15 @@ class Group():
                 interface['bond_mode'] = self.args['bond_mode']
             if self.args['bond_slaves']:
                 interface['bond_slaves'] = self.args['bond_slaves']
-            if self.args['options']:
+            if self.args['options'] or self.args['options'] == '':
                 interface['options'] = self.args['options']
-            elif self.args['options'] == '':
-                interface['options'] = self.args['options']
+            if self.args['mtu'] or self.args['mtu'] == '':
+                interface['mtu'] = self.args['mtu']
             if self.args['dhcp']:
                 interface['dhcp'] = self.args['dhcp']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'options', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
+            for remove in ['interface', 'network', 'options', 'mtu', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
                 self.args.pop(remove, None)
         payload = Helper().prepare_payload(uri, self.args)
         if payload:
