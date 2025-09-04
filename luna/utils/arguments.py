@@ -213,6 +213,8 @@ class Arguments():
                                  metavar=BOOL_META, help='Use IP addresses of the dhcp range for nodes. Uses DDNS to update zones')
         parser.add_argument('-s', '--shared', help='Network Shared')
         parser.add_argument('-z', '--zone', help='Internal or external Network Zone')
+        parser.add_argument('-n', '--non_authoritative', choices=BOOL_CHOICES,
+                                 metavar=BOOL_META, help='Set this network as non-authoritative for its DNS zone definition')
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')

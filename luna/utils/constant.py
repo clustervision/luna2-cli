@@ -186,10 +186,11 @@ def sortby(table=None):
         'groupsecrets': ['Group', 'name', 'path', 'content'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
         'network': [
-            'name', 'type', 'zone','network', 'gateway', 'nameserver_ip', 'dhcp_range_begin',
-            'dhcp_range_end', 'network_ipv6', 'gateway_ipv6', 'nameserver_ip_ipv6',
-            'dhcp_range_begin_ipv6', 'dhcp_range_end_ipv6', 'dhcp', 'gateway_metric', 'ntp_server',
-            'shared', 'comment'
+            'name', 'type', 'zone', 'non_authoritative', 'dhcp',
+            'network', 'gateway', 'nameserver_ip', 'dhcp_range_begin', 'dhcp_range_end',
+            'network_ipv6', 'gateway_ipv6', 'nameserver_ip_ipv6',
+            'dhcp_range_begin_ipv6', 'dhcp_range_end_ipv6', 'ntp_server',
+            'gateway_metric', 'dhcp_nodes_in_pool', 'shared', 'comment'
         ],
         'osimagetag': [
             'osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups'
@@ -208,6 +209,19 @@ def divider(table=None):
         'node': ['info','scripts', 'prescript', 'partscript', 'postscript',
                  'scripts *', 'prescript *', 'partscript *', 'postscript *'],
         'group': ['info','scripts', 'prescript', 'partscript', 'postscript']
+    }
+    if table in static:
+        response = list(static[table])
+    return response
+
+
+def spacer(table=None):
+    """
+    This method returns when an extra space to be added after what field is desired for a table
+    """
+    response = False
+    static = {
+        'network': ['dhcp', 'dhcp_range_end', 'dhcp_range_end_ipv6', 'prescript', 'partscript', 'postscript']
     }
     if table in static:
         response = list(static[table])
