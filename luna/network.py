@@ -108,6 +108,7 @@ class Network():
         network_dns.add_argument('name', help='Network Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(network_dns)
         network_dns_args = network_dns.add_subparsers(dest='dns')
+        network_dns_list = network_dns_args.add_parser('list', help='Show DNS List for a Network')
         network_dns_add = network_dns_args.add_parser('add', help='Add DNS Entry')
         network_dns_add.add_argument('host', help='Host Name')
         network_dns_add.add_argument('ipaddress', help='IP Address')
@@ -220,6 +221,7 @@ class Network():
                 response = Message().show_warning(f'IP not available on {self.args["ipaddress"]}.')
         return response
 
+
     def network_dns(self):
         """
         This method list all DNS entries.
@@ -249,6 +251,10 @@ class Network():
         else:
             response = Message().show_error(f'{self.args["name"]} is not found.')
         return response
+
+
+    def network_dns_list(self):
+        self.network_dns()
 
 
     def network_dns_add(self):

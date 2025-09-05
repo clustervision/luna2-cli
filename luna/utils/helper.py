@@ -46,7 +46,7 @@ from nested_lookup import nested_lookup, nested_update, nested_delete, nested_al
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
-from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby, divider, overrides
+from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby, divider, spacer, overrides
 from luna.utils.message import Message
 
 
@@ -1212,6 +1212,7 @@ class Helper():
         self.logger.debug(f'Table => {table} and Data => {data}')
         defined_keys = sortby(table)
         self.logger.debug(f'Fields => {defined_keys}')
+        space = spacer(table)
         merge_exception = None
         if table == 'node':
             merge_exception = ["prescript", "partscript", "postscript"]
@@ -1260,10 +1261,9 @@ class Helper():
                 new_list = []
             else:
                 rows.append(key[1])
-            if table == "network":
-                if key[0] in ["zone", "dhcp_range_end", "dhcp_range_end_ipv6", "prescript", "partscript", "postscript"]:
-                    fields.append('')
-                    rows.append('')
+            if space and key[0] in space:
+                fields.append('')
+                rows.append('')
         fields = ['source' if item.startswith('_') else item for item in fields]
         return fields, rows
 
