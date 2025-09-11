@@ -71,6 +71,7 @@ class Cluster():
         cluster_change.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         for controller in controllers:
             cluster_change.add_argument(f"--{controller}", metavar='<IP Address>', help=f"Controller {controller} IP address")
+        cluster_change.add_argument('-cn', '--controller_network', help='Network name to use when changing controller IP address outside current network scope')
         cluster_change.add_argument('-n', '--name', help='New Name For Cluster')
         cluster_change.add_argument('-u', '--user', help='Cluster User')
         cluster_change.add_argument('-T', '--ntp_server', metavar='N.N.N.N', help='NTP IP address')
