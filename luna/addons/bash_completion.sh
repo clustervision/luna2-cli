@@ -58,7 +58,7 @@ _shtab_luna_monitor_subparsers=('status' 'queue')
 _shtab_luna_option_strings=('-h' '--help' '-V' '--version' '-v' '--verbose')
 _shtab_luna_cluster_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_cluster_show_option_strings=('-h' '--help' '-v' '--verbose')
-_shtab_luna_cluster_change_option_strings=('-h' '--help' '-v' '--verbose' '--controller' '-n' '--name' '-u' '--user' '-T' '--ntp_server' '-P' '--packing_bootpause' '-C' '--createnode_ondemand' '-M' '--createnode_macashost' '-N' '--nextnode_discover' '-ns' '--nameserver_ip' '-fs' '--forwardserver_ip' '-t' '--technical_contacts' '-p' '--provision_method' '-f' '--provision_fallback' '-d' '--domain_search' '-s' '--security' '--debug')
+_shtab_luna_cluster_change_option_strings=('-h' '--help' '-v' '--verbose' '--controller' '-cn' '--controller_network' '-n' '--name' '-u' '--user' '-T' '--ntp_server' '-P' '--packing_bootpause' '-C' '--createnode_ondemand' '-M' '--createnode_macashost' '-N' '--nextnode_discover' '-ns' '--nameserver_ip' '-fs' '--forwardserver_ip' '-t' '--technical_contacts' '-p' '--provision_method' '-f' '--provision_fallback' '-d' '--domain_search' '-s' '--security' '--debug')
 _shtab_luna_cloud_option_strings=('-h' '--help')
 _shtab_luna_cloud_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_cloud_show_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
@@ -1345,4 +1345,3 @@ else
     fi
 fi
 
-# source /etc/bash_completion.d/luna.sh # Enable dynamic bash completion for luna.
