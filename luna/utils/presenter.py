@@ -114,7 +114,7 @@ class Presenter():
         return True
 
 
-    def table_only_rows(self, fields=None, rows=None):
+    def table_only_rows(self, fields, rows):
         """
         This method will fetch a records from the Luna 2 Daemon Database
         """

@@ -82,10 +82,10 @@ class Cli():
     """
 
     def __init__(self):
-        self.logger = None
-        self.parser = None
+        self.logger = Log.init_log('info')
+        self.parser = ArgumentParser()
         self.subparsers = None
-        self.args = None
+        self.args = {}
         Message()
 
     def get_parser(self):
@@ -124,7 +124,7 @@ class Cli():
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
         for cls in classes:
             cls(parser=self.parser, subparsers =self.subparsers)
-        
+
         argcomplete.autocomplete(self.parser, always_complete_options=False)
         self.args = vars(self.parser.parse_args())
         self.call_class()
@@ -200,6 +200,9 @@ def run_tool():
         sys.stderr.write("\nKeyboard Interrupted.\n")
         sys.exit(1)
 
+
 def get_parser():
+    """
+    This method will return the parser object.
+    """
     return Cli().get_parser()
- 

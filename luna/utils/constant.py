@@ -48,7 +48,10 @@ BOOL_KEYS = [
     'bootmenu',
     'service'
 ]
-EDITOR_KEYS = ['options', 'content', 'comment', 'prescript', 'partscript', 'postscript', 'grab_filesystems', 'grab_exclude', 'kerneloptions']
+EDITOR_KEYS = [
+    'options', 'content', 'comment', 'prescript', 'partscript', 'postscript', 'grab_filesystems',
+    'grab_exclude', 'kerneloptions'
+]
 SERVICE_ACTIONS = ['start', 'stop', 'restart', 'reload', 'status']
 SERVICES = ['dhcp', 'dns', 'luna2']
 TOOL_DESCRIPTION = '''\
@@ -61,7 +64,7 @@ TOOL_DESCRIPTION = '''\
 TOOL_EPILOG = ''
 
 
-def actions(table=None):
+def actions(table: str) -> list:
     """
     This method provide the actions for the class.
     """
@@ -90,7 +93,7 @@ def actions(table=None):
     return response
 
 
-def filter_columns(table=None):
+def filter_columns(table: str) -> list:
     """
     This method remove the unnecessary fields from the dataset.
     """
@@ -105,7 +108,10 @@ def filter_columns(table=None):
         'network': ['name', 'network', 'type', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end',
                     'dhcp_nodes_in_pool'],
         'dns': ['host', 'ipaddress'],
-        'node': ['name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_present', 'interfaces'],
+        'node': [
+            'name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_present',
+            'interfaces'
+        ],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options', 'mtu',
                           'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
@@ -115,7 +121,9 @@ def filter_columns(table=None):
         'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes',
                        'groups'],
         'status': ['username_initiator', 'request_id', 'read', 'message', 'created'],
-        'queue': ['username_initiator', 'request_id', 'level', 'status', 'subsystem', 'task', 'created']
+        'queue': [
+            'username_initiator', 'request_id', 'level', 'status', 'subsystem', 'task', 'created'
+        ]
     }
     response = list(static[table])
     return response
@@ -123,7 +131,8 @@ def filter_columns(table=None):
 
 def overrides(table=None):
     """
-    This method has information regarding what could be an override for what table: node, group, cluster, etc
+    This method has information regarding what could be an override for what table: node, group,
+    cluster, etc
     """
     response = False
     static = {
@@ -133,7 +142,8 @@ def overrides(table=None):
             'provision_method', 'provision_fallback'
         ],
         'group': [
-            'provision_method', 'provision_interface', 'provision_fallback', 'kerneloptions', 'osimagetag'
+            'provision_method', 'provision_interface', 'provision_fallback', 'kerneloptions',
+            'osimagetag'
         ]
     }
     if table and table in static:
@@ -141,7 +151,7 @@ def overrides(table=None):
     return response
 
 
-def sortby(table=None):
+def sortby(table: str) -> list:
     """
     This method remove the unnecessary fields from the dataset.
     """
@@ -164,10 +174,10 @@ def sortby(table=None):
             'comment',  'macaddress'
         ],
         'group': [
-            'info', 'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces', 'setupbmc',
-            'bmcsetupname', 'unmanaged_bmc_users', 'netboot', 'bootmenu', 'roles', 'scripts',
-            'prescript', 'partscript', 'postscript', 'provision_interface', 'provision_method',
-            'provision_fallback', 'comment'
+            'info', 'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
+            'setupbmc', 'bmcsetupname', 'unmanaged_bmc_users', 'netboot', 'bootmenu', 'roles',
+            'scripts', 'prescript', 'partscript', 'postscript', 'provision_interface',
+            'provision_method', 'provision_fallback', 'comment'
         ],
         'bmcsetup': [
             'name', 'userid', 'username', 'password', 'netchannel', 'mgmtchannel',
@@ -182,7 +192,9 @@ def sortby(table=None):
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'mtu', 'vlanid',
                           'vlan_parent', 'bond_mode', 'bond_slaves'],
-        'groupinterface': ['interfacename', 'network', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves'],
+        'groupinterface': [
+            'interfacename', 'network', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves'
+        ],
         'groupsecrets': ['Group', 'name', 'path', 'content'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
         'network': [
@@ -221,7 +233,9 @@ def spacer(table=None):
     """
     response = False
     static = {
-        'network': ['dhcp', 'dhcp_range_end', 'dhcp_range_end_ipv6', 'prescript', 'partscript', 'postscript']
+        'network': [
+            'dhcp', 'dhcp_range_end', 'dhcp_range_end_ipv6', 'prescript', 'partscript', 'postscript'
+        ]
     }
     if table in static:
         response = list(static[table])

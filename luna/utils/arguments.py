@@ -39,7 +39,7 @@ class Arguments():
     All kind of common Arguments methods.
     """
 
-    def common_list_args(self, parser=None):
+    def common_list_args(self, parser):
         """
         This method will provide the common list and show arguments.
         """
@@ -48,7 +48,7 @@ class Arguments():
         return parser
 
 
-    def common_bmcsetup_args(self, parser=None):
+    def common_bmcsetup_args(self, parser):
         """
         This method will provide the common bmcsetup arguments.
         """
@@ -65,7 +65,7 @@ class Arguments():
         return parser
     
 
-    def common_cloud_args(self, parser=None):
+    def common_cloud_args(self, parser):
         """
         This method will provide the common Cloud arguments.
         """
@@ -75,7 +75,7 @@ class Arguments():
         return parser
 
 
-    def common_group_args(self, parser=None):
+    def common_group_args(self, parser):
         """
         This method will provide the common group arguments.
         """
@@ -126,7 +126,7 @@ class Arguments():
         return parser
 
 
-    def common_node_args(self, parser=None, required=None):
+    def common_node_args(self, parser, required=None):
         """
         This method will provide the common node arguments.
         """
@@ -191,7 +191,7 @@ class Arguments():
         return parser
 
 
-    def common_network_args(self, parser=None, required=None):
+    def common_network_args(self, parser, required=None):
         """
         This method will provide the common network arguments.
         """
@@ -222,7 +222,7 @@ class Arguments():
         return parser
 
 
-    def common_osimage_args(self, parser=None):
+    def common_osimage_args(self, parser):
         """
         This method will provide the common osimage arguments.
         """

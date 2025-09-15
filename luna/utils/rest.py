@@ -230,7 +230,7 @@ class Rest():
         response = False
         headers = {'x-access-tokens': self.get_token()}
         daemon_url = f'{self.daemon}/config/{table}'
-        if name:
+        if name and name not in  daemon_url:
             daemon_url = f'{daemon_url}/{name}'
         self.logger.debug(f'GET URL => {daemon_url}')
         try:
