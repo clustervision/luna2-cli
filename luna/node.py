@@ -566,7 +566,7 @@ class Node():
         Method to change a node interfaces in Luna Configuration.
         """
         real_args = deepcopy(self.args)
-        uri = self.table+'/'+self.args['name']+'/interfaces'
+        # uri = self.table+'/'+self.args['name']+'/interfaces/'+self.args['interface']
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         interface = {}
@@ -596,7 +596,8 @@ class Node():
             self.args['interfaces'] = [interface]
             for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'mtu', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
                 self.args.pop(remove, None)
-        payload = Helper().prepare_payload(uri, self.args)
+        payload = Helper().prepare_payload(self.table, self.args)
+        # payload = Helper().prepare_payload(uri, self.args)
         if payload:
             node_name = payload['name']
             del payload['name']

@@ -172,7 +172,7 @@ class Helper():
         get_data = Rest().get_data(table, uri)
         if get_data.status_code == 200:
             value = nested_lookup('options', get_data.content)
-            value = value[0]
+            value = value[0] if value else ''
         return value
 
 
@@ -293,14 +293,6 @@ class Helper():
         """
         Method to show a switch in Luna Configuration. Detail True will return the full details.
         """
-        # print("--------Detail True---------")
-        # print(Helper().get_controllers(detail=True))
-        # print("---------Detail False--------")
-        # print(Helper().get_controllers(detail=False))
-        # print("--------Detail None---------")
-        # print(Helper().get_controllers())
-        # print("---------END--------")
-
         response = {'controllers': []} if detail is True else []
         urllib3.disable_warnings()
         check = Rest().daemon_validation(parser=True)
@@ -318,7 +310,7 @@ class Helper():
                     if isinstance(value, dict):
                         response['controllers'].append(json_data[key]) if detail is True else response.append(key) # pylint: disable=W0106
             else:
-                response = Message().show_error('Cluster is unavailable at this moment.')
+                Message().show_error('Cluster is unavailable at this moment.')
         return response
 
 

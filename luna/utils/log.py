@@ -33,18 +33,22 @@ __maintainer__  = 'Sumit Sharma'
 __email__       = 'sumit.sharma@clustervision.com'
 __status__      = 'Development'
 
+
+from typing import Optional
 import sys
 import logging
 from luna.utils.constant import LOG_FILE
 
 
 class Log:
-    """This Log Class is responsible to start the Logger depend on the Level."""
-    __logger = None
+    """
+    This Log Class is responsible to start the Logger depend on the Level.
+    """
+    __logger: Optional[logging.Logger] = None
 
 
     @classmethod
-    def init_log(cls, log_level=None):
+    def init_log(cls, log_level='INFO'):
         """
         Input - log_level
         Process - Validate the Log Level, Set it to INFO if not correct.
@@ -74,16 +78,19 @@ class Log:
 
 
     @classmethod
-    def get_logger(cls):
+    def get_logger(cls) -> logging.Logger:
         """
         Input - None
         Output - Logger Object.
         """
+        # return cls.__logger
+        if cls.__logger is None:
+            raise RuntimeError("Logger has not been initialized. Call init_log() first.")
         return cls.__logger
 
 
     @classmethod
-    def set_logger(cls, log_level=None):
+    def set_logger(cls, log_level='INFO'):
         """
         Input - None
         Process - Update the existing Log Level
@@ -91,7 +98,10 @@ class Log:
         """
         levels = {'NOTSET': 0, 'DEBUG': 10, 'INFO': 20, 'WARNING': 30, 'ERROR': 40, 'CRITICAL': 50}
         log_level = levels[log_level.upper()]
-        cls.__logger.setLevel(log_level)
+        if cls.__logger is not None:
+            cls.__logger.setLevel(log_level)
+        else:
+            raise RuntimeError("Logger has not been initialized. Call init_log() first.")
         return cls.__logger
 
 

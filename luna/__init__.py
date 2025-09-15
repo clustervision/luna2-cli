@@ -38,7 +38,7 @@ INI_FILE = '/trinity/local/luna/cli/config/luna.ini'
 LOG_FOLDER = '/var/log/luna'
 CURRENT_DIR = os.path.dirname(os.path.realpath(__file__))
 
-def create_dir(path=None):
+def create_dir(path: str):
     """
     This method will create required directories
     """
