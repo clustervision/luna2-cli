@@ -226,9 +226,9 @@ class Group():
             interface['interface'] = self.args['interface']
             if self.args['network']:
                 interface['network'] = self.args['network']
-            if self.args['vlanid']:
+            if self.args['vlanid'] or self.args['vlanid'] == '':
                 interface['vlanid'] = self.args['vlanid']
-            if self.args['vlan_parent']:
+            if self.args['vlan_parent'] or self.args['vlan_parent'] == '':
                 interface['vlan_parent'] = self.args['vlan_parent']
             if self.args['bond_mode']:
                 interface['bond_mode'] = self.args['bond_mode']
@@ -284,9 +284,9 @@ class Group():
             interface['interface'] = self.args['interface']
             if self.args['network']:
                 interface['network'] = self.args['network']
-            if self.args['vlanid']:
+            if self.args['vlanid'] or self.args['vlanid'] == '':
                 interface['vlanid'] = self.args['vlanid']
-            if self.args['vlan_parent']:
+            if self.args['vlan_parent'] or self.args['vlan_parent'] == '':
                 interface['vlan_parent'] = self.args['vlan_parent']
             if self.args['bond_mode']:
                 interface['bond_mode'] = self.args['bond_mode']
@@ -382,9 +382,9 @@ class Group():
             interface['interface'] = self.args['interface']
             if self.args['network']:
                 interface['network'] = self.args['network']
-            if self.args['vlanid']:
+            if self.args['vlanid'] or self.args['vlanid'] == '':
                 interface['vlanid'] = self.args['vlanid']
-            if self.args['vlan_parent']:
+            if self.args['vlan_parent'] or self.args['vlan_parent'] == '':
                 interface['vlan_parent'] = self.args['vlan_parent']
             if self.args['bond_mode']:
                 interface['bond_mode'] = self.args['bond_mode']
