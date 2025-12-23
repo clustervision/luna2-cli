@@ -271,7 +271,7 @@ class Node():
                 interface['vlan_parent'] = self.args['vlan_parent']
             if self.args['bond_mode'] or self.args['bond_mode'] == '':
                 interface['bond_mode'] = self.args['bond_mode']
-            if self.args['bond_slaves'] or self.args['bond_slaves'] == '':
+            if self.args['bond_slaves']:
                 interface['bond_slaves'] = self.args['bond_slaves']
             if self.args['ipaddress']:
                 interface['ipaddress'] = self.args['ipaddress']
@@ -455,7 +455,7 @@ class Node():
                 interface['vlan_parent'] = self.args['vlan_parent']
             if self.args['bond_mode'] or self.args['bond_mode'] == '':
                 interface['bond_mode'] = self.args['bond_mode']
-            if self.args['bond_slaves'] or self.args['bond_slaves'] == '':
+            if self.args['bond_slaves']:
                 interface['bond_slaves'] = self.args['bond_slaves']
             if self.args['ipaddress']:
                 interface['ipaddress'] = self.args['ipaddress']
@@ -580,7 +580,7 @@ class Node():
                 interface['vlan_parent'] = self.args['vlan_parent']
             if self.args['bond_mode'] or self.args['bond_mode'] == '':
                 interface['bond_mode'] = self.args['bond_mode']
-            if self.args['bond_slaves'] or self.args['bond_slaves'] == '':
+            if self.args['bond_slaves']:
                 interface['bond_slaves'] = self.args['bond_slaves']
             if self.args['ipaddress']:
                 interface['ipaddress'] = self.args['ipaddress']
