@@ -71,8 +71,8 @@ class Node():
         """
         Method will provide all the arguments related to the Node class.
         """
-        node_menu = subparsers.add_parser('node', help='Compute Node operations.')
-        node_args = node_menu.add_subparsers(dest='action')
+        node_menu = subparsers.add_parser('node', help='Compute Node operations.', description='Luna node manages the nodes. All inheritable configuration from the group or cluster can be overridden here. This offers a great range of freedom where a set of nodes being nearly identical except for e.g. the bmcsetup can be setup without having duplicate configuration. The alternative bmcsetup profile can be simply set for just that node.')
+        node_args = node_menu.add_subparsers(dest='action', title='commands', description='Available node operations')
         node_list = node_args.add_parser('list', help='List All Nodes')
         Arguments().common_list_args(node_list)
         node_show = node_args.add_parser('show', help='Show A Node')

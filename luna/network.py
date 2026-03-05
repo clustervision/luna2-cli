@@ -71,8 +71,8 @@ class Network():
         Method will provide all the arguments related to the Network class.
         """
         controllers = Helper().get_controllers()
-        network_menu = subparsers.add_parser('network', help='Network operations.')
-        network_args = network_menu.add_subparsers(dest='action')
+        network_menu = subparsers.add_parser('network', help='Network operations.', description='Luna network manages the networks. Changed values will also automatically be reflected in depended components like groups and nodes where respective interfaces are member of the altered network.')
+        network_args = network_menu.add_subparsers(dest='action', title='commands', description='Available network operations')
         network_list = network_args.add_parser('list', help='List Networks')
         Arguments().common_list_args(network_list)
         network_show = network_args.add_parser('show', help='Show Network')
