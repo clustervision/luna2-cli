@@ -354,10 +354,7 @@ luna service dhcp {start/stop/restart/reload/status}
 ```
 luna service dns {start/stop/restart/reload/status}
 ```
-3. Perform action on Luna 2 Daemon Service
-```
-luna service luna2 {start/stop/restart/reload/status}
-```
+
 ## Commands Control
 1. Check Node(s) power status
 ```

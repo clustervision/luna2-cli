@@ -53,7 +53,7 @@ EDITOR_KEYS = [
     'grab_exclude', 'kerneloptions'
 ]
 SERVICE_ACTIONS = ['start', 'stop', 'restart', 'reload', 'status']
-SERVICES = ['dhcp', 'dns', 'luna2']
+SERVICES = ['dhcp', 'dns']
 TOOL_DESCRIPTION = '''\
     Manage Luna Cluster
     --------------------------------
