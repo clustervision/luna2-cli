@@ -69,7 +69,8 @@ class Group():
         """
         Method will provide all the arguments related to the Group class.
         """
-        group_menu = subparsers.add_parser('group', help='Group operations', description='Luna group manages the groups or categories of nodes. Nodes are typically member of a group where equal configuration can be done on a higher level. Good examples are to use a group for nodes where these boot the same osimage. It is common practice to have separate groups for a function or category like a compute node category, storage servers and login nodes.')
+        group_menu = subparsers.add_parser('group', help='Group operations',
+            description='Luna group manages the groups or categories of nodes.\nNodes are typically member of a group where equal\nconfiguration can be done on a higher level. Good examples\nare to use a group for nodes where these boot the same\nosimage. It is common practice to have separate groups for\na function or category like a compute node category,\nstorage servers and login nodes.')
         group_args = group_menu.add_subparsers(dest='action', title='commands', description='Available group operations')
         group_list = group_args.add_parser('list', help='List Groups')
         Arguments().common_list_args(group_list)

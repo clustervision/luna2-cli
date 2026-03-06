@@ -62,7 +62,8 @@ class OtherDev():
         Method will provide all the arguments
         related to the OtherDev class.
         """
-        otherdev_menu = subparsers.add_parser('otherdev', help='Other Devices operations.', description='Luna otherdev(ices) allows to add, change and remove devices like cameras, PDU-s and UPS-es. These devices will not be probed or accessed are primarily there to complete a rack layout (pun) or cluster interal DNS zone information.')
+        otherdev_menu = subparsers.add_parser('otherdev', help='Other Devices operations.',
+            description='Luna otherdev(ices) allows to add, change and remove\ndevices like cameras, PDU-s and UPS-es. These devices\nwill not be probed or accessed are primarily there to\ncomplete a rack layout (pun) or cluster interal DNS zone\ninformation.')
         otherdev_args = otherdev_menu.add_subparsers(dest='action', title='commands', description='Available otherdev operations')
         otherdev_list = otherdev_args.add_parser('list', help='List Other Devices')
         Helper().common_list_args(otherdev_list)

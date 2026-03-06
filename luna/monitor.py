@@ -63,7 +63,8 @@ class Monitor():
         """
         Method will provide all the arguments related to the Monitor class.
         """
-        monitor = subparsers.add_parser('monitor', help='Get Monitor Status.', description='This related to monitoring luna status messages and queues.')
+        monitor = subparsers.add_parser('monitor', help='Get Monitor Status.',
+            description='This relates to monitoring luna status messages and\nqueues.')
         monitor.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         monitor_menu = monitor.add_subparsers(dest='action', title='commands', description='Available monitor operations')
         monitor_status = monitor_menu.add_parser('status', help='Get Monitor Status.')

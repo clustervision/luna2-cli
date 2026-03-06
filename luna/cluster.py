@@ -62,7 +62,8 @@ class Cluster():
         Method will provide all the arguments related to the Cluster class.
         """
         controllers = Helper().get_controllers()
-        cluster_menu = subparsers.add_parser('cluster', help='Cluster Information.', description='Luna cluster shows and alters cluster level configuration like DNS forwarders, provisioning method etc.')
+        cluster_menu = subparsers.add_parser('cluster', help='Cluster Information.',
+            description='Luna cluster shows and alters cluster level\nconfiguration like DNS forwarders, provisioning method\netc.')
         Arguments().common_list_args(cluster_menu)
         cluster_args = cluster_menu.add_subparsers(dest='action', title='commands', description='Available cluster operations')
         cluster_show = cluster_args.add_parser('show', help='Show Cluster configuration details')

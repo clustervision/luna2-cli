@@ -61,7 +61,8 @@ class Switch():
         """
         Method will provide all the arguments related to the Switch class.
         """
-        switch_menu = subparsers.add_parser('switch', help='Switch operations.', description='Luna switch manages the optional switches. Switches configured with an IP address and OID will be scanned on interval to aid in switch port based node detection.')
+        switch_menu = subparsers.add_parser('switch', help='Switch operations.',
+            description='Luna switch manages the optional switches. Switches\nconfigured with an IP address and OID will be scanned\non interval to aid in switch port based node detection.')
         switch_args = switch_menu.add_subparsers(dest='action', title='commands', description='Available switch operations')
         switch_list = switch_args.add_parser('list', help='List Switch')
         Helper().common_list_args(switch_list)
