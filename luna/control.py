@@ -68,7 +68,9 @@ class Control():
         Method will provide all the arguments related to the Control Process class.
         """
         control_menu = subparsers.add_parser('control', help='Control Nodes.',
-            description='This is a Luna tool fully supporting the APIs. A\nseparate tool named lpower also controls the nodes the\nsame way as luna control.')
+            description='This is a Luna tool fully supporting the APIs. A '
+                        'separate tool named lpower also controls the nodes '
+                        'the same way as luna control.')
         control_args = control_menu.add_subparsers(dest='system', title='commands', description='Available control operations')
         power_parser = control_args.add_parser('power', help='Power Operations')
         power_menu = power_parser.add_subparsers(dest='action')

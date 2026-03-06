@@ -62,7 +62,9 @@ class Cloud():
         Method will provide all the arguments related to the Cloud Provider class.
         """
         cloud_menu = subparsers.add_parser('cloud', help='Cloud Operations.',
-            description='This refers to anything related to external cloud\nprovider(s) and making changes to those within trinityX.')
+            description='This refers to anything related to external cloud '
+                        'provider(s) and making changes to those within '
+                        'trinityX.')
         cloud_args = cloud_menu.add_subparsers(dest='action', title='commands', description='Available cloud operations')
         cloud_list = cloud_args.add_parser('list', help='List All Cloud Providers')
         Arguments().common_list_args(cloud_list)
