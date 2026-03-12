@@ -65,8 +65,10 @@ class Service():
         """
         Method will provide all the arguments related to the Service class.
         """
-        service_menu = subparsers.add_parser('service', help='Service operations.')
-        service_args = service_menu.add_subparsers(dest='service')
+        service_menu = subparsers.add_parser('service', help='Service operations.',
+            description='Luna service allows to manually stop, start, restart '
+                        'and status services like dns and dhcp.')
+        service_args = service_menu.add_subparsers(dest='service', title='commands', description='Available services')
         for name in SERVICES:
             service = service_args.add_parser(name, help=f'{name.upper()} Service')
             service_parser = service.add_subparsers(dest='action')

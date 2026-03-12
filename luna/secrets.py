@@ -62,8 +62,13 @@ class Secrets():
         """
         Method will provide all the arguments related to the Secrets class.
         """
-        secrets_menu = subparsers.add_parser('secrets', help='Secrets operations.')
-        secrets_args = secrets_menu.add_subparsers(dest='action')
+        secrets_menu = subparsers.add_parser('secrets', help='Secrets operations.',
+            description='Luna secrets stores data for groups and nodes in '
+                        'an encrypted way. Secrets is typically used to store '
+                        'keytabs, certificates or other sensitive '
+                        'information that would otherwise be stored inside '
+                        'the osimage.')
+        secrets_args = secrets_menu.add_subparsers(dest='action', title='commands', description='Available secrets operations')
         ## >>>>>>> Secrets Command >>>>>>> list
         list_secrets = secrets_args.add_parser('list', help='List Secrets')
         list_secrets.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')

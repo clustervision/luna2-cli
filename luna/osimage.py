@@ -75,8 +75,10 @@ class OSImage():
         """
         Method will provide all the arguments related to the OSImage class.
         """
-        osimage_menu = subparsers.add_parser('osimage', help='OSImage operations.')
-        osimage_args = osimage_menu.add_subparsers(dest='action')
+        osimage_menu = subparsers.add_parser('osimage', help='OSImage operations.',
+            description='This refers to changes and management of supported '
+                        'osimages within trinityX and to boot worker nodes.')
+        osimage_args = osimage_menu.add_subparsers(dest='action', title='commands', description='Available osimage operations')
         osimage_list = osimage_args.add_parser('list', help='List OSImages')
         Arguments().common_list_args(osimage_list)
         osimage_show = osimage_args.add_parser('show', help='Show a OSImage')
