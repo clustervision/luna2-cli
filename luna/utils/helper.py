@@ -632,8 +632,10 @@ class Helper():
                                     Message().show_success(f'[ FAILED ] {msg}')
                                 else:
                                     Message().show_success(f'[========] {msg}')
-                        if task_status != 200:
-                            return task_status
+                    if task_status == 404:
+                        return 500
+                    elif task_status != 200:
+                        return task_status
                     return result.status_code
             status = 200
             response = True
@@ -645,10 +647,15 @@ class Helper():
             process1.terminate()
         if response:
             Message().show_success(f'[========] OSImage Grabbed for node {data["name"]}.')
-        elif response is None:
-            Message().show_failed_exit(f'[ FAILED ] OSImage not grabbed for node {data["name"]}: {result.content}.')
         else:
-            Message().show_failed_exit(f'[ FAILED ] OSImage not grabbed for node {data["name"]}.')
+            message = result.content
+            try:
+                http_response = result.json()
+                if 'message' in http_response:
+                    message = http_response['message']
+            except:
+                pass
+            Message().show_failed_exit(f'[ FAILED ] OSImage not grabbed for node {data["name"]}: {message}.')
         return True
 
 
@@ -690,8 +697,10 @@ class Helper():
                                     Message().show_success(f'[ FAILED ] {msg}')
                                 else:
                                     Message().show_success(f'[========] {msg}')
-                        if task_status != 200:
-                            return task_status
+                    if task_status == 404:
+                        return 500
+                    elif task_status != 200:
+                        return task_status
                     return result.status_code
             status = 200
             response = True
@@ -703,10 +712,15 @@ class Helper():
             process1.terminate()
         if response:
             Message().show_success(f'[========] OSImage Pushed for {table} {data["name"]}.')
-        elif response is None:
-            Message().show_success(f'[ FAILED ] OSImage not pushed for {table} {data["name"]}: {result.content}.')
         else:
-            Message().show_success(f'[ FAILED ] OSImage not pushed for {table} {data["name"]}.')
+            message = result.content
+            try:
+                http_response = result.json()
+                if 'message' in http_response:
+                    message = http_response['message']
+            except:
+                pass
+            Message().show_success(f'[ FAILED ] OSImage not pushed for {table} {data["name"]}: {message}.')
         return True
 
 
