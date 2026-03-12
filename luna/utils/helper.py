@@ -720,7 +720,7 @@ class Helper():
                     message = http_response['message']
             except:
                 pass
-            Message().show_success(f'[ FAILED ] OSImage not pushed for {table} {data["name"]}: {message}.')
+            Message().show_failed_exit(f'[ FAILED ] OSImage not pushed for {table} {data["name"]}: {message}.')
         return True
 
 
