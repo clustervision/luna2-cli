@@ -72,7 +72,7 @@ class BMCSetup():
         bmcsetup_show = bmcsetup_args.add_parser('show', help='Show BMC Setup')
         bmcsetup_show.add_argument('name', help='BMC Setup Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(bmcsetup_show)
-        bmcsetup_member = bmcsetup_args.add_parser('member', help='OS Image Used by Nodes')
+        bmcsetup_member = bmcsetup_args.add_parser('member', help='OSImage Used by Nodes')
         bmcsetup_member.add_argument('name', help='BMC Setup Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(bmcsetup_member)
         bmcsetup_add = bmcsetup_args.add_parser('add', help='Add BMC Setup')

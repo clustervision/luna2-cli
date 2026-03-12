@@ -114,12 +114,11 @@ class Service():
             process1.start()
             if 'request_id' in content:
                 uri = f'service/status/{content["request_id"]}'
-                def dig_service_status(uri, task_result=True):
+                def dig_service_status(uri):
                     task_status = 200
                     result = Rest().get_raw(uri)
                     if result.status_code == 404:
-                        process1.terminate()
-                        return task_result
+                        pass
                     elif result.status_code == 200:
                         http_response = result.json()
                         if http_response['message']:
@@ -129,20 +128,25 @@ class Service():
                             for msg in message:
                                 sleep(1)
                                 if task_status != 200:
-                                    task_result = False
                                     Message().show_success(f'[ FAILED ] {msg}')
+                                    return task_status
                                 # below 'elif' will disappear in the future as we track per tasks status like above 'if'
                                 elif 'error' in msg.lower() or 'fail' in msg.lower():
-                                    task_result = False
                                     Message().show_success(f'[ FAILED ] {msg}')
+                                    return task_status
                                 else:
                                     Message().show_success(f'[========] {msg}')
-                        sleep(1)
-                        return dig_service_status(uri, task_result)
                     else:
                         Message().error_exit(result.content, result.status_code)
-                        return False
-                response = dig_service_status(uri)
+                    return result.status_code
+                status = 200
+                response = True
+                while status != 404:
+                    status = dig_service_status(uri)
+                    if status in [500, 501, 503]:
+                        response = False
+                    sleep(1)
+                process1.terminate()
                 service = self.args['service']
                 action = self.args['action']
                 if response:

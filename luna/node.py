@@ -108,8 +108,8 @@ class Node():
                                                  'Utilizes the settings for grab_filesystems and grab_exclude '
                                                  'of the provided OSImage')
         node_osgrab.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
-        node_osgrab.add_argument('-o', '--osimage', help='OS Image Name').completer = Helper().name_completer("osimage")
-        node_osgrab.add_argument('-b', '--bare', action='store_true', default=None, help='Bare OS Image(Exclude Packing)')
+        node_osgrab.add_argument('-o', '--osimage', help='OSImage Name').completer = Helper().name_completer("osimage")
+        node_osgrab.add_argument('-b', '--bare', action='store_true', default=None, help='Bare OSImage (Exclude Packing)')
         node_osgrab.add_argument('--nodry', action='store_true', default=None,
                                  help='No Dry flag to avoid dry run')
         node_osgrab.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')

@@ -109,7 +109,7 @@ class Group():
                                                           'Utilizes the settings for '
                                                           'grab_filesystems and grab_exclude of the provided OSImage')
         group_ospush.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
-        group_ospush.add_argument('-o', '--osimage', help='OS Image Name').completer = Helper().name_completer("osimage")
+        group_ospush.add_argument('-o', '--osimage', help='OSImage Name').completer = Helper().name_completer("osimage")
         group_ospush.add_argument('--nodry', action='store_true', default=None,
                                   help='No Dry flag to avoid dry run')
         group_ospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')

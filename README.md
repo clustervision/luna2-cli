@@ -66,8 +66,8 @@ luna network ipinfo {Network Name} {IP Address}
 luna network nextip {Network Name}
 ```
 
-## Commands OS Image
-1. List of all os images
+## Commands OSImage
+1. List of all osimages
 ```
 luna osimage list
 ```
@@ -103,7 +103,7 @@ luna osimage pack {OSImage Name}
 ```
 luna osimage kernel {OSImage Name}  -rd {InitRD File} -k {Kernel File} -ver {Kernel Version}
 ```
-10. OS Image used by nodes.
+10. OSImage used by nodes.
 ```
 luna osimage member {OSImage Name}
 ```
@@ -213,15 +213,15 @@ luna group show {Group Name}
 ```
 3. Add a Group.
 ```
-luna group add {Group Name} -b {BMC Setup} -bmc {BMC Setup Name} -D {Domain Name} -o {OS Image Name} -pre {Pre Script} -part {Part Script} -post {Post Script} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -pi {Provision Interface} -pm {Provision Method} -fb {Provision Fallback} -ubu {Unmanaged BMC Users} -if {Interface Name} -N {Interface Network Name} -O {Interface Options} -c {Comment}
+luna group add {Group Name} -b {BMC Setup} -bmc {BMC Setup Name} -D {Domain Name} -o {OSImage Name} -pre {Pre Script} -part {Part Script} -post {Post Script} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -pi {Provision Interface} -pm {Provision Method} -fb {Provision Fallback} -ubu {Unmanaged BMC Users} -if {Interface Name} -N {Interface Network Name} -O {Interface Options} -c {Comment}
 ```
 4. Make change in a Group.
 ```
-luna group change {Group Name} -b {BMC Setup} -bmc {BMC Setup Name} -D {Domain Name} -o {OS Image Name} -pre {Pre Script} -part {Part Script} -post {Post Script} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -pi {Provision Interface} -pm {Provision Method} -fb {Provision Fallback} -ubu {Unmanaged BMC Users} -if {Interface Name} -N {Interface Network Name} -O {Interface Options} -c {Comment}
+luna group change {Group Name} -b {BMC Setup} -bmc {BMC Setup Name} -D {Domain Name} -o {OSImage Name} -pre {Pre Script} -part {Part Script} -post {Post Script} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -pi {Provision Interface} -pm {Provision Method} -fb {Provision Fallback} -ubu {Unmanaged BMC Users} -if {Interface Name} -N {Interface Network Name} -O {Interface Options} -c {Comment}
 ```
 5. Clone a Group.
 ```
-luna group clone {Group Name} {New Group Name} -b {BMC Setup} -bmc {BMC Setup Name} -D {Domain Name} -o {OS Image Name} -pre {Pre Script} -part {Part Script} -post {Post Script} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -pi {Provision Interface} -pm {Provision Method} -fb {Provision Fallback} -ubu {Unmanaged BMC Users} -if {Interface Name} -N {Interface Network Name} -O {Interface Options} -c {Comment}
+luna group clone {Group Name} {New Group Name} -b {BMC Setup} -bmc {BMC Setup Name} -D {Domain Name} -o {OSImage Name} -pre {Pre Script} -part {Part Script} -post {Post Script} -nb {Network Boot} -li {Local Install} -bm {Boot Menu} -pi {Provision Interface} -pm {Provision Method} -fb {Provision Fallback} -ubu {Unmanaged BMC Users} -if {Interface Name} -N {Interface Network Name} -O {Interface Options} -c {Comment}
 ```
 6. Rename a Group.
 ```

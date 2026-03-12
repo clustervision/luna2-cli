@@ -86,17 +86,17 @@ class OSImage():
         osimage_show.add_argument('name', help='OSImage Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(osimage_show)
         osimage_member = osimage_args.add_parser('member', help='Lists which nodes are using the OSImage')
-        osimage_member.add_argument('name', help='OS Image Name').completer = Helper().name_completer(self.table)
+        osimage_member.add_argument('name', help='OSImage Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(osimage_member)
         osimage_add = osimage_args.add_parser('add', help='Add an OSImage')
-        osimage_add.add_argument('name', help='OS Image Name')
+        osimage_add.add_argument('name', help='OSImage Name')
         Arguments().common_osimage_args(osimage_add)
         osimage_change = osimage_args.add_parser('change', help='Change OSImage setting and parameters')
-        osimage_change.add_argument('name', help='OS Image Name').completer = Helper().name_completer(self.table)
+        osimage_change.add_argument('name', help='OSImage Name').completer = Helper().name_completer(self.table)
         Arguments().common_osimage_args(osimage_change)
         osimage_change.add_argument('-t', '--tag', help='Set an OSImage Tag. Tags are used to label or version a packed OSImage')
         osimage_clone = osimage_args.add_parser('clone', help='Clone an OSImage')
-        osimage_clone.add_argument('name', help='OS Image Name').completer = Helper().name_completer(self.table)
+        osimage_clone.add_argument('name', help='OSImage Name').completer = Helper().name_completer(self.table)
         Arguments().common_osimage_args(osimage_clone)
         osimage_clone.add_argument('-t', '--tag', help='Set an OSImage Tag. Tags are used to label or version a packed OSImage')
         osimage_clone.add_argument('--nocopy', action='store_true', default=None, help='Clone but without copying files')
@@ -107,10 +107,10 @@ class OSImage():
         osimage_rename.add_argument('newosimage', help='New OSImage Name')
         osimage_rename.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         osimage_remove = osimage_args.add_parser('remove', help='Remove an OSImage')
-        osimage_remove.add_argument('name', help='Name of the OS Image').completer = Helper().name_completer(self.table)
+        osimage_remove.add_argument('name', help='Name of the OSImage').completer = Helper().name_completer(self.table)
         osimage_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         osimage_pack = osimage_args.add_parser('pack', help='Pack an OSImage')
-        osimage_pack.add_argument('name', help='Name of the OS Image').completer = Helper().name_completer(self.table)
+        osimage_pack.add_argument('name', help='Name of the OSImage').completer = Helper().name_completer(self.table)
         osimage_pack.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         osimage_kernel = osimage_args.add_parser('kernel', help='Change the Kernel Version')
         osimage_kernel.add_argument('name', help='Name of the OSImage').completer = Helper().name_completer(self.table)
@@ -207,35 +207,38 @@ class OSImage():
         if result.status_code == 200:
             http_response = result.content
             if 'request_id' in http_response.keys():
-                process1 = Process(target=Helper().loader, args=("OS Image Cloning...",))
+                process1 = Process(target=Helper().loader, args=("OSImage Cloning...",))
                 process1.start()
                 uri = f'config/status/{http_response["request_id"]}'
-                def dig_packing_status(uri, task_result=True):
+                def dig_packing_status(uri):
                     task_status = 200
                     result = Rest().get_raw(uri)
                     if result.status_code == 404:
-                        process1.terminate()
-                        return task_result
+                        pass
                     elif result.status_code == 200:
                         http_response = result.json()
                         if 'status' in http_response and isinstance(http_response['status'], int):
                             task_status = http_response['status']
-                        if task_status != 200:
-                            task_result = False
                         if http_response['message']:
                             message = http_response['message'].split(';;')
                             for msg in message:
-                                sleep(2)
+                                sleep(1)
                                 Message().show_success(f'{msg}')
-                        sleep(2)
-                        return dig_packing_status(uri, task_result)
+                        if task_status != 200:
+                            return task_status
                     else:
                         Message().error_exit(f'{result.content}', result.status_code)
-                        return False
-
-                response = dig_packing_status(uri)
+                    return result.status_code
+            response = True
+            status = 200
+            while status != 404:
+                status = dig_packing_status(uri)
+                if status in [500, 501, 503]:
+                    response = False
+                sleep(2)
+            process1.terminate()
         if response:
-            Message().show_success(f'[========] OS Image {self.args["newosimage"]} Cloned.')
+            Message().show_success(f'[========] OSImage {self.args["newosimage"]} Cloned.')
         elif response is None:
             Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} not Cloned: {result.content}.')
         else:
@@ -262,36 +265,39 @@ class OSImage():
                     Message().show_success(f'{http_response["message"]}')
 
             if 'request_id' in http_response.keys():
-                process1 = Process(target=Helper().loader, args=("OS Image Packing...",))
+                process1 = Process(target=Helper().loader, args=("OSImage Packing...",))
                 process1.start()
                 uri = f'config/status/{http_response["request_id"]}'
-
-                def dig_packing_status(uri, task_result=True):
-                    sleep(2)
+                def dig_packing_status(uri):
                     task_status = 200
                     result = Rest().get_raw(uri)
                     if result.status_code == 404:
-                        process1.terminate()
-                        return task_result
+                        pass
                     elif result.status_code == 200:
                         http_response = result.json()
                         if 'status' in http_response and isinstance(http_response['status'], int):
                             task_status = http_response['status']
-                        if task_status != 200:
-                            task_result = False
                         if http_response['message']:
                             if len(http_response['message']) > 5:
                                 message = http_response['message'].split(';;')
                                 for msg in message:
-                                    sleep(2)
+                                    sleep(1)
                                     Message().show_success(f'{msg}')
                             else:
                                 Message().show_success(f'{http_response["message"]}')
-                        return dig_packing_status(uri, task_result)
+                        if task_status != 200:
+                            return task_status
                     else:
                         Message().error_exit(f'{result.content}', result.status_code)
-                        return False
-                response = dig_packing_status(uri)
+                    return result.status_code
+            response = True
+            status = 200
+            while status != 404:
+                sleep(2) # yes, before.
+                status = dig_packing_status(uri)
+                if status in [500, 501, 503]:
+                    response = False
+            process1.terminate()
         if response:
             Message().show_success(f'[========] Image {self.args["name"]} Packed.')
         elif response is None:
@@ -313,7 +319,7 @@ class OSImage():
         self.logger.debug(f'Change Kernel URI => {payload["name"]}/kernel')
         result = Rest().post_data(self.table, payload['name']+'/kernel', request_data)
         if result.status_code == 204:
-            Message().show_success(f'OS Image {self.args["name"]} Kernel is updated.')
+            Message().show_success(f'OSImage {self.args["name"]} Kernel is updated.')
         elif result.status_code == 200:
             response = None
             http_response = result.content
@@ -327,32 +333,36 @@ class OSImage():
                     Message().show_success(f'{http_response["message"]}')
 
             if 'request_id' in http_response.keys():
-                process1 = Process(target=Helper().loader, args=("OS Image Kernel Updating...",))
+                process1 = Process(target=Helper().loader, args=("OSImage Kernel Updating...",))
                 process1.start()
                 uri = f'config/status/{http_response["request_id"]}'
-                def dig_packing_status(uri, task_result=True):
-                    sleep(2)
+                def dig_packing_status(uri):
                     task_status = 200
                     result = Rest().get_raw(uri)
                     if result.status_code == 404:
-                        process1.terminate()
-                        return task_result
+                        pass
                     elif result.status_code == 200:
                         http_response = result.json()
                         if 'status' in http_response and isinstance(http_response['status'], int):
                             task_status = http_response['status']
-                        if task_status != 200:
-                            task_result = False
                         if http_response['message']:
                             message = http_response['message'].split(';;')
                             for msg in message:
-                                sleep(2)
+                                sleep(1)
                                 Message().show_success(f'{msg}')
-                        return dig_packing_status(uri, task_result)
+                        if task_status != 200:
+                            return task_status
                     else:
                         Message().error_exit(f'{result.content}', result.status_code)
-                        return False
-                response = dig_packing_status(uri)
+                    return result.status_code
+            response = True
+            status = 200
+            while status != 404:
+                sleep(2) # yes, before.
+                status = dig_packing_status(uri)
+                if status in [500, 501, 503]:
+                    response = False
+            process1.terminate()
             if response:
                 Message().show_success(f'[========] Image {self.args["name"]} Packed.')
             elif response is None:
@@ -392,12 +402,12 @@ class OSImage():
                 fields, osimage, rows  = Helper().filter_osimage_col("osimagetag", data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
-                title = f' << OS Image Tags for {self.args["name"]} >>'
+                title = f' << OSImage Tags for {self.args["name"]} >>'
                 # response = Presenter().show_table(title, fields, rows)
                 # response = Presenter().show_table_col(title, fields, rows)
                 response = Presenter().show_table_col_more_fields(title, fields, osimage, rows)
         else:
-            response = Message().show_error(f'OS Image Tags is not found for {self.args["name"]}.')
+            response = Message().show_error(f'OSImage Tags is not found for {self.args["name"]}.')
         return response
 
 
@@ -411,7 +421,7 @@ class OSImage():
         self.logger.debug(f'Payload => {request_data}')
         response = Rest().post_data(self.table, f"{self.args['name']}/tag", request_data)
         if response.status_code == 204:
-            Message().show_success(f'OS Image {self.args["name"]} Tag {self.args["tag"]} is Updated.')
+            Message().show_success(f'OSImage {self.args["name"]} Tag {self.args["tag"]} is Updated.')
         else:
             Message().error_exit(response.content, response.status_code)
         return True
@@ -425,7 +435,7 @@ class OSImage():
         response = Rest().get_raw(route)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
-            Message().show_success(f'OS Image {self.args["name"]} Tag {self.args["tag"]} is removed.')
+            Message().show_success(f'OSImage {self.args["name"]} Tag {self.args["tag"]} is removed.')
         else:
             if response.content:
                 message = response.json()
