@@ -68,7 +68,7 @@ class Message():
         sys.exit(1)
 
 
-    def show_error(self, message=None):
+    def show_error(self, message=None, code=None):
         """
         This method will print the standard error.
         """
