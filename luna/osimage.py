@@ -212,8 +212,11 @@ class OSImage():
                 uri = f'config/status/{http_response["request_id"]}'
                 def dig_packing_status(uri):
                     task_status = 200
-                    result = Rest().get_raw(uri)
-                    if result.status_code == 404:
+                    result = Rest().get_raw(route=uri, noexit=True)
+                    if isinstance(result, bool):
+                        sleep(2)
+                        return 503
+                    elif result.status_code == 404:
                         pass
                     elif result.status_code == 200:
                         http_response = result.json()
@@ -227,7 +230,7 @@ class OSImage():
                         if task_status != 200:
                             return task_status
                     else:
-                        Message().error_exit(f'{result.content}', result.status_code)
+                        Message().show_error(f'{result.content}', result.status_code)
                     return result.status_code
             response = True
             status = 200
@@ -270,8 +273,11 @@ class OSImage():
                 uri = f'config/status/{http_response["request_id"]}'
                 def dig_packing_status(uri):
                     task_status = 200
-                    result = Rest().get_raw(uri)
-                    if result.status_code == 404:
+                    result = Rest().get_raw(route=uri, noexit=True)
+                    if isinstance(result, bool):
+                        sleep(2)
+                        return 503
+                    elif result.status_code == 404:
                         pass
                     elif result.status_code == 200:
                         http_response = result.json()
@@ -288,7 +294,8 @@ class OSImage():
                         if task_status != 200:
                             return task_status
                     else:
-                        Message().error_exit(f'{result.content}', result.status_code)
+                        Message().show_error(f'{result.content}', result.status_code)
+                        return 500
                     return result.status_code
             response = True
             status = 200
@@ -338,8 +345,11 @@ class OSImage():
                 uri = f'config/status/{http_response["request_id"]}'
                 def dig_packing_status(uri):
                     task_status = 200
-                    result = Rest().get_raw(uri)
-                    if result.status_code == 404:
+                    result = Rest().get_raw(route=uri, noexit=True)
+                    if isinstance(result, bool):
+                        sleep(2)
+                        return 503
+                    elif result.status_code == 404:
                         pass
                     elif result.status_code == 200:
                         http_response = result.json()
@@ -353,7 +363,7 @@ class OSImage():
                         if task_status != 200:
                             return task_status
                     else:
-                        Message().error_exit(f'{result.content}', result.status_code)
+                        Message().show_error(f'{result.content}', result.status_code)
                     return result.status_code
             response = True
             status = 200

@@ -116,8 +116,11 @@ class Service():
                 uri = f'service/status/{content["request_id"]}'
                 def dig_service_status(uri):
                     task_status = 200
-                    result = Rest().get_raw(uri)
-                    if result.status_code == 404:
+                    result = Rest().get_raw(route=uri, noexit=True)
+                    if isinstance(result, bool):
+                        sleep(2)
+                        return 503
+                    elif result.status_code == 404:
                         pass
                     elif result.status_code == 200:
                         http_response = result.json()
