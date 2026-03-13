@@ -52,7 +52,7 @@ class Arguments():
         """
         This method will provide the common bmcsetup arguments.
         """
-        parser.add_argument('-i', '--userid', type=int, help='UserID')
+        parser.add_argument('-i', '--userid', type=int, help='ID to use for the BMC user configuration')
         parser.add_argument('-u', '--username', help='Username')
         parser.add_argument('-p', '--password', help='Password')
         parser.add_argument('-n', '--netchannel', type=int, help='Network Channel')
@@ -80,16 +80,16 @@ class Arguments():
         This method will provide the common group arguments.
         """
         parser.add_argument('-e', '--setupbmc', choices=BOOL_CHOICES,
-                               metavar=BOOL_META, help='BMC Setup')
-        parser.add_argument('-o', '--osimage', help='OS Image Name').completer = Helper().name_completer("osimage")
-        parser.add_argument('-t', '--osimagetag', help='OS Image Tag')
-        parser.add_argument('-k', '--kerneloptions', action='store_true', help='Kernel Options')
+                               metavar=BOOL_META, help='Enables or disables the use of BMC')
+        parser.add_argument('-o', '--osimage', help='Sets the used OSImage for the group').completer = Helper().name_completer("osimage")
+        parser.add_argument('-t', '--osimagetag', help='Sets the name of the OSImage Tag to use for booting')
+        parser.add_argument('-k', '--kerneloptions', action='store_true', help='Overrides OSImage kernel options')
         parser.add_argument('-qk', '--quick-kerneloptions', dest='kerneloptions',
                                 metavar="File-Path OR In-Line", help='Kernel Options File-Path OR In-Line')
         parser.add_argument('-b', '--bmcsetupname', help='BMC Setup Name').completer = Helper().name_completer("bmcsetup")
         parser.add_argument('-d', '--domain', help='Domain Name')
-        parser.add_argument('-r', '--roles', help='Roles')
-        parser.add_argument('-s', '--scripts', help='Scripts')
+        parser.add_argument('-r', '--roles', help='Sets the roles used for the group. Multiple roles can be supplied comma separated')
+        parser.add_argument('-s', '--scripts', help='Sets the scripts used for the group. Multiple scripts can be supplied comma separated')
         parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
         parser.add_argument('-qpre', '--quick-prescript', dest='prescript',
                         metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
@@ -99,15 +99,15 @@ class Arguments():
         parser.add_argument('-post', '--postscript', action='store_true', help='Post Script')
         parser.add_argument('-qpost', '--quick-postscript', dest='postscript',
                         metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
-        parser.add_argument('-i', '--provision_interface', help='Provision Interface')
-        parser.add_argument('-p', '--provision_method', help='Provision Method')
-        parser.add_argument('-f', '--provision_fallback', help='Provision Fallback')
+        parser.add_argument('-i', '--provision_interface', help='Overrides the Cluster provisioning interface')
+        parser.add_argument('-p', '--provision_method', help='Overrides Cluster (primary) provisioning method')
+        parser.add_argument('-f', '--provision_fallback', help='Overrides Cluster fallback provisioning method')
         parser.add_argument('-n', '--netboot', choices=BOOL_CHOICES,
-                               metavar=BOOL_META, help='Network Boot')
+                               metavar=BOOL_META, help='Enables or disables network based boots. Disabling allows for local node, e.g. disk boot')
         parser.add_argument('-m', '--bootmenu', choices=BOOL_CHOICES,
-                               metavar=BOOL_META, help='Boot Menu')
+                               metavar=BOOL_META, help='Cosmetic setting that enables or disables the displaying of the iPXE boot menu')
         parser.add_argument('-U', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
-        parser.add_argument('-if', '--interface', help='Interface Name').completer = Helper().interface_name_completer("group")
+        parser.add_argument('-if', '--interface', help='Interface operations, requires a name').completer = Helper().interface_name_completer("group")
         parser.add_argument('-N', '--network', help='Interface Network Name. * Interface is Required.').completer = Helper().name_completer("network")
         parser.add_argument('-L', '--vlanid', help='Interface VLAN ID. * Interface is Required.')
         parser.add_argument('--mtu', help='MTU size * Interface is Required.')
@@ -134,19 +134,19 @@ class Arguments():
             parser.add_argument('-g', '--group', required=True, help='Group Name')
         else:
             parser.add_argument('-g', '--group', help='Group Name').completer = Helper().name_completer("group")
-        parser.add_argument('-o', '--osimage', help='OS Image Name').completer = Helper().name_completer("osimage")
-        parser.add_argument('-t', '--osimagetag', help='OS Image Tag')
-        parser.add_argument('-k', '--kerneloptions', action='store_true', help='Kernel Options')
+        parser.add_argument('-o', '--osimage', help='Overrides the group configured OSImage').completer = Helper().name_completer("osimage")
+        parser.add_argument('-t', '--osimagetag', help='Overrides the group configured OSImage Tag to use for booting')
+        parser.add_argument('-k', '--kerneloptions', action='store_true', help='Overrides OSImage and Group kernel options')
         parser.add_argument('-qk', '--quick-kerneloptions', dest='kerneloptions',
                                 metavar="File-Path OR In-Line", help='Kernel Options File-Path OR In-Line')
         parser.add_argument('-e', '--setupbmc', choices=BOOL_CHOICES,
                               metavar=BOOL_META, help='BMC Setup')
         parser.add_argument('-b', '--bmcsetup', help='BMC Setup')
-        parser.add_argument('--switch', help='Switch Name').completer = Helper().name_completer("switch")
-        parser.add_argument('--switchport', help='Switch Port')
+        parser.add_argument('--switch', help='Sets the switch for the node. Used for port based node detection').completer = Helper().name_completer("switch")
+        parser.add_argument('--switchport', help='Sets the switch port for the node. Used for port based node detection')
         parser.add_argument('--cloud', help='Cloud Name').completer = Helper().name_completer("cloud")
-        parser.add_argument('-r', '--roles', help='Roles')
-        parser.add_argument('-s', '--scripts', help='Scripts')
+        parser.add_argument('-r', '--roles', help='Overrides Group configured roles used. Multiple roles can be supplied comma separated')
+        parser.add_argument('-s', '--scripts', help='Overrides Group configured scripts used. Multiple scripts can be supplied comma separated')
         parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
         parser.add_argument('-qpre', '--quick-prescript', dest='prescript',
                         metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
@@ -156,15 +156,15 @@ class Arguments():
         parser.add_argument('-post', '--postscript', action='store_true', help='Post Script')
         parser.add_argument('-qpost', '--quick-postscript', dest='postscript',
                         metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
-        parser.add_argument('-i', '--provision_interface', help='Provision Interface')
-        parser.add_argument('-p', '--provision_method', help='Provision Method')
-        parser.add_argument('-f', '--provision_fallback', help='Provision Fallback')
+        parser.add_argument('-i', '--provision_interface', help='Overrides the Cluster or Group provisioning interface')
+        parser.add_argument('-p', '--provision_method', help='Overrides Cluster or Group (primary) provisioning method')
+        parser.add_argument('-f', '--provision_fallback', help='Overrides Cluster or Group fallback provisioning method')
         parser.add_argument('-n', '--netboot', choices=BOOL_CHOICES,
-                              metavar=BOOL_META, help='Network Boot')
+                              metavar=BOOL_META, help='Overrides Group configured network based boots. Disabling allows for local node, e.g. disk boot')
         parser.add_argument('-m', '--bootmenu', choices=BOOL_CHOICES,
-                              metavar=BOOL_META, help='Boot Menu')
+                              metavar=BOOL_META, help='Overrides Group configured setting that enables or disables the displaying of the iPXE boot menu')
         parser.add_argument('-S', '--service', choices=BOOL_CHOICES,
-                              metavar=BOOL_META, help='Service')
+                              metavar=BOOL_META, help='Enabling or disabling the Service mode during. Enabled drops the booting node into a shell')
         parser.add_argument('--status', help='Status')
         parser.add_argument('--tpm_uuid', help='TPM UUID')
         parser.add_argument('--tpm_pubkey', help='TPM Public Key')
@@ -173,7 +173,7 @@ class Arguments():
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        parser.add_argument('-if', '--interface', help='Interface Name').completer = Helper().interface_name_completer("node")
+        parser.add_argument('-if', '--interface', help='Interface operations, requires a name').completer = Helper().interface_name_completer("node")
         parser.add_argument('-N', '--network', help='Interface Network Name. * Interface is Required.').completer = Helper().name_completer("network")
         parser.add_argument('--mtu', help='MTU size * Interface is Required.')
         parser.add_argument('-L', '--vlanid', help='Interface VLAN ID. * Interface is Required.')
@@ -207,8 +207,8 @@ class Arguments():
         parser.add_argument('-T', '--ntp_server', help='NTP Server')
         parser.add_argument('-D', '--dhcp', choices=BOOL_CHOICES,
                                  metavar=BOOL_META, help='DHCP')
-        parser.add_argument('-b', '--dhcp_range_begin', help='DHCP Range Start')
-        parser.add_argument('-e', '--dhcp_range_end', help='DHCP Range End')
+        parser.add_argument('-b', '--dhcp_range_begin', help='DHCP Range Start. The DHCP range is used for unidentified booting nodes')
+        parser.add_argument('-e', '--dhcp_range_end', help='DHCP Range End. The DHCP range is used for unidentified booting nodes')
         parser.add_argument('-p', '--dhcp_nodes_in_pool', choices=BOOL_CHOICES,
                                  metavar=BOOL_META, help='Use IP addresses of the dhcp range for nodes. Uses DDNS to update zones')
         parser.add_argument('-s', '--shared', help='Network Shared')
@@ -226,23 +226,23 @@ class Arguments():
         """
         This method will provide the common osimage arguments.
         """
-        parser.add_argument('-G', '--grab_filesystems', action='store_true', help='Grab Filesystems')
+        parser.add_argument('-G', '--grab_filesystems', action='store_true', help='File systems or paths to be used during a grab operation')
         parser.add_argument('-qG', '--quick-grab_filesystems', dest='grab_filesystems',
                                 metavar="File-Path OR In-Line", help='Grab Filesystems File-Path OR In-Line')
-        parser.add_argument('-E', '--grab_exclude', action='store_true', help='Grab Excludes')
+        parser.add_argument('-E', '--grab_exclude', action='store_true', help='Files excluded from a grab operation')
         parser.add_argument('-qE', '--quick-grab_exclude', dest='grab_exclude',
                                 metavar="File-Path OR In-Line", help='Grab Excludes File-Path OR In-Line')
-        parser.add_argument('-r', '--initrdfile', help='INIT RD File')
+        parser.add_argument('-r', '--initrdfile', help='Initrd File')
         parser.add_argument('-f', '--kernelfile', help='Kernel File')
-        parser.add_argument('-m', '--kernelmodules', help='Kernel Modules')
-        parser.add_argument('-o', '--kerneloptions', action='store_true', help='Kernel Options')
+        parser.add_argument('-m', '--kernelmodules', help='Kernel Modules to be included in the Initrd or Ramdisk')
+        parser.add_argument('-o', '--kerneloptions', action='store_true', help='Kernel Options used during boot time')
         parser.add_argument('-qo', '--quick-kerneloptions', dest='kerneloptions',
                                 metavar="File-Path OR In-Line", help='Kernel Options File-Path OR In-Line')
         parser.add_argument('-k', '--kernelversion', help='Kernel Version')
-        parser.add_argument('-p', '--path', help='Path of image')
-        parser.add_argument('-i', '--imagefile', help='Imagefile UUID')
-        parser.add_argument('-d', '--distribution', help='Distribution')
-        parser.add_argument('-l', '--osrelease', help='OS release or version')
+        parser.add_argument('-p', '--path', help='Path of the image. Location of the image files or root directory structure')
+        parser.add_argument('-i', '--imagefile', help='The file name of the packed image file')
+        parser.add_argument('-d', '--distribution', help='The distribution e.g. redhat, ubuntu or opensuse')
+        parser.add_argument('-l', '--osrelease', help='Distribution release or version')
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')

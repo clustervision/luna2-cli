@@ -50,7 +50,9 @@ class Service():
             if self.args["service"]:
                 if self.args["action"]:
                     self.logger.debug(f'Arguments Supplied => {self.args}')
-                    self.service_action()
+                    response = self.service_action()
+                    if not response:
+                        sys.exit(1)
                 else:
                     Message().show_warning(f'Kindly choose action from {SERVICE_ACTIONS}.')
             else:
@@ -63,8 +65,12 @@ class Service():
         """
         Method will provide all the arguments related to the Service class.
         """
-        service_menu = subparsers.add_parser('service', help='Service operations.')
-        service_args = service_menu.add_subparsers(dest='service')
+        service_menu = subparsers.add_parser('service', help='Service operations.',
+            description='Service allows to manually stop, start, restart, reload '
+                        'and status services like dns and dhcp. '
+                        '(re)starting and reloading forces a rendering of OS '
+                        'configuration files where applicable.')
+        service_args = service_menu.add_subparsers(dest='service', title='commands', description='Available services')
         for name in SERVICES:
             service = service_args.add_parser(name, help=f'{name.upper()} Service')
             service_parser = service.add_subparsers(dest='action')
@@ -109,31 +115,44 @@ class Service():
             if 'request_id' in content:
                 uri = f'service/status/{content["request_id"]}'
                 def dig_service_status(uri):
+                    task_status = 200
                     result = Rest().get_raw(uri)
                     if result.status_code == 404:
-                        process1.terminate()
-                        return True
+                        pass
                     elif result.status_code == 200:
                         http_response = result.json()
                         if http_response['message']:
                             message = http_response['message'].split(';;')
+                            if 'status' in http_response and isinstance(http_response['status'], int):
+                                task_status = http_response['status']
                             for msg in message:
                                 sleep(1)
-                                if 'error' in msg.lower() or 'fail' in msg.lower():
-                                    Message().show_success(f'[X ERROR X] {msg}')
+                                if task_status != 200:
+                                    Message().show_success(f'[ FAILED ] {msg}')
+                                    return task_status
+                                # below 'elif' will disappear in the future as we track per tasks status like above 'if'
+                                elif 'error' in msg.lower() or 'fail' in msg.lower():
+                                    Message().show_success(f'[ FAILED ] {msg}')
+                                    return task_status
                                 else:
                                     Message().show_success(f'[========] {msg}')
-                        sleep(1)
-                        return dig_service_status(uri)
                     else:
-                        return False
-                response = dig_service_status(uri)
+                        Message().error_exit(result.content, result.status_code)
+                    return result.status_code
+                status = 200
+                response = True
+                while status != 404:
+                    status = dig_service_status(uri)
+                    if status in [500, 501, 503]:
+                        response = False
+                    sleep(1)
+                process1.terminate()
+                service = self.args['service']
+                action = self.args['action']
                 if response:
-                    service = self.args['service']
-                    action = self.args['action']
-                    Message().show_success(f'[========] Service {service} {action} is finish.')
+                    Message().show_success(f'[========] Service {service} {action} is finished.')
                 else:
-                    Message().error_exit(result.content, result.status_code)
+                    Message().show_failed_exit(f'[ FAILED ] Service {service} {action} is finished unsuccesfully.')
             else:
                 process1.terminate()
                 Message().error_exit(result.content, result.status_code)

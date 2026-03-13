@@ -62,14 +62,17 @@ class BMCSetup():
         """
         Method will provide all the arguments related to the BMC Setup class.
         """
-        bmcsetup_menu = subparsers.add_parser('bmcsetup', help='BMC Setup operations.')
-        bmcsetup_args = bmcsetup_menu.add_subparsers(dest='action')
+        bmcsetup_menu = subparsers.add_parser('bmcsetup', help='BMC Setup operations.',
+            description='Luna bmcsetup manages bmc or ipmi configurations '
+                        'through profiles. In here netchannels and passwords '
+                        'can be configured.')
+        bmcsetup_args = bmcsetup_menu.add_subparsers(dest='action', title='commands', description='Available bmcsetup operations')
         bmcsetup_list = bmcsetup_args.add_parser('list', help='List BMC Setups')
         Arguments().common_list_args(bmcsetup_list)
         bmcsetup_show = bmcsetup_args.add_parser('show', help='Show BMC Setup')
         bmcsetup_show.add_argument('name', help='BMC Setup Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(bmcsetup_show)
-        bmcsetup_member = bmcsetup_args.add_parser('member', help='OS Image Used by Nodes')
+        bmcsetup_member = bmcsetup_args.add_parser('member', help='OSImage Used by Nodes')
         bmcsetup_member.add_argument('name', help='BMC Setup Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(bmcsetup_member)
         bmcsetup_add = bmcsetup_args.add_parser('add', help='Add BMC Setup')

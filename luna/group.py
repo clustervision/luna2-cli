@@ -69,11 +69,19 @@ class Group():
         """
         Method will provide all the arguments related to the Group class.
         """
-        group_menu = subparsers.add_parser('group', help='Group operations')
-        group_args = group_menu.add_subparsers(dest='action')
+        group_menu = subparsers.add_parser('group', help='Group operations',
+            description='Luna group manages the groups or categories of '
+                        'nodes. Nodes are typically member of a group where '
+                        'equal configuration can be done on a higher level. '
+                        'Good examples are to use a group for nodes where '
+                        'these boot the same osimage. It is common practice '
+                        'to have separate groups for a function or category '
+                        'like a compute node category, storage servers and '
+                        'login nodes.')
+        group_args = group_menu.add_subparsers(dest='action', title='commands', description='Available group operations')
         group_list = group_args.add_parser('list', help='List Groups')
         Arguments().common_list_args(group_list)
-        group_show = group_args.add_parser('show', help='Show Group')
+        group_show = group_args.add_parser('show', help='Show Group details')
         group_show.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(group_show)
         group_show.add_argument('-f', '--full-scripts', action='store_true', default=None, help='Show the Full Scripts')
@@ -97,16 +105,18 @@ class Group():
         group_remove = group_args.add_parser('remove', help='Remove Group')
         group_remove.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
         group_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
-        group_ospush = group_args.add_parser('ospush', help='Push an OS Image for a Group')
+        group_ospush = group_args.add_parser('ospush', help='Push an OSImage to all Group member Nodes. '
+                                                          'Utilizes the settings for '
+                                                          'grab_filesystems and grab_exclude of the provided OSImage')
         group_ospush.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
-        group_ospush.add_argument('-o', '--osimage', help='OS Image Name').completer = Helper().name_completer("osimage")
+        group_ospush.add_argument('-o', '--osimage', help='OSImage Name').completer = Helper().name_completer("osimage")
         group_ospush.add_argument('--nodry', action='store_true', default=None,
                                   help='No Dry flag to avoid dry run')
         group_ospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         group_interfaces = group_args.add_parser('listinterface', help='List Group Interfaces')
         group_interfaces.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(group_interfaces)
-        group_interface = group_args.add_parser('showinterface', help='Show Group Interface')
+        group_interface = group_args.add_parser('showinterface', help="Show Group's Interface details")
         group_interface.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
         group_interface.add_argument('interface', help='Name of the Group Interface').completer = Helper().interface_name_completer(self.table)
         Arguments().common_list_args(group_interface)

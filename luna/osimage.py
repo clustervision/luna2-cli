@@ -75,66 +75,69 @@ class OSImage():
         """
         Method will provide all the arguments related to the OSImage class.
         """
-        osimage_menu = subparsers.add_parser('osimage', help='OSImage operations.')
-        osimage_args = osimage_menu.add_subparsers(dest='action')
-        osimage_list = osimage_args.add_parser('list', help='List OSImages')
+        osimage_menu = subparsers.add_parser('osimage', help='OSImage operations.',
+            description='OSImage related tasks. Manage compute node images, '
+                        'like adding, cloning and removing, but also change '
+                        'settings and properties.')
+        osimage_args = osimage_menu.add_subparsers(dest='action', title='commands', description='Available osimage operations')
+        osimage_list = osimage_args.add_parser('list', help='Lists available OSImages')
         Arguments().common_list_args(osimage_list)
         osimage_show = osimage_args.add_parser('show', help='Show a OSImage')
         osimage_show.add_argument('name', help='OSImage Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(osimage_show)
-        osimage_member = osimage_args.add_parser('member', help='OS Image Used by Nodes')
-        osimage_member.add_argument('name', help='OS Image Name').completer = Helper().name_completer(self.table)
+        osimage_member = osimage_args.add_parser('member', help='Lists which nodes are using the OSImage')
+        osimage_member.add_argument('name', help='OSImage Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(osimage_member)
-        osimage_add = osimage_args.add_parser('add', help='Add OSImage')
-        osimage_add.add_argument('name', help='OS Image Name')
+        osimage_add = osimage_args.add_parser('add', help='Add an OSImage')
+        osimage_add.add_argument('name', help='OSImage Name')
         Arguments().common_osimage_args(osimage_add)
-        osimage_change = osimage_args.add_parser('change', help='Change OSImage')
-        osimage_change.add_argument('name', help='OS Image Name').completer = Helper().name_completer(self.table)
+        osimage_change = osimage_args.add_parser('change', help='Change OSImage setting and parameters')
+        osimage_change.add_argument('name', help='OSImage Name').completer = Helper().name_completer(self.table)
         Arguments().common_osimage_args(osimage_change)
-        osimage_change.add_argument('-t', '--tag', help='OS Image Tag')
-        osimage_clone = osimage_args.add_parser('clone', help='Clone OSImage')
-        osimage_clone.add_argument('name', help='OS Image Name').completer = Helper().name_completer(self.table)
+        osimage_change.add_argument('-t', '--tag', help='Set an OSImage Tag. Tags are used to label or version a packed OSImage')
+        osimage_clone = osimage_args.add_parser('clone', help='Clone an OSImage')
+        osimage_clone.add_argument('name', help='OSImage Name').completer = Helper().name_completer(self.table)
         Arguments().common_osimage_args(osimage_clone)
-        osimage_clone.add_argument('-t', '--tag', help='OS Image Tag')
-        osimage_clone.add_argument('--nocopy', action='store_true', default=None, help='No Copy OS Image')
-        osimage_clone.add_argument('-b', '--bare', action='store_true', default=None, help='Bare OS Image(Exclude Packing)')
+        osimage_clone.add_argument('-t', '--tag', help='Set an OSImage Tag. Tags are used to label or version a packed OSImage')
+        osimage_clone.add_argument('--nocopy', action='store_true', default=None, help='Clone but without copying files')
+        osimage_clone.add_argument('-b', '--bare', action='store_true', default=None, help='Bare clone, i.e. without packing')
         osimage_clone.add_argument('newosimage', help='New OSImage Name')
         osimage_rename = osimage_args.add_parser('rename', help='Rename OSImage')
         osimage_rename.add_argument('name', help='OSImage Name').completer = Helper().name_completer(self.table)
         osimage_rename.add_argument('newosimage', help='New OSImage Name')
         osimage_rename.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
-        osimage_remove = osimage_args.add_parser('remove', help='Remove OSImage')
-        osimage_remove.add_argument('name', help='Name of the OS Image').completer = Helper().name_completer(self.table)
+        osimage_remove = osimage_args.add_parser('remove', help='Remove an OSImage')
+        osimage_remove.add_argument('name', help='Name of the OSImage').completer = Helper().name_completer(self.table)
         osimage_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
-        osimage_pack = osimage_args.add_parser('pack', help='Pack OSImage')
-        osimage_pack.add_argument('name', help='Name of the OS Image').completer = Helper().name_completer(self.table)
+        osimage_pack = osimage_args.add_parser('pack', help='Pack an OSImage')
+        osimage_pack.add_argument('name', help='Name of the OSImage').completer = Helper().name_completer(self.table)
         osimage_pack.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
-        osimage_kernel = osimage_args.add_parser('kernel', help='Change Kernel Version in OS Image')
-        osimage_kernel.add_argument('name', help='Name of the OS Image').completer = Helper().name_completer(self.table)
-        osimage_kernel.add_argument('-r', '--initrdfile', help='INIT RD File')
+        osimage_kernel = osimage_args.add_parser('kernel', help='Change the Kernel Version')
+        osimage_kernel.add_argument('name', help='Name of the OSImage').completer = Helper().name_completer(self.table)
+        osimage_kernel.add_argument('-r', '--initrdfile', help='Initrd or ramdisk File')
         osimage_kernel.add_argument('-f', '--kernelfile', help='Kernel File')
         osimage_kernel.add_argument('-k', '--kernelversion', help='Kernel Version')
         osimage_kernel.add_argument('-b', '--bare', action='store_true', default=None,
-                                    help='Bare OS Image(Exclude Packing)')
+                                    help='Bare operation, i.e. without packing')
         osimage_kernel.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
 
-        tag_menu = osimage_args.add_parser('tag', help='Tag OS Image')
+        tag_menu = osimage_args.add_parser('tag', help='OSImage Tags. Tags are used to label or version a packed OSImage')
         tag_menu.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         tag_menu.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
         tag_args = tag_menu.add_subparsers(dest='tag_action')
 
-        tag_show = tag_args.add_parser('show', help='Show a OS Image Tag')
+        tag_show = tag_args.add_parser('show', help='Show details for an OSImage Tag')
         tag_show.add_argument('name', help='OSImage Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(tag_show)
 
-        tag_change = tag_args.add_parser('change', help='Change a OS Image Tag')
+        tag_change = tag_args.add_parser('change', help='Change an OSImage Tag')
         tag_change.add_argument('name', help='OSImage Name').completer = Helper().name_completer(self.table)
-        tag_change.add_argument('tag', help='OS Image Tag Name')
+        tag_change.add_argument('tag', help='OSImage Tag Name')
         tag_change.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
 
-        tag_remove = tag_args.add_parser('remove', help='Delete a OS Image Tag')
+        tag_remove = tag_args.add_parser('remove', help='Delete an OSImage Tag')
         tag_remove.add_argument('name', help='OSImage Name').completer = Helper().name_completer(self.table)
-        tag_remove.add_argument('tag', help='OS Image Tag Name')
+        tag_remove.add_argument('tag', help='OSImage Tag Name')
         tag_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
 
 
@@ -194,7 +197,7 @@ class OSImage():
         """
         This method clone a osimage.
         """
-        response = False
+        response = None
         for remove in ['verbose', 'command', 'action']:
             self.args.pop(remove, None)
         payload = Helper().prepare_payload(self.table, self.args)
@@ -204,31 +207,42 @@ class OSImage():
         if result.status_code == 200:
             http_response = result.content
             if 'request_id' in http_response.keys():
-                process1 = Process(target=Helper().loader, args=("OS Image Cloning...",))
+                process1 = Process(target=Helper().loader, args=("OSImage Cloning...",))
                 process1.start()
                 uri = f'config/status/{http_response["request_id"]}'
                 def dig_packing_status(uri):
+                    task_status = 200
                     result = Rest().get_raw(uri)
                     if result.status_code == 404:
-                        process1.terminate()
-                        return True
+                        pass
                     elif result.status_code == 200:
                         http_response = result.json()
+                        if 'status' in http_response and isinstance(http_response['status'], int):
+                            task_status = http_response['status']
                         if http_response['message']:
                             message = http_response['message'].split(';;')
                             for msg in message:
-                                sleep(2)
+                                sleep(1)
                                 Message().show_success(f'{msg}')
-                        sleep(2)
-                        return dig_packing_status(uri)
+                        if task_status != 200:
+                            return task_status
                     else:
-                        return False
-
-                response = dig_packing_status(uri)
+                        Message().error_exit(f'{result.content}', result.status_code)
+                    return result.status_code
+            response = True
+            status = 200
+            while status != 404:
+                status = dig_packing_status(uri)
+                if status in [500, 501, 503]:
+                    response = False
+                sleep(2)
+            process1.terminate()
         if response:
-            Message().show_success(f'[========] OS Image {self.args["newosimage"]} Cloned.')
+            Message().show_success(f'[========] OSImage {self.args["newosimage"]} Cloned.')
+        elif response is None:
+            Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} not Cloned: {result.content}.')
         else:
-            Message().error_exit(result.content, result.status_code)
+            Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} not Cloned.')
         return response
 
 
@@ -236,7 +250,7 @@ class OSImage():
         """
         This method pack a osimage.
         """
-        response = False
+        response = None
         uri = f'config/{self.table}/{self.args["name"]}/_pack'
         result = Rest().get_raw(uri)
         if result.status_code == 200:
@@ -251,34 +265,45 @@ class OSImage():
                     Message().show_success(f'{http_response["message"]}')
 
             if 'request_id' in http_response.keys():
-                process1 = Process(target=Helper().loader, args=("OS Image Packing...",))
+                process1 = Process(target=Helper().loader, args=("OSImage Packing...",))
                 process1.start()
                 uri = f'config/status/{http_response["request_id"]}'
-
                 def dig_packing_status(uri):
-                    sleep(2)
+                    task_status = 200
                     result = Rest().get_raw(uri)
                     if result.status_code == 404:
-                        process1.terminate()
-                        return True
+                        pass
                     elif result.status_code == 200:
                         http_response = result.json()
+                        if 'status' in http_response and isinstance(http_response['status'], int):
+                            task_status = http_response['status']
                         if http_response['message']:
                             if len(http_response['message']) > 5:
                                 message = http_response['message'].split(';;')
                                 for msg in message:
-                                    sleep(2)
+                                    sleep(1)
                                     Message().show_success(f'{msg}')
                             else:
                                 Message().show_success(f'{http_response["message"]}')
-                        return dig_packing_status(uri)
+                        if task_status != 200:
+                            return task_status
                     else:
-                        return False
-                response = dig_packing_status(uri)
+                        Message().error_exit(f'{result.content}', result.status_code)
+                    return result.status_code
+            response = True
+            status = 200
+            while status != 404:
+                sleep(2) # yes, before.
+                status = dig_packing_status(uri)
+                if status in [500, 501, 503]:
+                    response = False
+            process1.terminate()
         if response:
             Message().show_success(f'[========] Image {self.args["name"]} Packed.')
+        elif response is None:
+            Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} not Packed: {result.content}.')
         else:
-            Message().error_exit(result.content, result.status_code)
+            Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} not Packed.')
         return response
 
 
@@ -294,9 +319,9 @@ class OSImage():
         self.logger.debug(f'Change Kernel URI => {payload["name"]}/kernel')
         result = Rest().post_data(self.table, payload['name']+'/kernel', request_data)
         if result.status_code == 204:
-            Message().show_success(f'OS Image {self.args["name"]} Kernel is updated.')
+            Message().show_success(f'OSImage {self.args["name"]} Kernel is updated.')
         elif result.status_code == 200:
-            response = False
+            response = None
             http_response = result.content
             if http_response['message']:
                 if len(http_response['message']) > 5:
@@ -308,30 +333,42 @@ class OSImage():
                     Message().show_success(f'{http_response["message"]}')
 
             if 'request_id' in http_response.keys():
-                process1 = Process(target=Helper().loader, args=("OS Image Kernel Updating...",))
+                process1 = Process(target=Helper().loader, args=("OSImage Kernel Updating...",))
                 process1.start()
                 uri = f'config/status/{http_response["request_id"]}'
                 def dig_packing_status(uri):
-                    sleep(2)
+                    task_status = 200
                     result = Rest().get_raw(uri)
                     if result.status_code == 404:
-                        process1.terminate()
-                        return True
+                        pass
                     elif result.status_code == 200:
                         http_response = result.json()
+                        if 'status' in http_response and isinstance(http_response['status'], int):
+                            task_status = http_response['status']
                         if http_response['message']:
                             message = http_response['message'].split(';;')
                             for msg in message:
-                                sleep(2)
+                                sleep(1)
                                 Message().show_success(f'{msg}')
-                        return dig_packing_status(uri)
+                        if task_status != 200:
+                            return task_status
                     else:
-                        return False
-                response = dig_packing_status(uri)
+                        Message().error_exit(f'{result.content}', result.status_code)
+                    return result.status_code
+            response = True
+            status = 200
+            while status != 404:
+                sleep(2) # yes, before.
+                status = dig_packing_status(uri)
+                if status in [500, 501, 503]:
+                    response = False
+            process1.terminate()
             if response:
                 Message().show_success(f'[========] Image {self.args["name"]} Packed.')
+            elif response is None:
+                Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} not Packed: {result.content}.')
             else:
-                Message().error_exit(result.content, result.status_code)
+                Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} not Packed.')
         else:
             Message().error_exit(f'{result.content}', result.status_code)
         return True
@@ -365,12 +402,12 @@ class OSImage():
                 fields, osimage, rows  = Helper().filter_osimage_col("osimagetag", data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
-                title = f' << OS Image Tags for {self.args["name"]} >>'
+                title = f' << OSImage Tags for {self.args["name"]} >>'
                 # response = Presenter().show_table(title, fields, rows)
                 # response = Presenter().show_table_col(title, fields, rows)
                 response = Presenter().show_table_col_more_fields(title, fields, osimage, rows)
         else:
-            response = Message().show_error(f'OS Image Tags is not found for {self.args["name"]}.')
+            response = Message().show_error(f'OSImage Tags is not found for {self.args["name"]}.')
         return response
 
 
@@ -384,7 +421,7 @@ class OSImage():
         self.logger.debug(f'Payload => {request_data}')
         response = Rest().post_data(self.table, f"{self.args['name']}/tag", request_data)
         if response.status_code == 204:
-            Message().show_success(f'OS Image {self.args["name"]} Tag {self.args["tag"]} is Updated.')
+            Message().show_success(f'OSImage {self.args["name"]} Tag {self.args["tag"]} is Updated.')
         else:
             Message().error_exit(response.content, response.status_code)
         return True
@@ -398,7 +435,7 @@ class OSImage():
         response = Rest().get_raw(route)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
-            Message().show_success(f'OS Image {self.args["name"]} Tag {self.args["tag"]} is removed.')
+            Message().show_success(f'OSImage {self.args["name"]} Tag {self.args["tag"]} is removed.')
         else:
             if response.content:
                 message = response.json()

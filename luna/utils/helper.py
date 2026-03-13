@@ -600,8 +600,7 @@ class Helper():
         """
         Method to grab an osimage for a node.
         """
-        process1 = Process(target=Helper().loader, args=("OS Image Grabbing...",))
-        process1.start()
+        process1 = Process(target=Helper().loader, args=("OSImage Grabbing...",))
         response = False
         for remove in ['verbose', 'command', 'action']:
             data.pop(remove, None)
@@ -612,30 +611,51 @@ class Helper():
         http_response = Rest().post_raw(uri, request_data)
         result = http_response
         if http_response.status_code == 200:
+            process1.start()
             http_response = http_response.json()
             if 'request_id' in http_response.keys():
                 uri = f'config/status/{http_response["request_id"]}'
                 def dig_grabbing_status(uri):
+                    task_status = 200
                     result = Rest().get_raw(uri)
                     if result.status_code == 404:
-                        process1.terminate()
-                        return True
+                        pass
                     elif result.status_code == 200:
                         http_response = result.json()
+                        if 'status' in http_response and isinstance(http_response['status'], int):
+                            task_status = http_response['status']
                         if http_response['message']:
                             message = http_response['message'].split(';;')
                             for msg in message:
-                                sleep(2)
-                                Message().show_success(f'{msg}')
-                        sleep(2)
-                        return dig_grabbing_status(uri)
-                    else:
-                        return False
-                response = dig_grabbing_status(uri)
+                                sleep(1)
+                                if task_status != 200:
+                                    Message().show_success(f'[ FAILED ] {msg}')
+                                else:
+                                    Message().show_success(f'[========] {msg}')
+                    if task_status == 404:
+                        return 500
+                    elif task_status != 200:
+                        return task_status
+                    return result.status_code
+            status = 200
+            response = True
+            while status != 404:
+                status = dig_grabbing_status(uri)
+                if status in [500, 501, 503]:
+                    response = False
+                sleep(2)
+            process1.terminate()
         if response:
-            Message().show_success(f'[========] OS Image Grabbed for node {data["name"]}.')
+            Message().show_success(f'[========] OSImage Grabbed for node {data["name"]}.')
         else:
-            Message().error_exit(result.content, result.status_code)
+            message = result.content
+            try:
+                http_response = result.json()
+                if 'message' in http_response:
+                    message = http_response['message']
+            except:
+                pass
+            Message().show_failed_exit(f'[ FAILED ] OSImage not grabbed for node {data["name"]}: {message}.')
         return True
 
 
@@ -643,8 +663,7 @@ class Helper():
         """
         Method to push an osimage for a node or a group.
         """
-        process1 = Process(target=Helper().loader, args=("OS Image Pushing...",))
-        process1.start()
+        process1 = Process(target=Helper().loader, args=("OSImage Pushing...",))
         response = False
         for remove in ['verbose', 'command', 'action']:
             data.pop(remove, None)
@@ -655,30 +674,53 @@ class Helper():
         http_response = Rest().post_raw(uri, request_data)
         result = http_response
         if http_response.status_code == 200:
+            process1.start()
             http_response = http_response.json()
             if 'request_id' in http_response.keys():
                 uri = f'config/status/{http_response["request_id"]}'
                 def dig_push_status(uri):
+                    task_status = 200
                     result = Rest().get_raw(uri)
                     if result.status_code == 404:
-                        process1.terminate()
-                        return True
+                        pass
                     elif result.status_code == 200:
                         http_response = result.json()
+                        if 'status' in http_response and isinstance(http_response['status'], int):
+                            task_status = http_response['status']
                         if http_response['message']:
                             message = http_response['message'].split(';;')
                             for msg in message:
-                                sleep(2)
-                                Message().show_success(f'{msg}')
-                        sleep(2)
-                        return dig_push_status(uri)
-                    else:
-                        return False
-                response = dig_push_status(uri)
+                                sleep(1)
+                                if ':success' in msg:
+                                    Message().show_success(f'[========] {msg}')
+                                elif task_status != 200:
+                                    Message().show_success(f'[ FAILED ] {msg}')
+                                else:
+                                    Message().show_success(f'[========] {msg}')
+                    if task_status == 404:
+                        return 500
+                    elif task_status != 200:
+                        return task_status
+                    return result.status_code
+            status = 200
+            response = True
+            while status != 404:
+                status = dig_push_status(uri)
+                if status in [500, 501, 503]:
+                    response = False
+                sleep(2)
+            process1.terminate()
         if response:
-            Message().show_success(f'[========] OS Image Pushed for {table}  {data["name"]}.')
+            Message().show_success(f'[========] OSImage Pushed for {table} {data["name"]}.')
         else:
-            Message().error_exit(result.content, result.status_code)
+            message = result.content
+            try:
+                http_response = result.json()
+                if 'message' in http_response:
+                    message = http_response['message']
+            except:
+                pass
+            Message().show_failed_exit(f'[ FAILED ] OSImage not pushed for {table} {data["name"]}: {message}.')
         return True
 
 
@@ -1322,7 +1364,7 @@ class Helper():
         index_map = {v: i for i, v in enumerate(defined_keys)}
         data = sorted(data.items(), key=lambda pair: index_map[pair[0]])
         self.logger.debug(f'Sorted Data => {data}')
-        osimage = ["OS Image\n"]
+        osimage = ["OSImage\n"]
         fields, rows = ["Tags\n"], ["Details\n"]
         for key in data:
             fields.append(key[0])

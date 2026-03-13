@@ -59,6 +59,15 @@ class Message():
         sys.exit(1)
 
 
+    def show_failed_exit(self, message=None):
+        """
+        This method will print the standard error.
+        """
+        sys.stderr.write(f'{message}\n')
+        self.logger.debug(f'Message => {message}')
+        sys.exit(1)
+
+
     def show_error(self, message=None):
         """
         This method will print the standard error.

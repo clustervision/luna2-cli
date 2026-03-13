@@ -71,8 +71,16 @@ class Node():
         """
         Method will provide all the arguments related to the Node class.
         """
-        node_menu = subparsers.add_parser('node', help='Compute Node operations.')
-        node_args = node_menu.add_subparsers(dest='action')
+        node_menu = subparsers.add_parser('node', help='Compute Node operations.',
+            description='Luna node manages the nodes. All inheritable '
+                        'configuration from the group or cluster can be '
+                        'overridden here. This offers a great range of '
+                        'freedom where a set of nodes being nearly identical '
+                        'except for e.g. the bmcsetup can be setup without '
+                        'having duplicate configuration. The alternative '
+                        'bmcsetup profile can be simply set for just that '
+                        'node.')
+        node_args = node_menu.add_subparsers(dest='action', title='commands', description='Available node operations')
         node_list = node_args.add_parser('list', help='List All Nodes')
         Arguments().common_list_args(node_list)
         node_show = node_args.add_parser('show', help='Show A Node')
@@ -96,23 +104,26 @@ class Node():
         node_remove = node_args.add_parser('remove', help='Remove A Node')
         node_remove.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         node_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
-        node_osgrab = node_args.add_parser('osgrab', help='Gran an OS Image for a Node')
+        node_osgrab = node_args.add_parser('osgrab', help="Grab a Node's live file system into an OSImage. "
+                                                 'Utilizes the settings for grab_filesystems and grab_exclude '
+                                                 'of the provided OSImage')
         node_osgrab.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
-        node_osgrab.add_argument('-o', '--osimage', help='OS Image Name').completer = Helper().name_completer("osimage")
-        node_osgrab.add_argument('-b', '--bare', action='store_true', default=None, help='Bare OS Image(Exclude Packing)')
+        node_osgrab.add_argument('-o', '--osimage', help='OSImage Name').completer = Helper().name_completer("osimage")
+        node_osgrab.add_argument('-b', '--bare', action='store_true', default=None, help='Bare OSImage (Exclude Packing)')
         node_osgrab.add_argument('--nodry', action='store_true', default=None,
                                  help='No Dry flag to avoid dry run')
         node_osgrab.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
-        node_ospush = node_args.add_parser('ospush', help='Push an OS Image for a Node')
+        node_ospush = node_args.add_parser('ospush', help='Push an OSImage to a Node. Utilizes the settings for '
+                                                          'grab_filesystems and grab_exclude of the provided OSImage')
         node_ospush.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
-        node_ospush.add_argument('-o', '--osimage', help='OS Image Name').completer = Helper().name_completer("osimage")
+        node_ospush.add_argument('-o', '--osimage', help='Overrides the Group configured used OSImage').completer = Helper().name_completer("osimage")
         node_ospush.add_argument('--nodry', action='store_true', default=None,
                                  help='No Dry flag to avoid dry run')
         node_ospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_interfaces = node_args.add_parser('listinterface', help='List Node Interfaces')
         node_interfaces.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_interfaces)
-        node_interface = node_args.add_parser('showinterface', help='Show Node Interface')
+        node_interface = node_args.add_parser('showinterface', help="Show the Node's Interface details")
         node_interface.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         node_interface.add_argument('interface', help='Name of the Node Interface').completer = Helper().interface_name_completer(self.table)
         Arguments().common_list_args(node_interface)
