@@ -29,6 +29,8 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
+import types
+
 INI_FILE = '/trinity/local/luna/cli/config/luna.ini'
 TOKEN_FILE = '/trinity/local/luna/cli/config/token.txt'
 VERSION_FILE = 'VERSION.txt'
@@ -62,6 +64,121 @@ TOOL_DESCRIPTION = '''\
 '''
 # TOOL_EPILOG = '© 2025 ClusterVision'
 TOOL_EPILOG = ''
+
+
+def parser_doc(table: str) -> types.SimpleNamespace:
+    """
+    This method provide the documentation for the subparsers.
+    """
+    response = types.SimpleNamespace()
+    static = {
+        "cluster" : {
+            "help": "Cluster Information.",
+            "description":  '''\
+                Luna cluster shows and alters cluster level configuration
+                like DNS forwarders, provisioning method etc.
+            '''
+        },
+        "cloud": {
+            "help": "Cloud Operations.",
+            "description":  '''\
+                This refers to anything related to external cloud provider(s)
+                and making changes to those within trinityX.
+            '''
+        },
+        "network": {
+            "help": "Network operations.",
+            "description":  '''\
+                Luna network manages the networks. Changed values will also
+                automatically be reflected in depended components like groups
+                and nodes where respective interfaces are member of the
+                altered network.
+            '''
+        },
+        "osimage": {
+            "help": "OSImage operations.",
+            "description":  '''\
+                This refers to changes and management of supported osimages
+                within trinityX and to boot worker nodes.
+            '''
+        },
+        "bmcsetup": {
+            "help": "BMC Setup operations.",
+            "description":  '''\
+                Luna bmcsetup manages bmc or ipmi configurations through
+                profiles. In here netchannels and passwords can be configured.
+            '''
+        },
+        "switch": {
+            "help": "Switch operations.",
+            "description":  '''\
+                Luna switch manages the optional switches. Switches configured
+                with an IP address and OID will be scanned on interval to aid in
+                switch port based node detection.
+            '''
+        },
+        "otherdev": {
+            "help": "Other Devices operations.",
+            "description":  '''\
+                Luna otherdev(ices) allows to add, change and remove devices like
+                cameras, PDU-s and UPS-es. These devices will not be probed or
+                accessed are primarily there to complete a rack layout (pun) or
+                cluster interal DNS zone information.
+            '''
+        },
+        "group" : {
+            "help": "Group operations.",
+            "description":  '''\
+                Luna group manages the groups or categories of nodes. Nodes are
+                typically member of a group where equal configuration can be done
+                on a higher level. Good examples are to use a group for nodes where
+                these boot the same osimage. It is common practice to have separate
+                groups for a function or category like a compute node category,
+                storage servers and login nodes.
+            '''
+        },
+        "node" : {
+            "help": "Compute Node operations.",
+            "description":  '''\
+                Luna node manages the nodes. All inheritable configuration from the
+                group or cluster can be overridden here. This offers a great range of
+                freedom where a set of nodes being nearly identical except for e.g.
+                the bmcsetup can be setup without having duplicate configuration.
+                The alternative bmcsetup profile can be simply set for just that node.
+            '''
+        },
+        "secrets" : {
+            "help": "Secrets operations.",
+            "description":  '''\
+                Luna secrets stores data for groups and nodes in an encrypted way.
+                Secrets is typically used to store keytabs, certificates or other
+                sensitive information that would otherwise be stored inside the osimage.
+            '''
+        },
+        "service" : {
+            "help": "Service operations.",
+            "description":  '''\
+                Luna service allows to manually stop, start, restart and status services
+                like dns and dhcp.
+            '''
+        },
+        "control" : {
+            "help": "Control Nodes.",
+            "description":  '''\
+                This is a Luna tool fully supporting the APIs. A separate tool named lpower
+                also controls the nodes the same way as luna control.
+            '''
+        },
+        "monitor" : {
+            "help": "Get Monitor Status.",
+            "description":  '''\
+                This relates to monitoring luna status messages and queues.
+            '''
+        }
+    }
+    response.help = static[table]["help"]
+    response.description = static[table]["description"]
+    return response
 
 
 def actions(table: str) -> list:
