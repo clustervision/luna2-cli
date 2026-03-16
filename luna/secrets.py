@@ -62,12 +62,7 @@ class Secrets():
         """
         Method will provide all the arguments related to the Secrets class.
         """
-        secrets_menu = subparsers.add_parser('secrets', help='Secrets operations.',
-            description='Secrets stores data for groups and nodes in '
-                        'an encrypted way. Secrets is typically used to store '
-                        'keytabs, certificates or other sensitive '
-                        'information that would otherwise be stored inside '
-                        'the OSImage.')
+        secrets_menu = Helper().get_help_message(subparsers, self.route)
         secrets_args = secrets_menu.add_subparsers(dest='action', title='commands', description='Available secrets operations')
         ## >>>>>>> Secrets Command >>>>>>> list
         list_secrets = secrets_args.add_parser('list', help='List Secrets')

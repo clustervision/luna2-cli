@@ -65,11 +65,7 @@ class Service():
         """
         Method will provide all the arguments related to the Service class.
         """
-        service_menu = subparsers.add_parser('service', help='Service operations.',
-            description='Service allows to manually stop, start, restart, reload '
-                        'and status services like dns and dhcp. '
-                        '(re)starting and reloading forces a rendering of OS '
-                        'configuration files where applicable.')
+        service_menu = Helper().get_help_message(subparsers, self.route)
         service_args = service_menu.add_subparsers(dest='service', title='commands', description='Available services')
         for name in SERVICES:
             service = service_args.add_parser(name, help=f'{name.upper()} Service')

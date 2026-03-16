@@ -39,6 +39,8 @@ from random import randint
 from os import getpid
 from multiprocessing import Process
 from copy import deepcopy
+from textwrap import dedent
+from argparse import RawDescriptionHelpFormatter
 import urllib3
 import hostlist
 from termcolor import colored
@@ -46,7 +48,7 @@ from nested_lookup import nested_lookup, nested_update, nested_delete, nested_al
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
-from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby, divider, spacer, overrides
+from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby, divider, spacer, overrides, parser_doc
 from luna.utils.message import Message
 
 
@@ -60,6 +62,19 @@ class Helper():
         Constructor - As of now, nothing have to initialize.
         """
         self.logger = Log.get_logger()
+
+
+    def get_help_message(self, subparsers, table):
+        """
+        This method will prepare subparser with description.
+        """
+        menu = subparsers.add_parser(
+            table,
+            formatter_class = RawDescriptionHelpFormatter,
+            help = parser_doc(table).help,
+            description = dedent(parser_doc(table).description)
+        )
+        return menu
 
 
     @staticmethod
