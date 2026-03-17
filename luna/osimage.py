@@ -224,7 +224,9 @@ class OSImage():
                             for msg in message:
                                 sleep(1)
                                 Message().show_success(f'{msg}')
-                        if task_status != 200:
+                        if task_status == 404: # even if the image is not found, we fail
+                            return 500
+                        elif task_status != 200:
                             return task_status
                     else:
                         Message().show_error(f'{result.content}', result.status_code)
@@ -288,7 +290,9 @@ class OSImage():
                                     Message().show_success(f'{msg}')
                             else:
                                 Message().show_success(f'{http_response["message"]}')
-                        if task_status != 200:
+                        if task_status == 404: # even if the image is not found, we fail
+                            return 500
+                        elif task_status != 200:
                             return task_status
                     else:
                         Message().show_error(f'{result.content}', result.status_code)
@@ -357,7 +361,9 @@ class OSImage():
                             for msg in message:
                                 sleep(1)
                                 Message().show_success(f'{msg}')
-                        if task_status != 200:
+                        if task_status == 404: # even if the image is not found, we fail
+                            return 500
+                        elif task_status != 200:
                             return task_status
                     else:
                         Message().show_error(f'{result.content}', result.status_code)

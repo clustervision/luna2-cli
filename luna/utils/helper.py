@@ -650,7 +650,7 @@ class Helper():
                                     Message().show_success(f'[ FAILED ] {msg}')
                                 else:
                                     Message().show_success(f'[========] {msg}')
-                    if task_status == 404:
+                    if task_status == 404: # even if the image or node is not found, we fail
                         return 500
                     elif task_status != 200:
                         return task_status
@@ -718,7 +718,7 @@ class Helper():
                                     Message().show_success(f'[ FAILED ] {msg}')
                                 else:
                                     Message().show_success(f'[========] {msg}')
-                    if task_status == 404:
+                    if task_status == 404: # even if the image, node or group is not found, we fail
                         return 500
                     elif task_status != 200:
                         return task_status
