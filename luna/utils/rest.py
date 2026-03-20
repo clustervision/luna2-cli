@@ -58,12 +58,12 @@ class Rest():
         self.logger = Log.get_logger()
         self.username,self.password,self.daemon,self.secret_key,self.security = self.get_ini_info()
         urllib3.disable_warnings()
-        self.request_timeout = 30
+        self.request_timeout = 20
         self.security = True if self.security.lower() in ['y', 'yes', 'true']  else False
         self.session = Session()
         self.retries = Retry(
-            total= 60,
-            backoff_factor=0.1,
+            total= 6,
+            backoff_factor=0.2,
             status_forcelist=[502, 503, 504],
             allowed_methods={'GET', 'POST'},
         )
@@ -79,7 +79,7 @@ class Rest():
         daemon_url = f'{self.daemon}/version'
         self.logger.debug(f'URL {daemon_url}')
         try:
-            response = requests.get(url=daemon_url, timeout=2, verify=False)
+            response = requests.get(url=daemon_url, timeout=20, verify=False)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.SSLError as ssl_loop_error:
             check = True
