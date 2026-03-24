@@ -468,11 +468,14 @@ class Helper():
                 Message().error_exit(f'Kindly add the {payload["name"]} first', record.status_code)
         self.logger.debug(f'Response => {response}')
         if response:
-            if response.status_code == 204:
+            if response.status_code in [201, 204]:
+                additional_message = ''
+                if len(response.content) > 0:
+                    additional_message = response.content
                 if name:
-                    Message().show_success(f'{table.capitalize()} {name} is updated.')
+                    Message().show_success(f'{table.capitalize()} {name} is updated. {additional_message}')
                 else:
-                    Message().show_success(f'{table.capitalize()} is updated.')
+                    Message().show_success(f'{table.capitalize()} is updated. {additional_message}')
             else:
                 Message().error_exit(response.content, response.status_code)
         return True
