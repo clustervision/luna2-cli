@@ -145,6 +145,8 @@ class Node():
         change_interface.add_argument('-qO', '--quick-options', dest='options',
                                 metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
         change_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        change_interface.add_argument('--force', action='store_true', default=None,
+                                 help='Forcing a configuration, i.e. an IP address')
         remove_interface = node_args.add_parser('removeinterface', help='Remove Node Interface')
         remove_interface.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         remove_interface.add_argument('interface', help='Name of the Node Interface').completer = Helper().interface_name_completer(self.table)
@@ -603,9 +605,11 @@ class Node():
                 interface['mtu'] = self.args['mtu']
             if self.args['dhcp']:
                 interface['dhcp'] = self.args['dhcp']
+            if self.args['force']:
+                interface['force'] = True
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'mtu', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
+            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'mtu', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp', 'force']:
                 self.args.pop(remove, None)
         payload = Helper().prepare_payload(self.table, self.args)
         # payload = Helper().prepare_payload(uri, self.args)
