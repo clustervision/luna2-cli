@@ -71,7 +71,7 @@ def actions(table: str) -> list:
     response = False
     common_actions = ["list", "show", "add", "change", "rename", "clone", "remove"]
     network_actions = ["list", "show", "add", "change", "rename", "remove"]
-    interface_actions = ["listinterface", "showinterface", "changeinterface", "removeinterface"]
+    interface_actions = ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"]
     member_action = ["member"]
     static = {
         "cloud" : network_actions,
