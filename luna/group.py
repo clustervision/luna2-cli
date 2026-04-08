@@ -132,6 +132,11 @@ class Group():
         remove_interface.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
         remove_interface.add_argument('interface', help='Name of the Group Interface').completer = Helper().interface_name_completer(self.table)
         remove_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        rename_interface = group_args.add_parser('renameinterface', help='Rename Group and related nodes Interface')
+        rename_interface.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        rename_interface.add_argument('interface', help='Name of the Group Interface').completer = Helper().interface_name_completer(self.table)
+        rename_interface.add_argument('newinterfacename', help='New Name of the Group Interface')
+        rename_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
 
@@ -442,3 +447,45 @@ class Group():
             else:
                 Message().error_exit(response.content, response.status_code)
         return response
+
+
+    def renameinterface(self):
+        """
+        Method to rename a group interface in Luna Configuration.
+        """
+        real_args = deepcopy(self.args)
+        # uri = self.table+'/'+self.args['name']+'/interfaces/'+self.args['interface']
+        for remove in ['verbose', 'command', 'action']:
+            self.args.pop(remove, None)
+        interface = {}
+        if self.args['interface']:
+            interface['interface'] = self.args['interface']
+            if self.args['newinterfacename']:
+                interface['newinterfacename'] = self.args['newinterfacename']
+        if interface:
+            self.args['interfaces'] = [interface]
+            for remove in ['interface', 'newinterfacename']:
+                self.args.pop(remove, None)
+        payload = Helper().prepare_payload(self.table, self.args)
+        # payload = Helper().prepare_payload(uri, self.args)
+        if payload:
+            group_name = payload['name']
+            del payload['name']
+            request_data = {'config': {self.table: {group_name: payload}}}
+            self.logger.debug(f'Payload => {request_data}')
+
+            change = Helper().compare_data(self.table, real_args)
+            if change is True:
+                response = Rest().post_data(self.table, group_name+'/interfaces', request_data)
+                self.logger.debug(f'Response => {response}')
+                if response.status_code == 204:
+                    Message().show_success(f'Group {group_name} Interface {interface["interface"]} is updated.')
+                else:
+                    Message().error_exit(response.content, response.status_code)
+            else:
+                Message().show_error('Nothing is changed, Kindly change something to update')
+
+        else:
+            Message().show_error('Nothing to update.')
+        return True
+
