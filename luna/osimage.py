@@ -75,10 +75,7 @@ class OSImage():
         """
         Method will provide all the arguments related to the OSImage class.
         """
-        osimage_menu = subparsers.add_parser('osimage', help='OSImage operations.',
-            description='OSImage related tasks. Manage compute node images, '
-                        'like adding, cloning and removing, but also change '
-                        'settings and properties.')
+        osimage_menu = Helper().get_help_message(subparsers, self.table)
         osimage_args = osimage_menu.add_subparsers(dest='action', title='commands', description='Available osimage operations')
         osimage_list = osimage_args.add_parser('list', help='Lists available OSImages')
         Arguments().common_list_args(osimage_list)

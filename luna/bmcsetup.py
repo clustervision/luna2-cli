@@ -62,10 +62,7 @@ class BMCSetup():
         """
         Method will provide all the arguments related to the BMC Setup class.
         """
-        bmcsetup_menu = subparsers.add_parser('bmcsetup', help='BMC Setup operations.',
-            description='Luna bmcsetup manages bmc or ipmi configurations '
-                        'through profiles. In here netchannels and passwords '
-                        'can be configured.')
+        bmcsetup_menu = Helper().get_help_message(subparsers, self.table)
         bmcsetup_args = bmcsetup_menu.add_subparsers(dest='action', title='commands', description='Available bmcsetup operations')
         bmcsetup_list = bmcsetup_args.add_parser('list', help='List BMC Setups')
         Arguments().common_list_args(bmcsetup_list)
