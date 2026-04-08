@@ -612,12 +612,10 @@ class Node():
                 interface['dhcp'] = self.args['dhcp']
             if self.args['force']:
                 interface['force'] = True
-            if self.args['newinterfacename']:
-                interface['newinterfacename'] = self.args['newinterfacename']
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'newinterfacename', 'network', 'ipaddress', 'macaddress', 'options',
-                           'mtu', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp', 'force']:
+            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'mtu',
+                           'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp', 'force']:
                 self.args.pop(remove, None)
         payload = Helper().prepare_payload(self.table, self.args)
         # payload = Helper().prepare_payload(uri, self.args)
