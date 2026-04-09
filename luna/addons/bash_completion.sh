@@ -35,8 +35,8 @@ _shtab_luna_osimage_tag_subparsers=('show' 'change' 'remove')
 _shtab_luna_bmcsetup_subparsers=('list' 'show' 'member' 'add' 'change' 'clone' 'rename' 'remove')
 _shtab_luna_switch_subparsers=('list' 'show' 'add' 'change' 'clone' 'rename' 'remove')
 _shtab_luna_otherdev_subparsers=('list' 'show' 'add' 'change' 'clone' 'rename' 'remove')
-_shtab_luna_group_subparsers=('list' 'show' 'member' 'add' 'change' 'clone' 'rename' 'remove' 'ospush' 'listinterface' 'showinterface' 'changeinterface' 'removeinterface')
-_shtab_luna_node_subparsers=('list' 'show' 'add' 'change' 'clone' 'rename' 'remove' 'osgrab' 'ospush' 'listinterface' 'showinterface' 'changeinterface' 'removeinterface')
+_shtab_luna_group_subparsers=('list' 'show' 'member' 'add' 'change' 'clone' 'rename' 'remove' 'ospush' 'listinterface' 'showinterface' 'changeinterface' 'removeinterface' 'renameinterface')
+_shtab_luna_node_subparsers=('list' 'show' 'add' 'change' 'clone' 'rename' 'remove' 'osgrab' 'ospush' 'listinterface' 'showinterface' 'changeinterface' 'removeinterface' 'renameinterface')
 _shtab_luna_secrets_subparsers=('list' 'show' 'add' 'change' 'clone' 'remove')
 _shtab_luna_secrets_list_subparsers=('node' 'group')
 _shtab_luna_secrets_show_subparsers=('node' 'group')
@@ -133,6 +133,7 @@ _shtab_luna_group_listinterface_option_strings=('-h' '--help' '-v' '--verbose' '
 _shtab_luna_group_showinterface_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_group_changeinterface_option_strings=('-h' '--help' '--mtu' '-N' '--network' '-L' '--vlanid' '-P' '--vlan_parent' '-B' '--bond_mode' '-A' '--bond_slaves' '-D' '--dhcp' '-O' '--options' '-qO' '--quick-options' '-v' '--verbose')
 _shtab_luna_group_removeinterface_option_strings=('-h' '--help' '-v' '--verbose')
+_shtab_luna_group_renameinterface_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_node_option_strings=('-h' '--help')
 _shtab_luna_node_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_node_show_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw' '-f' '--full-scripts')
@@ -145,8 +146,9 @@ _shtab_luna_node_osgrab_option_strings=('-h' '--help' '-o' '--osimage' '-b' '--b
 _shtab_luna_node_ospush_option_strings=('-h' '--help' '-o' '--osimage' '--nodry' '-v' '--verbose')
 _shtab_luna_node_listinterface_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_node_showinterface_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
-_shtab_luna_node_changeinterface_option_strings=('-h' '--help' '-N' '--network' '--mtu' '-L' '--vlanid' '-P' '--vlan_parent' '-B' '--bond_mode' '-A' '--bond_slaves' '-I' '--ipaddress' '-M' '--macaddress' '-D' '--dhcp' '-O' '--options' '-qO' '--quick-options' '-v' '--verbose')
+_shtab_luna_node_changeinterface_option_strings=('-h' '--help' '-N' '--network' '--mtu' '-L' '--vlanid' '-P' '--vlan_parent' '-B' '--bond_mode' '-A' '--bond_slaves' '-I' '--ipaddress' '-M' '--macaddress' '-D' '--dhcp' '-O' '--options' '-qO' '--quick-options' '-v' '--verbose' '--force')
 _shtab_luna_node_removeinterface_option_strings=('-h' '--help' '-v' '--verbose')
+_shtab_luna_node_renameinterface_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_secrets_option_strings=('-h' '--help')
 _shtab_luna_secrets_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_secrets_list_node_option_strings=('-h' '--help' '-s' '--secret' '-R' '--raw' '-v' '--verbose')
@@ -233,7 +235,7 @@ _shtab_luna_osimage_tag_pos_0_choices=('show' 'change' 'remove')
 _shtab_luna_bmcsetup_pos_0_choices=('list' 'show' 'member' 'add' 'change' 'clone' 'rename' 'remove')
 _shtab_luna_switch_pos_0_choices=('list' 'show' 'add' 'change' 'clone' 'rename' 'remove')
 _shtab_luna_otherdev_pos_0_choices=('list' 'show' 'add' 'change' 'clone' 'rename' 'remove')
-_shtab_luna_group_pos_0_choices=('list' 'show' 'member' 'add' 'change' 'clone' 'rename' 'remove' 'ospush' 'listinterface' 'showinterface' 'changeinterface' 'removeinterface')
+_shtab_luna_group_pos_0_choices=('list' 'show' 'member' 'add' 'change' 'clone' 'rename' 'remove' 'ospush' 'listinterface' 'showinterface' 'changeinterface' 'removeinterface' 'renameinterface')
 _shtab_luna_group_add__e_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_group_add___setupbmc_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_group_add__n_choices=('y' 'yes' 'n' 'no' '')
@@ -260,7 +262,7 @@ _shtab_luna_group_clone__D_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_group_clone___dhcp_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_group_changeinterface__D_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_group_changeinterface___dhcp_choices=('y' 'yes' 'n' 'no' '')
-_shtab_luna_node_pos_0_choices=('list' 'show' 'add' 'change' 'clone' 'rename' 'remove' 'osgrab' 'ospush' 'listinterface' 'showinterface' 'changeinterface' 'removeinterface')
+_shtab_luna_node_pos_0_choices=('list' 'show' 'add' 'change' 'clone' 'rename' 'remove' 'osgrab' 'ospush' 'listinterface' 'showinterface' 'changeinterface' 'removeinterface' 'renameinterface')
 _shtab_luna_node_add__e_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_node_add___setupbmc_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_node_add__n_choices=('y' 'yes' 'n' 'no' '')
@@ -774,6 +776,10 @@ _shtab_luna_group_removeinterface__h_nargs=0
 _shtab_luna_group_removeinterface___help_nargs=0
 _shtab_luna_group_removeinterface__v_nargs=0
 _shtab_luna_group_removeinterface___verbose_nargs=0
+_shtab_luna_group_renameinterface__h_nargs=0
+_shtab_luna_group_renameinterface___help_nargs=0
+_shtab_luna_group_renameinterface__v_nargs=0
+_shtab_luna_group_renameinterface___verbose_nargs=0
 _shtab_luna_node_pos_0_nargs=A...
 _shtab_luna_node__h_nargs=0
 _shtab_luna_node___help_nargs=0
@@ -880,10 +886,15 @@ _shtab_luna_node_changeinterface__O_nargs=0
 _shtab_luna_node_changeinterface___options_nargs=0
 _shtab_luna_node_changeinterface__v_nargs=0
 _shtab_luna_node_changeinterface___verbose_nargs=0
+_shtab_luna_node_changeinterface___force_nargs=0
 _shtab_luna_node_removeinterface__h_nargs=0
 _shtab_luna_node_removeinterface___help_nargs=0
 _shtab_luna_node_removeinterface__v_nargs=0
 _shtab_luna_node_removeinterface___verbose_nargs=0
+_shtab_luna_node_renameinterface__h_nargs=0
+_shtab_luna_node_renameinterface___help_nargs=0
+_shtab_luna_node_renameinterface__v_nargs=0
+_shtab_luna_node_renameinterface___verbose_nargs=0
 _shtab_luna_secrets_pos_0_nargs=A...
 _shtab_luna_secrets__h_nargs=0
 _shtab_luna_secrets___help_nargs=0
@@ -1231,6 +1242,9 @@ _shtab_luna() {
 
 complete -o filenames -F _shtab_luna luna
 
+
+# --- below here is dynamic option commandline completion ---
+
 # /trinity/local/python/bin/register-python-argcomplete luna # Enable dynamic bash completion for luna.
 #compdef luna
 # Run something, muting output or redirecting it to the debug stream
@@ -1313,4 +1327,3 @@ else
         compdef _python_argcomplete luna
     fi
 fi
-

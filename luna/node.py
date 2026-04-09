@@ -137,10 +137,17 @@ class Node():
         change_interface.add_argument('-qO', '--quick-options', dest='options',
                                 metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
         change_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        change_interface.add_argument('--force', action='store_true', default=None,
+                                 help='Forcing a configuration, i.e. an IP address')
         remove_interface = node_args.add_parser('removeinterface', help='Remove Node Interface')
         remove_interface.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         remove_interface.add_argument('interface', help='Name of the Node Interface').completer = Helper().interface_name_completer(self.table)
         remove_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        rename_interface = node_args.add_parser('renameinterface', help='Rename Node Interface')
+        rename_interface.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        rename_interface.add_argument('interface', help='Name of the Node Interface').completer = Helper().interface_name_completer(self.table)
+        rename_interface.add_argument('newinterfacename', help='New Name of the Node Interface')
+        rename_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
 
@@ -595,9 +602,12 @@ class Node():
                 interface['mtu'] = self.args['mtu']
             if self.args['dhcp']:
                 interface['dhcp'] = self.args['dhcp']
+            if self.args['force']:
+                interface['force'] = True
         if interface:
             self.args['interfaces'] = [interface]
-            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'mtu', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp']:
+            for remove in ['interface', 'network', 'ipaddress', 'macaddress', 'options', 'mtu',
+                           'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp', 'force']:
                 self.args.pop(remove, None)
         payload = Helper().prepare_payload(self.table, self.args)
         # payload = Helper().prepare_payload(uri, self.args)
@@ -641,3 +651,45 @@ class Node():
             else:
                 Message().error_exit(response.content, response.status_code)
         return True
+
+
+    def renameinterface(self):
+        """
+        Method to rename a node interfaces in Luna Configuration.
+        """
+        real_args = deepcopy(self.args)
+        # uri = self.table+'/'+self.args['name']+'/interfaces/'+self.args['interface']
+        for remove in ['verbose', 'command', 'action']:
+            self.args.pop(remove, None)
+        interface = {}
+        if self.args['interface']:
+            interface['interface'] = self.args['interface']
+            if self.args['newinterfacename']:
+                interface['newinterfacename'] = self.args['newinterfacename']
+        if interface:
+            self.args['interfaces'] = [interface]
+            for remove in ['interface', 'newinterfacename']:
+                self.args.pop(remove, None)
+        payload = Helper().prepare_payload(self.table, self.args)
+        # payload = Helper().prepare_payload(uri, self.args)
+        if payload:
+            node_name = payload['name']
+            del payload['name']
+            request_data = {'config': {self.table: {node_name: payload}}}
+            self.logger.debug(f'Payload => {request_data}')
+
+            change = Helper().compare_data(self.table, real_args)
+            if change is True:
+                response = Rest().post_data(self.table, node_name+'/interfaces', request_data)
+                self.logger.debug(f'Response => {response}')
+                if response.status_code == 204:
+                    Message().show_success(f'Node {node_name} Interface {interface["interface"]} is updated.')
+                else:
+                    Message().error_exit(response.content, response.status_code)
+            else:
+                Message().show_error('Nothing is changed, Kindly change something to update')
+
+        else:
+            Message().show_error('Nothing to update.')
+        return True
+
