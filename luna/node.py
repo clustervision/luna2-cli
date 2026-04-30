@@ -621,7 +621,7 @@ class Node():
             if change is True:
                 response = Rest().post_data(self.table, node_name+'/interfaces', request_data)
                 self.logger.debug(f'Response => {response}')
-                if response.status_code == 204:
+                if response.status_code in (204,201):
                     Message().show_success(f'Node {node_name} Interface {interface["interface"]} is updated.')
                 else:
                     Message().error_exit(response.content, response.status_code)
