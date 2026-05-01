@@ -222,8 +222,8 @@ def filter_columns(table: str) -> list:
         'groupinterface': ['interface', 'network', 'options', 'vlanid', 'vlan_parent',
                            'bond_mode', 'bond_slaves', 'dhcp', 'mtu'],
         'groupsecrets': ['Group', 'name', 'path', 'content'],
-        'network': ['name', 'network', 'type', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end',
-                    'dhcp_nodes_in_pool'],
+        'network': ['name', 'network', 'type', 'zone', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end',
+                    'shared', 'dhcp_nodes_in_pool', 'dhcp_nodes_only'],
         'dns': ['host', 'ipaddress'],
         'node': [
             'name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_present',
@@ -319,7 +319,7 @@ def sortby(table: str) -> list:
             'network', 'gateway', 'nameserver_ip', 'dhcp_range_begin', 'dhcp_range_end',
             'network_ipv6', 'gateway_ipv6', 'nameserver_ip_ipv6',
             'dhcp_range_begin_ipv6', 'dhcp_range_end_ipv6', 'ntp_server',
-            'gateway_metric', 'dhcp_nodes_in_pool', 'shared', 'comment'
+            'gateway_metric', 'dhcp_nodes_in_pool', 'dhcp_nodes_only', 'shared', 'comment'
         ],
         'osimagetag': [
             'osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups'
