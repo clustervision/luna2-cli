@@ -130,6 +130,7 @@ class Monitor():
                     data = Helper().prepare_json(data, True)
                     fields, rows  = Helper().filter_interface('queue', data)
                     fields = list(map(lambda x: x.replace('username_initiator', 'Initiate By'), fields))
+                    fields = list(map(lambda x: x.replace('queue_id', 'Queue-ID'), fields))
                     fields = list(map(lambda x: x.replace('request_id', 'Request ID'), fields))
                     fields = list(map(lambda x: x.replace('level', 'Level'), fields))
                     fields = list(map(lambda x: x.replace('status', 'Status'), fields))

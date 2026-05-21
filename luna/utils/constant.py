@@ -239,7 +239,7 @@ def filter_columns(table: str) -> list:
                        'groups'],
         'status': ['username_initiator', 'request_id', 'read', 'message', 'created'],
         'queue': [
-            'username_initiator', 'request_id', 'level', 'status', 'subsystem', 'task', 'created'
+            'username_initiator', 'queue_id', 'request_id', 'level', 'status', 'subsystem', 'task', 'created'
         ]
     }
     response = list(static[table])
