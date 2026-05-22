@@ -223,7 +223,7 @@ def filter_columns(table: str) -> list:
                            'bond_mode', 'bond_slaves', 'dhcp', 'mtu'],
         'groupsecrets': ['Group', 'name', 'path', 'content'],
         'network': ['name', 'network', 'type', 'zone', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end',
-                    'shared', 'dhcp_nodes_in_pool', 'dhcp_nodes_only'],
+                    'shared', 'dhcp_mode'],
         'dns': ['host', 'ipaddress'],
         'node': [
             'name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_present',
