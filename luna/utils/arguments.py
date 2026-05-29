@@ -104,6 +104,7 @@ class Arguments():
         parser.add_argument('-f', '--provision_fallback', help='Overrides Cluster fallback provisioning method')
         parser.add_argument('-n', '--netboot', choices=BOOL_CHOICES,
                                metavar=BOOL_META, help='Enables or disables network based boots. Disabling allows for local node, e.g. disk boot')
+        parser.add_argument('-x', '--ipxe_kernel', help='Sets iPXE kernel used for booting. Supported are "default" and "alternative"')
         parser.add_argument('-m', '--bootmenu', choices=BOOL_CHOICES,
                                metavar=BOOL_META, help='Cosmetic setting that enables or disables the displaying of the iPXE boot menu')
         parser.add_argument('-U', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
@@ -161,6 +162,7 @@ class Arguments():
         parser.add_argument('-f', '--provision_fallback', help='Overrides Cluster or Group fallback provisioning method')
         parser.add_argument('-n', '--netboot', choices=BOOL_CHOICES,
                               metavar=BOOL_META, help='Overrides Group configured network based boots. Disabling allows for local node, e.g. disk boot')
+        parser.add_argument('-x', '--ipxe_kernel', help='Sets iPXE kernel used for booting. Supported are "default" and "alternative"')
         parser.add_argument('-m', '--bootmenu', choices=BOOL_CHOICES,
                               metavar=BOOL_META, help='Overrides Group configured setting that enables or disables the displaying of the iPXE boot menu')
         parser.add_argument('-S', '--service', choices=BOOL_CHOICES,

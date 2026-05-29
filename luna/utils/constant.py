@@ -254,9 +254,9 @@ def overrides(table=None):
     response = False
     static = {
         'node': [
-            'osimage', 'osimagetag', 'kerneloptions', 'setupbmc', 'bmcsetup', 'netboot', 'bootmenu',
-            'roles', 'scripts', 'prescript', 'partscript', 'postscript', 'provision_interface',
-            'provision_method', 'provision_fallback'
+            'osimage', 'osimagetag', 'kerneloptions', 'setupbmc', 'bmcsetup', 'netboot', 'ipxe_kernel',
+            'bootmenu', 'roles', 'scripts', 'prescript', 'partscript', 'postscript',
+            'provision_interface', 'provision_method', 'provision_fallback'
         ],
         'group': [
             'provision_method', 'provision_interface', 'provision_fallback', 'kerneloptions',
@@ -284,17 +284,17 @@ def sortby(table: str) -> list:
         'node': [
             'info', 'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions',
             'interfaces', 'status', 'vendor', 'assettag', 'position', 'switch', 'switchport',
-            'cloud', 'setupbmc', 'bmcsetup', 'unmanaged_bmc_users', 'netboot', 'bootmenu',
-            'service', 'roles', 'scripts', '_prescript_source', 'prescript', '_partscript_source',
-            'partscript', '_postscript_source', 'postscript', 'provision_interface',
-            'provision_method', 'provision_fallback', 'tpm_uuid', 'tpm_pubkey', 'tpm_sha256',
-            'comment',  'macaddress'
+            'cloud', 'setupbmc', 'bmcsetup', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
+            'bootmenu', 'service', 'roles', 'scripts', '_prescript_source', 'prescript',
+            '_partscript_source', 'partscript', '_postscript_source', 'postscript',
+            'provision_interface', 'provision_method', 'provision_fallback', 'tpm_uuid',
+            'tpm_pubkey', 'tpm_sha256', 'comment',  'macaddress'
         ],
         'group': [
             'info', 'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
-            'setupbmc', 'bmcsetupname', 'unmanaged_bmc_users', 'netboot', 'bootmenu', 'roles',
-            'scripts', 'prescript', 'partscript', 'postscript', 'provision_interface',
-            'provision_method', 'provision_fallback', 'comment'
+            'setupbmc', 'bmcsetupname', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
+            'bootmenu', 'roles', 'scripts', 'prescript', 'partscript', 'postscript',
+            'provision_interface', 'provision_method', 'provision_fallback', 'comment'
         ],
         'bmcsetup': [
             'name', 'userid', 'username', 'password', 'netchannel', 'mgmtchannel',
