@@ -1005,6 +1005,14 @@ class Helper():
                                         dhcp_range_end = f'{data[ele][field_key]}\n{data[ele]["dhcp_range_end_ipv6"]}'
                                 dhcp_range_end = dhcp_range_end if num == len(data) else f'{dhcp_range_end}\n'
                                 val_row.append(dhcp_range_end)
+                            elif field_key == "dhcp_mode":
+                                dhcp_mode = "--NA--"
+                                if data[ele].get("dhcp_nodes_in_pool"):
+                                    dhcp_mode = "nodes_in_pool"
+                                elif data[ele].get("dhcp_nodes_only"):
+                                    dhcp_mode = "nodes_only"
+                                dhcp_mode = dhcp_mode if num == len(data) else f'{dhcp_mode}\n'
+                                val_row.append(dhcp_mode)
                             else:
                                 val_row.append(data[ele][field_key])
                         else:
