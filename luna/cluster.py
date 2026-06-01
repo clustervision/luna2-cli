@@ -93,6 +93,12 @@ class Cluster():
                                     metavar=BOOL_META, help='Security')
         cluster_change.add_argument('--debug', choices=BOOL_CHOICES,
                                     metavar=BOOL_META, help='Debug Mode')
+        cluster_change.add_argument('-bl', '--bind_legacy', choices=BOOL_CHOICES,
+                                    metavar=BOOL_META, help='Legacy BIND mode (enables dnssec-enable directive)')
+        cluster_change.add_argument('-de', '--dnssec_enable', choices=BOOL_CHOICES,
+                                    metavar=BOOL_META, help='Enable DNSSEC (only effective when bind_legacy is on)')
+        cluster_change.add_argument('-dv', '--dnssec_validation', choices=BOOL_CHOICES,
+                                    metavar=BOOL_META, help='Enable DNSSEC validation (skipped if dnssec_enable is no)')
         return parser
 
 
