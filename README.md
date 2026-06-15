@@ -368,3 +368,7 @@ luna control power on {NodeName OR NodeList}
 ```
 luna control power off {NodeName OR NodeList}
 ```
+
+## Contributing
+
+Please read the [contribution guidelines](Guidelines.rst) before submitting changes, including the legal terms that apply to all contributions.
