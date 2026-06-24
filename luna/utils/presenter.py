@@ -58,6 +58,16 @@ class Presenter():
         return True
 
 
+    def show_csv(self, values=None):
+        """
+        This method prints a single column as a plain comma-separated line,
+        suitable for piping into other tools.
+        """
+        self.logger.debug(f'CSV Values => {values}')
+        Message().show_success(','.join(values))
+        return True
+
+
     def show_table(self, title=None, fields=None, rows=None):
         """
         This method will fetch a records from the Luna 2 Daemon Database

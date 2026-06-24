@@ -39,12 +39,15 @@ class Arguments():
     All kind of common Arguments methods.
     """
 
-    def common_list_args(self, parser):
+    def common_list_args(self, parser, csv=False):
         """
         This method will provide the common list and show arguments.
         """
         parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         parser.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
+        if csv:
+            parser.add_argument('--csv', metavar='<column>', default=None,
+                                help='Output a single column as comma-separated values')
         return parser
 
 

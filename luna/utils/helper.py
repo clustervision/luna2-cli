@@ -290,6 +290,8 @@ class Helper():
             if args['raw']:
                 json_data = Helper().prepare_json(data)
                 response = Presenter().show_json(json_data)
+            elif args.get('csv'):
+                response = self.column_csv(table, data, args['csv'])
             else:
                 data = Helper().prepare_json(data, True)
                 fields, rows  = self.filter_data(table, data)
@@ -302,6 +304,42 @@ class Helper():
         else:
             response = Message().show_error(f'{table} is not found.')
         return response
+
+
+    def column_csv(self, table=None, data=None, column=None):
+        """
+        Output a single column across all records as a comma-separated line.
+        The column is matched against the top-level fields of each record. Empty values are skipped.
+        Only meant for the list context.
+        """
+        def collect(value, into):
+            """Append scalar value(s) to `into`, skipping composite (dict) values."""
+            if isinstance(value, list):
+                for element in value:
+                    if not isinstance(element, dict):
+                        into.append(element)
+            elif not isinstance(value, dict):
+                into.append(value)
+
+        values, matched = [], False
+        for record in data.values():
+            if column in record:
+                matched = True
+                collect(record[column], values)
+            else:
+                for field_value in record.values():
+                    if isinstance(field_value, list):
+                        for item in field_value:
+                            if isinstance(item, dict) and column in item:
+                                matched = True
+                                collect(item[column], values)
+        if not matched:
+            available = sorted({key for record in data.values()
+                                for key in record if not key.startswith('_')})
+            Message().error_exit(f"Column '{column}' is not available for {table}. "
+                                 f"Choose one of: {', '.join(available)}")
+        values = [str(value) for value in values if value not in [None, '']]
+        return Presenter().show_csv(values)
 
 
     def get_controllers(self, detail=None):
@@ -783,12 +821,15 @@ class Helper():
         return response
 
 
-    def common_list_args(self, parser=None):
+    def common_list_args(self, parser=None, csv=False):
         """
         This method will provide the common list and show arguments..
         """
         parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         parser.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
+        if csv:
+            parser.add_argument('--csv', metavar='<column>', default=None,
+                                help='Output a single column as comma-separated values')
         return parser
 
 
