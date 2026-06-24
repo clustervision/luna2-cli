@@ -65,7 +65,7 @@ class BMCSetup():
         bmcsetup_menu = Helper().get_help_message(subparsers, self.table)
         bmcsetup_args = bmcsetup_menu.add_subparsers(dest='action', title='commands', description='Available bmcsetup operations')
         bmcsetup_list = bmcsetup_args.add_parser('list', help='List BMC Setups')
-        Arguments().common_list_args(bmcsetup_list)
+        Arguments().common_list_args(bmcsetup_list, True)
         bmcsetup_show = bmcsetup_args.add_parser('show', help='Show BMC Setup')
         bmcsetup_show.add_argument('name', help='BMC Setup Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(bmcsetup_show)

@@ -72,7 +72,7 @@ class Group():
         group_menu = Helper().get_help_message(subparsers, self.table)
         group_args = group_menu.add_subparsers(dest='action', title='commands', description='Available group operations')
         group_list = group_args.add_parser('list', help='List Groups')
-        Arguments().common_list_args(group_list)
+        Arguments().common_list_args(group_list, True)
         group_show = group_args.add_parser('show', help='Show Group details')
         group_show.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(group_show)
@@ -155,7 +155,9 @@ class Group():
         self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config'][self.table]
-            if 'raw' in self.args and self.args['raw']:
+            if self.args.get('csv'):
+                response = Helper().column_csv(self.table, data, self.args['csv'])
+            elif 'raw' in self.args and self.args['raw']:
                 json_data = Helper().prepare_json(data)
                 response = Presenter().show_json(json_data)
             else:

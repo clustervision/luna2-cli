@@ -74,7 +74,7 @@ class Network():
         network_menu = Helper().get_help_message(subparsers, self.table)
         network_args = network_menu.add_subparsers(dest='action', title='commands', description='Available network operations')
         network_list = network_args.add_parser('list', help='List Networks')
-        Arguments().common_list_args(network_list)
+        Arguments().common_list_args(network_list, True)
         network_show = network_args.add_parser('show', help='Show Network')
         network_show.add_argument('name', help='Network Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(network_show)

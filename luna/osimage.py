@@ -78,7 +78,7 @@ class OSImage():
         osimage_menu = Helper().get_help_message(subparsers, self.table)
         osimage_args = osimage_menu.add_subparsers(dest='action', title='commands', description='Available osimage operations')
         osimage_list = osimage_args.add_parser('list', help='Lists available OSImages')
-        Arguments().common_list_args(osimage_list)
+        Arguments().common_list_args(osimage_list, True)
         osimage_show = osimage_args.add_parser('show', help='Show a OSImage')
         osimage_show.add_argument('name', help='OSImage Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(osimage_show)

@@ -64,7 +64,7 @@ class Cloud():
         cloud_menu = Helper().get_help_message(subparsers, self.table)
         cloud_args = cloud_menu.add_subparsers(dest='action', title='commands', description='Available cloud operations')
         cloud_list = cloud_args.add_parser('list', help='List All Cloud Providers')
-        Arguments().common_list_args(cloud_list)
+        Arguments().common_list_args(cloud_list, True)
         cloud_show = cloud_args.add_parser('show', help='Show Cloud Providers')
         cloud_show.add_argument('name', help='Cloud Provider Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(cloud_show)
