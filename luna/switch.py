@@ -32,7 +32,7 @@ __status__      = "Development"
 from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.log import Log
-from luna.utils.constant import actions
+from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 from luna.utils.message import Message
 
 class Switch():
@@ -78,6 +78,19 @@ class Switch():
         switch_add.add_argument('-o', '--oid', help='OID')
         switch_add.add_argument('-u', '--uplinkports', help='Write community')
         switch_add.add_argument('--vendor', help='Add Switch Vendor Name')
+        # TRIX-1908: switch zero-touch provisioning (ZTP) fields
+        switch_add.add_argument('-nb', '--netboot', choices=BOOL_CHOICES, metavar=BOOL_META,
+                                help='Toggle ZTP netboot DHCP options for the switch')
+        switch_add.add_argument('-du', '--default-url',
+                                help='ZTP boot image path, controller-relative (e.g. files/<image>.bin)')
+        switch_add.add_argument('-bf', '--bootfile',
+                                help='ZTP recipe path, controller-relative (e.g. boot/switch/<name>)')
+        switch_add.add_argument('-zc', '--ztpconfig', action='store_true',
+                                help='Config served by ZTP (opens an editor)')
+        switch_add.add_argument('-qz', '--quick-ztpconfig', dest='ztpconfig',
+                                metavar="File-Path OR In-Line", help='ZTP config File-Path OR In-Line')
+        switch_add.add_argument('-zf', '--ztpformat', choices=['commands', 'yaml'],
+                                help='ZTP config format served by the recipe')
         switch_add.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_add.add_argument('--nonetwork', action='store_true', default=None, help='No network verification')
         switch_add.add_argument('-qc', '--quick-comment', dest='comment',
@@ -93,6 +106,19 @@ class Switch():
         switch_change.add_argument('-o', '--oid', help='OID')
         switch_change.add_argument('-u', '--uplinkports', help='Write community')
         switch_change.add_argument('--vendor', help='Change Switch Vendor Name')
+        # TRIX-1908: switch zero-touch provisioning (ZTP) fields
+        switch_change.add_argument('-nb', '--netboot', choices=BOOL_CHOICES, metavar=BOOL_META,
+                                   help='Toggle ZTP netboot DHCP options for the switch')
+        switch_change.add_argument('-du', '--default-url',
+                                   help='ZTP boot image path, controller-relative (e.g. files/<image>.bin)')
+        switch_change.add_argument('-bf', '--bootfile',
+                                   help='ZTP recipe path, controller-relative (e.g. boot/switch/<name>)')
+        switch_change.add_argument('-zc', '--ztpconfig', action='store_true',
+                                   help='Config served by ZTP (opens an editor)')
+        switch_change.add_argument('-qz', '--quick-ztpconfig', dest='ztpconfig',
+                                   metavar="File-Path OR In-Line", help='ZTP config File-Path OR In-Line')
+        switch_change.add_argument('-zf', '--ztpformat', choices=['commands', 'yaml'],
+                                   help='ZTP config format served by the recipe')
         switch_change.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_change.add_argument('--nonetwork', action='store_true', default=None, help='No network verification')
         switch_change.add_argument('-qc', '--quick-comment', dest='comment',
@@ -109,6 +135,19 @@ class Switch():
         switch_clone.add_argument('-o', '--oid', help='OID')
         switch_clone.add_argument('-u', '--uplinkports', help='Write community')
         switch_clone.add_argument('--vendor', help='Clone Switch Vendor Name')
+        # TRIX-1908: switch zero-touch provisioning (ZTP) fields
+        switch_clone.add_argument('-nb', '--netboot', choices=BOOL_CHOICES, metavar=BOOL_META,
+                                  help='Toggle ZTP netboot DHCP options for the switch')
+        switch_clone.add_argument('-du', '--default-url',
+                                  help='ZTP boot image path, controller-relative (e.g. files/<image>.bin)')
+        switch_clone.add_argument('-bf', '--bootfile',
+                                  help='ZTP recipe path, controller-relative (e.g. boot/switch/<name>)')
+        switch_clone.add_argument('-zc', '--ztpconfig', action='store_true',
+                                  help='Config served by ZTP (opens an editor)')
+        switch_clone.add_argument('-qz', '--quick-ztpconfig', dest='ztpconfig',
+                                  metavar="File-Path OR In-Line", help='ZTP config File-Path OR In-Line')
+        switch_clone.add_argument('-zf', '--ztpformat', choices=['commands', 'yaml'],
+                                  help='ZTP config format served by the recipe')
         switch_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_clone.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')

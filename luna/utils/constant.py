@@ -52,7 +52,7 @@ BOOL_KEYS = [
 ]
 EDITOR_KEYS = [
     'options', 'content', 'comment', 'prescript', 'partscript', 'postscript', 'grab_filesystems',
-    'grab_exclude', 'kerneloptions'
+    'grab_exclude', 'kerneloptions', 'ztpconfig'
 ]
 SERVICE_ACTIONS = ['start', 'stop', 'restart', 'reload', 'status']
 SERVICES = ['dhcp', 'dns']
@@ -234,7 +234,7 @@ def filter_columns(table: str) -> list:
         'nodesecrets': ['Node', 'name', 'path', 'content'],
         'osimage': ['name', 'kernelversion', 'path', 'distribution', 'osrelease'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
-        'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],
+        'switch': ['name', 'network', 'oid', 'read', 'ipaddress', 'netboot'],
         'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes',
                        'groups'],
         'status': ['username_initiator', 'request_id', 'read', 'message', 'created'],
@@ -306,7 +306,8 @@ def sortby(table: str) -> list:
             'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions', 'path', 'imagefile',
             'distribution', 'osrelease', 'comment'
         ],
-        'switch': ['name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'comment'],
+        'switch': ['name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'netboot',
+                   'default_url', 'bootfile', 'ztpformat', 'ztpconfig', 'comment'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'mtu', 'vlanid',
                           'vlan_parent', 'bond_mode', 'bond_slaves'],
