@@ -64,7 +64,7 @@ class Switch():
         switch_menu = Helper().get_help_message(subparsers, self.table)
         switch_args = switch_menu.add_subparsers(dest='action', title='commands', description='Available switch operations')
         switch_list = switch_args.add_parser('list', help='List Switch')
-        Helper().common_list_args(switch_list)
+        Helper().common_list_args(switch_list, True)
         switch_show = switch_args.add_parser('show', help='Show Switch')
         switch_show.add_argument('name', help='Switch Name').completer = Helper().name_completer(self.table)
         Helper().common_list_args(switch_show)

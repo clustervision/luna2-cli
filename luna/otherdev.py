@@ -65,7 +65,7 @@ class OtherDev():
         otherdev_menu = Helper().get_help_message(subparsers, self.table)
         otherdev_args = otherdev_menu.add_subparsers(dest='action', title='commands', description='Available otherdev operations')
         otherdev_list = otherdev_args.add_parser('list', help='List Other Devices')
-        Helper().common_list_args(otherdev_list)
+        Helper().common_list_args(otherdev_list, True)
         otherdev_show = otherdev_args.add_parser('show', help='Show Other Devices')
         otherdev_show.add_argument('name', help='Other Device Name').completer = Helper().name_completer(self.table)
         Helper().common_list_args(otherdev_show)
