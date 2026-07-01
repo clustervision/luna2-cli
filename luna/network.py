@@ -141,6 +141,7 @@ class Network():
             route_verb.add_argument('-m', '--metric', help='Route metric')
             route_verb.add_argument('-dev', '--device', help='Interface name (or BOOTIF); optional')
             route_verb.add_argument('-c', '--comment', help='Comment')
+            route_verb.add_argument('-N', '--newname', help='Rename the route (change only); couplings are kept')
             route_verb.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         network_route_remove = network_route_args.add_parser('remove', help='Remove Route')
         network_route_remove.add_argument('name', help='Route Name')
@@ -357,7 +358,7 @@ class Network():
 
     def _route_write(self):
         payload = {}
-        for key in ['destination', 'gateway', 'metric', 'device', 'comment']:
+        for key in ['destination', 'gateway', 'metric', 'device', 'comment', 'newname']:
             if self.args.get(key) is not None:
                 payload[key] = self.args[key]
         request_data = {'config': {'route': {self.args['name']: payload}}}
