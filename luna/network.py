@@ -131,11 +131,11 @@ class Network():
         network_route_list = network_route_args.add_parser('list', help='List Routes')
         Arguments().common_list_args(network_route_list)
         network_route_show = network_route_args.add_parser('show', help='Show Route')
-        network_route_show.add_argument('name', help='Route Name')
+        network_route_show.add_argument('name', help='Route Name').completer = Helper().name_completer("route")
         Arguments().common_list_args(network_route_show)
         for verb in ['add', 'change']:
             route_verb = network_route_args.add_parser(verb, help=f'{verb.capitalize()} Route')
-            route_verb.add_argument('name', help='Route Name')
+            route_verb.add_argument('name', help='Route Name').completer = Helper().name_completer("route")
             route_verb.add_argument('-D', '--destination', help='Destination network/host in CIDR (e.g. 10.0.0.0/8)')
             route_verb.add_argument('-g', '--gateway', help='Next-hop IP (optional if a device is given)')
             route_verb.add_argument('-m', '--metric', help='Route metric')
@@ -144,7 +144,7 @@ class Network():
             route_verb.add_argument('-N', '--newname', help='Rename the route (change only); couplings are kept')
             route_verb.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         network_route_remove = network_route_args.add_parser('remove', help='Remove Route')
-        network_route_remove.add_argument('name', help='Route Name')
+        network_route_remove.add_argument('name', help='Route Name').completer = Helper().name_completer("route")
         network_route_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 

@@ -58,18 +58,18 @@ _shtab_luna_monitor_subparsers=('status' 'queue')
 _shtab_luna_option_strings=('-h' '--help' '-V' '--version' '-v' '--verbose')
 _shtab_luna_cluster_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_cluster_show_option_strings=('-h' '--help' '-v' '--verbose')
-_shtab_luna_cluster_change_option_strings=('-h' '--help' '-v' '--verbose' '--controller' '--test-controller' '-cn' '--controller_network' '-n' '--name' '-u' '--user' '-T' '--ntp_server' '-P' '--packing_bootpause' '-C' '--createnode_ondemand' '-M' '--createnode_macashost' '-N' '--nextnode_discover' '-ns' '--nameserver_ip' '-fs' '--forwardserver_ip' '-d' '--domain_search' '-bl' '--bind_legacy' '-de' '--dnssec_enable' '-dv' '--dnssec_validation' '-t' '--technical_contacts' '-p' '--provision_method' '-f' '--provision_fallback' '-s' '--security' '--debug')
+_shtab_luna_cluster_change_option_strings=('-h' '--help' '-v' '--verbose' '--controller' '-cn' '--controller_network' '-n' '--name' '-u' '--user' '-T' '--ntp_server' '-P' '--packing_bootpause' '-C' '--createnode_ondemand' '-M' '--createnode_macashost' '-N' '--nextnode_discover' '-ns' '--nameserver_ip' '-fs' '--forwardserver_ip' '-d' '--domain_search' '-bl' '--bind_legacy' '-de' '--dnssec_enable' '-dv' '--dnssec_validation' '-t' '--technical_contacts' '-p' '--provision_method' '-f' '--provision_fallback' '-s' '--security' '--debug')
 _shtab_luna_cloud_option_strings=('-h' '--help')
-_shtab_luna_cloud_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
+_shtab_luna_cloud_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw' '--csv')
 _shtab_luna_cloud_show_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_cloud_add_option_strings=('-h' '--help' '-t' '--type' '-c' '--comment' '-v' '--verbose')
 _shtab_luna_cloud_change_option_strings=('-h' '--help' '-t' '--type' '-c' '--comment' '-v' '--verbose')
 _shtab_luna_cloud_remove_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_network_option_strings=('-h' '--help')
-_shtab_luna_network_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
+_shtab_luna_network_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw' '--csv')
 _shtab_luna_network_show_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
-_shtab_luna_network_add_option_strings=('-h' '--help' '-N' '--network' '-g' '--gateway' '-m' '--gateway_metric' '-t' '--type' '-S' '--nameserver_ip' '-T' '--ntp_server' '-D' '--dhcp' '-b' '--dhcp_range_begin' '-e' '--dhcp_range_end' '-p' '--dhcp_nodes_in_pool' '-o' '--dhcp_nodes_only' '-dr' '--dhcp_relay' '-s' '--shared' '-rt' '--routes' '-z' '--zone' '-n' '--non_authoritative' '-c' '--comment' '-qc' '--quick-comment' '-v' '--verbose')
-_shtab_luna_network_change_option_strings=('-h' '--help' '--controller' '--test-controller' '-N' '--network' '-cl' '--clear' '-g' '--gateway' '-m' '--gateway_metric' '-t' '--type' '-S' '--nameserver_ip' '-T' '--ntp_server' '-D' '--dhcp' '-b' '--dhcp_range_begin' '-e' '--dhcp_range_end' '-p' '--dhcp_nodes_in_pool' '-o' '--dhcp_nodes_only' '-dr' '--dhcp_relay' '-s' '--shared' '-rt' '--routes' '-z' '--zone' '-n' '--non_authoritative' '-c' '--comment' '-qc' '--quick-comment' '-v' '--verbose')
+_shtab_luna_network_add_option_strings=('-h' '--help' '-N' '--network' '-g' '--gateway' '-m' '--gateway_metric' '-t' '--type' '-S' '--nameserver_ip' '-T' '--ntp_server' '-D' '--dhcp' '-b' '--dhcp_range_begin' '-e' '--dhcp_range_end' '-p' '--dhcp_nodes_in_pool' '-o' '--dhcp_nodes_only' '-s' '--shared' '-dr' '--dhcp_relay' '-rt' '--routes' '-z' '--zone' '-n' '--non_authoritative' '-c' '--comment' '-qc' '--quick-comment' '-v' '--verbose')
+_shtab_luna_network_change_option_strings=('-h' '--help' '--controller' '-N' '--network' '-cl' '--clear' '-g' '--gateway' '-m' '--gateway_metric' '-t' '--type' '-S' '--nameserver_ip' '-T' '--ntp_server' '-D' '--dhcp' '-b' '--dhcp_range_begin' '-e' '--dhcp_range_end' '-p' '--dhcp_nodes_in_pool' '-o' '--dhcp_nodes_only' '-s' '--shared' '-dr' '--dhcp_relay' '-rt' '--routes' '-z' '--zone' '-n' '--non_authoritative' '-c' '--comment' '-qc' '--quick-comment' '-v' '--verbose')
 _shtab_luna_network_rename_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_network_remove_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_network_reserve_option_strings=('-h' '--help' '-R' '--raw' '-v' '--verbose')
@@ -78,15 +78,16 @@ _shtab_luna_network_nextip_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_network_dns_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_network_dns_list_option_strings=('-h' '--help')
 _shtab_luna_network_dns_add_option_strings=('-h' '--help' '-v' '--verbose')
+_shtab_luna_network_dns_change_option_strings=('-h' '--help' '-v' '--verbose')
+_shtab_luna_network_dns_remove_option_strings=('-h' '--help' '-v' '--verbose')
+_shtab_luna_network_route_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_network_route_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_network_route_show_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_network_route_add_option_strings=('-h' '--help' '-D' '--destination' '-g' '--gateway' '-m' '--metric' '-dev' '--device' '-c' '--comment' '-N' '--newname' '-v' '--verbose')
 _shtab_luna_network_route_change_option_strings=('-h' '--help' '-D' '--destination' '-g' '--gateway' '-m' '--metric' '-dev' '--device' '-c' '--comment' '-N' '--newname' '-v' '--verbose')
 _shtab_luna_network_route_remove_option_strings=('-h' '--help' '-v' '--verbose')
-_shtab_luna_network_dns_change_option_strings=('-h' '--help' '-v' '--verbose')
-_shtab_luna_network_dns_remove_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_osimage_option_strings=('-h' '--help')
-_shtab_luna_osimage_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
+_shtab_luna_osimage_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw' '--csv')
 _shtab_luna_osimage_show_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_osimage_member_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_osimage_add_option_strings=('-h' '--help' '-G' '--grab_filesystems' '-qG' '--quick-grab_filesystems' '-E' '--grab_exclude' '-qE' '--quick-grab_exclude' '-r' '--initrdfile' '-f' '--kernelfile' '-m' '--kernelmodules' '-o' '--kerneloptions' '-qo' '--quick-kerneloptions' '-k' '--kernelversion' '-p' '--path' '-i' '--imagefile' '-d' '--distribution' '-l' '--osrelease' '-c' '--comment' '-qc' '--quick-comment' '-v' '--verbose')
@@ -101,7 +102,7 @@ _shtab_luna_osimage_tag_show_option_strings=('-h' '--help' '-v' '--verbose' '-R'
 _shtab_luna_osimage_tag_change_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_osimage_tag_remove_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_bmcsetup_option_strings=('-h' '--help')
-_shtab_luna_bmcsetup_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
+_shtab_luna_bmcsetup_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw' '--csv')
 _shtab_luna_bmcsetup_show_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_bmcsetup_member_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_bmcsetup_add_option_strings=('-h' '--help' '-i' '--userid' '-u' '--username' '-p' '--password' '-n' '--netchannel' '-m' '--mgmtchannel' '-U' '--unmanaged_bmc_users' '-c' '--comment' '-qc' '--quick-comment' '-v' '--verbose')
@@ -110,15 +111,15 @@ _shtab_luna_bmcsetup_clone_option_strings=('-h' '--help' '-i' '--userid' '-u' '-
 _shtab_luna_bmcsetup_rename_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_bmcsetup_remove_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_switch_option_strings=('-h' '--help')
-_shtab_luna_switch_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
+_shtab_luna_switch_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw' '--csv')
 _shtab_luna_switch_show_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
-_shtab_luna_switch_add_option_strings=('-h' '--help' '-N' '--network' '-I' '--ipaddress' '-M' '--macaddress' '-r' '--read' '-w' '--rw' '-o' '--oid' '-u' '--uplinkports' '--vendor' '-c' '--comment' '--nonetwork' '-qc' '--quick-comment' '-v' '--verbose')
-_shtab_luna_switch_change_option_strings=('-h' '--help' '-N' '--network' '-I' '--ipaddress' '-M' '--macaddress' '-r' '--read' '-w' '--rw' '-o' '--oid' '-u' '--uplinkports' '--vendor' '-c' '--comment' '--nonetwork' '-qc' '--quick-comment' '-v' '--verbose')
-_shtab_luna_switch_clone_option_strings=('-h' '--help' '-N' '--network' '-I' '--ipaddress' '-M' '--macaddress' '-r' '--read' '-w' '--rw' '-o' '--oid' '-u' '--uplinkports' '--vendor' '-c' '--comment' '-qc' '--quick-comment' '-v' '--verbose')
+_shtab_luna_switch_add_option_strings=('-h' '--help' '-N' '--network' '-I' '--ipaddress' '-M' '--macaddress' '-r' '--read' '-w' '--rw' '-o' '--oid' '-u' '--uplinkports' '--vendor' '-nb' '--netboot' '-du' '--default-url' '-bf' '--bootfile' '-zc' '--ztpconfig' '-qz' '--quick-ztpconfig' '-zf' '--ztpformat' '-c' '--comment' '--nonetwork' '-qc' '--quick-comment' '-v' '--verbose')
+_shtab_luna_switch_change_option_strings=('-h' '--help' '-N' '--network' '-I' '--ipaddress' '-M' '--macaddress' '-r' '--read' '-w' '--rw' '-o' '--oid' '-u' '--uplinkports' '--vendor' '-nb' '--netboot' '-du' '--default-url' '-bf' '--bootfile' '-zc' '--ztpconfig' '-qz' '--quick-ztpconfig' '-zf' '--ztpformat' '-c' '--comment' '--nonetwork' '-qc' '--quick-comment' '-v' '--verbose')
+_shtab_luna_switch_clone_option_strings=('-h' '--help' '-N' '--network' '-I' '--ipaddress' '-M' '--macaddress' '-r' '--read' '-w' '--rw' '-o' '--oid' '-u' '--uplinkports' '--vendor' '-nb' '--netboot' '-du' '--default-url' '-bf' '--bootfile' '-zc' '--ztpconfig' '-qz' '--quick-ztpconfig' '-zf' '--ztpformat' '-c' '--comment' '-qc' '--quick-comment' '-v' '--verbose')
 _shtab_luna_switch_rename_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_switch_remove_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_otherdev_option_strings=('-h' '--help')
-_shtab_luna_otherdev_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
+_shtab_luna_otherdev_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw' '--csv')
 _shtab_luna_otherdev_show_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_otherdev_add_option_strings=('-h' '--help' '-N' '--network' '-I' '--ipaddress' '-M' '--macaddress' '--vendor' '-c' '--comment' '--nonetwork' '-qc' '--quick-comment' '-v' '--verbose')
 _shtab_luna_otherdev_change_option_strings=('-h' '--help' '-N' '--network' '-I' '--ipaddress' '-M' '--macaddress' '--vendor' '-c' '--comment' '--nonetwork' '-qc' '--quick-comment' '-v' '--verbose')
@@ -126,7 +127,7 @@ _shtab_luna_otherdev_clone_option_strings=('-h' '--help' '-N' '--network' '-I' '
 _shtab_luna_otherdev_rename_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_otherdev_remove_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_group_option_strings=('-h' '--help')
-_shtab_luna_group_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
+_shtab_luna_group_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw' '--csv')
 _shtab_luna_group_show_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw' '-f' '--full-scripts')
 _shtab_luna_group_member_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
 _shtab_luna_group_add_option_strings=('-h' '--help' '-e' '--setupbmc' '-o' '--osimage' '-t' '--osimagetag' '-k' '--kerneloptions' '-qk' '--quick-kerneloptions' '-b' '--bmcsetupname' '-d' '--domain' '-r' '--roles' '-s' '--scripts' '-rt' '--routes' '-pre' '--prescript' '-qpre' '--quick-prescript' '-part' '--partscript' '-qpart' '--quick-partscript' '-post' '--postscript' '-qpost' '--quick-postscript' '-i' '--provision_interface' '-p' '--provision_method' '-f' '--provision_fallback' '-n' '--netboot' '-x' '--ipxe_kernel' '-m' '--bootmenu' '-U' '--unmanaged_bmc_users' '-if' '--interface' '-N' '--network' '-L' '--vlanid' '--mtu' '-P' '--vlan_parent' '-B' '--bond_mode' '-A' '--bond_slaves' '-O' '--options' '-D' '--dhcp' '-qo' '--quick-options' '-c' '--comment' '-qc' '--quick-comment' '-v' '--verbose' '--local')
@@ -141,7 +142,7 @@ _shtab_luna_group_changeinterface_option_strings=('-h' '--help' '--mtu' '-N' '--
 _shtab_luna_group_removeinterface_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_group_renameinterface_option_strings=('-h' '--help' '-v' '--verbose')
 _shtab_luna_node_option_strings=('-h' '--help')
-_shtab_luna_node_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw')
+_shtab_luna_node_list_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw' '--csv')
 _shtab_luna_node_show_option_strings=('-h' '--help' '-v' '--verbose' '-R' '--raw' '-f' '--full-scripts')
 _shtab_luna_node_add_option_strings=('-h' '--help' '-g' '--group' '-o' '--osimage' '-t' '--osimagetag' '-k' '--kerneloptions' '-qk' '--quick-kerneloptions' '-e' '--setupbmc' '-b' '--bmcsetup' '--switch' '--switchport' '--cloud' '-r' '--roles' '-s' '--scripts' '-rt' '--routes' '-pre' '--prescript' '-qpre' '--quick-prescript' '-part' '--partscript' '-qpart' '--quick-partscript' '-post' '--postscript' '-qpost' '--quick-postscript' '-i' '--provision_interface' '-p' '--provision_method' '-f' '--provision_fallback' '-n' '--netboot' '-x' '--ipxe_kernel' '-m' '--bootmenu' '-S' '--service' '--status' '--tpm_uuid' '--tpm_pubkey' '--tpm_sha256' '-U' '--unmanaged_bmc_users' '-c' '--comment' '-qc' '--quick-comment' '-if' '--interface' '-N' '--network' '--mtu' '-L' '--vlanid' '-P' '--vlan_parent' '-B' '--bond_mode' '-A' '--bond_slaves' '-I' '--ipaddress' '-M' '--macaddress' '-O' '--options' '-D' '--dhcp' '-qo' '--quick-options' '-v' '--verbose' '--local')
 _shtab_luna_node_change_option_strings=('-h' '--help' '-g' '--group' '-o' '--osimage' '-t' '--osimagetag' '-k' '--kerneloptions' '-qk' '--quick-kerneloptions' '-e' '--setupbmc' '-b' '--bmcsetup' '--switch' '--switchport' '--cloud' '-r' '--roles' '-s' '--scripts' '-rt' '--routes' '-pre' '--prescript' '-qpre' '--quick-prescript' '-part' '--partscript' '-qpart' '--quick-partscript' '-post' '--postscript' '-qpost' '--quick-postscript' '-i' '--provision_interface' '-p' '--provision_method' '-f' '--provision_fallback' '-n' '--netboot' '-x' '--ipxe_kernel' '-m' '--bootmenu' '-S' '--service' '--status' '--tpm_uuid' '--tpm_pubkey' '--tpm_sha256' '-U' '--unmanaged_bmc_users' '-c' '--comment' '-qc' '--quick-comment' '-if' '--interface' '-N' '--network' '--mtu' '-L' '--vlanid' '-P' '--vlan_parent' '-B' '--bond_mode' '-A' '--bond_slaves' '-I' '--ipaddress' '-M' '--macaddress' '-O' '--options' '-D' '--dhcp' '-qo' '--quick-options' '-v' '--verbose' '--local')
@@ -228,7 +229,7 @@ _shtab_luna_cluster_change__s_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_cluster_change___security_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_cluster_change___debug_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_cloud_pos_0_choices=('list' 'show' 'add' 'change' 'remove')
-_shtab_luna_network_pos_0_choices=('list' 'show' 'add' 'change' 'rename' 'remove' 'reserve' 'ipinfo' 'nextip' 'dns')
+_shtab_luna_network_pos_0_choices=('list' 'show' 'add' 'change' 'rename' 'remove' 'reserve' 'ipinfo' 'nextip' 'dns' 'route')
 _shtab_luna_network_add__D_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_network_add___dhcp_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_network_add__p_choices=('y' 'yes' 'n' 'no' '')
@@ -246,10 +247,23 @@ _shtab_luna_network_change___dhcp_nodes_only_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_network_change__n_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_network_change___non_authoritative_choices=('y' 'yes' 'n' 'no' '')
 _shtab_luna_network_dns_pos_1_choices=('list' 'add' 'change' 'remove')
+_shtab_luna_network_route_pos_0_choices=('list' 'show' 'add' 'change' 'remove')
 _shtab_luna_osimage_pos_0_choices=('list' 'show' 'member' 'add' 'change' 'clone' 'rename' 'remove' 'pack' 'kernel' 'tag')
 _shtab_luna_osimage_tag_pos_0_choices=('show' 'change' 'remove')
 _shtab_luna_bmcsetup_pos_0_choices=('list' 'show' 'member' 'add' 'change' 'clone' 'rename' 'remove')
 _shtab_luna_switch_pos_0_choices=('list' 'show' 'add' 'change' 'clone' 'rename' 'remove')
+_shtab_luna_switch_add__nb_choices=('y' 'yes' 'n' 'no' '')
+_shtab_luna_switch_add___netboot_choices=('y' 'yes' 'n' 'no' '')
+_shtab_luna_switch_add__zf_choices=('commands' 'yaml')
+_shtab_luna_switch_add___ztpformat_choices=('commands' 'yaml')
+_shtab_luna_switch_change__nb_choices=('y' 'yes' 'n' 'no' '')
+_shtab_luna_switch_change___netboot_choices=('y' 'yes' 'n' 'no' '')
+_shtab_luna_switch_change__zf_choices=('commands' 'yaml')
+_shtab_luna_switch_change___ztpformat_choices=('commands' 'yaml')
+_shtab_luna_switch_clone__nb_choices=('y' 'yes' 'n' 'no' '')
+_shtab_luna_switch_clone___netboot_choices=('y' 'yes' 'n' 'no' '')
+_shtab_luna_switch_clone__zf_choices=('commands' 'yaml')
+_shtab_luna_switch_clone___ztpformat_choices=('commands' 'yaml')
 _shtab_luna_otherdev_pos_0_choices=('list' 'show' 'add' 'change' 'clone' 'rename' 'remove')
 _shtab_luna_group_pos_0_choices=('list' 'show' 'member' 'add' 'change' 'clone' 'rename' 'remove' 'ospush' 'listinterface' 'showinterface' 'changeinterface' 'removeinterface' 'renameinterface')
 _shtab_luna_group_add__e_choices=('y' 'yes' 'n' 'no' '')
@@ -451,6 +465,37 @@ _shtab_luna_network_dns_remove__h_nargs=0
 _shtab_luna_network_dns_remove___help_nargs=0
 _shtab_luna_network_dns_remove__v_nargs=0
 _shtab_luna_network_dns_remove___verbose_nargs=0
+_shtab_luna_network_route_pos_0_nargs=A...
+_shtab_luna_network_route__h_nargs=0
+_shtab_luna_network_route___help_nargs=0
+_shtab_luna_network_route__v_nargs=0
+_shtab_luna_network_route___verbose_nargs=0
+_shtab_luna_network_route__R_nargs=0
+_shtab_luna_network_route___raw_nargs=0
+_shtab_luna_network_route_list__h_nargs=0
+_shtab_luna_network_route_list___help_nargs=0
+_shtab_luna_network_route_list__v_nargs=0
+_shtab_luna_network_route_list___verbose_nargs=0
+_shtab_luna_network_route_list__R_nargs=0
+_shtab_luna_network_route_list___raw_nargs=0
+_shtab_luna_network_route_show__h_nargs=0
+_shtab_luna_network_route_show___help_nargs=0
+_shtab_luna_network_route_show__v_nargs=0
+_shtab_luna_network_route_show___verbose_nargs=0
+_shtab_luna_network_route_show__R_nargs=0
+_shtab_luna_network_route_show___raw_nargs=0
+_shtab_luna_network_route_add__h_nargs=0
+_shtab_luna_network_route_add___help_nargs=0
+_shtab_luna_network_route_add__v_nargs=0
+_shtab_luna_network_route_add___verbose_nargs=0
+_shtab_luna_network_route_change__h_nargs=0
+_shtab_luna_network_route_change___help_nargs=0
+_shtab_luna_network_route_change__v_nargs=0
+_shtab_luna_network_route_change___verbose_nargs=0
+_shtab_luna_network_route_remove__h_nargs=0
+_shtab_luna_network_route_remove___help_nargs=0
+_shtab_luna_network_route_remove__v_nargs=0
+_shtab_luna_network_route_remove___verbose_nargs=0
 _shtab_luna_osimage_pos_0_nargs=A...
 _shtab_luna_osimage__h_nargs=0
 _shtab_luna_osimage___help_nargs=0
@@ -614,6 +659,8 @@ _shtab_luna_switch_show__R_nargs=0
 _shtab_luna_switch_show___raw_nargs=0
 _shtab_luna_switch_add__h_nargs=0
 _shtab_luna_switch_add___help_nargs=0
+_shtab_luna_switch_add__zc_nargs=0
+_shtab_luna_switch_add___ztpconfig_nargs=0
 _shtab_luna_switch_add__c_nargs=0
 _shtab_luna_switch_add___comment_nargs=0
 _shtab_luna_switch_add___nonetwork_nargs=0
@@ -621,6 +668,8 @@ _shtab_luna_switch_add__v_nargs=0
 _shtab_luna_switch_add___verbose_nargs=0
 _shtab_luna_switch_change__h_nargs=0
 _shtab_luna_switch_change___help_nargs=0
+_shtab_luna_switch_change__zc_nargs=0
+_shtab_luna_switch_change___ztpconfig_nargs=0
 _shtab_luna_switch_change__c_nargs=0
 _shtab_luna_switch_change___comment_nargs=0
 _shtab_luna_switch_change___nonetwork_nargs=0
@@ -628,6 +677,8 @@ _shtab_luna_switch_change__v_nargs=0
 _shtab_luna_switch_change___verbose_nargs=0
 _shtab_luna_switch_clone__h_nargs=0
 _shtab_luna_switch_clone___help_nargs=0
+_shtab_luna_switch_clone__zc_nargs=0
+_shtab_luna_switch_clone___ztpconfig_nargs=0
 _shtab_luna_switch_clone__c_nargs=0
 _shtab_luna_switch_clone___comment_nargs=0
 _shtab_luna_switch_clone__v_nargs=0
@@ -1257,88 +1308,3 @@ _shtab_luna() {
 }
 
 complete -o filenames -F _shtab_luna luna
-
-# --- below here is dynamic option commandline completion ---
-
-# /trinity/local/python/bin/register-python-argcomplete luna # Enable dynamic bash completion for luna.
-#compdef luna
-# Run something, muting output or redirecting it to the debug stream
-# depending on the value of _ARC_DEBUG.
-# If ARGCOMPLETE_USE_TEMPFILES is set, use tempfiles for IPC.
-__python_argcomplete_run() {
-    if [[ -z "${ARGCOMPLETE_USE_TEMPFILES-}" ]]; then
-        __python_argcomplete_run_inner "$@"
-        return
-    fi
-    local tmpfile="$(mktemp)"
-    _ARGCOMPLETE_STDOUT_FILENAME="$tmpfile" __python_argcomplete_run_inner "$@"
-    local code=$?
-    cat "$tmpfile"
-    rm "$tmpfile"
-    return $code
-}
-
-__python_argcomplete_run_inner() {
-    if [[ -z "${_ARC_DEBUG-}" ]]; then
-        "$@" 8>&1 9>&2 1>/dev/null 2>&1 </dev/null
-    else
-        "$@" 8>&1 9>&2 1>&9 2>&1 </dev/null
-    fi
-}
-
-_python_argcomplete() {
-    local IFS=$'\013'
-    local script=""
-    if [[ -n "${ZSH_VERSION-}" ]]; then
-        local completions
-        completions=($(IFS="$IFS" \
-            COMP_LINE="$BUFFER" \
-            COMP_POINT="$CURSOR" \
-            _ARGCOMPLETE=1 \
-            _ARGCOMPLETE_SHELL="zsh" \
-            _ARGCOMPLETE_SUPPRESS_SPACE=1 \
-            __python_argcomplete_run ${script:-${words[1]}}))
-        local nosort=()
-        local nospace=()
-        if is-at-least 5.8; then
-            nosort=(-o nosort)
-        fi
-        if [[ "${completions-}" =~ ([^\\]): && "${match[1]}" =~ [=/:] ]]; then
-            nospace=(-S '')
-        fi
-        _describe "${words[1]}" completions "${nosort[@]}" "${nospace[@]}"
-    else
-        local SUPPRESS_SPACE=0
-        if compopt +o nospace 2> /dev/null; then
-            SUPPRESS_SPACE=1
-        fi
-        COMPREPLY=($(IFS="$IFS" \
-            COMP_LINE="$COMP_LINE" \
-            COMP_POINT="$COMP_POINT" \
-            COMP_TYPE="$COMP_TYPE" \
-            _ARGCOMPLETE_COMP_WORDBREAKS="$COMP_WORDBREAKS" \
-            _ARGCOMPLETE=1 \
-            _ARGCOMPLETE_SHELL="bash" \
-            _ARGCOMPLETE_SUPPRESS_SPACE=$SUPPRESS_SPACE \
-            __python_argcomplete_run ${script:-$1}))
-        if [[ $? != 0 ]]; then
-            unset COMPREPLY
-        elif [[ $SUPPRESS_SPACE == 1 ]] && [[ "${COMPREPLY-}" =~ [=/:]$ ]]; then
-            compopt -o nospace
-        fi
-    fi
-}
-if [[ -z "${ZSH_VERSION-}" ]]; then
-    complete -o nospace -o default -o bashdefault -F _python_argcomplete luna
-else
-    # When called by the Zsh completion system, this will end with
-    # "loadautofunc" when initially autoloaded and "shfunc" later on, otherwise,
-    # the script was "eval"-ed so use "compdef" to register it with the
-    # completion system
-    autoload is-at-least
-    if [[ $zsh_eval_context == *func ]]; then
-        _python_argcomplete "$@"
-    else
-        compdef _python_argcomplete luna
-    fi
-fi
