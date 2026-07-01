@@ -325,7 +325,8 @@ def sortby(table: str) -> list:
         ],
         'osimagetag': [
             'osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups'
-        ]
+        ],
+        'route': ['name', 'destination', 'gateway', 'metric', 'device', 'comment', 'assigned']
     }
     response = list(static[table])
     return response
