@@ -364,8 +364,10 @@ class Network():
         self.logger.debug(f'Payload => {request_data}')
         response = Rest().post_data('route', self.args['name'], request_data)
         self.logger.debug(f'Response => {response}')
-        if response.status_code in (200, 201, 204):
+        if response.status_code == 201:
             Message().show_success(response.content)
+        elif response.status_code in (200, 204):
+            Message().show_success(f'Route {self.args["name"]} updated.')
         else:
             Message().error_exit(response.content, response.status_code)
         return True
