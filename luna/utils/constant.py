@@ -285,7 +285,7 @@ def sortby(table: str) -> list:
         'cloud': ['name', 'type'],
         'node': [
             'info', 'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions',
-            'interfaces', 'status', 'vendor', 'assettag', 'position', 'switch', 'switchport',
+            'interfaces', 'routes', 'status', 'vendor', 'assettag', 'position', 'switch', 'switchport',
             'cloud', 'setupbmc', 'bmcsetup', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
             'bootmenu', 'service', 'roles', 'scripts', '_prescript_source', 'prescript',
             '_partscript_source', 'partscript', '_postscript_source', 'postscript',
@@ -294,7 +294,7 @@ def sortby(table: str) -> list:
         ],
         'group': [
             'info', 'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
-            'setupbmc', 'bmcsetupname', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
+            'routes', 'setupbmc', 'bmcsetupname', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
             'bootmenu', 'roles', 'scripts', 'prescript', 'partscript', 'postscript',
             'provision_interface', 'provision_method', 'provision_fallback', 'comment'
         ],
@@ -320,7 +320,7 @@ def sortby(table: str) -> list:
             'name', 'type', 'zone', 'non_authoritative', 'dhcp',
             'network', 'gateway', 'nameserver_ip', 'dhcp_range_begin', 'dhcp_range_end',
             'network_ipv6', 'gateway_ipv6', 'nameserver_ip_ipv6',
-            'dhcp_range_begin_ipv6', 'dhcp_range_end_ipv6', 'ntp_server',
+            'dhcp_range_begin_ipv6', 'dhcp_range_end_ipv6', 'routes', 'ntp_server',
             'gateway_metric', 'dhcp_nodes_in_pool', 'dhcp_nodes_only', 'shared', 'comment'
         ],
         'osimagetag': [
