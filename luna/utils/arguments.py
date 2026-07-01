@@ -215,9 +215,9 @@ class Arguments():
                                  metavar=BOOL_META, help='Use IP addresses of the dhcp range for nodes. Uses DDNS to update zones')
         parser.add_argument('-o', '--dhcp_nodes_only', choices=BOOL_CHOICES,
                                  metavar=BOOL_META, help='Only serve IP addresses to known nodes. Static assignments')
+        parser.add_argument('-s', '--shared', help='This network will be shared on top of another network. Typically used for mixed node/BMC networks')
         parser.add_argument('-dr', '--dhcp_relay', help='Comma-separated DHCP relay source IP(s) for this subnet, or "" to clear. '
                                  'When set, the subnet is selected by relay source instead of the udhcp pool class')
-        parser.add_argument('-s', '--shared', help='This network will be shared on top of another network. Typically used for mixed node/BMC networks')
         parser.add_argument('-z', '--zone', help='Internal or external Network Zone')
         parser.add_argument('-n', '--non_authoritative', choices=BOOL_CHOICES,
                                  metavar=BOOL_META, help='Set this network as non-authoritative for its DNS zone definition')
