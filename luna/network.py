@@ -364,7 +364,7 @@ class Network():
         self.logger.debug(f'Payload => {request_data}')
         response = Rest().post_data('route', self.args['name'], request_data)
         self.logger.debug(f'Response => {response}')
-        if response.status_code == 201:
+        if response.status_code in (200, 201, 204):
             Message().show_success(response.content)
         else:
             Message().error_exit(response.content, response.status_code)
