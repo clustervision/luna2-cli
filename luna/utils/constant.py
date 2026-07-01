@@ -257,11 +257,11 @@ def overrides(table=None):
         'node': [
             'osimage', 'osimagetag', 'kerneloptions', 'setupbmc', 'bmcsetup', 'netboot', 'ipxe_kernel',
             'bootmenu', 'roles', 'scripts', 'prescript', 'partscript', 'postscript',
-            'provision_interface', 'provision_method', 'provision_fallback'
+            'provision_interface', 'provision_method', 'provision_fallback', 'routes'
         ],
         'group': [
             'provision_method', 'provision_interface', 'provision_fallback', 'kerneloptions',
-            'osimagetag'
+            'osimagetag', 'routes'
         ]
     }
     if table and table in static:
