@@ -194,7 +194,7 @@ def actions(table: str) -> list:
         "cloud" : network_actions,
         "group": common_actions + member_action + ["ospush"] + interface_actions,
         "node": common_actions + ["osgrab", "ospush"] + interface_actions,
-        "network": network_actions + ["reserve", "ipinfo", "nextip", "dns"],
+        "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],
         "osimage": common_actions + member_action + ["pack", "kernel", "tag"],
         "bmcsetup": common_actions + member_action,
         "otherdev": common_actions,
@@ -225,6 +225,7 @@ def filter_columns(table: str) -> list:
         'network': ['name', 'network', 'type', 'zone', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end',
                     'shared', 'dhcp_mode'],
         'dns': ['host', 'ipaddress'],
+        'route': ['name', 'destination', 'gateway', 'metric', 'device', 'assigned'],
         'node': [
             'name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_present',
             'interfaces'
