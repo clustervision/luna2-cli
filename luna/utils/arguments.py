@@ -90,6 +90,7 @@ class Arguments():
         parser.add_argument('-d', '--domain', help='Domain Name')
         parser.add_argument('-r', '--roles', help='Sets the roles used for the group. Multiple roles can be supplied comma separated')
         parser.add_argument('-s', '--scripts', help='Sets the scripts used for the group. Multiple scripts can be supplied comma separated')
+        parser.add_argument('-rt', '--routes', help='Static routes coupled to the group (comma separated names, "" to clear)')
         parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
         parser.add_argument('-qpre', '--quick-prescript', dest='prescript',
                         metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
@@ -148,6 +149,7 @@ class Arguments():
         parser.add_argument('--cloud', help='Cloud Name').completer = Helper().name_completer("cloud")
         parser.add_argument('-r', '--roles', help='Overrides Group configured roles used. Multiple roles can be supplied comma separated')
         parser.add_argument('-s', '--scripts', help='Overrides Group configured scripts used. Multiple scripts can be supplied comma separated')
+        parser.add_argument('-rt', '--routes', help='Static routes coupled to the node (comma separated names, "" to clear)')
         parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
         parser.add_argument('-qpre', '--quick-prescript', dest='prescript',
                         metavar="File-Path OR In-Line", help='Pre Script File-Path OR In-Line')
@@ -218,6 +220,7 @@ class Arguments():
         parser.add_argument('-dr', '--dhcp_relay', help='Comma-separated DHCP relay source IP(s) for this subnet, or "" to clear. '
                                  'When set, the subnet is selected by relay source instead of the udhcp pool class')
         parser.add_argument('-s', '--shared', help='This network will be shared on top of another network. Typically used for mixed node/BMC networks')
+        parser.add_argument('-rt', '--routes', help='Static routes coupled to the network (comma separated names, "" to clear)')
         parser.add_argument('-z', '--zone', help='Internal or external Network Zone')
         parser.add_argument('-n', '--non_authoritative', choices=BOOL_CHOICES,
                                  metavar=BOOL_META, help='Set this network as non-authoritative for its DNS zone definition')

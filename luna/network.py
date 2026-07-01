@@ -57,6 +57,11 @@ class Network():
                     if self.args["dns"]:
                         dns_action = f'_{self.args["dns"]}'
                     call = methodcaller(f'network_{self.args["action"]}{dns_action}')
+                elif self.args["action"] == "route":
+                    route_action = ''
+                    if self.args["route"]:
+                        route_action = f'_{self.args["route"]}'
+                    call = methodcaller(f'network_route{route_action}')
                 else:
                     call = methodcaller(f'{self.args["action"]}_network')
                 call(self)
@@ -120,6 +125,27 @@ class Network():
         network_dns_remove = network_dns_args.add_parser('remove', help='Remove DNS Entry')
         network_dns_remove.add_argument('host', help='Host Name')
         network_dns_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        network_route = network_args.add_parser('route', help='Manage the static-route catalog')
+        Arguments().common_list_args(network_route)
+        network_route_args = network_route.add_subparsers(dest='route')
+        network_route_list = network_route_args.add_parser('list', help='List Routes')
+        Arguments().common_list_args(network_route_list)
+        network_route_show = network_route_args.add_parser('show', help='Show Route')
+        network_route_show.add_argument('name', help='Route Name')
+        Arguments().common_list_args(network_route_show)
+        for verb in ['add', 'change']:
+            route_verb = network_route_args.add_parser(verb, help=f'{verb.capitalize()} Route')
+            route_verb.add_argument('name', help='Route Name')
+            route_verb.add_argument('-D', '--destination', help='Destination network/host in CIDR (e.g. 10.0.0.0/8)')
+            route_verb.add_argument('-g', '--gateway', help='Next-hop IP (optional if a device is given)')
+            route_verb.add_argument('-m', '--metric', help='Route metric')
+            route_verb.add_argument('-dev', '--device', help='Interface name (or BOOTIF); optional')
+            route_verb.add_argument('-c', '--comment', help='Comment')
+            route_verb.add_argument('-N', '--newname', help='Rename the route (change only); couplings are kept')
+            route_verb.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        network_route_remove = network_route_args.add_parser('remove', help='Remove Route')
+        network_route_remove.add_argument('name', help='Route Name')
+        network_route_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
 
@@ -296,6 +322,66 @@ class Network():
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
             Message().show_success(f'Network {self.args["name"]} DNS entry {self.args["host"]} is removed.')
+        else:
+            Message().error_exit(response.content, response.status_code)
+        return True
+
+
+    def network_route(self):
+        """
+        This method lists the static-route catalog.
+        """
+        return Helper().get_list('route', self.args)
+
+
+    def network_route_list(self):
+        return Helper().get_list('route', self.args)
+
+
+    def network_route_show(self):
+        return Helper().show_data('route', self.args)
+
+
+    def network_route_add(self):
+        """
+        This method adds a route to the catalog.
+        """
+        return self._route_write()
+
+
+    def network_route_change(self):
+        """
+        This method updates a route in the catalog.
+        """
+        return self._route_write()
+
+
+    def _route_write(self):
+        payload = {}
+        for key in ['destination', 'gateway', 'metric', 'device', 'comment', 'newname']:
+            if self.args.get(key) is not None:
+                payload[key] = self.args[key]
+        request_data = {'config': {'route': {self.args['name']: payload}}}
+        self.logger.debug(f'Payload => {request_data}')
+        response = Rest().post_data('route', self.args['name'], request_data)
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 201:
+            Message().show_success(response.content)
+        elif response.status_code in (200, 204):
+            Message().show_success(f'Route {self.args["name"]} updated.')
+        else:
+            Message().error_exit(response.content, response.status_code)
+        return True
+
+
+    def network_route_remove(self):
+        """
+        This method removes a route from the catalog.
+        """
+        response = Rest().get_delete('route', self.args['name'])
+        self.logger.debug(f'Response => {response}')
+        if response.status_code == 204:
+            Message().show_success(f'Route {self.args["name"]} is removed.')
         else:
             Message().error_exit(response.content, response.status_code)
         return True
