@@ -52,7 +52,7 @@ BOOL_KEYS = [
 ]
 EDITOR_KEYS = [
     'options', 'content', 'comment', 'prescript', 'partscript', 'postscript', 'grab_filesystems',
-    'grab_exclude', 'kerneloptions'
+    'grab_exclude', 'kerneloptions', 'ztpconfig'
 ]
 SERVICE_ACTIONS = ['start', 'stop', 'restart', 'reload', 'status']
 SERVICES = ['dhcp', 'dns']
@@ -194,7 +194,7 @@ def actions(table: str) -> list:
         "cloud" : network_actions,
         "group": common_actions + member_action + ["ospush"] + interface_actions,
         "node": common_actions + ["osgrab", "ospush"] + interface_actions,
-        "network": network_actions + ["reserve", "ipinfo", "nextip", "dns"],
+        "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],
         "osimage": common_actions + member_action + ["pack", "kernel", "tag"],
         "bmcsetup": common_actions + member_action,
         "otherdev": common_actions,
@@ -225,6 +225,7 @@ def filter_columns(table: str) -> list:
         'network': ['name', 'network', 'type', 'zone', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end',
                     'shared', 'dhcp_mode'],
         'dns': ['host', 'ipaddress'],
+        'route': ['name', 'destination', 'gateway', 'metric', 'device', 'assigned'],
         'node': [
             'name', 'group', 'osimage', 'setupbmc', 'bmcsetup', 'status', 'tpm_present',
             'interfaces'
@@ -234,7 +235,7 @@ def filter_columns(table: str) -> list:
         'nodesecrets': ['Node', 'name', 'path', 'content'],
         'osimage': ['name', 'kernelversion', 'path', 'distribution', 'osrelease'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
-        'switch': ['name', 'network', 'oid', 'read', 'ipaddress'],
+        'switch': ['name', 'network', 'oid', 'read', 'ipaddress', 'netboot'],
         'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes',
                        'groups'],
         'status': ['username_initiator', 'request_id', 'read', 'message', 'created'],
@@ -256,11 +257,11 @@ def overrides(table=None):
         'node': [
             'osimage', 'osimagetag', 'kerneloptions', 'setupbmc', 'bmcsetup', 'netboot', 'ipxe_kernel',
             'bootmenu', 'roles', 'scripts', 'prescript', 'partscript', 'postscript',
-            'provision_interface', 'provision_method', 'provision_fallback'
+            'provision_interface', 'provision_method', 'provision_fallback', 'routes'
         ],
         'group': [
             'provision_method', 'provision_interface', 'provision_fallback', 'kerneloptions',
-            'osimagetag'
+            'osimagetag', 'routes'
         ]
     }
     if table and table in static:
@@ -284,7 +285,7 @@ def sortby(table: str) -> list:
         'cloud': ['name', 'type'],
         'node': [
             'info', 'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions',
-            'interfaces', 'status', 'vendor', 'assettag', 'position', 'switch', 'switchport',
+            'interfaces', 'routes', 'status', 'vendor', 'assettag', 'position', 'switch', 'switchport',
             'cloud', 'setupbmc', 'bmcsetup', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
             'bootmenu', 'service', 'roles', 'scripts', '_prescript_source', 'prescript',
             '_partscript_source', 'partscript', '_postscript_source', 'postscript',
@@ -293,7 +294,7 @@ def sortby(table: str) -> list:
         ],
         'group': [
             'info', 'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
-            'setupbmc', 'bmcsetupname', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
+            'routes', 'setupbmc', 'bmcsetupname', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
             'bootmenu', 'roles', 'scripts', 'prescript', 'partscript', 'postscript',
             'provision_interface', 'provision_method', 'provision_fallback', 'comment'
         ],
@@ -306,7 +307,8 @@ def sortby(table: str) -> list:
             'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions', 'path', 'imagefile',
             'distribution', 'osrelease', 'comment'
         ],
-        'switch': ['name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'comment'],
+        'switch': ['name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'netboot',
+                   'default_url', 'bootfile', 'ztpformat', 'ztpconfig', 'comment'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'mtu', 'vlanid',
                           'vlan_parent', 'bond_mode', 'bond_slaves'],
@@ -320,11 +322,12 @@ def sortby(table: str) -> list:
             'network', 'gateway', 'nameserver_ip', 'dhcp_range_begin', 'dhcp_range_end',
             'network_ipv6', 'gateway_ipv6', 'nameserver_ip_ipv6',
             'dhcp_range_begin_ipv6', 'dhcp_range_end_ipv6', 'ntp_server',
-            'gateway_metric', 'dhcp_nodes_in_pool', 'dhcp_nodes_only', 'shared', 'comment'
+            'gateway_metric', 'routes', 'dhcp_nodes_in_pool', 'dhcp_nodes_only', 'shared', 'dhcp_relay', 'comment'
         ],
         'osimagetag': [
             'osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups'
-        ]
+        ],
+        'route': ['name', 'destination', 'gateway', 'metric', 'device', 'comment', 'assigned']
     }
     response = list(static[table])
     return response

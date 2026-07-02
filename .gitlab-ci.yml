@@ -11,6 +11,7 @@
 stages:
   - production
   - development
+  - ztp-poc
 
 production:
   stage: production
@@ -34,5 +35,17 @@ development:
     - apk add openssh-client
     - apk add sshpass
     - sshpass -p $SSH_PASSWORD scp -r -oStrictHostKeyChecking=no dist/* $SSH_USER@$IPADDRESS:$DEV_LOCATION
+
+    
+ztp-poc:
+  stage: development
+  image: python:3.10.0-alpine
+  only:
+    - ztp-poc
+  script:
+    - python setup.py sdist bdist_wheel
+    - apk add openssh-client
+    - apk add sshpass
+    - sshpass -p $SSH_PASSWORD scp -r -oStrictHostKeyChecking=no dist/* $SSH_USER@$IPADDRESS:$ZTPPOC_LOCATION
 
     
