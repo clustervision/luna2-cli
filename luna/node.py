@@ -593,15 +593,15 @@ class Node():
             if self.args['raw']:
                 Presenter().show_json(Helper().prepare_json(data))
             else:
-                fields = ['Node', 'Source', 'Product', 'CPUs', 'Memory (MB)',
-                          'Disks', 'Disk Total (GB)', 'GPUs', 'Updated']
+                fields = ['Node', 'Source', 'Product', 'Serial', 'CPUs', 'Memory (MB)',
+                          'Disks', 'Disk Total (GB)', 'GPUs', 'NICs', 'Updated']
                 rows = []
                 for name in sorted(data.keys()):
                     item = data[name]
                     rows.append([name, item.get('source'), item.get('product'),
-                                 item.get('cpu_count'), item.get('memory_mb'),
+                                 item.get('serial'), item.get('cpu_count'), item.get('memory_mb'),
                                  item.get('disk_count'), item.get('disk_total_gb'),
-                                 item.get('gpu_count'), item.get('updated')])
+                                 item.get('gpu_count'), item.get('nic_count'), item.get('updated')])
                 title = ' << Node Hardware Inventory >>'
                 Presenter().show_table(title, fields, rows)
         else:
@@ -630,7 +630,7 @@ class Node():
         for snapshot in snapshots:
             source = snapshot.get('source')
             summary = {key: value for key, value in snapshot.items()
-                       if key not in ['disks', 'gpus']}
+                       if key not in ['disks', 'gpus', 'nics']}
             fields = list(summary.keys())
             rows = [summary[key] for key in fields]
             Presenter().show_table_col(f'{self.table_cap} {name} Inventory [{source}]', fields, rows)
@@ -646,6 +646,12 @@ class Node():
                 gpu_rows = [[g.get('busid'), g.get('vendor'), g.get('model'),
                              g.get('memory_mb'), g.get('uuid')] for g in gpus]
                 Presenter().show_table(f' << {name} GPUs [{source}] >>', gpu_fields, gpu_rows)
+            nics = snapshot.get('nics') or []
+            if nics:
+                nic_fields = ['Name', 'MAC', 'Speed (Mbps)', 'Capabilities']
+                nic_rows = [[n.get('name'), n.get('mac'), n.get('speed_mbps'),
+                             n.get('capabilities')] for n in nics]
+                Presenter().show_table(f' << {name} NICs [{source}] >>', nic_fields, nic_rows)
         return True
 
 
