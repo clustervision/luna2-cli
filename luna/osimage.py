@@ -109,6 +109,9 @@ class OSImage():
         osimage_pack = osimage_args.add_parser('pack', help='Pack an OSImage')
         osimage_pack.add_argument('name', help='Name of the OSImage').completer = Helper().name_completer(self.table)
         osimage_pack.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        osimage_updatecerts = osimage_args.add_parser('updatecerts', help="Refresh the controller's RHSM CA certificates (/etc/rhsm/ca/) inside an OSImage")
+        osimage_updatecerts.add_argument('name', help='Name of the OSImage').completer = Helper().name_completer(self.table)
+        osimage_updatecerts.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         osimage_kernel = osimage_args.add_parser('kernel', help='Change the Kernel Version')
         osimage_kernel.add_argument('name', help='Name of the OSImage').completer = Helper().name_completer(self.table)
         osimage_kernel.add_argument('-r', '--initrdfile', help='Initrd or ramdisk File')
@@ -312,6 +315,76 @@ class OSImage():
             Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} not Packed: {result.content}.')
         else:
             Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} not Packed.')
+        return response
+
+
+    def updatecerts_osimage(self):
+        """
+        This method refreshes the controller's RHSM CA certificates
+        (/etc/rhsm/ca/) inside an osimage. The Satellite/Katello and Red Hat CA
+        keys are rotated roughly every 6 months; a stale CA breaks dnf inside
+        the image.
+        """
+        response = None
+        uri = f'config/{self.table}/{self.args["name"]}/_updatecerts'
+        result = Rest().get_raw(uri)
+        if result.status_code == 200:
+            http_response = result.json()
+            if http_response['message']:
+                if len(http_response['message']) > 5:
+                    message = http_response['message'].split(';;')
+                    for msg in message:
+                        sleep(2)
+                        Message().show_success(f'{msg}')
+                else:
+                    Message().show_success(f'{http_response["message"]}')
+
+            if 'request_id' in http_response.keys():
+                process1 = Process(target=Helper().loader, args=("OSImage Certificate Updating...",))
+                process1.start()
+                uri = f'config/status/{http_response["request_id"]}'
+                def dig_packing_status(uri):
+                    task_status = 200
+                    result = Rest().get_raw(route=uri, noexit=True)
+                    if isinstance(result, bool):
+                        sleep(2)
+                        return 503
+                    elif result.status_code == 404:
+                        pass
+                    elif result.status_code == 200:
+                        http_response = result.json()
+                        if 'status' in http_response and isinstance(http_response['status'], int):
+                            task_status = http_response['status']
+                        if http_response['message']:
+                            if len(http_response['message']) > 5:
+                                message = http_response['message'].split(';;')
+                                for msg in message:
+                                    sleep(1)
+                                    Message().show_success(f'{msg}')
+                            else:
+                                Message().show_success(f'{http_response["message"]}')
+                        if task_status == 404: # even if the image is not found, we fail
+                            return 500
+                        elif task_status != 200:
+                            return task_status
+                    else:
+                        Message().show_error(f'{result.content}', result.status_code)
+                        return 500
+                    return result.status_code
+            response = True
+            status = 200
+            while status != 404:
+                sleep(2) # yes, before.
+                status = dig_packing_status(uri)
+                if status in [500, 501, 503]:
+                    response = False
+            process1.terminate()
+        if response:
+            Message().show_success(f'[========] Image {self.args["name"]} certificates updated.')
+        elif response is None:
+            Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} certificates not updated: {result.content}.')
+        else:
+            Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} certificates not updated.')
         return response
 
 
