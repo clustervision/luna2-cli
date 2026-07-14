@@ -148,6 +148,11 @@ class Node():
         rename_interface.add_argument('interface', help='Name of the Node Interface').completer = Helper().interface_name_completer(self.table)
         rename_interface.add_argument('newinterfacename', help='New Name of the Node Interface')
         rename_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        node_listinventory = node_args.add_parser('listinventory', help='List Hardware Inventory of All Nodes')
+        Arguments().common_list_args(node_listinventory)
+        node_showinventory = node_args.add_parser('showinventory', help="Show a Node's Hardware Inventory")
+        node_showinventory.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        Arguments().common_list_args(node_showinventory)
         return parser
 
 
@@ -570,6 +575,83 @@ class Node():
             msg = f'{self.args["interface"]} not found in {self.table} {self.args["name"]}'
             msg = f'{msg} OR {self.args["name"]} is unavailable.'
             Message().show_error(msg)
+        return True
+
+
+    def listinventory_node(self):
+        """
+        Method to list the hardware inventory summary of all nodes.
+        """
+        get_list = Rest().get_data(self.table, 'inventory')
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        self.logger.debug(f'Inventory List => {get_list}')
+        if get_list:
+            data = get_list['config'][self.table]
+            if self.args['raw']:
+                Presenter().show_json(Helper().prepare_json(data))
+            else:
+                fields = ['Node', 'Source', 'Product', 'Serial', 'CPUs', 'Memory (MB)',
+                          'Disks', 'Disk Total (GB)', 'GPUs', 'NICs', 'Updated']
+                rows = []
+                for name in sorted(data.keys()):
+                    item = data[name]
+                    rows.append([name, item.get('source'), item.get('product'),
+                                 item.get('serial'), item.get('cpu_count'), item.get('memory_mb'),
+                                 item.get('disk_count'), item.get('disk_total_gb'),
+                                 item.get('gpu_count'), item.get('nic_count'), item.get('updated')])
+                title = ' << Node Hardware Inventory >>'
+                Presenter().show_table(title, fields, rows)
+        else:
+            Message().show_error('No node inventory is available.')
+        return True
+
+
+    def showinventory_node(self):
+        """
+        Method to show a single node's hardware inventory, one snapshot per source.
+        """
+        name = self.args['name']
+        get_list = Rest().get_data(self.table, name + '/inventory')
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        self.logger.debug(f'Inventory => {get_list}')
+        if not get_list:
+            Message().show_error(f'No inventory found for {self.table} {name}.')
+            return True
+        snapshots = get_list['config'][self.table][name]['inventory']
+        if self.args['raw']:
+            Presenter().show_json(Helper().prepare_json(snapshots))
+            return True
+        for snapshot in snapshots:
+            source = snapshot.get('source')
+            summary = {key: value for key, value in snapshot.items()
+                       if key not in ['disks', 'gpus', 'nics']}
+            fields = list(summary.keys())
+            rows = [summary[key] for key in fields]
+            Presenter().show_table_col(f'{self.table_cap} {name} Inventory [{source}]', fields, rows)
+            disks = snapshot.get('disks') or []
+            if disks:
+                disk_fields = ['Name', 'Size (GB)', 'Type', 'Model', 'Serial']
+                disk_rows = [[d.get('name'), d.get('size_gb'), d.get('type'),
+                              d.get('model'), d.get('serial')] for d in disks]
+                Presenter().show_table(f' << {name} Disks [{source}] >>', disk_fields, disk_rows)
+            gpus = snapshot.get('gpus') or []
+            if gpus:
+                gpu_fields = ['Bus ID', 'Vendor', 'Model', 'Memory (MB)', 'UUID']
+                gpu_rows = [[g.get('busid'), g.get('vendor'), g.get('model'),
+                             g.get('memory_mb'), g.get('uuid')] for g in gpus]
+                Presenter().show_table(f' << {name} GPUs [{source}] >>', gpu_fields, gpu_rows)
+            nics = snapshot.get('nics') or []
+            if nics:
+                nic_fields = ['Name', 'MAC', 'Speed (Mbps)', 'Capabilities']
+                nic_rows = [[n.get('name'), n.get('mac'), n.get('speed_mbps'),
+                             n.get('capabilities')] for n in nics]
+                Presenter().show_table(f' << {name} NICs [{source}] >>', nic_fields, nic_rows)
         return True
 
 

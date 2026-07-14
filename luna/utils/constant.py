@@ -189,11 +189,12 @@ def actions(table: str) -> list:
     common_actions = ["list", "show", "add", "change", "rename", "clone", "remove"]
     network_actions = ["list", "show", "add", "change", "rename", "remove"]
     interface_actions = ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"]
+    inventory_actions = ["listinventory", "showinventory"]
     member_action = ["member"]
     static = {
         "cloud" : network_actions,
         "group": common_actions + member_action + ["ospush"] + interface_actions,
-        "node": common_actions + ["osgrab", "ospush"] + interface_actions,
+        "node": common_actions + ["osgrab", "ospush"] + interface_actions + inventory_actions,
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],
         "osimage": common_actions + member_action + ["pack", "kernel", "tag", "updatecerts"],
         "bmcsetup": common_actions + member_action,
