@@ -323,7 +323,8 @@ def sortby(table: str) -> list:
             'network', 'gateway', 'nameserver_ip', 'dhcp_range_begin', 'dhcp_range_end',
             'network_ipv6', 'gateway_ipv6', 'nameserver_ip_ipv6',
             'dhcp_range_begin_ipv6', 'dhcp_range_end_ipv6', 'ntp_server',
-            'gateway_metric', 'routes', 'dhcp_nodes_in_pool', 'dhcp_nodes_only', 'shared', 'dhcp_relay', 'comment'
+            'gateway_metric', 'routes', 'dhcp_nodes_in_pool', 'dhcp_nodes_only', 'shared', 'dhcp_relay',
+            'dhcp_link_subnet', 'dhcp_link_subnet_ipv6', 'comment'
         ],
         'osimagetag': [
             'osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups'

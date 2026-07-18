@@ -223,6 +223,11 @@ class Arguments():
         parser.add_argument('-s', '--shared', help='This network will be shared on top of another network. Typically used for mixed node/BMC networks')
         parser.add_argument('-dr', '--dhcp_relay', help='Comma-separated DHCP relay source IP(s) for this subnet, or "" to clear. '
                                  'When set, the subnet is selected by relay source instead of the udhcp pool class')
+        parser.add_argument('-dls', '--dhcp_link_subnet', help='Comma-separated IPv4 link prefix(es) in CIDR form for option-82.5 '
+                                 '(RFC 3527) link-selection, or "" to clear. Requires --dhcp_relay; the relay link-selection address '
+                                 'is matched against these prefixes (Kea backend)')
+        parser.add_argument('-dls6', '--dhcp_link_subnet_ipv6', help='Comma-separated IPv6 link prefix(es) in CIDR form for relay '
+                                 'link-address selection, or "" to clear. Requires --dhcp_relay (Kea backend)')
         parser.add_argument('-rt', '--routes', help='Static routes coupled to the network (comma separated names, "" to clear)')
         parser.add_argument('-z', '--zone', help='Internal or external Network Zone')
         parser.add_argument('-n', '--non_authoritative', choices=BOOL_CHOICES,
