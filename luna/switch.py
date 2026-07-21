@@ -30,8 +30,11 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 from operator import methodcaller
+from copy import deepcopy
 from luna.utils.helper import Helper
 from luna.utils.log import Log
+from luna.utils.presenter import Presenter
+from luna.utils.rest import Rest
 from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 from luna.utils.message import Message
 
@@ -91,6 +94,16 @@ class Switch():
                                 metavar="File-Path OR In-Line", help='ZTP config File-Path OR In-Line')
         switch_add.add_argument('-zf', '--ztpformat', choices=['commands', 'yaml'],
                                 help='ZTP config format served by the recipe')
+        switch_add.add_argument('-up', '--url_protocol', choices=['secure', 'plain', ''],
+                                metavar="{secure,plain}",
+                                help='ZTP URL scheme: secure (API/https) or plain (webserver/http); default auto')
+        switch_add.add_argument('-us', '--url_server',
+                                help='ZTP URL host override (IP or hostname); default the known controller')
+        switch_add.add_argument('-te', '--tftp_enable', choices=BOOL_CHOICES, metavar=BOOL_META,
+                                help='Enable TFTP (option 66) for the switch, e.g. ONIE/TFTP install; default off')
+        switch_add.add_argument('-ot', '--ostype', choices=['nvos', 'cumulus', 'generic', ''],
+                                metavar="{nvos,cumulus,generic}",
+                                help='Switch OS type; gates ZTP options (cumulus adds option 239)')
         switch_add.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_add.add_argument('--nonetwork', action='store_true', default=None, help='No network verification')
         switch_add.add_argument('-qc', '--quick-comment', dest='comment',
@@ -119,6 +132,16 @@ class Switch():
                                    metavar="File-Path OR In-Line", help='ZTP config File-Path OR In-Line')
         switch_change.add_argument('-zf', '--ztpformat', choices=['commands', 'yaml'],
                                    help='ZTP config format served by the recipe')
+        switch_change.add_argument('-up', '--url_protocol', choices=['secure', 'plain', ''],
+                                   metavar="{secure,plain}",
+                                   help='ZTP URL scheme: secure (API/https) or plain (webserver/http); default auto')
+        switch_change.add_argument('-us', '--url_server',
+                                   help='ZTP URL host override (IP or hostname); default the known controller')
+        switch_change.add_argument('-te', '--tftp_enable', choices=BOOL_CHOICES, metavar=BOOL_META,
+                                   help='Enable TFTP (option 66) for the switch, e.g. ONIE/TFTP install; default off')
+        switch_change.add_argument('-ot', '--ostype', choices=['nvos', 'cumulus', 'generic', ''],
+                                   metavar="{nvos,cumulus,generic}",
+                                   help='Switch OS type; gates ZTP options (cumulus adds option 239)')
         switch_change.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_change.add_argument('--nonetwork', action='store_true', default=None, help='No network verification')
         switch_change.add_argument('-qc', '--quick-comment', dest='comment',
@@ -148,6 +171,16 @@ class Switch():
                                   metavar="File-Path OR In-Line", help='ZTP config File-Path OR In-Line')
         switch_clone.add_argument('-zf', '--ztpformat', choices=['commands', 'yaml'],
                                   help='ZTP config format served by the recipe')
+        switch_clone.add_argument('-up', '--url_protocol', choices=['secure', 'plain', ''],
+                                  metavar="{secure,plain}",
+                                  help='ZTP URL scheme: secure (API/https) or plain (webserver/http); default auto')
+        switch_clone.add_argument('-us', '--url_server',
+                                  help='ZTP URL host override (IP or hostname); default the known controller')
+        switch_clone.add_argument('-te', '--tftp_enable', choices=BOOL_CHOICES, metavar=BOOL_META,
+                                  help='Enable TFTP (option 66) for the switch, e.g. ONIE/TFTP install; default off')
+        switch_clone.add_argument('-ot', '--ostype', choices=['nvos', 'cumulus', 'generic', ''],
+                                  metavar="{nvos,cumulus,generic}",
+                                  help='Switch OS type; gates ZTP options (cumulus adds option 239)')
         switch_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_clone.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
@@ -159,6 +192,26 @@ class Switch():
         switch_remove = switch_args.add_parser('remove', help='Remove Switch')
         switch_remove.add_argument('name', help='Switch Name').completer = Helper().name_completer(self.table)
         switch_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        # TRIX-1880: switch interfaces (lighter than node interfaces: name + mac + ip + network)
+        switch_listif = switch_args.add_parser('listinterface', help='List Switch Interfaces')
+        switch_listif.add_argument('name', help='Switch Name').completer = Helper().name_completer(self.table)
+        switch_listif.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
+        switch_showif = switch_args.add_parser('showinterface', help="Show a Switch Interface")
+        switch_showif.add_argument('name', help='Switch Name').completer = Helper().name_completer(self.table)
+        switch_showif.add_argument('interface', help='Interface Name')
+        switch_showif.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
+        switch_changeif = switch_args.add_parser('changeinterface', help='Add or change a Switch Interface')
+        switch_changeif.add_argument('name', help='Switch Name').completer = Helper().name_completer(self.table)
+        switch_changeif.add_argument('interface', help='Interface Name (e.g. eth0, swp1)')
+        switch_changeif.add_argument('-N', '--network', help='Network Name').completer = Helper().name_completer("network")
+        switch_changeif.add_argument('-I', '--ipaddress', help='IPv4 Address')
+        switch_changeif.add_argument('-I6', '--ipaddress_ipv6', help='IPv6 Address')
+        switch_changeif.add_argument('-M', '--macaddress', help='MAC Address')
+        switch_changeif.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        switch_removeif = switch_args.add_parser('removeinterface', help='Remove a Switch Interface')
+        switch_removeif.add_argument('name', help='Switch Name').completer = Helper().name_completer(self.table)
+        switch_removeif.add_argument('interface', help='Interface Name')
+        switch_removeif.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
 
@@ -214,3 +267,51 @@ class Switch():
         This method remove a switch.
         """
         return Helper().delete_record(self.table, self.args)
+
+
+    def listinterface_switch(self):
+        """List the interfaces of a switch."""
+        response = Rest().get_data(self.table, self.args['name'] + '/interfaces')
+        if response.status_code != 200:
+            Message().error_exit(response.content, response.status_code)
+        data = response.content['config'][self.table][self.args['name']]['interfaces']
+        Presenter().show_json(Helper().prepare_json(data))
+        return True
+
+
+    def showinterface_switch(self):
+        """Show one interface of a switch."""
+        uri = self.args['name'] + '/interfaces/' + self.args['interface']
+        response = Rest().get_data(self.table, uri)
+        if response.status_code != 200:
+            Message().error_exit(response.content, response.status_code)
+        data = response.content['config'][self.table][self.args['name']]['interfaces']
+        Presenter().show_json(Helper().prepare_json(data))
+        return True
+
+
+    def changeinterface_switch(self):
+        """Add or change one interface of a switch."""
+        name = self.args['name']
+        interface = {'interface': self.args['interface']}
+        for key in ('network', 'ipaddress', 'ipaddress_ipv6', 'macaddress'):
+            if self.args.get(key) is not None:
+                interface[key] = self.args[key]
+        request_data = {'config': {self.table: {name: {'interfaces': [interface]}}}}
+        response = Rest().post_data(self.table, name + '/interfaces', request_data)
+        if response.status_code in (200, 201, 204):
+            Message().show_success(f'Switch {name} interface {self.args["interface"]} updated.')
+        else:
+            Message().error_exit(response.content, response.status_code)
+        return True
+
+
+    def removeinterface_switch(self):
+        """Remove one interface of a switch."""
+        name, interface = self.args['name'], self.args['interface']
+        response = Rest().get_delete(self.table, name + '/interfaces/' + interface)
+        if response.status_code == 204:
+            Message().show_success(f'Switch {name} interface {interface} removed.')
+        else:
+            Message().error_exit(response.content, response.status_code)
+        return True

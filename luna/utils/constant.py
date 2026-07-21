@@ -199,7 +199,7 @@ def actions(table: str) -> list:
         "osimage": common_actions + member_action + ["pack", "kernel", "tag", "updatecerts"],
         "bmcsetup": common_actions + member_action,
         "otherdev": common_actions,
-        "switch" : common_actions,
+        "switch" : common_actions + ["listinterface", "showinterface", "changeinterface", "removeinterface"],
         "control" : ["power", "sel", "chassis", "redfish"],
         "power" : ["on", "off", "status", "reset"],
         "sel" : ["list", "clear"],
@@ -309,7 +309,8 @@ def sortby(table: str) -> list:
             'distribution', 'osrelease', 'comment'
         ],
         'switch': ['name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'netboot',
-                   'default_url', 'bootfile', 'ztpformat', 'ztpconfig', 'comment'],
+                   'default_url', 'bootfile', 'ztpformat', 'ztpconfig',
+                   'url_protocol', 'url_server', 'tftp_enable', 'ostype', 'comment'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'mtu', 'vlanid',
                           'vlan_parent', 'bond_mode', 'bond_slaves'],
