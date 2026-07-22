@@ -48,6 +48,8 @@ class Switch():
         self.logger = Log.get_logger()
         self.args = args
         self.table = "switch"
+        self.table_cap = self.table.capitalize()
+        self.interface = "switchinterface"
         self.actions = actions(self.table)
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
@@ -269,23 +271,35 @@ class Switch():
 
 
     def listinterface_switch(self):
-        """List the interfaces of a switch."""
+        """List the interfaces of a switch (table by default, JSON with -R/--raw)."""
         response = Rest().get_data(self.table, self.args['name'] + '/interfaces')
         if response.status_code != 200:
             Message().error_exit(response.content, response.status_code)
         data = response.content['config'][self.table][self.args['name']]['interfaces']
-        Presenter().show_json(Helper().prepare_json(data))
+        if self.args['raw']:
+            Presenter().show_json(Helper().prepare_json(data))
+        else:
+            data = Helper().prepare_json(data, True)
+            fields, rows = Helper().filter_interface(self.interface, data)
+            title = f' << {self.table_cap} {self.args["name"]} Interfaces >>'
+            Presenter().show_table(title, fields, rows)
         return True
 
 
     def showinterface_switch(self):
-        """Show one interface of a switch."""
+        """Show one interface of a switch (columns by default, JSON with -R/--raw)."""
         uri = self.args['name'] + '/interfaces/' + self.args['interface']
         response = Rest().get_data(self.table, uri)
         if response.status_code != 200:
             Message().error_exit(response.content, response.status_code)
-        data = response.content['config'][self.table][self.args['name']]['interfaces']
-        Presenter().show_json(Helper().prepare_json(data))
+        data = response.content['config'][self.table][self.args['name']]['interfaces'][0]
+        if self.args['raw']:
+            Presenter().show_json(Helper().prepare_json(data))
+        else:
+            data = Helper().prepare_json(data, True)
+            fields, rows = Helper().filter_data_col(self.interface, data)
+            title = f'{self.table_cap} {self.args["name"]} Interface [{self.args["interface"]}]'
+            Presenter().show_table_col(title, fields, rows)
         return True
 
 
