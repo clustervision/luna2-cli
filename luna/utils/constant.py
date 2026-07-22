@@ -199,7 +199,7 @@ def actions(table: str) -> list:
         "osimage": common_actions + member_action + ["pack", "kernel", "tag", "updatecerts"],
         "bmcsetup": common_actions + member_action,
         "otherdev": common_actions,
-        "switch" : common_actions + ["listinterface", "showinterface", "changeinterface", "removeinterface"],
+        "switch" : common_actions + ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"],
         "control" : ["power", "sel", "chassis", "redfish"],
         "power" : ["on", "off", "status", "reset"],
         "sel" : ["list", "clear"],
@@ -233,7 +233,7 @@ def filter_columns(table: str) -> list:
         ],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options', 'mtu',
                           'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp'],
-        'switchinterface': ['interface', 'ipaddress', 'ipaddress_ipv6', 'macaddress', 'network'],
+        'switchinterface': ['interface', 'mgmt', 'ipaddress', 'ipaddress_ipv6', 'macaddress', 'network'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
         'osimage': ['name', 'kernelversion', 'path', 'distribution', 'osrelease'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
@@ -316,7 +316,7 @@ def sortby(table: str) -> list:
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'mtu', 'vlanid',
                           'vlan_parent', 'bond_mode', 'bond_slaves'],
-        'switchinterface': ['interface', 'ipaddress', 'ipaddress_ipv6', 'macaddress', 'network'],
+        'switchinterface': ['interface', 'mgmt', 'ipaddress', 'ipaddress_ipv6', 'macaddress', 'network'],
         'groupinterface': [
             'interfacename', 'network', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves'
         ],

@@ -208,11 +208,18 @@ class Switch():
         switch_changeif.add_argument('-N', '--network', help='Network Name').completer = Helper().name_completer("network")
         switch_changeif.add_argument('-I', '--ipaddress', help='IP Address')
         switch_changeif.add_argument('-M', '--macaddress', help='MAC Address')
+        switch_changeif.add_argument('-mg', '--mgmt', action='store_true', default=None,
+                                     help='Make this the management interface (renders as the bare switch name)')
         switch_changeif.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         switch_removeif = switch_args.add_parser('removeinterface', help='Remove a Switch Interface')
         switch_removeif.add_argument('name', help='Switch Name').completer = Helper().name_completer(self.table)
         switch_removeif.add_argument('interface', help='Interface Name')
         switch_removeif.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        switch_renameif = switch_args.add_parser('renameinterface', help='Rename a Switch Interface')
+        switch_renameif.add_argument('name', help='Switch Name').completer = Helper().name_completer(self.table)
+        switch_renameif.add_argument('interface', help='Interface Name')
+        switch_renameif.add_argument('newinterfacename', help='New Interface Name')
+        switch_renameif.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
 
@@ -310,10 +317,27 @@ class Switch():
         for key in ('network', 'ipaddress', 'macaddress'):
             if self.args.get(key) is not None:
                 interface[key] = self.args[key]
+        if self.args.get('mgmt'):
+            interface['mgmt'] = True
         request_data = {'config': {self.table: {name: {'interfaces': [interface]}}}}
         response = Rest().post_data(self.table, name + '/interfaces', request_data)
         if response.status_code in (200, 201, 204):
             Message().show_success(f'Switch {name} interface {self.args["interface"]} updated.')
+        else:
+            Message().error_exit(response.content, response.status_code)
+        return True
+
+
+    def renameinterface_switch(self):
+        """Rename one interface of a switch (the name is a label; mgmt-ness is the mgmt flag)."""
+        name = self.args['name']
+        interface = {'interface': self.args['interface'],
+                     'newinterfacename': self.args['newinterfacename']}
+        request_data = {'config': {self.table: {name: {'interfaces': [interface]}}}}
+        response = Rest().post_data(self.table, name + '/interfaces', request_data)
+        if response.status_code in (200, 201, 204):
+            Message().show_success(f'Switch {name} interface {self.args["interface"]} renamed to '
+                                   f'{self.args["newinterfacename"]}.')
         else:
             Message().error_exit(response.content, response.status_code)
         return True
