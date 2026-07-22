@@ -73,6 +73,10 @@ class Switch():
         Helper().common_list_args(switch_show)
         switch_add = switch_args.add_parser('add', help='Add Switch')
         switch_add.add_argument('name', help='Switch Name')
+        switch_add.add_argument('--vendor', help='Add Switch Vendor Name')
+        switch_add.add_argument('-ot', '--ostype', choices=['nvos', 'cumulus', 'generic', ''],
+                                metavar="{nvos,cumulus,generic}",
+                                help='Switch OS type; gates ZTP options (cumulus adds option 239)')
         switch_add.add_argument('-N', '--network', help='Network').completer = Helper().name_completer("network")
         switch_add.add_argument('-I', '--ipaddress', help='IP Address')
         switch_add.add_argument('-M', '--macaddress', help='MAC Address')
@@ -80,7 +84,6 @@ class Switch():
         switch_add.add_argument('-w', '--rw', help='Write community')
         switch_add.add_argument('-o', '--oid', help='OID')
         switch_add.add_argument('-u', '--uplinkports', help='Write community')
-        switch_add.add_argument('--vendor', help='Add Switch Vendor Name')
         # TRIX-1908: switch zero-touch provisioning (ZTP) fields
         switch_add.add_argument('-nb', '--netboot', choices=BOOL_CHOICES, metavar=BOOL_META,
                                 help='Toggle ZTP netboot DHCP options for the switch')
@@ -101,16 +104,17 @@ class Switch():
                                 help='ZTP URL host override (IP or hostname); default the known controller')
         switch_add.add_argument('-te', '--tftp_enable', choices=BOOL_CHOICES, metavar=BOOL_META,
                                 help='Enable TFTP (option 66) for the switch, e.g. ONIE/TFTP install; default off')
-        switch_add.add_argument('-ot', '--ostype', choices=['nvos', 'cumulus', 'generic', ''],
-                                metavar="{nvos,cumulus,generic}",
-                                help='Switch OS type; gates ZTP options (cumulus adds option 239)')
-        switch_add.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_add.add_argument('--nonetwork', action='store_true', default=None, help='No network verification')
+        switch_add.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        switch_add.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_add.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        switch_add.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         switch_change = switch_args.add_parser('change', help='Change Switch')
         switch_change.add_argument('name', help='Switch Name').completer = Helper().name_completer(self.table)
+        switch_change.add_argument('--vendor', help='Change Switch Vendor Name')
+        switch_change.add_argument('-ot', '--ostype', choices=['nvos', 'cumulus', 'generic', ''],
+                                   metavar="{nvos,cumulus,generic}",
+                                   help='Switch OS type; gates ZTP options (cumulus adds option 239)')
         switch_change.add_argument('-N', '--network', help='Network').completer = Helper().name_completer("network")
         switch_change.add_argument('-I', '--ipaddress', help='IP Address')
         switch_change.add_argument('-M', '--macaddress', help='MAC Address')
@@ -118,7 +122,6 @@ class Switch():
         switch_change.add_argument('-w', '--rw', help='Write community')
         switch_change.add_argument('-o', '--oid', help='OID')
         switch_change.add_argument('-u', '--uplinkports', help='Write community')
-        switch_change.add_argument('--vendor', help='Change Switch Vendor Name')
         # TRIX-1908: switch zero-touch provisioning (ZTP) fields
         switch_change.add_argument('-nb', '--netboot', choices=BOOL_CHOICES, metavar=BOOL_META,
                                    help='Toggle ZTP netboot DHCP options for the switch')
@@ -139,17 +142,18 @@ class Switch():
                                    help='ZTP URL host override (IP or hostname); default the known controller')
         switch_change.add_argument('-te', '--tftp_enable', choices=BOOL_CHOICES, metavar=BOOL_META,
                                    help='Enable TFTP (option 66) for the switch, e.g. ONIE/TFTP install; default off')
-        switch_change.add_argument('-ot', '--ostype', choices=['nvos', 'cumulus', 'generic', ''],
-                                   metavar="{nvos,cumulus,generic}",
-                                   help='Switch OS type; gates ZTP options (cumulus adds option 239)')
-        switch_change.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_change.add_argument('--nonetwork', action='store_true', default=None, help='No network verification')
+        switch_change.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        switch_change.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_change.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        switch_change.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         switch_clone = switch_args.add_parser('clone', help='Clone Switch')
         switch_clone.add_argument('name', help='Switch Name').completer = Helper().name_completer(self.table)
         switch_clone.add_argument('newswitchname', help='New Switch Name')
+        switch_clone.add_argument('--vendor', help='Clone Switch Vendor Name')
+        switch_clone.add_argument('-ot', '--ostype', choices=['nvos', 'cumulus', 'generic', ''],
+                                  metavar="{nvos,cumulus,generic}",
+                                  help='Switch OS type; gates ZTP options (cumulus adds option 239)')
         switch_clone.add_argument('-N', '--network', help='Network').completer = Helper().name_completer("network")
         switch_clone.add_argument('-I', '--ipaddress', help='IP Address')
         switch_clone.add_argument('-M', '--macaddress', help='MAC Address')
@@ -157,7 +161,6 @@ class Switch():
         switch_clone.add_argument('-w', '--rw', help='Write community')
         switch_clone.add_argument('-o', '--oid', help='OID')
         switch_clone.add_argument('-u', '--uplinkports', help='Write community')
-        switch_clone.add_argument('--vendor', help='Clone Switch Vendor Name')
         # TRIX-1908: switch zero-touch provisioning (ZTP) fields
         switch_clone.add_argument('-nb', '--netboot', choices=BOOL_CHOICES, metavar=BOOL_META,
                                   help='Toggle ZTP netboot DHCP options for the switch')
@@ -178,13 +181,10 @@ class Switch():
                                   help='ZTP URL host override (IP or hostname); default the known controller')
         switch_clone.add_argument('-te', '--tftp_enable', choices=BOOL_CHOICES, metavar=BOOL_META,
                                   help='Enable TFTP (option 66) for the switch, e.g. ONIE/TFTP install; default off')
-        switch_clone.add_argument('-ot', '--ostype', choices=['nvos', 'cumulus', 'generic', ''],
-                                  metavar="{nvos,cumulus,generic}",
-                                  help='Switch OS type; gates ZTP options (cumulus adds option 239)')
+        switch_clone.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         switch_clone.add_argument('-c', '--comment', action='store_true', help='Comment')
         switch_clone.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
-        switch_clone.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         switch_rename = switch_args.add_parser('rename', help='Rename Switch')
         switch_rename.add_argument('name', help='Switch Name').completer = Helper().name_completer(self.table)
         switch_rename.add_argument('newswitchname', help='New Switch Name')
@@ -204,8 +204,7 @@ class Switch():
         switch_changeif.add_argument('name', help='Switch Name').completer = Helper().name_completer(self.table)
         switch_changeif.add_argument('interface', help='Interface Name (e.g. eth0, swp1)')
         switch_changeif.add_argument('-N', '--network', help='Network Name').completer = Helper().name_completer("network")
-        switch_changeif.add_argument('-I', '--ipaddress', help='IPv4 Address')
-        switch_changeif.add_argument('-I6', '--ipaddress_ipv6', help='IPv6 Address')
+        switch_changeif.add_argument('-I', '--ipaddress', help='IP Address')
         switch_changeif.add_argument('-M', '--macaddress', help='MAC Address')
         switch_changeif.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         switch_removeif = switch_args.add_parser('removeinterface', help='Remove a Switch Interface')
@@ -294,7 +293,7 @@ class Switch():
         """Add or change one interface of a switch."""
         name = self.args['name']
         interface = {'interface': self.args['interface']}
-        for key in ('network', 'ipaddress', 'ipaddress_ipv6', 'macaddress'):
+        for key in ('network', 'ipaddress', 'macaddress'):
             if self.args.get(key) is not None:
                 interface[key] = self.args[key]
         request_data = {'config': {self.table: {name: {'interfaces': [interface]}}}}

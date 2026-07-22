@@ -308,9 +308,10 @@ def sortby(table: str) -> list:
             'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions', 'path', 'imagefile',
             'distribution', 'osrelease', 'comment'
         ],
-        'switch': ['name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'netboot',
-                   'default_url', 'bootfile', 'ztpformat', 'ztpconfig',
-                   'url_protocol', 'url_server', 'tftp_enable', 'ostype', 'comment'],
+        'switch': ['name', 'vendor', 'ostype', 'network', 'ipaddress', 'ipaddress_ipv6', 'macaddress',
+                   'oid', 'read', 'rw', 'uplinkports',
+                   'netboot', 'default_url', 'bootfile', 'ztpformat', 'ztpconfig',
+                   'url_protocol', 'url_server', 'tftp_enable', 'comment'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'mtu', 'vlanid',
                           'vlan_parent', 'bond_mode', 'bond_slaves'],
@@ -325,7 +326,7 @@ def sortby(table: str) -> list:
             'network_ipv6', 'gateway_ipv6', 'nameserver_ip_ipv6',
             'dhcp_range_begin_ipv6', 'dhcp_range_end_ipv6', 'ntp_server',
             'gateway_metric', 'routes', 'dhcp_nodes_in_pool', 'dhcp_nodes_only', 'shared', 'dhcp_relay',
-            'dhcp_link_subnet', 'dhcp_link_subnet_ipv6', 'comment'
+            'dhcp_link_subnet', 'comment'
         ],
         'osimagetag': [
             'osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups'
