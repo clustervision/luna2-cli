@@ -210,7 +210,7 @@ class Arguments():
         parser.add_argument('-g', '--gateway', help='Gateway')
         parser.add_argument('-m', '--gateway_metric', type=int, help='Gateway Metric')
         parser.add_argument('-t', '--type', help='Network Type like ethernet or infiniband')
-        parser.add_argument('-S', '--nameserver_ip', help='NameServer IP')
+        parser.add_argument('-S', '--nameserver_ip', help='Comma-separated name server IP(s), IPv4 and/or IPv6; sorted by family')
         parser.add_argument('-T', '--ntp_server', help='NTP Server')
         parser.add_argument('-D', '--dhcp', choices=BOOL_CHOICES,
                                  metavar=BOOL_META, help='DHCP')
@@ -223,6 +223,9 @@ class Arguments():
         parser.add_argument('-s', '--shared', help='This network will be shared on top of another network. Typically used for mixed node/BMC networks')
         parser.add_argument('-dr', '--dhcp_relay', help='Comma-separated DHCP relay source IP(s) for this subnet, or "" to clear. '
                                  'When set, the subnet is selected by relay source instead of the udhcp pool class')
+        parser.add_argument('-dls', '--dhcp_link_subnet', help='Comma-separated link prefix(es) in CIDR form, IPv4 and/or IPv6, for '
+                                 'option-82.5 (RFC 3527) link-selection, or "" to clear. Requires --dhcp_relay; each prefix is sorted '
+                                 'by family into the v4/v6 anchor. Kea backend')
         parser.add_argument('-rt', '--routes', help='Static routes coupled to the network (comma separated names, "" to clear)')
         parser.add_argument('-z', '--zone', help='Internal or external Network Zone')
         parser.add_argument('-n', '--non_authoritative', choices=BOOL_CHOICES,

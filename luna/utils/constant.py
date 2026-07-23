@@ -196,10 +196,10 @@ def actions(table: str) -> list:
         "group": common_actions + member_action + ["ospush"] + interface_actions,
         "node": common_actions + ["osgrab", "ospush"] + interface_actions + inventory_actions,
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],
-        "osimage": common_actions + member_action + ["pack", "kernel", "tag", "updatecerts"],
+        "osimage": common_actions + member_action + ["pack", "cancel", "kernel", "tag", "updatecerts"],
         "bmcsetup": common_actions + member_action,
         "otherdev": common_actions,
-        "switch" : common_actions,
+        "switch" : common_actions + ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"],
         "control" : ["power", "sel", "chassis", "redfish"],
         "power" : ["on", "off", "status", "reset"],
         "sel" : ["list", "clear"],
@@ -233,6 +233,7 @@ def filter_columns(table: str) -> list:
         ],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options', 'mtu',
                           'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp'],
+        'switchinterface': ['interface', 'mgmt', 'ipaddress', 'ipaddress_ipv6', 'macaddress', 'network'],
         'nodesecrets': ['Node', 'name', 'path', 'content'],
         'osimage': ['name', 'kernelversion', 'path', 'distribution', 'osrelease'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
@@ -308,11 +309,14 @@ def sortby(table: str) -> list:
             'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions', 'path', 'imagefile',
             'distribution', 'osrelease', 'comment'
         ],
-        'switch': ['name', 'network', 'oid', 'read', 'rw', 'ipaddress', 'netboot',
-                   'default_url', 'bootfile', 'ztpformat', 'ztpconfig', 'comment'],
+        'switch': ['name', 'vendor', 'ostype', 'network', 'ipaddress', 'ipaddress_ipv6', 'macaddress',
+                   'oid', 'read', 'rw', 'uplinkports',
+                   'netboot', 'default_url', 'bootfile', 'ztpformat', 'ztpconfig',
+                   'url_protocol', 'url_server', 'tftp_enable', 'comment'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'mtu', 'vlanid',
                           'vlan_parent', 'bond_mode', 'bond_slaves'],
+        'switchinterface': ['interface', 'mgmt', 'ipaddress', 'ipaddress_ipv6', 'macaddress', 'network'],
         'groupinterface': [
             'interfacename', 'network', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves'
         ],
@@ -323,7 +327,8 @@ def sortby(table: str) -> list:
             'network', 'gateway', 'nameserver_ip', 'dhcp_range_begin', 'dhcp_range_end',
             'network_ipv6', 'gateway_ipv6', 'nameserver_ip_ipv6',
             'dhcp_range_begin_ipv6', 'dhcp_range_end_ipv6', 'ntp_server',
-            'gateway_metric', 'routes', 'dhcp_nodes_in_pool', 'dhcp_nodes_only', 'shared', 'dhcp_relay', 'comment'
+            'gateway_metric', 'routes', 'dhcp_nodes_in_pool', 'dhcp_nodes_only', 'shared', 'dhcp_relay',
+            'dhcp_link_subnet', 'comment'
         ],
         'osimagetag': [
             'osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups'
