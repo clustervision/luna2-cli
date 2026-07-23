@@ -109,6 +109,9 @@ class OSImage():
         osimage_pack = osimage_args.add_parser('pack', help='Pack an OSImage')
         osimage_pack.add_argument('name', help='Name of the OSImage').completer = Helper().name_completer(self.table)
         osimage_pack.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        osimage_cancel = osimage_args.add_parser('cancel', help='Cancel an in-flight OSImage pack')
+        osimage_cancel.add_argument('name', help='Name of the OSImage').completer = Helper().name_completer(self.table)
+        osimage_cancel.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         osimage_updatecerts = osimage_args.add_parser('updatecerts', help="Refresh the controller's RHSM CA certificates (/etc/rhsm/ca/) inside an OSImage")
         osimage_updatecerts.add_argument('name', help='Name of the OSImage').completer = Helper().name_completer(self.table)
         osimage_updatecerts.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
@@ -316,6 +319,26 @@ class OSImage():
         else:
             Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} not Packed.')
         return response
+
+
+    def cancel_osimage(self):
+        """
+        This method cancels an in-flight pack for an osimage: the daemon stops the
+        worker and clears its queue chain, so the image can be packed again.
+        """
+        uri = f'config/{self.table}/{self.args["name"]}/_cancel'
+        result = Rest().get_raw(uri)
+        if result.status_code == 200:
+            http_response = result.json()
+            Message().show_success(f'{http_response["message"]}')
+            return True
+        message = result.content
+        try:
+            message = result.json().get('message', result.content)
+        except Exception:
+            pass
+        Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} pack not cancelled: {message}.')
+        return False
 
 
     def updatecerts_osimage(self):

@@ -196,7 +196,7 @@ def actions(table: str) -> list:
         "group": common_actions + member_action + ["ospush"] + interface_actions,
         "node": common_actions + ["osgrab", "ospush"] + interface_actions + inventory_actions,
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],
-        "osimage": common_actions + member_action + ["pack", "kernel", "tag", "updatecerts"],
+        "osimage": common_actions + member_action + ["pack", "cancel", "kernel", "tag", "updatecerts"],
         "bmcsetup": common_actions + member_action,
         "otherdev": common_actions,
         "switch" : common_actions + ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"],
