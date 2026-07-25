@@ -309,7 +309,7 @@ def sortby(table: str) -> list:
             'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions', 'path', 'imagefile',
             'distribution', 'osrelease', 'comment'
         ],
-        'switch': ['name', 'vendor', 'ostype', 'network', 'ipaddress', 'ipaddress_ipv6', 'macaddress',
+        'switch': ['name', 'vendor', 'ostype', 'mgmt_interface', 'network', 'ipaddress', 'ipaddress_ipv6', 'macaddress',
                    'oid', 'read', 'rw', 'uplinkports',
                    'netboot', 'default_url', 'bootfile', 'ztpformat', 'ztpconfig',
                    'url_protocol', 'url_server', 'tftp_enable', 'comment'],
