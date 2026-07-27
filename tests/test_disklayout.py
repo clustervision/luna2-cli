@@ -41,6 +41,7 @@ from __future__ import annotations
 import importlib.util
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
@@ -530,3 +531,173 @@ def test_property_string_fields_never_coerced(layout: dict) -> None:
         for vol in a_set["volumes"]:
             if "size" in vol:
                 assert isinstance(vol["size"], str)
+
+
+# =========================================================================== #
+# 00-02 -- defaults: fill (stored canonical is complete) + strip (editor sugar)
+# The convergence law: remove / half / add / back-and-forth all land on the same
+# complete canonical bytes. Tested on real installer layouts (bundled fixtures)
+# and on synthetic shorthand.
+# =========================================================================== #
+import copy  # noqa: E402
+
+_FIXTURES = sorted((Path(__file__).resolve().parent / "fixtures" / "disklayouts").glob("*.json"))
+_FIXTURE_IDS = [f.stem for f in _FIXTURES]
+
+
+def _dig(obj: object, path: tuple) -> object:
+    for key in path:
+        obj = obj[key]  # type: ignore[index]
+    return obj
+
+
+def _default_paths(complete: dict) -> list[tuple]:
+    """Every leaf that fill would re-add: the removable-default locations."""
+    paths: list[tuple] = [("version",)]
+    for si, a_set in enumerate(complete.get("sets", [])):
+        for key in ("name", "selection", "raid"):
+            paths.append(("sets", si, key))
+        for vi, _vol in enumerate(a_set.get("volumes", [])):
+            for key in ("name", "mountpoint", "size", "options"):
+                paths.append(("sets", si, "volumes", vi, key))
+    return paths
+
+
+def _drop(variant: dict, path: tuple) -> object | None:
+    parent = _dig(variant, path[:-1])
+    if isinstance(parent, dict) and path[-1] in parent:
+        return parent.pop(path[-1])
+    return None
+
+
+@pytest.mark.parametrize("fixture", _FIXTURES, ids=_FIXTURE_IDS)
+def test_fixture_fill_preserves_and_round_trips(fixture: Path) -> None:
+    """A real installer layout: fill never changes a present value, and the
+    editor short-form re-fills to the identical canonical bytes."""
+    raw = fixture.read_bytes()
+    original = json.loads(raw)
+    canon = canonicalize(raw)
+    filled = json.loads(canon)
+
+    def subset(a: object, b: object) -> bool:
+        if isinstance(a, dict):
+            return isinstance(b, dict) and all(k in b and subset(v, b[k]) for k, v in a.items())
+        if isinstance(a, list):
+            return isinstance(b, list) and len(a) == len(b) and all(subset(x, y) for x, y in zip(a, b))
+        return a == b
+
+    assert subset(original, filled), "fill changed a present value (must only ADD)"
+    assert canonicalize(to_yaml(canon)) == canon, "editor strip->fill round-trip broke"
+
+
+@settings(max_examples=40, deadline=None)
+@pytest.mark.parametrize("fixture", _FIXTURES, ids=_FIXTURE_IDS)
+@given(data=st.data())
+def test_fixture_partial_defaults_converge(fixture: Path, data: st.DataObject) -> None:
+    """Remove/half/add: any random subset of the default fields -- dropped or
+    kept -- canonicalizes to the same complete bytes."""
+    canon = canonicalize(fixture.read_bytes())
+    complete = json.loads(canon)
+    variant = copy.deepcopy(complete)
+    for path in _default_paths(complete):
+        if data.draw(st.booleans()):
+            saved = _drop(variant, path)
+            if saved is not None and canonicalize(json.dumps(variant)) != canon:
+                parent = _dig(variant, path[:-1])
+                assert isinstance(parent, dict)
+                parent[path[-1]] = saved
+    assert canonicalize(json.dumps(variant)) == canon
+
+
+def test_bare_single_set_equals_wrapped() -> None:
+    bare = "role: os\ndevices: [/dev/vda]\nvolumes: [{mountpoint: /, fs: xfs, provider: lvm, size: 100%}]\n"
+    wrapped = "version: 2\nsets:\n- " + bare.replace("\n", "\n  ").rstrip() + "\n"
+    assert canonicalize(bare) == canonicalize(wrapped)
+
+
+def test_memboot_tmpfs_sugar_fills_ram_root() -> None:
+    out = json.loads(canonicalize("role: os\nvolumes: [{fs: tmpfs, provider: memory}]\n"))
+    vol = out["sets"][0]["volumes"][0]
+    assert vol == {"fs": "tmpfs", "provider": "memory", "mountpoint": "/",
+                   "size": "80%", "options": "mpol=interleave", "name": "root"}
+    assert out["version"] == 2 and out["sets"][0]["raid"] == "none"
+
+
+def test_memboot_squashfs_sugar_fills_ram_root() -> None:
+    out = json.loads(canonicalize("role: os\nvolumes: [{fs: squashfs, provider: memory}]\n"))
+    vol = out["sets"][0]["volumes"][0]
+    assert vol["fs"] == "squashfs" and vol["size"] == "80%" and vol["options"] == "mpol=interleave"
+
+
+def test_explicit_ram_options_not_overridden() -> None:
+    """Fill never clobbers an explicit value (BE-D6)."""
+    out = json.loads(canonicalize("role: os\nvolumes: [{fs: tmpfs, provider: memory, size: 50%}]\n"))
+    assert out["sets"][0]["volumes"][0]["size"] == "50%"
+
+
+def test_volume_name_from_mountpoint() -> None:
+    out = json.loads(canonicalize(
+        "role: os\ndevices: [/dev/vda]\nvolumes:\n"
+        "- {mountpoint: /boot/efi, fs: vfat, provider: partition, size: 600M}\n"
+        "- {mountpoint: /boot, fs: xfs, provider: partition, size: 1G}\n"
+        "- {mountpoint: /, fs: xfs, provider: lvm, size: 100%}\n"))
+    names = [v["name"] for v in out["sets"][0]["volumes"]]
+    assert names == ["uefi", "boot", "root"]
+
+
+def test_set_name_collision_aware() -> None:
+    """Two unnamed data sets derive distinct names (data, data2)."""
+    out = json.loads(canonicalize(
+        "version: 2\nsets:\n"
+        "- {role: data, devices: [/dev/vdb], volumes: [{mountpoint: /a, fs: xfs, provider: lvm, size: 100%}]}\n"
+        "- {role: data, devices: [/dev/vdc], volumes: [{mountpoint: /b, fs: xfs, provider: lvm, size: 100%}]}\n"))
+    assert [s["name"] for s in out["sets"]] == ["data", "data2"]
+
+
+def test_explicit_name_preserved_and_not_reused() -> None:
+    """A derived name skips an explicit one (no collision)."""
+    out = json.loads(canonicalize(
+        "version: 2\nsets:\n"
+        "- {role: data, name: data, devices: [/dev/vdb], volumes: [{mountpoint: /a, fs: xfs, provider: lvm, size: 100%}]}\n"
+        "- {role: data, devices: [/dev/vdc], volumes: [{mountpoint: /b, fs: xfs, provider: lvm, size: 100%}]}\n"))
+    assert [s["name"] for s in out["sets"]] == ["data", "data2"]
+
+
+def test_selection_inferred_from_devices() -> None:
+    manual = json.loads(canonicalize("role: os\ndevices: [/dev/vda]\nvolumes: [{mountpoint: /, fs: xfs, provider: lvm, size: 100%}]\n"))
+    discover = json.loads(canonicalize("role: os\nraid: '1'\nvolumes: [{mountpoint: /, fs: xfs, provider: lvm, size: 100%}]\n"))
+    assert manual["sets"][0]["selection"] == "manual"
+    assert discover["sets"][0]["selection"] == "discover"
+
+
+def test_role_is_mandatory_with_help() -> None:
+    with pytest.raises(DisklayoutError) as excinfo:
+        canonicalize("volumes: [{fs: tmpfs, provider: memory}]\n")
+    msg = str(excinfo.value)
+    assert "role" in msg and ("os" in msg and "data" in msg)
+
+
+@pytest.mark.parametrize("level", ["layout", "set", "volume"])
+def test_comment_is_meaning_neutral(level: str) -> None:
+    """A comment at any level persists but does not change the storage meaning."""
+    base: dict[str, Any] = {"role": "os", "devices": ["/dev/vda"],
+                            "volumes": [{"mountpoint": "/", "fs": "xfs", "provider": "lvm", "size": "100%"}]}
+    commented = copy.deepcopy(base)
+    if level == "layout":
+        commented = {"comment": "prod nodes", **commented}
+    elif level == "set":
+        commented["comment"] = "the OS set"
+    else:
+        commented["volumes"][0]["comment"] = "root fs"
+
+    def drop_comment(obj: object) -> object:
+        if isinstance(obj, dict):
+            return {k: drop_comment(v) for k, v in obj.items() if k != "comment"}
+        if isinstance(obj, list):
+            return [drop_comment(x) for x in obj]
+        return obj
+
+    plain = canonicalize(json.dumps(base))
+    with_comment = json.loads(canonicalize(json.dumps(commented)))
+    assert "comment" in json.dumps(with_comment)  # it persists
+    assert canonicalize(json.dumps(drop_comment(with_comment))) == plain  # meaning unchanged

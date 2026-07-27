@@ -1,0 +1,3 @@
+{"version":2,"sets":[
+ {"name":"os","role":"os","selection":"discover","raid":"none","count":1,"match":{"min_size":"10G"},"volumes":[{"name":"uefi","mountpoint":"/boot/efi","fs":"vfat","provider":"partition","size":"600M"},{"name":"boot","mountpoint":"/boot","fs":"xfs","provider":"partition","size":"1G"},{"name":"root","mountpoint":"/","fs":"xfs","provider":"lvm","size":"100%"}]},
+ {"name":"data","role":"data","selection":"manual","raid":"1","persistent":true,"devices":["/dev/vdb","/dev/vdc"],"volumes":[{"name":"data","mountpoint":"/data","fs":"xfs","provider":"lvm","size":"100%"}]}]}

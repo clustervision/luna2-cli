@@ -51,7 +51,9 @@ canonical JSON unchanged.
 from __future__ import annotations
 
 import codecs
+import copy
 import json
+import re
 from typing import Any
 
 import yaml
@@ -64,6 +66,10 @@ __license__ = "GPL"
 # "billion laughs" alias-expansion vector is separately blocked below, but a
 # hard byte ceiling is a cheap belt for any large-payload attempt).
 MAX_INPUT_BYTES = 1 << 20  # 1 MiB -- a disklayout is a few hundred bytes.
+
+# The only supported schema version (mirrors v2 SchemaVersion in types.go). Filled
+# when absent; the node-side validator requires version == this value.
+SchemaVersion = 2
 
 # Fields the v2 schema defines as non-string. Everything not listed here stays a
 # string after parse. Key names are globally unambiguous (no string field is
@@ -244,11 +250,155 @@ def _parse(text: str) -> Any:
         ) from err
 
 
+# --------------------------------------------------------------------------- #
+# Defaults. The stored canonical form is COMPLETE (every default materialized),
+# so a human's shorthand and its fully-spelled twin canonicalize to identical
+# bytes, and the node-side v2 validator -- which has NO defaulting of its own and
+# *requires* role/name/selection/raid/version/sets -- receives a layout it will
+# accept without re-deriving anything (no CLI<->validator drift). The editor
+# shows the inverse (strip) so humans still author the short form.
+#
+# What is filled (absent only, never overriding a set value) and the v2 rule it
+# satisfies (internal/config/v2/validate.go):
+#   version  <- 2                        (must == SchemaVersion)
+#   sets[]   <- wrap a bare single set   (top-level requires a non-empty sets[])
+#   set.name       <- role + ordinal     (name is required; collision-aware)
+#   set.selection  <- manual iff devices else discover   (selection is required)
+#   set.raid       <- none               (raid is required)
+#   volume.name    <- from mountpoint    (name is required)
+#   memory volume  <- mountpoint '/', size 80%, options mpol=interleave (safety)
+# role stays MANDATORY (it cannot be guessed); count/spares/save/persistent are
+# left as authored (count 0 = "resolve per raid mode" on the node).
+
+_MOUNT_VOLUME_NAMES = {"/": "root", "/boot": "boot", "/boot/efi": "uefi"}
+
+
+def _unique(base: str, taken: set[str]) -> str:
+    name = base
+    n = 2
+    while name in taken:
+        name = f"{base}{n}"
+        n += 1
+    return name
+
+
+def _derive_volume_name(mountpoint: str, taken: set[str]) -> str:
+    base = _MOUNT_VOLUME_NAMES.get(mountpoint)
+    if base is None:
+        base = re.sub(r"[^a-z0-9]+", "-", mountpoint.strip("/").lower()).strip("-") or "vol"
+    return _unique(base, taken)
+
+
+def _fill_volume(vol: dict[str, Any], taken: set[str]) -> dict[str, Any]:
+    vol = dict(vol)
+    if vol.get("provider") == "memory":  # RAM-root safety defaults
+        vol.setdefault("mountpoint", "/")
+        vol.setdefault("size", "80%")
+        vol.setdefault("options", "mpol=interleave")
+    if "name" not in vol:
+        mountpoint = vol.get("mountpoint")
+        if isinstance(mountpoint, str):
+            vol["name"] = _derive_volume_name(mountpoint, taken)
+    name = vol.get("name")
+    if isinstance(name, str):
+        taken.add(name)
+    return vol
+
+
+def _fill_set(a_set: dict[str, Any]) -> dict[str, Any]:
+    if "role" not in a_set:
+        raise DisklayoutError(
+            "every set needs a 'role' (os or data) -- it says whether the set is the "
+            "bootable OS or a data set, and cannot be guessed.\n" + _SKELETON
+        )
+    a_set = dict(a_set)
+    a_set.setdefault("selection", "manual" if a_set.get("devices") else "discover")
+    a_set.setdefault("raid", "none")
+    volumes = a_set.get("volumes")
+    if isinstance(volumes, list):
+        taken: set[str] = set()
+        for vol in volumes:
+            if isinstance(vol, dict):
+                name = vol.get("name")
+                if isinstance(name, str):
+                    taken.add(name)
+        a_set["volumes"] = [_fill_volume(v, taken) if isinstance(v, dict) else v for v in volumes]
+    return a_set
+
+
+def _fill_defaults(doc: dict[str, Any]) -> dict[str, Any]:
+    if "sets" not in doc and ("role" in doc or "volumes" in doc):
+        doc = {"sets": [doc]}  # a bare single set -> wrap it
+    else:
+        doc = dict(doc)
+    doc.setdefault("version", SchemaVersion)
+    sets = doc.get("sets")
+    if isinstance(sets, list):
+        filled = [_fill_set(s) if isinstance(s, dict) else s for s in sets]
+        taken_names: set[str] = set()
+        for a_set in filled:
+            if isinstance(a_set, dict):
+                name = a_set.get("name")
+                if isinstance(name, str):
+                    taken_names.add(name)
+        for a_set in filled:
+            if isinstance(a_set, dict) and "name" not in a_set:
+                role = a_set.get("role")
+                if isinstance(role, str):
+                    a_set["name"] = _unique(role, taken_names)
+                    taken_names.add(a_set["name"])
+        doc["sets"] = filled
+    return doc
+
+
+def _strip_defaults(canonical: dict[str, Any]) -> dict[str, Any]:
+    """Inverse of :func:`_fill_defaults` for the editor: remove any field that
+    fill would put back identically, so the editor shows the short form. A field
+    is dropped ONLY if re-filling reproduces the canonical byte-for-byte, so the
+    round-trip is correct by construction (never guesses)."""
+    current = copy.deepcopy(canonical)
+
+    def fills_back() -> bool:
+        try:
+            return _fill_defaults(copy.deepcopy(current)) == canonical
+        except DisklayoutError:
+            return False
+
+    def try_drop(container: dict[str, Any], key: str) -> None:
+        if key in container:
+            saved = container.pop(key)
+            if not fills_back():
+                container[key] = saved
+
+    sets = current.get("sets")
+    if isinstance(sets, list):
+        for a_set in sets:
+            if not isinstance(a_set, dict):
+                continue
+            volumes = a_set.get("volumes")
+            if isinstance(volumes, list):
+                for vol in volumes:
+                    if isinstance(vol, dict):
+                        for key in ("name", "options", "size", "mountpoint"):
+                            try_drop(vol, key)
+            for key in ("name", "raid", "selection"):
+                try_drop(a_set, key)
+    try_drop(current, "version")
+    # Unwrap a lone set for display (fill re-wraps it).
+    sets = current.get("sets")
+    if isinstance(sets, list) and len(sets) == 1 and set(current) == {"sets"} and isinstance(sets[0], dict):
+        candidate = sets[0]
+        if _fill_defaults(copy.deepcopy(candidate)) == canonical:
+            current = candidate
+    return current
+
+
 def canonicalize(raw: bytes | str) -> bytes:
     """Canonicalize a YAML-or-JSON disklayout document to canonical JSON bytes.
 
-    Returns compact, key-sorted UTF-8 JSON. Raises :class:`DisklayoutError` with
-    an operator-facing message on any malformed, ambiguous, or hostile input.
+    Returns compact, key-sorted UTF-8 JSON with defaults filled (the complete
+    stored form). Raises :class:`DisklayoutError` with an operator-facing message
+    on any malformed, ambiguous, or hostile input.
     """
     parsed = _parse(_decode(raw))
     if parsed is None:
@@ -258,8 +408,8 @@ def canonicalize(raw: bytes | str) -> bytes:
             f"the disklayout must be an object with a 'sets' list, but this is "
             f"a {type(parsed).__name__}.\n{_SKELETON}"
         )
-    coerced = _coerce(parsed)
-    return json.dumps(coerced, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    filled = _fill_defaults(_coerce(parsed))
+    return json.dumps(filled, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
 
 def to_yaml(raw: bytes | str) -> str:
@@ -274,6 +424,8 @@ def to_yaml(raw: bytes | str) -> str:
         obj = json.loads(_decode(raw))
     except json.JSONDecodeError as err:
         raise DisklayoutError(f"stored disklayout is not valid JSON: {err}") from err
+    if isinstance(obj, dict):
+        obj = _strip_defaults(obj)  # show the human the short form
     # No sort_keys kwarg: the input is already key-sorted canonical JSON, so key
     # order is moot, and omitting it keeps this identical across PyYAML 3.x-6.x
     # (the luna CLI runs on its own Python 3.10 / PyYAML 6.0.2; 3.6/3.12 are a
