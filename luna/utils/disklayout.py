@@ -102,7 +102,7 @@ class _StrLoader(yaml.SafeLoader):
         # without a referencing alias are inert, but an alias event only exists
         # to expand one, so blocking it here closes the vector.
         if self.check_event(yaml.events.AliasEvent):  # type: ignore[no-untyped-call]
-            raise DisklayoutError("YAML aliases/anchors are not permitted in a disklayout")
+            raise DisklayoutError("YAML anchors and aliases aren't supported")
         return super().compose_node(parent, index)
 
 
@@ -114,12 +114,12 @@ def _construct_mapping_nodup(loader: yaml.SafeLoader, node: yaml.nodes.MappingNo
     mapping: dict[Any, Any] = {}
     for key_node, value_node in node.value:
         if key_node.tag == "tag:yaml.org,2002:merge":
-            raise DisklayoutError("YAML merge keys ('<<') are not permitted in a disklayout")
+            raise DisklayoutError("YAML merge keys (<<) aren't supported")
         key = loader.construct_object(key_node, deep=True)
         if not isinstance(key, str):
-            raise DisklayoutError(f"disklayout keys must be strings, got {type(key).__name__}")
+            raise DisklayoutError(f"keys must be text, got {type(key).__name__}")
         if key in mapping:
-            raise DisklayoutError(f"duplicate key '{key}' in disklayout")
+            raise DisklayoutError(f"duplicate key '{key}'")
         mapping[key] = loader.construct_object(value_node, deep=True)
     return mapping
 
@@ -139,29 +139,27 @@ def _decode(raw: bytes | str) -> str:
     if isinstance(raw, str):
         return raw
     if len(raw) > MAX_INPUT_BYTES:
-        raise DisklayoutError("disklayout is too large")
+        raise DisklayoutError("disklayout is too big")
     for bom in (codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE, codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE):
         if raw.startswith(bom):
-            raise DisklayoutError("disklayout must be UTF-8 encoded (UTF-16/32 not supported)")
+            raise DisklayoutError("disklayout must be UTF-8")
     try:
         return raw.decode("utf-8-sig")  # strips a leading UTF-8 BOM if present
     except UnicodeDecodeError as err:
-        raise DisklayoutError("disklayout is not valid UTF-8") from err
+        raise DisklayoutError("not valid UTF-8") from err
 
 
 def _coerce_int(key: str, value: Any) -> int:
     if isinstance(value, bool):
-        raise DisklayoutError(f"'{key}' must be a whole number like 2, not a true/false value")
+        raise DisklayoutError(f"{key} must be a whole number, not true/false")
     if isinstance(value, int):
         return value
     if isinstance(value, str):
         try:
             return int(value.strip(), 10)
         except ValueError:
-            raise DisklayoutError(
-                f"'{key}' must be a whole number like 2, not '{value}'"
-            ) from None
-    raise DisklayoutError(f"'{key}' must be a whole number like 2, not {type(value).__name__}")
+            raise DisklayoutError(f"{key} must be a whole number, got '{value}'") from None
+    raise DisklayoutError(f"{key} must be a whole number, got {type(value).__name__}")
 
 
 def _coerce_bool(key: str, value: Any) -> bool:
@@ -173,9 +171,7 @@ def _coerce_bool(key: str, value: Any) -> bool:
             return True
         if folded in _FALSE_WORDS:
             return False
-    raise DisklayoutError(
-        f"'{key}' must be true or false (yes/no are also accepted), not '{value}'"
-    )
+    raise DisklayoutError(f"{key} must be true or false, got '{value}'")
 
 
 def _coerce(node: Any) -> Any:
@@ -199,39 +195,36 @@ def _coerce(node: Any) -> Any:
 # to a single, real, minimal layout -- enough to unstick a human without a wall
 # of docs.
 _SKELETON = (
-    "A disklayout is an object with a 'sets' list, for example:\n"
+    "example:\n"
     "  version: 2\n"
     "  sets:\n"
     "    - role: os\n"
     "      devices: [/dev/vda]\n"
-    "      volumes:\n"
-    "        - {mountpoint: /, fs: xfs, provider: lvm, size: 100%}"
+    "      volumes: [/boot/efi, /boot, /]"
 )
 
-# Plain-language advice for PyYAML's most common (and most cryptic) complaints,
-# matched as substrings against the parser's `problem` text.
+# Short, plain hints for PyYAML's most cryptic complaints, matched as substrings
+# against the parser's `problem` text.
 _YAML_HINTS = (
     ("mapping values are not allowed here",
-     "usually a missing space after a colon (write 'key: value', not 'key:value'), "
-     "or a key indented to the wrong level"),
+     "missing space after ':' (write 'key: value'), or wrong indentation"),
     ("cannot start any token",
-     "there is an invalid character here -- most often a TAB used for indentation; "
-     "YAML needs spaces, not tabs"),
+     "invalid character, often a tab. use spaces, not tabs"),
     ("could not find expected ':'",
-     "a mapping key is missing its ':' or a line is indented inconsistently"),
+     "missing ':' or inconsistent indentation"),
     ("while scanning a quoted scalar",
-     "an opening quote ' or \" has no matching closing quote"),
+     "unclosed quote"),
     ("while parsing a flow",
-     "a '[' or '{' was left unclosed, or there is a stray ',' or ':' inside it"),
+     "unclosed '[' or '{', or a stray ',' or ':'"),
     ("while parsing a block",
-     "check the indentation -- items under a key must all line up at the same level"),
+     "check indentation: items under a key must line up"),
 )
 
 
 def _yaml_hint(problem: str) -> str:
     for needle, advice in _YAML_HINTS:
         if needle in problem:
-            return f"\n  hint: {advice}"
+            return advice
     return ""
 
 
@@ -244,9 +237,8 @@ def _parse(text: str) -> Any:
         mark = getattr(err, "problem_mark", None) or getattr(err, "context_mark", None)
         where = f" at line {mark.line + 1}, column {mark.column + 1}" if mark is not None else ""
         problem = getattr(err, "problem", None) or str(err).splitlines()[0]
-        raise DisklayoutError(
-            f"disklayout is not valid YAML{where}: {problem}{_yaml_hint(problem)}"
-        ) from err
+        hint = _yaml_hint(problem)
+        raise DisklayoutError(f"invalid YAML{where}: {hint or problem}") from err
 
 
 # --------------------------------------------------------------------------- #
@@ -323,8 +315,7 @@ def _classify_token(token: str) -> tuple[str, str]:
     if _SIZE_RE.match(tok):
         return "size", tok
     raise DisklayoutError(
-        f"unrecognized volume token '{token}' -- expected a mountpoint (/...), a filesystem "
-        f"(vfat/xfs/ext4/swap), a provider (partition/lvm), or a size (e.g. 50G, 100%)"
+        f"bad volume token '{token}': want a /mountpoint, a size (50G, 100%), an fs, or a provider"
     )
 
 
@@ -339,17 +330,15 @@ def _parse_volume(vol: Any) -> dict[str, Any]:
         out: dict[str, Any] = {}
         for token in vol:
             if not isinstance(token, str):
-                raise DisklayoutError(f"a volume token must be text, got {type(token).__name__}")
+                raise DisklayoutError(f"volume token must be text, got {type(token).__name__}")
             cls, value = _classify_token(token)
             if cls in out:  # BE-V2: two of the same class
-                raise DisklayoutError(f"volume has two {cls} values: '{out[cls]}' and '{value}'")
+                raise DisklayoutError(f"volume has two {cls}: '{out[cls]}' and '{value}'")
             out[cls] = value
         if "mountpoint" not in out:  # BE-V3: identity cannot be defaulted
-            raise DisklayoutError(f"volume {vol} has no mountpoint (a '/...' or 'swap' token)")
+            raise DisklayoutError(f"volume has no mountpoint: {vol}")
         return out
-    raise DisklayoutError(
-        f"a volume must be a mountpoint string, a token list, or a map, got {type(vol).__name__}"
-    )
+    raise DisklayoutError(f"volume must be a string, list, or map, got {type(vol).__name__}")
 
 
 def _fill_volume(vol: dict[str, Any], taken: set[str]) -> dict[str, Any]:
@@ -378,10 +367,7 @@ def _fill_volume(vol: dict[str, Any], taken: set[str]) -> dict[str, Any]:
 
 def _fill_set(a_set: dict[str, Any]) -> dict[str, Any]:
     if "role" not in a_set:
-        raise DisklayoutError(
-            "every set needs a 'role' (os or data) -- it says whether the set is the "
-            "bootable OS or a data set, and cannot be guessed.\n" + _SKELETON
-        )
+        raise DisklayoutError("set needs 'role: os' or 'role: data'\n" + _SKELETON)
     a_set = dict(a_set)
     a_set.setdefault("selection", "manual" if a_set.get("devices") else "discover")
     a_set.setdefault("raid", "none")
@@ -431,12 +417,9 @@ def canonicalize(raw: bytes | str) -> bytes:
     """
     parsed = _parse(_decode(raw))
     if parsed is None:
-        raise DisklayoutError(f"the disklayout is empty.\n{_SKELETON}")
+        raise DisklayoutError(f"disklayout is empty\n{_SKELETON}")
     if not isinstance(parsed, dict):
-        raise DisklayoutError(
-            f"the disklayout must be an object with a 'sets' list, but this is "
-            f"a {type(parsed).__name__}.\n{_SKELETON}"
-        )
+        raise DisklayoutError(f"disklayout must be an object, got a {type(parsed).__name__}\n{_SKELETON}")
     filled = _fill_defaults(_coerce(parsed))
     return json.dumps(filled, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
@@ -452,7 +435,7 @@ def to_yaml(raw: bytes | str) -> str:
     try:
         obj = json.loads(_decode(raw))
     except json.JSONDecodeError as err:
-        raise DisklayoutError(f"stored disklayout is not valid JSON: {err}") from err
+        raise DisklayoutError(f"stored layout is not valid JSON: {err}") from err
     # default_flow_style=None renders leaf collections (each volume map, the
     # devices list) inline on one line for readability while the structure stays
     # block. No sort_keys kwarg -> works across PyYAML 3.x-6.x (CLI runs 3.10/6.0.2).
