@@ -49,6 +49,7 @@ from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
 from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby, divider, spacer, overrides, parser_doc
+from luna.utils.disklayout import canonicalize as disklayout_canonicalize, to_yaml as disklayout_to_yaml, DisklayoutError
 from luna.utils.message import Message
 
 
@@ -233,12 +234,19 @@ class Helper():
                     if os.path.exists(content[0]):
                         if os.path.isfile(content[0]):
                             with open(content[0], 'rb') as file_data:
-                                content = self.base64_encode(file_data.read())
-                                payload = nested_update(payload, key=key, value=content)
+                                raw = file_data.read()
+                            if key == 'disklayout':
+                                content = self.disklayout_b64(raw)
+                            else:
+                                content = self.base64_encode(raw)
+                            payload = nested_update(payload, key=key, value=content)
                         else:
                             Message().error_exit(f'ERROR :: {content[0]} is a Invalid filepath.')
                     else:
-                        content = self.base64_encode(bytes(content[0], 'utf-8'))
+                        if key == 'disklayout':
+                            content = self.disklayout_b64(content[0])
+                        else:
+                            content = self.base64_encode(bytes(content[0], 'utf-8'))
                         payload = nested_update(payload, key=key, value=content)
         return payload
 
@@ -261,16 +269,38 @@ class Helper():
         temp_file = open(filename, "x", encoding='utf-8')
         if value:
             value = self.base64_decode(value)
+            if key == 'disklayout':
+                try:
+                    value = disklayout_to_yaml(value)
+                except DisklayoutError as error:
+                    Message().error_exit(f'ERROR :: stored disklayout is invalid :: {error}')
             temp_file.write(value)
             temp_file.close()
         subprocess.check_output(f"sed -i 's/\r$//' {editor}", shell=True)
         subprocess.call([editor, filename])
         subprocess.check_output(f"sed -i 's/\r$//' {filename}", shell=True)
         with open(filename, 'rb') as file_data:
-            response = self.base64_encode(file_data.read())
+            edited = file_data.read()
+        if key == 'disklayout':
+            response = self.disklayout_b64(edited)
+        else:
+            response = self.base64_encode(edited)
         os.remove(filename)
         os.rmdir(tmp_folder)
         return response
+
+
+    def disklayout_b64(self, raw=None):
+        """
+        Canonicalize a YAML/JSON disklayout document to JSON and base64-encode it.
+        A malformed layout aborts the command (nothing is stored) with a clear error,
+        the visudo discipline: reject the edit, keep the stored config untouched.
+        """
+        try:
+            canonical = disklayout_canonicalize(raw)
+        except DisklayoutError as error:
+            Message().error_exit(f'ERROR :: invalid disklayout :: {error}')
+        return self.base64_encode(canonical)
 
 
     def get_list(self, table=None, args=None):
