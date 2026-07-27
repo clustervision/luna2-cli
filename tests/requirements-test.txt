@@ -1,0 +1,4 @@
+# Development-only dependencies for the test suite. Not shipped with the CLI.
+pytest>=7.4
+pytest-cov>=4.1
+hypothesis>=6.100
