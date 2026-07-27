@@ -52,7 +52,7 @@ BOOL_KEYS = [
 ]
 EDITOR_KEYS = [
     'options', 'content', 'comment', 'prescript', 'partscript', 'postscript', 'grab_filesystems',
-    'grab_exclude', 'kerneloptions', 'ztpconfig'
+    'grab_exclude', 'kerneloptions', 'ztpconfig', 'disklayout', 'osimage_filter'
 ]
 SERVICE_ACTIONS = ['start', 'stop', 'restart', 'reload', 'status']
 SERVICES = ['dhcp', 'dns']
@@ -259,11 +259,12 @@ def overrides(table=None):
         'node': [
             'osimage', 'osimagetag', 'kerneloptions', 'setupbmc', 'bmcsetup', 'netboot', 'ipxe_kernel',
             'bootmenu', 'roles', 'scripts', 'prescript', 'partscript', 'postscript',
+            'install_mode', 'disklayout', 'osimage_filter',
             'provision_interface', 'provision_method', 'provision_fallback', 'routes'
         ],
         'group': [
             'provision_method', 'provision_interface', 'provision_fallback', 'kerneloptions',
-            'osimagetag', 'routes'
+            'osimagetag', 'install_mode', 'disklayout', 'osimage_filter', 'routes'
         ]
     }
     if table and table in static:
@@ -291,6 +292,8 @@ def sortby(table: str) -> list:
             'cloud', 'setupbmc', 'bmcsetup', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
             'bootmenu', 'service', 'roles', 'scripts', '_prescript_source', 'prescript',
             '_partscript_source', 'partscript', '_postscript_source', 'postscript',
+            'install_mode', '_disklayout_source', 'disklayout',
+            '_osimage_filter_source', 'osimage_filter',
             'provision_interface', 'provision_method', 'provision_fallback', 'tpm_uuid',
             'tpm_pubkey', 'tpm_sha256', 'comment',  'macaddress'
         ],
@@ -298,6 +301,7 @@ def sortby(table: str) -> list:
             'info', 'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
             'routes', 'setupbmc', 'bmcsetupname', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
             'bootmenu', 'roles', 'scripts', 'prescript', 'partscript', 'postscript',
+            'install_mode', 'disklayout', 'osimage_filter',
             'provision_interface', 'provision_method', 'provision_fallback', 'comment'
         ],
         'bmcsetup': [
@@ -345,9 +349,9 @@ def divider(table=None):
     """
     response = False
     static = {
-        'node': ['info','scripts', 'prescript', 'partscript', 'postscript',
+        'node': ['info','scripts', 'prescript', 'partscript', 'postscript', 'osimage_filter',
                  'scripts *', 'prescript *', 'partscript *', 'postscript *'],
-        'group': ['info','scripts', 'prescript', 'partscript', 'postscript']
+        'group': ['info','scripts', 'prescript', 'partscript', 'postscript', 'osimage_filter']
     }
     if table in static:
         response = list(static[table])
