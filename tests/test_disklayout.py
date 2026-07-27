@@ -701,3 +701,148 @@ def test_comment_is_meaning_neutral(level: str) -> None:
     with_comment = json.loads(canonicalize(json.dumps(commented)))
     assert "comment" in json.dumps(with_comment)  # it persists
     assert canonicalize(json.dumps(drop_comment(with_comment))) == plain  # meaning unchanged
+
+
+# =========================================================================== #
+# BE-V -- volume shorthand (list-shape) + mountpoint conventions (2026-07-21)
+# BE-R -- echo-full editor render (no strip)
+# =========================================================================== #
+def _vols(canon: bytes) -> list:
+    return json.loads(canon)["sets"][0]["volumes"]
+
+
+def test_bev6_form_equivalence() -> None:
+    """A volume's string / token-list / full-map spellings -> identical canonical."""
+    forms = [
+        "role: os\nvolumes: [/]\n",
+        "role: os\nvolumes:\n  - /\n",
+        "role: os\nvolumes: [[/]]\n",
+        "role: os\nvolumes: [[/, xfs, lvm, 100%]]\n",
+        "role: os\nvolumes: [{mountpoint: /, fs: xfs, provider: lvm, size: 100%}]\n",
+    ]
+    outs = {canonicalize(f) for f in forms}
+    assert len(outs) == 1, [json.loads(o) for o in outs]
+
+
+def test_bev1_token_order_free() -> None:
+    a = canonicalize("role: os\nvolumes: [[/scratch, 50G, ext4]]\n")
+    b = canonicalize("role: os\nvolumes: [[/scratch, ext4, 50G]]\n")
+    c = canonicalize("role: os\nvolumes: [[ext4, /scratch, 50G]]\n")
+    assert a == b == c
+    assert _vols(a)[0] == {"fs": "ext4", "mountpoint": "/scratch", "name": "scratch", "provider": "lvm", "size": "50G"}
+
+
+@pytest.mark.parametrize("bad", ["xfss", "50GG", "lvmm", "ext", "raid1"])
+def test_bev1_unknown_token_rejected(bad: str) -> None:
+    with pytest.raises(DisklayoutError) as e:
+        canonicalize(f"role: os\nvolumes: [[/x, {bad}]]\n")
+    assert "unrecognized volume token" in str(e.value)
+
+
+@pytest.mark.parametrize("layout,cls", [
+    ("role: os\nvolumes: [[/x, xfs, ext4]]\n", "fs"),
+    ("role: os\nvolumes: [[/x, 10G, 20G]]\n", "size"),
+    ("role: os\nvolumes: [[/a, /b]]\n", "mountpoint"),
+    ("role: os\nvolumes: [[/x, lvm, partition]]\n", "provider"),
+])
+def test_bev2_duplicate_class_rejected(layout: str, cls: str) -> None:
+    with pytest.raises(DisklayoutError) as e:
+        canonicalize(layout)
+    assert f"two {cls} values" in str(e.value)
+
+
+def test_bev3_no_mountpoint_rejected() -> None:
+    with pytest.raises(DisklayoutError) as e:
+        canonicalize("role: os\nvolumes: [[xfs, 50G]]\n")
+    assert "no mountpoint" in str(e.value)
+
+
+@pytest.mark.parametrize("mp,fs,prov,size", [
+    ("/boot/efi", "vfat", "partition", "600M"),
+    ("/boot", "xfs", "partition", "1G"),
+    ("/", "xfs", "lvm", "100%"),
+])
+def test_bev4_convention_table_exact(mp: str, fs: str, prov: str, size: str) -> None:
+    v = _vols(canonicalize(f"role: os\nvolumes: [{mp}]\n"))[0]
+    assert v["fs"] == fs and v["provider"] == prov and v["size"] == size
+
+
+def test_bev4_supplied_token_overrides_default() -> None:
+    v = _vols(canonicalize("role: os\nvolumes: [[/, ext4]]\n"))[0]
+    assert v["fs"] == "ext4" and v["provider"] == "lvm" and v["size"] == "100%"  # only fs overridden
+    v2 = _vols(canonicalize("role: os\nvolumes: [[/, partition]]\n"))[0]
+    assert v2["provider"] == "partition" and v2["fs"] == "xfs"
+
+
+def test_bev5_non_convention_size_not_invented() -> None:
+    """A data mount with no size: fs/provider default, size is NOT silently invented."""
+    v = _vols(canonicalize("role: data\ndevices: [/dev/vdb]\nvolumes: [/data]\n"))[0]
+    assert v["fs"] == "xfs" and v["provider"] == "lvm" and "size" not in v
+
+
+def test_bev_swap_shorthand() -> None:
+    v = _vols(canonicalize("role: data\ndevices: [/dev/vdb]\nvolumes: [[swap, 8G]]\n"))[0]
+    assert v == {"fs": "swap", "mountpoint": "swap", "name": "swap", "provider": "partition", "size": "8G"}
+
+
+def test_bev_mixed_forms_in_one_list() -> None:
+    canon = canonicalize(
+        "role: os\ndevices: [/dev/vda]\nvolumes:\n"
+        "  - /boot/efi\n"
+        "  - [/, xfs, 100%]\n"
+        "  - {mountpoint: /scratch, fs: ext4, provider: lvm, size: 50G}\n")
+    mps = [v["mountpoint"] for v in _vols(canon)]
+    assert mps == ["/boot/efi", "/", "/scratch"]
+
+
+def test_ber_echo_full_hides_nothing() -> None:
+    """Editor echo shows every resolved field -- author terse, see it all (R5)."""
+    canon = canonicalize("role: os\ndevices: [/dev/vda]\nvolumes: [[/scratch, 50G, ext4]]\n")
+    echoed = to_yaml(canon)
+    for token in ("fs:", "provider:", "size:", "name:", "selection:", "raid:", "version:"):
+        assert token in echoed, f"{token} missing from echo:\n{echoed}"
+
+
+@pytest.mark.parametrize("fixture", _FIXTURES, ids=_FIXTURE_IDS)
+def test_ber_echo_round_trips_corpus(fixture: Path) -> None:
+    canon = canonicalize(fixture.read_bytes())
+    assert canonicalize(to_yaml(canon)) == canon
+
+
+# --- mixed YAML schemes (flow/block, per-set, cross-scheme equivalence) -------
+def test_mixed_forms_flow_list() -> None:
+    canon = canonicalize(
+        "role: os\ndevices: [/dev/vda]\n"
+        "volumes: [/boot/efi, [/, xfs, 100%], {mountpoint: /scratch, size: 50G, fs: ext4, provider: lvm}]\n")
+    assert [v["mountpoint"] for v in _vols(canon)] == ["/boot/efi", "/", "/scratch"]
+    assert _vols(canon)[2]["fs"] == "ext4" and _vols(canon)[2]["size"] == "50G"
+
+
+def test_multiset_different_scheme_per_set() -> None:
+    canon = canonicalize(
+        "sets:\n"
+        "  - {role: os, devices: [/dev/vda], volumes: [/boot/efi, /boot, /]}\n"
+        "  - role: data\n    devices: [/dev/vdb]\n    volumes: [[/scratch, 100G], [/logs, ext4, 50G]]\n")
+    doc = json.loads(canon)
+    assert [s["name"] for s in doc["sets"]] == ["os", "data"]
+    assert [v["mountpoint"] for v in doc["sets"][1]["volumes"]] == ["/scratch", "/logs"]
+
+
+def test_cross_scheme_equivalence() -> None:
+    """The SAME OS disk authored three unrelated ways -> byte-identical canonical."""
+    bare = canonicalize("role: os\ndevices: [/dev/vda]\nvolumes: [/boot/efi, /]\n")
+    toks = canonicalize("role: os\ndevices: [/dev/vda]\nvolumes:\n  - [/boot/efi, vfat, partition, 600M]\n  - [100%, /, lvm, xfs]\n")
+    jsn = canonicalize('{"role":"os","devices":["/dev/vda"],"volumes":['
+                       '{"mountpoint":"/boot/efi","fs":"vfat","provider":"partition","size":"600M"},'
+                       '{"mountpoint":"/","fs":"xfs","provider":"lvm","size":"100%"}]}')
+    assert bare == toks == jsn
+
+
+def test_token_whitespace_tolerant() -> None:
+    canon = canonicalize("role: os\ndevices: [/dev/vda]\nvolumes: [ [ ext4 , /var , 20G , lvm ] ]\n")
+    assert _vols(canon)[0] == {"fs": "ext4", "mountpoint": "/var", "name": "var", "provider": "lvm", "size": "20G"}
+
+
+def test_quoted_tokens_classify() -> None:
+    canon = canonicalize('role: os\ndevices: [/dev/vda]\nvolumes: [["/", "100%", "xfs"]]\n')
+    assert _vols(canon)[0]["size"] == "100%" and _vols(canon)[0]["fs"] == "xfs"

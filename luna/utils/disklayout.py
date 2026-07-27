@@ -51,7 +51,6 @@ canonical JSON unchanged.
 from __future__ import annotations
 
 import codecs
-import copy
 import json
 import re
 from typing import Any
@@ -255,8 +254,10 @@ def _parse(text: str) -> Any:
 # so a human's shorthand and its fully-spelled twin canonicalize to identical
 # bytes, and the node-side v2 validator -- which has NO defaulting of its own and
 # *requires* role/name/selection/raid/version/sets -- receives a layout it will
-# accept without re-deriving anything (no CLI<->validator drift). The editor
-# shows the inverse (strip) so humans still author the short form.
+# accept without re-deriving anything (no CLI<->validator drift). Authoring is
+# terse (bare-string / token-list / map volume shorthand + conventions, BE-V);
+# the editor ECHOES the full resolved form (to_yaml, BE-R echo-full), not a
+# stripped minimum -- terse IN, explicit OUT.
 #
 # What is filled (absent only, never overriding a set value) and the v2 rule it
 # satisfies (internal/config/v2/validate.go):
@@ -289,12 +290,82 @@ def _derive_volume_name(mountpoint: str, taken: set[str]) -> str:
     return _unique(base, taken)
 
 
+# Volume authoring shorthand (BE-V). A volume may be a bare mountpoint STRING, a
+# token LIST (shape-classified, order-free), or the explicit MAP -- all three fill
+# to the same full canonical map. Mountpoint conventions supply fs/provider/size
+# when absent; a supplied value always wins (fill-absent-only).
+_MOUNT_CONV: dict[str, tuple[str, str, str | None]] = {
+    "/boot/efi": ("vfat", "partition", "600M"),
+    "/boot": ("xfs", "partition", "1G"),
+    "/": ("xfs", "lvm", "100%"),
+    "swap": ("swap", "partition", None),  # size must be supplied
+}
+# Any other (data) mount: xfs on lvm, size REQUIRED (None -> not defaulted).
+_DEFAULT_CONV: tuple[str, str, str | None] = ("xfs", "lvm", None)
+
+_FS_VALUES = frozenset({"vfat", "xfs", "ext4", "swap"})
+_PROVIDER_VALUES = frozenset({"partition", "lvm", "memory", "zpool"})
+_SIZE_RE = re.compile(r"^\d+(\.\d+)?%$|^\d+(\.\d+)?[KMGTP]?$")
+
+
+def _classify_token(token: str) -> tuple[str, str]:
+    """Classify one shorthand token by SHAPE (order-free). A '/' path or the
+    literal 'swap' is the mountpoint; the rest are fs / provider / size by their
+    disjoint value spaces. An unrecognized token FAILS LOUD -- never silently
+    dropped nor coerced to a mountpoint (BE-V1)."""
+    tok = token.strip()
+    if tok.startswith("/") or tok == "swap":
+        return "mountpoint", tok
+    if tok in _FS_VALUES:
+        return "fs", tok
+    if tok in _PROVIDER_VALUES:
+        return "provider", tok
+    if _SIZE_RE.match(tok):
+        return "size", tok
+    raise DisklayoutError(
+        f"unrecognized volume token '{token}' -- expected a mountpoint (/...), a filesystem "
+        f"(vfat/xfs/ext4/swap), a provider (partition/lvm), or a size (e.g. 50G, 100%)"
+    )
+
+
+def _parse_volume(vol: Any) -> dict[str, Any]:
+    """Type-dispatch a volume to a dict (BE-V6): a bare string is a mountpoint; a
+    list is shape-classified tokens (order-free); a map passes through."""
+    if isinstance(vol, dict):
+        return vol
+    if isinstance(vol, str):
+        return {"mountpoint": vol}
+    if isinstance(vol, list):
+        out: dict[str, Any] = {}
+        for token in vol:
+            if not isinstance(token, str):
+                raise DisklayoutError(f"a volume token must be text, got {type(token).__name__}")
+            cls, value = _classify_token(token)
+            if cls in out:  # BE-V2: two of the same class
+                raise DisklayoutError(f"volume has two {cls} values: '{out[cls]}' and '{value}'")
+            out[cls] = value
+        if "mountpoint" not in out:  # BE-V3: identity cannot be defaulted
+            raise DisklayoutError(f"volume {vol} has no mountpoint (a '/...' or 'swap' token)")
+        return out
+    raise DisklayoutError(
+        f"a volume must be a mountpoint string, a token list, or a map, got {type(vol).__name__}"
+    )
+
+
 def _fill_volume(vol: dict[str, Any], taken: set[str]) -> dict[str, Any]:
     vol = dict(vol)
     if vol.get("provider") == "memory":  # RAM-root safety defaults
         vol.setdefault("mountpoint", "/")
         vol.setdefault("size", "80%")
         vol.setdefault("options", "mpol=interleave")
+    else:  # disk volume: mountpoint-convention defaults (BE-V4), fill-absent-only
+        mountpoint = vol.get("mountpoint")
+        if isinstance(mountpoint, str):
+            conv_fs, conv_provider, conv_size = _MOUNT_CONV.get(mountpoint, _DEFAULT_CONV)
+            vol.setdefault("fs", conv_fs)
+            vol.setdefault("provider", conv_provider)
+            if conv_size is not None:
+                vol.setdefault("size", conv_size)
     if "name" not in vol:
         mountpoint = vol.get("mountpoint")
         if isinstance(mountpoint, str):
@@ -316,13 +387,13 @@ def _fill_set(a_set: dict[str, Any]) -> dict[str, Any]:
     a_set.setdefault("raid", "none")
     volumes = a_set.get("volumes")
     if isinstance(volumes, list):
+        parsed = [_parse_volume(v) for v in volumes]  # string/list/map -> dict (BE-V)
         taken: set[str] = set()
-        for vol in volumes:
-            if isinstance(vol, dict):
-                name = vol.get("name")
-                if isinstance(name, str):
-                    taken.add(name)
-        a_set["volumes"] = [_fill_volume(v, taken) if isinstance(v, dict) else v for v in volumes]
+        for vol in parsed:
+            name = vol.get("name")
+            if isinstance(name, str):
+                taken.add(name)
+        a_set["volumes"] = [_fill_volume(v, taken) for v in parsed]
     return a_set
 
 
@@ -351,48 +422,6 @@ def _fill_defaults(doc: dict[str, Any]) -> dict[str, Any]:
     return doc
 
 
-def _strip_defaults(canonical: dict[str, Any]) -> dict[str, Any]:
-    """Inverse of :func:`_fill_defaults` for the editor: remove any field that
-    fill would put back identically, so the editor shows the short form. A field
-    is dropped ONLY if re-filling reproduces the canonical byte-for-byte, so the
-    round-trip is correct by construction (never guesses)."""
-    current = copy.deepcopy(canonical)
-
-    def fills_back() -> bool:
-        try:
-            return _fill_defaults(copy.deepcopy(current)) == canonical
-        except DisklayoutError:
-            return False
-
-    def try_drop(container: dict[str, Any], key: str) -> None:
-        if key in container:
-            saved = container.pop(key)
-            if not fills_back():
-                container[key] = saved
-
-    sets = current.get("sets")
-    if isinstance(sets, list):
-        for a_set in sets:
-            if not isinstance(a_set, dict):
-                continue
-            volumes = a_set.get("volumes")
-            if isinstance(volumes, list):
-                for vol in volumes:
-                    if isinstance(vol, dict):
-                        for key in ("name", "options", "size", "mountpoint"):
-                            try_drop(vol, key)
-            for key in ("name", "raid", "selection"):
-                try_drop(a_set, key)
-    try_drop(current, "version")
-    # Unwrap a lone set for display (fill re-wraps it).
-    sets = current.get("sets")
-    if isinstance(sets, list) and len(sets) == 1 and set(current) == {"sets"} and isinstance(sets[0], dict):
-        candidate = sets[0]
-        if _fill_defaults(copy.deepcopy(candidate)) == canonical:
-            current = candidate
-    return current
-
-
 def canonicalize(raw: bytes | str) -> bytes:
     """Canonicalize a YAML-or-JSON disklayout document to canonical JSON bytes.
 
@@ -415,19 +444,16 @@ def canonicalize(raw: bytes | str) -> bytes:
 def to_yaml(raw: bytes | str) -> str:
     """Render a stored (canonical JSON) disklayout as YAML for the editor.
 
-    The inverse presentation of :func:`canonicalize`: it takes what is stored
-    (JSON) and produces human-friendly YAML to hand to ``$EDITOR``. Scalars that
-    look typed (``raid: '10'``, ``model: 'no'``) are emitted quoted so that they
-    round-trip back through :func:`canonicalize` as strings.
+    ECHO-FULL (operator 2026-07-21): the editor shows the FULL resolved layout --
+    every default materialized -- so a human sees exactly what the shorthand
+    became and never edits blind. It is NOT stripped to a minimum; re-parsing the
+    echoed YAML canonicalizes back to identical bytes.
     """
     try:
         obj = json.loads(_decode(raw))
     except json.JSONDecodeError as err:
         raise DisklayoutError(f"stored disklayout is not valid JSON: {err}") from err
-    if isinstance(obj, dict):
-        obj = _strip_defaults(obj)  # show the human the short form
-    # No sort_keys kwarg: the input is already key-sorted canonical JSON, so key
-    # order is moot, and omitting it keeps this identical across PyYAML 3.x-6.x
-    # (the luna CLI runs on its own Python 3.10 / PyYAML 6.0.2; 3.6/3.12 are a
-    # portability belt). PyYAML 3.x predates the kwarg, so this stays compatible.
-    return yaml.safe_dump(obj, default_flow_style=False, allow_unicode=True)
+    # default_flow_style=None renders leaf collections (each volume map, the
+    # devices list) inline on one line for readability while the structure stays
+    # block. No sort_keys kwarg -> works across PyYAML 3.x-6.x (CLI runs 3.10/6.0.2).
+    return yaml.safe_dump(obj, default_flow_style=None, allow_unicode=True)
