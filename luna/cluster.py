@@ -95,6 +95,9 @@ class Cluster():
         cluster_change.add_argument('-t', '--technical_contacts',  help='Technical Contact')
         cluster_change.add_argument('-p', '--provision_method', help='Provision Method')
         cluster_change.add_argument('-f', '--provision_fallback', help='Provision Fallback')
+        cluster_change.add_argument('--install-mode', dest='install_mode',
+                                    choices=['auto', 'sync', 'full', 'local', 'memboot', 'sanitize', 'legacy'],
+                                    help='Install Mode')
         cluster_change.add_argument('-s', '--security', choices=BOOL_CHOICES,
                                     metavar=BOOL_META, help='Security')
         cluster_change.add_argument('--debug', choices=BOOL_CHOICES,

@@ -280,6 +280,7 @@ def sortby(table: str) -> list:
     static = {
         'cluster': [
             'name', 'controller', 'technical_contacts', 'provision_method', 'provision_fallback',
+            'install_mode',
             'nameserver_ip', 'forwardserver_ip', 'domain_search', 'bind_legacy', 'dnssec_enable',
             'dnssec_validation', 'ntp_server', 'security',
             'nextnode_discover', 'createnode_ondemand', 'createnode_macashost', 'packing_bootpause',
