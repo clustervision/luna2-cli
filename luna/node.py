@@ -150,6 +150,9 @@ class Node():
         rename_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_listinventory = node_args.add_parser('listinventory', help='List Hardware Inventory of All Nodes')
         Arguments().common_list_args(node_listinventory)
+        node_showdisklayout = node_args.add_parser('showdisklayout', help="Show a Node's Disk Layout")
+        node_showdisklayout.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        Arguments().common_list_args(node_showdisklayout)
         node_showinventory = node_args.add_parser('showinventory', help="Show a Node's Hardware Inventory")
         node_showinventory.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_showinventory)
@@ -185,6 +188,13 @@ class Node():
         else:
             response = Message().show_error(f'{self.table} is not found.')
         return response
+
+
+    def showdisklayout_node(self):
+        """
+        Method to show a node's disk layout in Luna Configuration.
+        """
+        return Helper().show_disklayout(self.table, self.args)
 
 
     def show_node(self):

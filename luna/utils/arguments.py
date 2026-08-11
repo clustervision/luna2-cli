@@ -106,12 +106,12 @@ class Arguments():
         parser.add_argument('--install-mode', dest='install_mode',
                         choices=['auto', 'sync', 'full', 'local', 'memboot', 'sanitize', 'legacy'],
                         help='v1.4 install mode')
-        parser.add_argument('-disklayout', '--disklayout', action='store_true', help='Disk Layout JSON (v1.4)')
-        parser.add_argument('-qdisklayout', '--quick-disklayout', dest='disklayout',
+        parser.add_argument('-dl', '--disklayout', action='store_true', help='Disk Layout JSON (v1.4)')
+        parser.add_argument('-qdl', '--quick-disklayout', dest='disklayout',
                         metavar="File-Path OR In-Line", help='Disk Layout JSON File-Path OR In-Line')
-        parser.add_argument('-osimagefilter', '--osimage-filter', action='store_true', dest='osimage_filter',
+        parser.add_argument('-of', '--osimage-filter', action='store_true', dest='osimage_filter',
                         help='OSImage Filter JSON (v1.4)')
-        parser.add_argument('-qosimagefilter', '--quick-osimage-filter', dest='osimage_filter',
+        parser.add_argument('-qof', '--quick-osimage-filter', dest='osimage_filter',
                         metavar="File-Path OR In-Line", help='OSImage Filter JSON File-Path OR In-Line')
         parser.add_argument('-i', '--provision_interface', help='Overrides the Cluster provisioning interface')
         parser.add_argument('-p', '--provision_method', help='Overrides Cluster (primary) provisioning method')
@@ -175,12 +175,12 @@ class Arguments():
         parser.add_argument('--install-mode', dest='install_mode',
                         choices=['auto', 'sync', 'full', 'local', 'memboot', 'sanitize', 'legacy'],
                         help='v1.4 install mode')
-        parser.add_argument('-disklayout', '--disklayout', action='store_true', help='Disk Layout JSON (v1.4)')
-        parser.add_argument('-qdisklayout', '--quick-disklayout', dest='disklayout',
+        parser.add_argument('-dl', '--disklayout', action='store_true', help='Disk Layout JSON (v1.4)')
+        parser.add_argument('-qdl', '--quick-disklayout', dest='disklayout',
                         metavar="File-Path OR In-Line", help='Disk Layout JSON File-Path OR In-Line')
-        parser.add_argument('-osimagefilter', '--osimage-filter', action='store_true', dest='osimage_filter',
+        parser.add_argument('-of', '--osimage-filter', action='store_true', dest='osimage_filter',
                         help='OSImage Filter JSON (v1.4)')
-        parser.add_argument('-qosimagefilter', '--quick-osimage-filter', dest='osimage_filter',
+        parser.add_argument('-qof', '--quick-osimage-filter', dest='osimage_filter',
                         metavar="File-Path OR In-Line", help='OSImage Filter JSON File-Path OR In-Line')
         parser.add_argument('-i', '--provision_interface', help='Overrides the Cluster or Group provisioning interface')
         parser.add_argument('-p', '--provision_method', help='Overrides Cluster or Group (primary) provisioning method')

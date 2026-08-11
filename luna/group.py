@@ -76,6 +76,9 @@ class Group():
         group_show = group_args.add_parser('show', help='Show Group details')
         group_show.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(group_show)
+        group_showdisklayout = group_args.add_parser('showdisklayout', help="Show a Group's Disk Layout")
+        group_showdisklayout.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        Arguments().common_list_args(group_showdisklayout)
         group_show.add_argument('-f', '--full-scripts', action='store_true', default=None, help='Show the Full Scripts')
         group_member = group_args.add_parser('member', help='Group Used by Nodes')
         group_member.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
@@ -171,6 +174,13 @@ class Group():
             response = Message().show_error(f'{self.table} is not found.')
         return response
 
+
+
+    def showdisklayout_group(self):
+        """
+        Method to show a group's disk layout in Luna Configuration.
+        """
+        return Helper().show_disklayout(self.table, self.args)
 
 
     def show_group(self):

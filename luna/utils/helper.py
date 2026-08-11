@@ -30,6 +30,7 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 import os
+import json
 from time import time, sleep
 import base64
 import binascii
@@ -49,7 +50,7 @@ from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
 from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby, divider, spacer, overrides, parser_doc
-from luna.utils.disklayout import canonicalize as disklayout_canonicalize, to_yaml as disklayout_to_yaml, DisklayoutError
+from luna.utils.disklayout import canonicalize as disklayout_canonicalize, to_yaml as disklayout_to_yaml, brief as disklayout_brief, DisklayoutError
 from luna.utils.message import Message
 
 
@@ -397,6 +398,76 @@ class Helper():
         return response
 
 
+    def show_disklayout(self, table=None, args=None):
+        """
+        Method to render the v2 disklayout of a node or group as tables.
+
+        The layout is already carried by the ordinary show payload, so this reads
+        the same record rather than asking the daemon for anything new. It also
+        reports where the layout came from: _<field>_source says whether the node
+        holds its own or inherits the group's, which is the first thing anyone
+        reading a layout wants to know.
+        """
+        row_name = args['name']
+        get_list = Rest().get_data(table, row_name)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        record = (get_list or {}).get('config', {}).get(table, {}).get(row_name, {})
+        # The API carries editor-style fields base64-encoded (the same convention
+        # prescript/partscript/postscript use), so decode before parsing. Reading
+        # the record straight from Rest() skips prepare_json, which is where the
+        # show path would have done this for us.
+        raw = self.base64_decode(record.get('disklayout') or '') or ''
+        source = record.get('_disklayout_source') or 'node'
+        if not raw.strip():
+            # No layout declared is a legal state, not an error: install_mode=auto
+            # then falls back to a RAM root.
+            Message().show_warning(f'No disklayout is configured for {table} {row_name}.')
+            return True
+        try:
+            layout = json.loads(raw)
+        except ValueError as exp:
+            # Stored but unreadable. Say so and hand over what is there rather
+            # than rendering an empty table that looks like "no layout".
+            Message().show_error(f'The stored disklayout is not valid JSON: {exp}')
+            Presenter().show_json(raw)
+            return True
+        if args['raw']:
+            Presenter().show_json(Helper().prepare_json(layout))
+            return True
+
+        title = f'{table.capitalize()} {row_name} Disk Layout [from {source}]'
+        sets = layout.get('sets') or []
+        set_rows = []
+        for a_set in sets:
+            set_rows.append([
+                a_set.get('name'), a_set.get('role'), a_set.get('selection'),
+                a_set.get('raid'),
+                ', '.join(a_set.get('devices') or []) or 'discovered',
+                len(a_set.get('volumes') or []),
+            ])
+        Presenter().show_table(
+            title,
+            ['Set', 'Role', 'Selection', 'RAID', 'Devices', 'Volumes'],
+            set_rows)
+
+        vol_rows = []
+        for a_set in sets:
+            for vol in a_set.get('volumes') or []:
+                vol_rows.append([
+                    a_set.get('name'), vol.get('name'), vol.get('mountpoint'),
+                    vol.get('fs'), vol.get('provider'), vol.get('size') or '-',
+                ])
+        if vol_rows:
+            Presenter().show_table(
+                f'{title} :: Volumes',
+                ['Set', 'Volume', 'Mountpoint', 'Filesystem', 'Provider', 'Size'],
+                vol_rows)
+        return True
+
+
     def show_data(self, table=None, args=None):
         """
         Method to show a switch in Luna Configuration.
@@ -423,6 +494,11 @@ class Helper():
                 limit = True
                 if "full_scripts" in args:
                     limit = False if args["full_scripts"] == True else True
+                if isinstance(data, dict) and data.get('disklayout'):
+                    # Summarise BEFORE the length limit runs: disklayout is an
+                    # EDITOR_KEY, so less_content would otherwise cut the JSON
+                    # mid-document and leave an unparseable fragment on screen.
+                    data['disklayout'] = self.brief_disklayout(data['disklayout'])
                 data = Helper().prepare_json(data, limit)
                 fields, rows  = self.filter_data_col(table, data)
                 self.logger.debug(f'Fields => {fields}')
@@ -1339,6 +1415,24 @@ class Helper():
             new_fields.append("")
             new_row.append("")
         return new_fields, new_row
+
+
+    def brief_disklayout(self, raw=None):
+        """
+        Short disklayout block for `show`. Rendering lives in utils.disklayout
+        beside the rest of the layout handling; this only decides what the table
+        shows when it cannot be rendered.
+
+        Never raises. This sits in the common show path for both node and group,
+        and stored content is not ours to trust -- a layout that cannot be parsed
+        must not take `luna node show` down with it.
+        """
+        try:
+            summary = disklayout_brief(raw)
+        except DisklayoutError as error:
+            self.logger.debug(f'Could not summarise disklayout => {error}')
+            return '<unreadable disklayout JSON - see showdisklayout -R>'
+        return raw if summary is None else summary
 
 
     def filter_data_col(self, table=None, data=None):
