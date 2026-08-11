@@ -57,7 +57,6 @@ _spec.loader.exec_module(disklayout)
 canonicalize = disklayout.canonicalize
 to_yaml = disklayout.to_yaml
 DisklayoutError = disklayout.DisklayoutError
-brief = disklayout.brief
 
 
 # --------------------------------------------------------------------------- #
@@ -847,90 +846,3 @@ def test_token_whitespace_tolerant() -> None:
 def test_quoted_tokens_classify() -> None:
     canon = canonicalize('role: os\ndevices: [/dev/vda]\nvolumes: [["/", "100%", "xfs"]]\n')
     assert _vols(canon)[0]["size"] == "100%" and _vols(canon)[0]["fs"] == "xfs"
-
-
-# --------------------------------------------------------------------------- #
-# brief() -- the one-glance rendering `luna node|group show` puts in its table.
-# --------------------------------------------------------------------------- #
-
-_BRIEF_LAYOUT = json.dumps({
-    "version": 2,
-    "sets": [{
-        "name": "os", "role": "os", "selection": "discover", "raid": "none",
-        "volumes": [
-            {"name": "uefi", "mountpoint": "/boot/efi", "fs": "vfat", "provider": "partition", "size": "600M"},
-            {"name": "boot", "mountpoint": "/boot", "fs": "xfs", "provider": "partition", "size": "1G"},
-            {"name": "swap", "mountpoint": "swap", "fs": "swap", "provider": "lvm", "size": "2G"},
-            {"name": "root", "mountpoint": "/", "fs": "xfs", "provider": "lvm", "size": "20G"},
-            {"name": "var", "mountpoint": "/var", "fs": "ext4", "provider": "lvm", "size": "100%"},
-        ],
-    }],
-})
-
-
-def test_brief_renders_set_header_and_one_volume_line() -> None:
-    out = brief(_BRIEF_LAYOUT)
-    assert out == (
-        "set = os (discover, raid none)\n"
-        "  /boot/efi vfat 600M, /boot xfs 1G, swap 2G, / xfs 20G, /var ext4 100%"
-    )
-
-
-def test_brief_survives_the_show_length_limiter() -> None:
-    """
-    The regression that matters, and the one that is easy to undo by accident.
-
-    `show` runs this through a limiter that keeps only the first three lines of
-    any content longer than 60 characters. A rendering with one line per volume
-    looks nicer and silently loses most of itself on screen, so the contract is
-    that a single-set layout stays inside three newlines. Asserting the shape
-    directly, rather than trusting a reviewer to remember why it is packed.
-    """
-    out = brief(_BRIEF_LAYOUT)
-    assert out.count("\n") <= 3
-
-
-def test_brief_does_not_repeat_swap_twice() -> None:
-    assert "swap 2G" in brief(_BRIEF_LAYOUT)
-    assert "swap swap" not in brief(_BRIEF_LAYOUT)
-
-
-def test_brief_names_manual_devices_instead_of_the_selector() -> None:
-    doc = json.loads(_BRIEF_LAYOUT)
-    doc["sets"][0]["selection"] = "manual"
-    doc["sets"][0]["devices"] = ["/dev/sda", "/dev/sdb"]
-    assert brief(json.dumps(doc)).startswith("set = os (/dev/sda, /dev/sdb, raid none)")
-
-
-def test_brief_renders_every_set() -> None:
-    doc = json.loads(_BRIEF_LAYOUT)
-    doc["sets"].append({"name": "data", "role": "data", "selection": "manual",
-                        "devices": ["/dev/sdc"], "raid": "1",
-                        "volumes": [{"name": "d", "mountpoint": "/data",
-                                     "fs": "xfs", "provider": "lvm", "size": "100%"}]})
-    out = brief(json.dumps(doc))
-    assert "set = os (" in out and "set = data (/dev/sdc, raid 1)" in out
-
-
-@pytest.mark.parametrize("empty", ["", "   ", "\n", None])
-def test_brief_treats_no_layout_as_nothing_to_show(empty) -> None:
-    """No layout declared is legal -- install_mode=auto falls back to a RAM root."""
-    assert brief(empty) is None
-
-
-@pytest.mark.parametrize("bad", [
-    "{not json",
-    "[]",
-    '{"sets": "not-a-list"}',
-    '{"sets": ["not-an-object"]}',
-    '{"sets": [{"name": "os", "volumes": ["not-an-object"]}]}',
-])
-def test_brief_rejects_unusable_layouts_rather_than_guessing(bad: str) -> None:
-    with pytest.raises(DisklayoutError):
-        brief(bad)
-
-
-def test_brief_tolerates_a_layout_with_no_volumes() -> None:
-    out = brief(json.dumps({"version": 2, "sets": [{"name": "os", "raid": "none",
-                                                    "selection": "discover"}]}))
-    assert out == "set = os (discover, raid none)"

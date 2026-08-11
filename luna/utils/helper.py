@@ -50,7 +50,7 @@ from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
 from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby, divider, spacer, overrides, parser_doc
-from luna.utils.disklayout import canonicalize as disklayout_canonicalize, to_yaml as disklayout_to_yaml, brief as disklayout_brief, DisklayoutError
+from luna.utils.disklayout import canonicalize as disklayout_canonicalize, to_yaml as disklayout_to_yaml, DisklayoutError
 from luna.utils.message import Message
 
 
@@ -1419,20 +1419,53 @@ class Helper():
 
     def brief_disklayout(self, raw=None):
         """
-        Short disklayout block for `show`. Rendering lives in utils.disklayout
-        beside the rest of the layout handling; this only decides what the table
-        shows when it cannot be rendered.
+        Render a stored disklayout as a short block for `show`, in the same shape
+        `show` already uses for interfaces: an unindented header per set, then its
+        volumes indented under it.
+
+        `show` is the command everyone runs first, so the layout should be legible
+        there rather than a wall of JSON truncated by the table. The full document
+        stays one command away via showdisklayout (-R for the JSON).
+
+        A set's volumes share ONE line, and that is load-bearing rather than
+        cosmetic: less_content keeps only the first three lines of anything longer
+        than 60 characters, so a line per volume would silently lose most of itself
+        on screen. Provider and volume names are the detail that gets dropped here;
+        showdisklayout carries them.
 
         Never raises. This sits in the common show path for both node and group,
         and stored content is not ours to trust -- a layout that cannot be parsed
         must not take `luna node show` down with it.
         """
+        if raw is None or not str(raw).strip():
+            return raw
         try:
-            summary = disklayout_brief(raw)
-        except DisklayoutError as error:
-            self.logger.debug(f'Could not summarise disklayout => {error}')
+            layout = json.loads(raw)
+            sets = layout.get('sets')
+            if not isinstance(sets, list):
+                raise ValueError('sets must be a list')
+            lines = []
+            for a_set in sets:
+                devices = a_set.get('devices')
+                where = ', '.join(devices) if isinstance(devices, list) and devices else (
+                    a_set.get('selection') or '?')
+                lines.append(f"set = {a_set.get('name')} ({where}, raid {a_set.get('raid')})")
+                volumes = a_set.get('volumes')
+                if not isinstance(volumes, list):
+                    continue
+                parts = []
+                for vol in volumes:
+                    mount, filesystem = vol.get('mountpoint') or '?', vol.get('fs') or '?'
+                    size = vol.get('size') or '-'
+                    # swap's mountpoint IS "swap"; printing both just repeats it.
+                    parts.append(f'{mount} {size}' if mount == filesystem
+                                 else f'{mount} {filesystem} {size}')
+                if parts:
+                    lines.append('  ' + ', '.join(parts))
+            return '\n'.join(lines) if lines else raw
+        except (ValueError, TypeError, AttributeError, KeyError) as exp:
+            self.logger.debug(f'Could not summarise disklayout => {exp}')
             return '<unreadable disklayout JSON - see showdisklayout -R>'
-        return raw if summary is None else summary
 
 
     def filter_data_col(self, table=None, data=None):
