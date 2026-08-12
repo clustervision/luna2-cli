@@ -1,51 +1,16 @@
-# 
+#
 # This file is written to support the CI/CD process of Gitlab.
-# Author: Sumit Sharma
-# Maintainer: Sumit Sharma
-# E-mail: sumit.sharma@clustervision.com"
-# Status: Development
-# copyright: Copyright 2025, Luna2 Project [CLI]
+# Status: Production
+# copyright: Copyright 2026, Luna2 Project
 # license: GPL
-# 
+#
+# Build and publish the pip package. The build/publish logic, the branch-to-stream
+# mapping and the CI/CD variables it needs all live in
+# ClusterVision/gitlab-cicd-pipelines, which also repoints the target directory's
+# "latest" symlinks at the build it just made and prunes older ones.
+#
 
-stages:
-  - production
-  - development
-  - ztp-poc
-
-production:
-  stage: production
-  image: python:3.10.0-alpine
-  only:
-    - main
-  script:
-    - python setup.py sdist bdist_wheel
-    - apk add openssh-client
-    - apk add sshpass
-    - sshpass -p $SSH_PASSWORD scp -r -oStrictHostKeyChecking=no dist/* $SSH_USER@$IPADDRESS:$LOCATION
-
-
-development:
-  stage: development
-  image: python:3.10.0-alpine
-  only:
-    - development
-  script:
-    - python setup.py sdist bdist_wheel
-    - apk add openssh-client
-    - apk add sshpass
-    - sshpass -p $SSH_PASSWORD scp -r -oStrictHostKeyChecking=no dist/* $SSH_USER@$IPADDRESS:$DEV_LOCATION
-
-    
-ztp-poc:
-  stage: development
-  image: python:3.10.0-alpine
-  only:
-    - ztp-poc
-  script:
-    - python setup.py sdist bdist_wheel
-    - apk add openssh-client
-    - apk add sshpass
-    - sshpass -p $SSH_PASSWORD scp -r -oStrictHostKeyChecking=no dist/* $SSH_USER@$IPADDRESS:$ZTPPOC_LOCATION
-
-    
+include:
+  - project: 'ClusterVision/gitlab-cicd-pipelines'
+    file: '/pip-package-pipeline.yml'
+    ref: 'main'
