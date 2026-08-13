@@ -419,6 +419,10 @@ class Secrets():
                     self.args.pop('content', None)
                 if self.args['path'] is None:
                     self.args.pop('path', None)
+                # an attribute that was not asked for is not a request to clear it
+                for optional in ['owner', 'mode']:
+                    if self.args.get(optional) is None:
+                        self.args.pop(optional, None)
                 self.args['name'] = self.args['secret']
                 self.args.pop('secret', None)
                 pre_payload = {entity_name: [self.args], 'name': self.args['name']}
@@ -470,8 +474,10 @@ class Secrets():
             else:
                 uri = f'{self.args["entity"]}/{self.args["name"]}'
                 if self.args['secret'] is not None:
-                    if len(self.args["secret"]) == 1:
-                        uri = f'{uri}/{self.args["secret"][0]}'
+                    # the single-secret endpoint, which accepts a change carrying only
+                    # the attributes being changed. The bulk one demands the whole secret
+                    # back, so changing a mode there means resupplying the content
+                    uri = f'{uri}/{self.args["secret"]}'
                 self.logger.debug(f'Secret URI => {uri}')
                 entity = self.args['entity']
                 del self.args['entity']
@@ -482,6 +488,10 @@ class Secrets():
                     self.args.pop('content', None)
                 if self.args['path'] is None:
                     self.args.pop('path', None)
+                # an attribute that was not asked for is not a request to clear it
+                for optional in ['owner', 'mode']:
+                    if self.args.get(optional) is None:
+                        self.args.pop(optional, None)
                 self.args['name'] = self.args['secret']
                 self.args.pop('secret', None)
                 pre_payload = {entity_name: [self.args], 'name': self.args['name']}
