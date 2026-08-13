@@ -430,10 +430,14 @@ class Profile():
         causes = {}
         for node in sorted(data):
             entry = data[node]
-            if entry.get('state') != 'failed':
+            if entry.get('state') not in ('failed', 'given up'):
                 continue
             reason = (entry.get('detail') or 'unknown').split(chr(10))[0]
             reason = reason.replace(node, '<node>')
+            if entry.get('state') == 'given up':
+                # a node nobody is chasing any more looks exactly like one that is still
+                # being retried, and that is the difference an operator has to act on
+                reason = f'[not retrying] {reason}'
             causes.setdefault(reason, []).append(node)
         if causes:
             fields = ['#', 'nodes', 'reason', 'for example']
@@ -446,6 +450,13 @@ class Profile():
                 num = num + 1
             Presenter().show_table(' << Failing, by cause >>', fields, rows)
 
+        stopped = sorted(node for node, entry in data.items()
+                         if entry.get('state') == 'given up')
+        if stopped:
+            shown = ', '.join(stopped[:6]) + (' ...' if len(stopped) > 6 else '')
+            Message().show_warning(f'{len(stopped)} node(s) have been failing for over a '
+                                   f'day and are no longer being retried: {shown}. '
+                                   f'Changing a profile they carry starts them over.')
         frozen = sorted(node for node, entry in data.items()
                         if entry.get('state') == 'frozen')
         if frozen:
