@@ -49,6 +49,7 @@ try:
     from luna.switch import Switch
     from luna.otherdev import OtherDev
     from luna.secrets import Secrets
+    from luna.profile import Profile
     from luna.service import Service
     from luna.control import Control
     from luna.monitor import Monitor
@@ -66,6 +67,7 @@ try:
         Group,
         Node,
         Secrets,
+        Profile,
         Service,
         Control,
         Monitor
