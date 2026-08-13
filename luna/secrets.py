@@ -103,6 +103,8 @@ class Secrets():
         change_node.add_argument('-qc', '--quick-content', dest='content',
                                 metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
         change_node.add_argument('-p', '--path', help='Path of the Secret')
+        change_node.add_argument('-o', '--owner', help='Owner of the Secret file: user or user:group, names or numeric ids')
+        change_node.add_argument('-m', '--mode', help='Permissions of the Secret file, as octal digits (default 600)')
         change_node.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         change_group = change_parser.add_parser('group', help='Add A Group Secrets')
         change_group.add_argument('name', help='Name of the Group').completer = Helper().name_completer("group")
@@ -112,6 +114,8 @@ class Secrets():
         change_group.add_argument('-qc', '--quick-content', dest='content',
                                 metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
         change_group.add_argument('-p', '--path',help='Path of the Secret')
+        change_group.add_argument('-o', '--owner', help='Owner of the Secret file: user or user:group, names or numeric ids')
+        change_group.add_argument('-m', '--mode', help='Permissions of the Secret file, as octal digits (default 600)')
         change_group.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> change
         change_secrets = secrets_args.add_parser('change', help='Change Secrets')
@@ -124,6 +128,8 @@ class Secrets():
         change_node.add_argument('-qc', '--quick-content', dest='content',
                                 metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
         change_node.add_argument('-p', '--path', help='Path of the Secret')
+        change_node.add_argument('-o', '--owner', help='Owner of the Secret file: user or user:group, names or numeric ids')
+        change_node.add_argument('-m', '--mode', help='Permissions of the Secret file, as octal digits (default 600)')
         change_node.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         change_group = change_parser.add_parser('group', help='Change Group Secrets')
         change_group.add_argument('name', help='Name of the Group').completer = Helper().name_completer("group")
@@ -133,6 +139,8 @@ class Secrets():
         change_group.add_argument('-qc', '--quick-content', dest='content',
                                 metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
         change_group.add_argument('-p', '--path',help='Path of the Secret')
+        change_group.add_argument('-o', '--owner', help='Owner of the Secret file: user or user:group, names or numeric ids')
+        change_group.add_argument('-m', '--mode', help='Permissions of the Secret file, as octal digits (default 600)')
         change_group.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> clone
         clone_secrets = secrets_args.add_parser('clone', help='Clone Secrets')
@@ -146,6 +154,8 @@ class Secrets():
         clone_node.add_argument('-qc', '--quick-content', dest='content',
                                 metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
         clone_node.add_argument('-p', '--path', help='Path of the Secret')
+        clone_node.add_argument('-o', '--owner', help='Owner of the Secret file: user or user:group, names or numeric ids')
+        clone_node.add_argument('-m', '--mode', help='Permissions of the Secret file, as octal digits (default 600)')
         clone_node.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         clone_group = clone_parser.add_parser('group', help='Clone Group Secrets')
         clone_group.add_argument('name', help='Name of the Group').completer = Helper().name_completer("group")
@@ -156,6 +166,8 @@ class Secrets():
         clone_group.add_argument('-qc', '--quick-content', dest='content',
                                 metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
         clone_group.add_argument('-p', '--path', help='Path of the Secret')
+        clone_group.add_argument('-o', '--owner', help='Owner of the Secret file: user or user:group, names or numeric ids')
+        clone_group.add_argument('-m', '--mode', help='Permissions of the Secret file, as octal digits (default 600)')
         clone_group.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> delete
         remove_secrets = secrets_args.add_parser('remove', help='Remove Secrets')

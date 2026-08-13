@@ -1241,20 +1241,25 @@ class Helper():
         rows, colored_fields = [], []
         fields = filter_columns(table)
         self.logger.debug(f'Fields => {fields}')
+        # Built from the field list rather than a fixed sequence of appends: a column
+        # added to filter_columns/sortby then cannot silently desync from the rows,
+        # and a scope that carries no entity column (cluster) needs no special case.
         for key in data:
-            new_row = []
             for value in data[key]:
                 self.logger.debug(f'Key => {key} and Value => {value}')
-                new_row.append(key)
-                new_row.append(value['name'])
-                new_row.append(value['path'])
-                content = self.base64_decode(value['content'])
-                if content is not None:
-                    new_row.append(content[:60]+'...')
-                else:
-                    new_row.append(content)
-                rows.append(new_row)
                 new_row = []
+                for field in fields:
+                    if field in ('Node', 'Group'):
+                        new_row.append(key)
+                    elif field == 'content':
+                        content = self.base64_decode(value.get('content'))
+                        if content is not None:
+                            new_row.append(content[:60]+'...')
+                        else:
+                            new_row.append(content)
+                    else:
+                        new_row.append(value.get(field))
+                rows.append(new_row)
         for newfield in fields:
             colored_fields.append(newfield)
         fields = colored_fields
@@ -1277,21 +1282,25 @@ class Helper():
         rows, colored_fields = [], []
         fields = sortby(table)
         self.logger.debug(f'Fields => {fields}')
+        # Built from the field list rather than a fixed sequence of appends: a column
+        # added to filter_columns/sortby then cannot silently desync from the rows,
+        # and a scope that carries no entity column (cluster) needs no special case.
         for key in data:
-            new_row = []
             for value in data[key]:
                 self.logger.debug(f'Key => {key} and Value => {value}')
-                new_row.append(key)
-                new_row.append(value['name'])
-                new_row.append(value['path'])
-                content = self.base64_decode(value['content'])
-                if content is not None:
-                    new_row.append(content[:60]+'...')
-                else:
-                    new_row.append(content)
-                # new_row.append(content)
-                rows.append(new_row)
                 new_row = []
+                for field in fields:
+                    if field in ('Node', 'Group'):
+                        new_row.append(key)
+                    elif field == 'content':
+                        content = self.base64_decode(value.get('content'))
+                        if content is not None:
+                            new_row.append(content[:60]+'...')
+                        else:
+                            new_row.append(content)
+                    else:
+                        new_row.append(value.get(field))
+                rows.append(new_row)
         for newfield in fields:
             colored_fields.append(newfield)
         fields = colored_fields

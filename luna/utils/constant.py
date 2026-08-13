@@ -222,7 +222,7 @@ def filter_columns(table: str) -> list:
         'group': ['name', 'bmcsetupname', 'osimage', 'roles', 'interfaces'],
         'groupinterface': ['interface', 'network', 'options', 'vlanid', 'vlan_parent',
                            'bond_mode', 'bond_slaves', 'dhcp', 'mtu'],
-        'groupsecrets': ['Group', 'name', 'path', 'content'],
+        'groupsecrets': ['Group', 'name', 'path', 'owner', 'mode', 'content'],
         'network': ['name', 'network', 'type', 'zone', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end',
                     'shared', 'dhcp_mode'],
         'dns': ['host', 'ipaddress'],
@@ -234,7 +234,7 @@ def filter_columns(table: str) -> list:
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options', 'mtu',
                           'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp'],
         'switchinterface': ['interface', 'mgmt', 'ipaddress', 'ipaddress_ipv6', 'macaddress', 'network'],
-        'nodesecrets': ['Node', 'name', 'path', 'content'],
+        'nodesecrets': ['Node', 'name', 'path', 'owner', 'mode', 'content'],
         'osimage': ['name', 'kernelversion', 'path', 'distribution', 'osrelease'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'switch': ['name', 'network', 'oid', 'read', 'ipaddress', 'netboot'],
@@ -320,8 +320,8 @@ def sortby(table: str) -> list:
         'groupinterface': [
             'interfacename', 'network', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves'
         ],
-        'groupsecrets': ['Group', 'name', 'path', 'content'],
-        'nodesecrets': ['Node', 'name', 'path', 'content'],
+        'groupsecrets': ['Group', 'name', 'path', 'owner', 'mode', 'content'],
+        'nodesecrets': ['Node', 'name', 'path', 'owner', 'mode', 'content'],
         'network': [
             'name', 'type', 'zone', 'non_authoritative', 'dhcp',
             'network', 'gateway', 'nameserver_ip', 'dhcp_range_begin', 'dhcp_range_end',
