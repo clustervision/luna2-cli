@@ -207,7 +207,7 @@ def actions(table: str) -> list:
         "cloud" : network_actions,
         "group": common_actions + member_action + ["ospush"] + interface_actions + disklayout_actions,
         "node": common_actions + ["osgrab", "ospush"] + interface_actions + inventory_actions + disklayout_actions,
-        "profile": common_actions + ["removefile"],
+        "profile": common_actions + ["addfile", "changefile", "removefile"],
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],
         "osimage": common_actions + member_action + ["pack", "cancel", "kernel", "tag", "updatecerts"],
         "bmcsetup": common_actions + member_action,
