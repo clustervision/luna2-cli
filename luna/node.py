@@ -75,6 +75,13 @@ class Node():
         node_args = node_menu.add_subparsers(dest='action', title='commands', description='Available node operations')
         node_list = node_args.add_parser('list', help='List All Nodes')
         Arguments().common_list_args(node_list, True)
+        node_bootstatus = node_args.add_parser('bootstatus',
+                                               help='Where nodes are in a (re)boot cycle')
+        node_bootstatus.add_argument('-g', '--group', help='Only this group').completer = Helper().name_completer("group")
+        node_bootstatus.add_argument('-R', '--raw', action='store_true', default=None,
+                                     help='Raw JSON output')
+        node_bootstatus.add_argument('-v', '--verbose', action='store_true', default=None,
+                                     help='Verbose Mode')
         node_show = node_args.add_parser('show', help='Show A Node')
         node_show.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_show)
@@ -157,6 +164,74 @@ class Node():
         node_showinventory.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_showinventory)
         return parser
+
+
+    # Where a node is in its boot cycle, from the state it last reported. Three phases
+    # rather than the full step list: an operator watching a cluster come up wants to
+    # know how many are still fetching and how many are configuring, not which of the
+    # dozen post-install steps node417 is on.
+    BOOT_PHASES = [
+        ('ipxe', ('rendered',)),
+        ('download', ('download', 'unpack')),
+        ('done', ('success', 'booted')),
+    ]
+
+    def boot_phase(self, status=None):
+        """
+        The phase a reported state belongs to. Matching is on the step rather than the
+        whole string, so a change to how the daemon words it does not silently drop
+        every node into 'unknown'.
+        """
+        if not status or status in ('None', 'none'):
+            return 'unknown'
+        lowered = str(status).lower()
+        for phase, steps in self.BOOT_PHASES:
+            if any(step in lowered for step in steps):
+                return phase
+        if 'installer' in lowered or 'install.' in lowered:
+            return 'config'
+        return 'unknown'
+
+    def bootstatus_node(self):
+        """
+        Method to summarise where nodes are in a (re)boot cycle, by group and the
+        osimage they will actually boot - which is the node's own when it overrides
+        its group's.
+        """
+        get_list = Rest().get_data(self.table)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        if not get_list:
+            return Message().show_error('No nodes are available.')
+        nodes = get_list['config'][self.table]
+
+        phases = [phase for phase, _ in self.BOOT_PHASES if phase != 'done']
+        phases = phases + ['config', 'done', 'unknown']
+        buckets = {}
+        for name in sorted(nodes):
+            node = nodes[name]
+            if self.args.get('group') and node.get('group') != self.args['group']:
+                continue
+            key = (node.get('group') or '-', node.get('osimage') or '-')
+            counts = buckets.setdefault(key, dict.fromkeys(phases, 0))
+            counts[self.boot_phase(node.get('status'))] += 1
+
+        if not buckets:
+            return Message().show_error('No nodes matched.')
+        if self.args['raw']:
+            data = {f'{group}/{osimage}': counts for (group, osimage), counts in buckets.items()}
+            return Presenter().show_json(Helper().prepare_json(data))
+
+        fields = ['#', 'group', 'osimage'] + phases + ['total']
+        rows, num = [], 1
+        for (group, osimage) in sorted(buckets):
+            counts = buckets[(group, osimage)]
+            rows.append([num, group, osimage] + [counts[phase] or '' for phase in phases]
+                        + [sum(counts.values())])
+            num = num + 1
+        return Presenter().show_table(' << Boot Overview >>', fields, rows)
 
 
     def list_node(self):
