@@ -1,2 +1,5 @@
 __pycache__/
 .vscode
+
+# written by setup.py at build time
+luna/VERSION.txt
