@@ -157,6 +157,15 @@ def parser_doc(table: str) -> types.SimpleNamespace:
                 its own, all of them.
             '''
         },
+        "boot" : {
+            "help": "Where nodes are in a (re)boot cycle.",
+            "description":  '''\
+                Luna boot summarises where the cluster is in a boot: how many nodes are
+                waiting to be handed their installer, how many are fetching their image,
+                how many are configuring, and how many are done. Grouped by group and by
+                the osimage each node will actually boot.
+            '''
+        },
         "profile" : {
             "help": "Profile operations.",
             "description":  '''\
@@ -207,7 +216,8 @@ def actions(table: str) -> list:
         "cloud" : network_actions,
         "group": common_actions + member_action + ["ospush"] + interface_actions + disklayout_actions,
         "node": common_actions + ["osgrab", "ospush"] + interface_actions + inventory_actions + disklayout_actions,
-        "profile": common_actions + ["removefile"],
+        "boot": ["show"],
+        "profile": common_actions + ["status", "addfile", "changefile", "removefile"],
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],
         "osimage": common_actions + member_action + ["pack", "cancel", "kernel", "tag", "updatecerts"],
         "bmcsetup": common_actions + member_action,
