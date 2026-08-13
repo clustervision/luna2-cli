@@ -538,6 +538,13 @@ class Secrets():
                 tmp_payload['name'] = tmp_payload['newsecretname']
                 content = Helper().prepare_payload(f'{self.route}/{uri}', tmp_payload)
                 tmp_payload['content'] = content['content']
+            else:
+                # -c not given: say nothing about the content rather than sending the
+                # flag's own False, which the daemon would store as the secret's value
+                tmp_payload.pop('content', None)
+            for optional in ['path', 'owner', 'mode']:
+                if tmp_payload.get(optional) is None:
+                    tmp_payload.pop(optional, None)
             tmp_payload['name'] = tmp_payload['secret']
             del tmp_payload['secret']
             payload[entity_name] = [tmp_payload]
