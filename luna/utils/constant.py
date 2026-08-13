@@ -217,7 +217,7 @@ def actions(table: str) -> list:
         "group": common_actions + member_action + ["ospush"] + interface_actions + disklayout_actions,
         "node": common_actions + ["osgrab", "ospush"] + interface_actions + inventory_actions + disklayout_actions,
         "boot": ["status"],
-        "profile": common_actions + ["status", "addfile", "changefile", "removefile"],
+        "profile": common_actions + member_action + ["status", "addfile", "changefile", "removefile"],
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],
         "osimage": common_actions + member_action + ["pack", "cancel", "kernel", "tag", "updatecerts"],
         "bmcsetup": common_actions + member_action,

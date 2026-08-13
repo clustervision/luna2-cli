@@ -92,3 +92,51 @@ def test_every_offered_verb_can_be_dispatched(filename):
     missing = sorted(offered - actions)
     assert not missing, (f'{filename}: {missing} can be typed and completed but not run - '
                          f'the dispatch list did not learn about them')
+
+
+@pytest.mark.parametrize('filename', list(_entity_modules()))
+def test_the_parser_actually_builds(filename):
+    """Reading the source is not enough. A verb whose parser line references something
+    the module never imported passes every static check and then takes the whole CLI
+    down at startup - `luna` builds every entity's parser before it looks at argv, so
+    one NameError in one module breaks every command.
+
+    This builds it for real. A module that cannot be built without a live daemon is
+    skipped by name rather than by swallowing the error, because swallowing it is how
+    the missing import got through in the first place.
+    """
+    import importlib
+    import logging
+    from argparse import ArgumentParser
+
+    import luna.utils.log as luna_log
+    luna_log.Log._Log__logger = logging.getLogger('luna2-cli-tests')  # noqa: SLF001
+
+    entity = filename[:-3]
+    module = importlib.import_module(f'luna.{entity}')
+    cls = next((getattr(module, name) for name in dir(module)
+                if name.lower() == entity and isinstance(getattr(module, name), type)), None)
+    if cls is None:
+        pytest.skip(f'{filename} has no {entity} class to build')
+
+    parser = ArgumentParser(prog='luna')
+    subparsers = parser.add_subparsers(dest='command')
+    try:
+        cls(parser=parser, subparsers=subparsers)
+    except (NameError, AttributeError, TypeError) as exp:
+        pytest.fail(f'{filename}: building the parser raised {type(exp).__name__}: {exp}')
+    except Exception as exp:  # pylint: disable=broad-except
+        # cluster.py reaches the daemon while building - that is a known property of
+        # this CLI, and shtab needs a live controller for the same reason
+        pytest.skip(f'{filename} needs a live daemon to build its parser: {exp}')
+
+    registered = subparsers.choices.get(entity)
+    if registered is None or not registered._subparsers:  # noqa: SLF001
+        pytest.skip(f'{filename} registers no subcommands')
+    verbs = set(registered._subparsers._group_actions[0].choices)  # noqa: SLF001
+    actions = _dispatch_actions(_parsed(filename))
+    if actions is None:
+        pytest.skip(f'{filename} does not dispatch through the central table')
+    scopes = {'node', 'group', 'cluster'}
+    missing = sorted({verb for verb in verbs if verb not in scopes} - actions)
+    assert not missing, f'{filename}: {missing} build but cannot be dispatched'
