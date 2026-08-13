@@ -74,6 +74,10 @@ class Secrets():
         list_node.add_argument('-s', '--secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "node")
         list_node.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
         list_node.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        list_cluster = list_parser.add_parser('cluster', help='List Cluster Secrets')
+        list_cluster.add_argument('-s', '--secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "cluster")
+        list_cluster.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
+        list_cluster.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         list_group = list_parser.add_parser('group', help='List Group Secrets')
         list_group.add_argument('name', help='Name of the Group').completer = Helper().name_completer("group")
         list_group.add_argument('-s', '--secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "group")
@@ -87,6 +91,10 @@ class Secrets():
         show_node.add_argument('-s', '--secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "node")
         show_node.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
         show_node.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        show_cluster = show_parser.add_parser('cluster', help='Show Cluster Secrets')
+        show_cluster.add_argument('secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "cluster")
+        show_cluster.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
+        show_cluster.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         show_group = show_parser.add_parser('group', help='Show Group Secrets')
         show_group.add_argument('name', help='Name of the Group').completer = Helper().name_completer("group")
         show_group.add_argument('secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "group")
@@ -117,6 +125,16 @@ class Secrets():
         change_group.add_argument('-o', '--owner', help='Owner of the Secret file: user or user:group, names or numeric ids')
         change_group.add_argument('-m', '--mode', help='Permissions of the Secret file, as octal digits (default 600)')
         change_group.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        change_cluster = change_parser.add_parser('cluster', help='Add A Cluster Secret')
+        change_cluster.add_argument('secret', help='Name of the Secret')
+        change_cluster.add_argument('-c', '--content', action='store_true',
+                                 help='Content of the Secret')
+        change_cluster.add_argument('-qc', '--quick-content', dest='content',
+                                metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
+        change_cluster.add_argument('-p', '--path', help='Path of the Secret')
+        change_cluster.add_argument('-o', '--owner', help='Owner of the Secret file: user or user:group, names or numeric ids')
+        change_cluster.add_argument('-m', '--mode', help='Permissions of the Secret file, as octal digits (default 600)')
+        change_cluster.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> change
         change_secrets = secrets_args.add_parser('change', help='Change Secrets')
         change_parser = change_secrets.add_subparsers(dest='entity')
@@ -142,6 +160,16 @@ class Secrets():
         change_group.add_argument('-o', '--owner', help='Owner of the Secret file: user or user:group, names or numeric ids')
         change_group.add_argument('-m', '--mode', help='Permissions of the Secret file, as octal digits (default 600)')
         change_group.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        change_cluster = change_parser.add_parser('cluster', help='Change Cluster Secrets')
+        change_cluster.add_argument('secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "cluster")
+        change_cluster.add_argument('-c', '--content', action='store_true',
+                                 help='Content of the Secret')
+        change_cluster.add_argument('-qc', '--quick-content', dest='content',
+                                metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
+        change_cluster.add_argument('-p', '--path', help='Path of the Secret')
+        change_cluster.add_argument('-o', '--owner', help='Owner of the Secret file: user or user:group, names or numeric ids')
+        change_cluster.add_argument('-m', '--mode', help='Permissions of the Secret file, as octal digits (default 600)')
+        change_cluster.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> clone
         clone_secrets = secrets_args.add_parser('clone', help='Clone Secrets')
         clone_parser = clone_secrets.add_subparsers(dest='entity')
@@ -169,6 +197,17 @@ class Secrets():
         clone_group.add_argument('-o', '--owner', help='Owner of the Secret file: user or user:group, names or numeric ids')
         clone_group.add_argument('-m', '--mode', help='Permissions of the Secret file, as octal digits (default 600)')
         clone_group.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        clone_cluster = clone_parser.add_parser('cluster', help='Clone Cluster Secrets')
+        clone_cluster.add_argument('secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "cluster")
+        clone_cluster.add_argument('newsecretname', help='New name for the Secret')
+        clone_cluster.add_argument('-c', '--content', action='store_true',
+                                 help='Content of the Secret')
+        clone_cluster.add_argument('-qc', '--quick-content', dest='content',
+                                metavar="File-Path OR In-Line", help='Content File-Path OR In-Line')
+        clone_cluster.add_argument('-p', '--path', help='Path of the Secret')
+        clone_cluster.add_argument('-o', '--owner', help='Owner of the Secret file: user or user:group, names or numeric ids')
+        clone_cluster.add_argument('-m', '--mode', help='Permissions of the Secret file, as octal digits (default 600)')
+        clone_cluster.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> delete
         remove_secrets = secrets_args.add_parser('remove', help='Remove Secrets')
         remove_parser = remove_secrets.add_subparsers(dest='entity')
@@ -180,7 +219,53 @@ class Secrets():
         remove_group.add_argument('name', help='Name of the Group').completer = Helper().name_completer("group")
         remove_group.add_argument('secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "group")
         remove_group.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        remove_cluster = remove_parser.add_parser('cluster', help='Remove Cluster Secrets')
+        remove_cluster.add_argument('secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "cluster")
+        remove_cluster.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
+
+
+    def show_secret_table(self, uri, scope):
+        """
+        Fetch and render one scope of secrets. Cluster secrets arrive as a plain list
+        rather than keyed by an entity name, which is why they do not go through the
+        node/group rendering above.
+        """
+        get_list = Rest().get_data(uri)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        self.logger.debug(f'Get List Data from Helper => {get_list}')
+        if not get_list:
+            return Message().show_error(f'{self.route} are not found.')
+        data = get_list['config']['secrets'][scope]
+        if self.args['raw']:
+            return Presenter().show_json(Helper().prepare_json(data))
+        table = f'{scope}{self.route}'
+        fields, rows = Helper().get_secrets(table, {scope: data})
+        self.logger.debug(f'Fields => {fields}')
+        self.logger.debug(f'Rows => {rows}')
+        return Presenter().show_table(f' << Cluster Secrets >>', fields, rows)
+
+
+    def cluster_payload(self):
+        """
+        The request body for a cluster secret: a plain list under config:secrets:cluster,
+        with the CLI-only arguments stripped out.
+        """
+        payload = dict(self.args)
+        for remove in ['verbose', 'command', 'action', 'entity', 'raw']:
+            payload.pop(remove, None)
+        if payload.get('content') is False:
+            payload.pop('content', None)
+        if payload.get('path') is None:
+            payload.pop('path', None)
+        for optional in ['owner', 'mode']:
+            if payload.get(optional) is None:
+                payload.pop(optional, None)
+        payload['name'] = payload.pop('secret')
+        return payload
 
 
     def list_secrets(self):
@@ -189,6 +274,12 @@ class Secrets():
         """
         error = False
         uri = self.route
+        if self.args.get('entity') == 'cluster':
+            # a cluster secret is not scoped by an entity name, so its URI stops there
+            uri = f'{uri}/cluster'
+            if self.args['secret'] is not None:
+                uri = f'{uri}/{self.args["secret"]}'
+            return self.show_secret_table(uri, 'cluster')
         if 'name' in self.args:
             uri = f'{uri}/{self.args["entity"]}/{self.args["name"]}'
             if self.args['secret'] is not None:
@@ -241,6 +332,9 @@ class Secrets():
         or only-one depending on the arguments.
         """
         response = False
+        if self.args.get('entity') == 'cluster':
+            uri = f'{self.route}/cluster/{self.args["secret"]}'
+            return self.show_secret_table(uri, 'cluster')
         if self.args['entity'] is not None:
             uri = f'{self.route}/{self.args["entity"]}/{self.args["name"]}'
             if self.args['secret'] is not None:
@@ -284,6 +378,24 @@ class Secrets():
         depending on the arguments.
         """
         response = False
+        if self.args.get('entity') == 'cluster':
+            secret = self.args['secret']
+            existing = Rest().get_data(f'{self.route}/cluster/{secret}')
+            if existing.status_code == 200:
+                Message().error_exit(f'{secret} already present in the cluster', existing.status_code)
+            payload = self.cluster_payload()
+            payload = Helper().prepare_payload(None, payload)
+            request_data = {'config': {self.route: {'cluster': [payload]}}}
+            self.logger.debug(f'Payload => {request_data}')
+            # the collection endpoint, like the node and group add paths use: the
+            # single-secret one reports every write as an update, which is a 204 with
+            # no body and reads as a failure here
+            response = Rest().post_data(self.route, 'cluster', request_data)
+            if response.status_code in (201, 204):
+                Message().show_success(f'Cluster secret {secret} is created.')
+            else:
+                Message().error_exit(response.content, response.status_code)
+            return response
         if self.args['entity'] is not None:
             uri = f'{self.args["entity"]}/{self.args["name"]}'
             if self.args['secret'] is not None:
@@ -331,6 +443,22 @@ class Secrets():
         Method to change Secrets for node or group depending on the arguments.
         """
         response = False
+        if self.args.get('entity') == 'cluster':
+            secret = self.args['secret']
+            existing = Rest().get_data(f'{self.route}/cluster/{secret}')
+            if existing.status_code != 200:
+                Message().error_exit(f'Kindly add the {secret} first in the cluster',
+                                     existing.status_code)
+            payload = self.cluster_payload()
+            payload = Helper().prepare_payload(f'{self.route}/cluster/{secret}', payload)
+            request_data = {'config': {self.route: {'cluster': [payload]}}}
+            self.logger.debug(f'Payload => {request_data}')
+            response = Rest().post_data(self.route, f'cluster/{secret}', request_data)
+            if response.status_code in (201, 204):
+                Message().show_success(f'Cluster secret {secret} is updated.')
+            else:
+                Message().error_exit(response.content, response.status_code)
+            return response
         if self.args['entity'] is not None:
             secret_uri = f'{self.route}/{self.args["entity"]}/{self.args["name"]}'
             secret_uri = f'{secret_uri}/{self.args["secret"]}'
@@ -378,6 +506,24 @@ class Secrets():
         Method to Clone Secrets for node or group depending on the arguments.
         """
         response = False
+        if self.args.get('entity') == 'cluster':
+            secret = self.args['secret']
+            payload = self.cluster_payload()
+            newsecretname = payload.pop('newsecretname')
+            if payload.get('content'):
+                payload['name'] = newsecretname
+                content = Helper().prepare_payload(f'{self.route}/cluster/{secret}', payload)
+                payload['content'] = content['content']
+            payload['name'] = secret
+            payload['newsecretname'] = newsecretname
+            request_data = {'config': {self.route: {'cluster': [payload]}}}
+            self.logger.debug(f'Payload => {request_data}')
+            response = Rest().post_clone(self.route, f'cluster/{secret}', request_data)
+            if response.status_code == 201:
+                Message().show_success(response.content)
+            else:
+                Message().error_exit(response.content, response.status_code)
+            return response
         if self.args['entity'] is not None:
             uri = f'{self.args["entity"]}/{self.args["name"]}/{self.args["secret"]}'
             self.logger.debug(f'Secret URI => {uri}')
@@ -415,6 +561,14 @@ class Secrets():
         """
         response = False
         abort = False
+        if self.args.get('entity') == 'cluster':
+            secret = self.args['secret']
+            response = Rest().get_delete(self.route, f'cluster/{secret}')
+            if response.status_code == 204:
+                Message().show_success(f'Cluster secret {secret} is removed.')
+            else:
+                Message().error_exit(response.content, response.status_code)
+            return response
         if self.args['entity'] is not None:
             payload = {}
             entity = self.args['entity']
