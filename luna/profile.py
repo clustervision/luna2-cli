@@ -480,9 +480,10 @@ class Profile():
                          if entry.get('state') == 'given up')
         if stopped:
             shown = ', '.join(stopped[:6]) + (' ...' if len(stopped) > 6 else '')
-            Message().show_warning(f'{len(stopped)} node(s) have been failing for over a '
-                                   f'day and are no longer being retried: {shown}. '
-                                   f'Changing a profile they carry starts them over.')
+            attempts = max((data[node].get('attempts') or 0) for node in stopped)
+            Message().show_warning(f'{len(stopped)} node(s) have failed {attempts} delivery '
+                                   f'attempts in a row and are no longer being retried: '
+                                   f'{shown}. Changing a profile they carry starts them over.')
         frozen = sorted(node for node, entry in data.items()
                         if entry.get('state') == 'frozen')
         if frozen:
