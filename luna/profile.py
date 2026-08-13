@@ -188,7 +188,11 @@ class Profile():
                 Message().error_exit(f'ERROR :: {source} is a Invalid filepath.')
             with open(source, 'rb') as file_data:
                 return Helper().base64_encode(file_data.read())
-        return Helper().base64_encode(bytes(source, 'utf-8'))
+        # argv arrives decoded with surrogateescape, so re-encoding the same way
+        # gives back exactly the bytes the shell passed. bytes(source, 'utf-8')
+        # raises on anything that is not valid UTF-8 - a key, a certificate, any
+        # binary file - and the caller sees a traceback rather than a message
+        return Helper().base64_encode(source.encode('utf-8', 'surrogateescape'))
 
 
     def profile_payload(self):

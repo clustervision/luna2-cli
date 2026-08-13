@@ -247,7 +247,8 @@ class Helper():
                         if key == 'disklayout':
                             content = self.disklayout_b64(content[0])
                         else:
-                            content = self.base64_encode(bytes(content[0], 'utf-8'))
+                            content = self.base64_encode(
+                                content[0].encode('utf-8', 'surrogateescape'))
                         payload = nested_update(payload, key=key, value=content)
         return payload
 
