@@ -56,7 +56,7 @@ class Boot():
         self.table = "boot"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["show"]
+            actions = ["status"]
             if self.args["action"] in actions:
                 call = methodcaller(f'{self.args["action"]}_boot')
                 call(self)
@@ -73,7 +73,7 @@ class Boot():
         boot_menu = Helper().get_help_message(subparsers, self.table)
         boot_args = boot_menu.add_subparsers(dest='action', title='commands',
                                              description='Available boot operations')
-        boot_show = boot_args.add_parser('show', help='Where the cluster is in a (re)boot cycle')
+        boot_show = boot_args.add_parser('status', help='Where the cluster is in a (re)boot cycle')
         boot_show.add_argument('-g', '--group', help='Only this group').completer = Helper().name_completer("group")
         boot_show.add_argument('-R', '--raw', action='store_true', default=None,
                                help='Raw JSON output')
@@ -133,7 +133,7 @@ class Boot():
                 return progress
         return self.CONFIG_PROGRESS
 
-    def show_boot(self):
+    def status_boot(self):
         """
         Method to summarise where nodes are in a (re)boot cycle, by group and the
         osimage they will actually boot - which is the node's own when it overrides
