@@ -150,9 +150,11 @@ def parser_doc(table: str) -> types.SimpleNamespace:
         "secrets" : {
             "help": "Secrets operations.",
             "description":  '''\
-                Luna secrets stores data for groups and nodes in an encrypted way.
-                Secrets is typically used to store keytabs, certificates or other
+                Luna secrets stores data for the cluster, groups and nodes in an encrypted
+                way. Secrets is typically used to store keytabs, certificates or other
                 sensitive information that would otherwise be stored inside the osimage.
+                Secrets stack: a node receives the cluster secrets, its group secrets and
+                its own, all of them.
             '''
         },
         "service" : {
@@ -224,6 +226,7 @@ def filter_columns(table: str) -> list:
         'groupinterface': ['interface', 'network', 'options', 'vlanid', 'vlan_parent',
                            'bond_mode', 'bond_slaves', 'dhcp', 'mtu'],
         'groupsecrets': ['Group', 'name', 'path', 'owner', 'mode', 'content'],
+        'clustersecrets': ['name', 'path', 'owner', 'mode', 'content'],
         'network': ['name', 'network', 'type', 'zone', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end',
                     'shared', 'dhcp_mode'],
         'dns': ['host', 'ipaddress'],
@@ -328,6 +331,7 @@ def sortby(table: str) -> list:
         ],
         'groupsecrets': ['Group', 'name', 'path', 'owner', 'mode', 'content'],
         'nodesecrets': ['Node', 'name', 'path', 'owner', 'mode', 'content'],
+        'clustersecrets': ['name', 'path', 'owner', 'mode', 'content'],
         'network': [
             'name', 'type', 'zone', 'non_authoritative', 'dhcp',
             'network', 'gateway', 'nameserver_ip', 'dhcp_range_begin', 'dhcp_range_end',
