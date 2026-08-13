@@ -150,9 +150,20 @@ def parser_doc(table: str) -> types.SimpleNamespace:
         "secrets" : {
             "help": "Secrets operations.",
             "description":  '''\
-                Luna secrets stores data for groups and nodes in an encrypted way.
-                Secrets is typically used to store keytabs, certificates or other
+                Luna secrets stores data for the cluster, groups and nodes in an encrypted
+                way. Secrets is typically used to store keytabs, certificates or other
                 sensitive information that would otherwise be stored inside the osimage.
+                Secrets stack: a node receives the cluster secrets, its group secrets and
+                its own, all of them.
+            '''
+        },
+        "profile" : {
+            "help": "Profile operations.",
+            "description":  '''\
+                Luna profile bundles configuration files with a service to act on, and
+                assigns that bundle to groups and nodes. The files are written into the
+                node during install and the service is enabled or disabled accordingly.
+                Profiles stack: a node applies the profiles of its group plus its own.
             '''
         },
         "service" : {
@@ -196,6 +207,7 @@ def actions(table: str) -> list:
         "cloud" : network_actions,
         "group": common_actions + member_action + ["ospush"] + interface_actions + disklayout_actions,
         "node": common_actions + ["osgrab", "ospush"] + interface_actions + inventory_actions + disklayout_actions,
+        "profile": common_actions + ["removefile"],
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],
         "osimage": common_actions + member_action + ["pack", "cancel", "kernel", "tag", "updatecerts"],
         "bmcsetup": common_actions + member_action,
@@ -223,7 +235,10 @@ def filter_columns(table: str) -> list:
         'group': ['name', 'bmcsetupname', 'osimage', 'roles', 'interfaces'],
         'groupinterface': ['interface', 'network', 'options', 'vlanid', 'vlan_parent',
                            'bond_mode', 'bond_slaves', 'dhcp', 'mtu'],
-        'groupsecrets': ['Group', 'name', 'path', 'content'],
+        'groupsecrets': ['Group', 'name', 'path', 'owner', 'mode', 'content'],
+        'clustersecrets': ['name', 'path', 'owner', 'mode', 'content'],
+        'profile': ['name', 'scope', 'service', 'action', 'files'],
+        'profilefile': ['name', 'path', 'owner', 'mode', 'content'],
         'network': ['name', 'network', 'type', 'zone', 'dhcp', 'dhcp_range_begin', 'dhcp_range_end',
                     'shared', 'dhcp_mode'],
         'dns': ['host', 'ipaddress'],
@@ -235,7 +250,7 @@ def filter_columns(table: str) -> list:
         'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'options', 'mtu',
                           'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp'],
         'switchinterface': ['interface', 'mgmt', 'ipaddress', 'ipaddress_ipv6', 'macaddress', 'network'],
-        'nodesecrets': ['Node', 'name', 'path', 'content'],
+        'nodesecrets': ['Node', 'name', 'path', 'owner', 'mode', 'content'],
         'osimage': ['name', 'kernelversion', 'path', 'distribution', 'osrelease'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'switch': ['name', 'network', 'oid', 'read', 'ipaddress', 'netboot'],
@@ -292,7 +307,7 @@ def sortby(table: str) -> list:
             'info', 'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions',
             'interfaces', 'routes', 'status', 'vendor', 'assettag', 'position', 'switch', 'switchport',
             'cloud', 'setupbmc', 'bmcsetup', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
-            'bootmenu', 'service', 'roles', 'scripts', '_prescript_source', 'prescript',
+            'bootmenu', 'service', 'roles', 'scripts', 'profiles', '_prescript_source', 'prescript',
             '_partscript_source', 'partscript', '_postscript_source', 'postscript',
             'install_mode', '_disklayout_source', 'disklayout',
             '_osimage_filter_source', 'osimage_filter',
@@ -302,7 +317,7 @@ def sortby(table: str) -> list:
         'group': [
             'info', 'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
             'routes', 'setupbmc', 'bmcsetupname', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
-            'bootmenu', 'roles', 'scripts', 'prescript', 'partscript', 'postscript',
+            'bootmenu', 'roles', 'scripts', 'profiles', 'prescript', 'partscript', 'postscript',
             'install_mode', 'disklayout', 'osimage_filter',
             'provision_interface', 'provision_method', 'provision_fallback', 'comment'
         ],
@@ -326,8 +341,11 @@ def sortby(table: str) -> list:
         'groupinterface': [
             'interfacename', 'network', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves'
         ],
-        'groupsecrets': ['Group', 'name', 'path', 'content'],
-        'nodesecrets': ['Node', 'name', 'path', 'content'],
+        'groupsecrets': ['Group', 'name', 'path', 'owner', 'mode', 'content'],
+        'nodesecrets': ['Node', 'name', 'path', 'owner', 'mode', 'content'],
+        'clustersecrets': ['name', 'path', 'owner', 'mode', 'content'],
+        'profile': ['name', 'scope', 'service', 'action', 'files'],
+        'profilefile': ['name', 'path', 'owner', 'mode', 'content'],
         'network': [
             'name', 'type', 'zone', 'non_authoritative', 'dhcp',
             'network', 'gateway', 'nameserver_ip', 'dhcp_range_begin', 'dhcp_range_end',

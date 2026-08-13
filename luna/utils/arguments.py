@@ -93,6 +93,7 @@ class Arguments():
         parser.add_argument('-d', '--domain', help='Domain Name')
         parser.add_argument('-r', '--roles', help='Sets the roles used for the group. Multiple roles can be supplied comma separated')
         parser.add_argument('-s', '--scripts', help='Sets the scripts used for the group. Multiple scripts can be supplied comma separated')
+        parser.add_argument('-pr', '--profiles', help='Sets the profiles used for the group. Multiple profiles can be supplied comma separated. Profiles stack: a node applies its group profiles plus its own')
         parser.add_argument('-rt', '--routes', help='Static routes coupled to the group (comma separated names, "" to clear)')
         parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
         parser.add_argument('-qpre', '--quick-prescript', dest='prescript',
@@ -162,6 +163,7 @@ class Arguments():
         parser.add_argument('--cloud', help='Cloud Name').completer = Helper().name_completer("cloud")
         parser.add_argument('-r', '--roles', help='Overrides Group configured roles used. Multiple roles can be supplied comma separated')
         parser.add_argument('-s', '--scripts', help='Overrides Group configured scripts used. Multiple scripts can be supplied comma separated')
+        parser.add_argument('-pr', '--profiles', help='Profiles used by the node, applied in addition to the ones its group has. Multiple profiles can be supplied comma separated')
         parser.add_argument('-rt', '--routes', help='Static routes coupled to the node (comma separated names, "" to clear)')
         parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
         parser.add_argument('-qpre', '--quick-prescript', dest='prescript',
