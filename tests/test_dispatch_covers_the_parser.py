@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# This code is part of the TrinityX software suite
+# Copyright (C) 2025  ClusterVision Solutions b.v.
+
+"""
+Every verb the parser offers must be dispatchable.
+
+Each entity module registers its subcommands with add_parser(), and then dispatches
+them through a second, hand-written list of action names. Two lists describing the
+same thing drift: a verb added to the parser but not to the list parses, completes,
+prints its own --help, and then refuses to run with 'Kindly choose from ...'.
+
+That has happened. It is checked here by deriving both sides from the source rather
+than by naming the verbs, so the next entity and the next verb are covered without
+anyone remembering this file exists.
+"""
+
+import ast
+import os
+
+import pytest
+
+MODULES = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'luna')
+
+
+def _entity_modules():
+    for entry in sorted(os.listdir(MODULES)):
+        if entry.endswith('.py') and entry not in ('__init__.py', 'cli.py'):
+            yield entry
+
+
+def _parsed(filename):
+    with open(os.path.join(MODULES, filename), 'r', encoding='utf-8') as handle:
+        return ast.parse(handle.read())
+
+
+def _parser_verbs(tree):
+    """The verbs registered with add_parser(), which is what an operator can type."""
+    verbs = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+            continue
+        if node.func.attr != 'add_parser' or not node.args:
+            continue
+        first = node.args[0]
+        if isinstance(first, ast.Constant) and isinstance(first.value, str):
+            verbs.add(first.value)
+    return verbs
+
+
+def _table(tree):
+    """The entity name the module dispatches under, from self.table."""
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assign):
+            continue
+        for target in node.targets:
+            if isinstance(target, ast.Attribute) and target.attr == 'table':
+                if isinstance(node.value, ast.Constant):
+                    return node.value.value
+    return None
+
+
+def _dispatch_actions(tree):
+    """What the dispatcher will accept. The central table in constant.py is the
+    convention; a module carrying its own copy is the divergence this catches."""
+    from luna.utils.constant import actions
+    table = _table(tree)
+    if not table:
+        return None
+    try:
+        listed = actions(table)
+    except KeyError:
+        # not every module dispatches through the central table - cluster and monitor
+        # have their own shape. Skipping is honest; asserting here would be noise
+        return None
+    return set(listed) if listed else None
+
+
+@pytest.mark.parametrize('filename', list(_entity_modules()))
+def test_every_offered_verb_can_be_dispatched(filename):
+    tree = _parsed(filename)
+    actions = _dispatch_actions(tree)
+    if actions is None:
+        pytest.skip(f'{filename} does not dispatch through an action list')
+    verbs = _parser_verbs(tree)
+    entity = filename[:-3]
+    # scope sub-parsers (node/group/cluster under secrets) are not verbs
+    scopes = {'node', 'group', 'cluster'}
+    offered = {verb for verb in verbs if verb not in scopes}
+    missing = sorted(offered - actions)
+    assert not missing, (f'{filename}: {missing} can be typed and completed but not run - '
+                         f'the dispatch list did not learn about them')

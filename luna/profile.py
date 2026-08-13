@@ -40,7 +40,7 @@ from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.message import Message
-from luna.utils.constant import BOOL_CHOICES, BOOL_META
+from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 
 ACTION_CHOICES = ['restart', 'stop', 'reload', 'start', 'none']
 SCOPE_CHOICES = ['static', 'dynamic']
@@ -57,15 +57,14 @@ class Profile():
         self.args = args
         self.route = "profiles"
         self.table = "profile"
+        self.actions = actions(self.table)
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "add", "change", "clone", "remove", "status",
-                       "addfile", "changefile", "removefile"]
-            if self.args["action"] in actions:
+            if self.args["action"] in self.actions:
                 call = methodcaller(f'{self.args["action"]}_profile')
                 call(self)
             else:
-                Message().show_warning(f'Kindly choose from {actions}.')
+                Message().show_warning(f'Kindly choose from {self.actions}.')
         else:
             self.get_arguments(parser, subparsers)
 
@@ -104,6 +103,11 @@ class Profile():
         profile_clone.add_argument('newprofilename', help='New Name for the Profile')
         profile_clone.add_argument('-v', '--verbose', action='store_true', default=None,
                                    help='Verbose Mode')
+        profile_rename = profile_args.add_parser('rename', help='Rename a Profile')
+        profile_rename.add_argument('name', help='Name of the Profile').completer = Helper().name_completer(self.route)
+        profile_rename.add_argument('newprofilename', help='New Name for the Profile')
+        profile_rename.add_argument('-v', '--verbose', action='store_true', default=None,
+                                    help='Verbose Mode')
         ## >>>>>>> Profile Command >>>>>>> remove
         profile_remove = profile_args.add_parser('remove', help='Remove a Profile and its files')
         profile_remove.add_argument('name', help='Name of the Profile').completer = Helper().name_completer(self.route)
@@ -305,6 +309,24 @@ class Profile():
         self.logger.debug(f'Response => {response}')
         if response.status_code in (200, 201, 204):
             Message().show_success(f'Profile {name} is updated.')
+        else:
+            Message().error_exit(response.content, response.status_code)
+        return response
+
+
+    def rename_profile(self):
+        """
+        Method to rename a Profile. Everything that applies it keeps applying it: an
+        assignment holds the profile's reference, not the name being changed here.
+        """
+        name = self.args['name']
+        request_data = {'config': {self.route: {name: {
+            'newprofilename': self.args['newprofilename']}}}}
+        self.logger.debug(f'Payload => {request_data}')
+        response = Rest().post_data(self.route, name, request_data)
+        self.logger.debug(f'Response => {response}')
+        if response.status_code in (200, 201, 204):
+            Message().show_success(response.content)
         else:
             Message().error_exit(response.content, response.status_code)
         return response
