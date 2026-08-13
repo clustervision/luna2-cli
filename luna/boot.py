@@ -38,6 +38,7 @@ __email__       = 'antoine.schonewille@clustervision.com'
 __status__      = 'Development'
 
 from operator import methodcaller
+from luna.utils.constant import actions
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
@@ -54,14 +55,14 @@ class Boot():
         self.logger = Log.get_logger()
         self.args = args
         self.table = "boot"
+        self.actions = actions(self.table)
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["status"]
-            if self.args["action"] in actions:
+            if self.args["action"] in self.actions:
                 call = methodcaller(f'{self.args["action"]}_boot')
                 call(self)
             else:
-                Message().show_warning(f'Kindly choose from {actions}.')
+                Message().show_warning(f'Kindly choose from {self.actions}.')
         else:
             self.get_arguments(parser, subparsers)
 
