@@ -409,26 +409,60 @@ class Profile():
             counts = [[state, summary[state]] for state in sorted(summary)]
             Presenter().show_table(' << Profile Status >>', ['state', 'nodes'], counts)
 
-        wanted = ['behind', 'failed', 'frozen']
         show_all = self.args.get('all') or self.args.get('name')
-        listed = {node: entry for node, entry in data.items()
-                  if show_all or entry.get('state') in wanted}
-        if not listed:
-            return Message().show_success('Every node is in line.')
+        if show_all:
+            fields = ['#', 'node', 'profiles', 'state', 'frozen', 'detail', 'since']
+            rows, num = [], 1
+            for node in sorted(data):
+                entry = data[node]
+                detail = entry.get('detail') or ''
+                if len(detail) > 40:
+                    detail = detail[:40] + '...'
+                rows.append([num, node, entry.get('profiles') or '-', entry.get('state'),
+                             entry.get('frozen') or '-', detail or '-',
+                             entry.get('since') or '-'])
+                num = num + 1
+            return Presenter().show_table(' << Profile Status >>', fields, rows)
 
-        fields = ['#', 'node', 'profiles', 'state', 'frozen', 'detail', 'since']
-        rows, num = [], 1
-        for node in sorted(listed):
-            entry = listed[node]
-            detail = entry.get('detail') or ''
-            if len(detail) > 40:
-                detail = detail[:40] + '...'
-            rows.append([num, node, entry.get('profiles') or '-', entry.get('state'),
-                         entry.get('frozen') or '-', detail or '-',
-                         entry.get('since') or '-'])
-            num = num + 1
-        title = ' << Profile Status >>' if show_all else ' << Needing attention >>'
-        return Presenter().show_table(title, fields, rows)
+        # failures on a cluster share a cause: a switch, a subnet, an image without
+        # python. One line per cause with a count and a few names is what an operator
+        # can act on; two hundred rows saying the same thing is what they scroll past.
+        causes = {}
+        for node in sorted(data):
+            entry = data[node]
+            if entry.get('state') != 'failed':
+                continue
+            reason = (entry.get('detail') or 'unknown').split(chr(10))[0]
+            reason = reason.replace(node, '<node>')
+            causes.setdefault(reason, []).append(node)
+        if causes:
+            fields = ['#', 'nodes', 'reason', 'for example']
+            rows, num = [], 1
+            for reason in sorted(causes, key=lambda key: -len(causes[key])):
+                nodes = causes[reason]
+                shown = ', '.join(nodes[:3]) + (' ...' if len(nodes) > 3 else '')
+                rows.append([num, len(nodes),
+                             reason[:60] + ('...' if len(reason) > 60 else ''), shown])
+                num = num + 1
+            Presenter().show_table(' << Failing, by cause >>', fields, rows)
+
+        frozen = sorted(node for node, entry in data.items()
+                        if entry.get('state') == 'frozen')
+        if frozen:
+            shown = ', '.join(frozen[:6]) + (' ...' if len(frozen) > 6 else '')
+            Message().show_warning(f'{len(frozen)} node(s) carry a frozen profile, whose '
+                                   f'files are no longer managed: {shown}')
+        behind = sorted(node for node, entry in data.items()
+                        if entry.get('state') == 'behind')
+        if behind:
+            # not an error - they are queued or in flight - but claiming that nothing
+            # needs attention while a third of the cluster is waiting would be a lie
+            shown = ', '.join(behind[:6]) + (' ...' if len(behind) > 6 else '')
+            Message().show_warning(f'{len(behind)} node(s) are behind and waiting for '
+                                   f'delivery: {shown}')
+        if not causes and not frozen and not behind:
+            Message().show_success('Every node has the profiles it should.')
+        return True
 
 
     def addfile_profile(self):
