@@ -40,6 +40,7 @@ from luna.utils.presenter import Presenter
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.message import Message
+from luna.utils.arguments import Arguments
 from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 
 ACTION_CHOICES = ['restart', 'stop', 'reload', 'start', 'none']
@@ -103,6 +104,9 @@ class Profile():
         profile_clone.add_argument('newprofilename', help='New Name for the Profile')
         profile_clone.add_argument('-v', '--verbose', action='store_true', default=None,
                                    help='Verbose Mode')
+        profile_member = profile_args.add_parser('member', help='Groups and Nodes applying a Profile')
+        profile_member.add_argument('name', help='Name of the Profile').completer = Helper().name_completer(self.route)
+        Arguments().common_list_args(profile_member)
         profile_rename = profile_args.add_parser('rename', help='Rename a Profile')
         profile_rename.add_argument('name', help='Name of the Profile').completer = Helper().name_completer(self.route)
         profile_rename.add_argument('newprofilename', help='New Name for the Profile')
@@ -316,6 +320,32 @@ class Profile():
         else:
             Message().error_exit(response.content, response.status_code)
         return response
+
+
+    def member_profile(self):
+        """
+        Method to show what applies a Profile: the groups naming it, and the nodes that
+        name it themselves. A node inside a group that applies it is covered by the
+        group and is not listed again - it has no assignment of its own.
+        """
+        uri = f'{self.route}/{self.args["name"]}/_member'
+        get_list = Rest().get_data(uri)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        members = get_list['config'][self.route][self.args['name']]['members']
+        if self.args['raw']:
+            return Presenter().show_json(Helper().prepare_json(members))
+        rows, num = [], 1
+        for scope in ('groups', 'nodes'):
+            for member in members.get(scope) or []:
+                rows.append([num, scope[:-1], member])
+                num = num + 1
+        if not rows:
+            return Message().show_error(f'Profile {self.args["name"]} is not applied anywhere.')
+        title = f' << Profile {self.args["name"]} is applied by >> '
+        return Presenter().show_table(title, ['#', 'scope', 'name'], rows)
 
 
     def rename_profile(self):
