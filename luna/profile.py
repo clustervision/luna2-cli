@@ -59,7 +59,7 @@ class Profile():
         self.table = "profile"
         if self.args:
             self.logger.debug(f'Arguments Supplied => {self.args}')
-            actions = ["list", "show", "add", "change", "clone", "remove",
+            actions = ["list", "show", "add", "change", "clone", "remove", "status",
                        "addfile", "changefile", "removefile"]
             if self.args["action"] in actions:
                 call = methodcaller(f'{self.args["action"]}_profile')
@@ -108,6 +108,15 @@ class Profile():
         profile_remove = profile_args.add_parser('remove', help='Remove a Profile and its files')
         profile_remove.add_argument('name', help='Name of the Profile').completer = Helper().name_completer(self.route)
         profile_remove.add_argument('-v', '--verbose', action='store_true', default=None,
+                                    help='Verbose Mode')
+        ## >>>>>>> Profile Command >>>>>>> status
+        profile_status = profile_args.add_parser('status', help='Where every node stands')
+        profile_status.add_argument('name', nargs='?', help='Name of a single Node').completer = Helper().name_completer("node")
+        profile_status.add_argument('-a', '--all', action='store_true', default=None,
+                                    help='List every node, not only the ones needing attention')
+        profile_status.add_argument('-R', '--raw', action='store_true', default=None,
+                                    help='Raw JSON output')
+        profile_status.add_argument('-v', '--verbose', action='store_true', default=None,
                                     help='Verbose Mode')
         ## >>>>>>> Profile Command >>>>>>> addfile
         profile_addfile = profile_args.add_parser('addfile', help='Add a file to a Profile')
@@ -181,12 +190,20 @@ class Profile():
     def profile_payload(self):
         """The request body for a profile, with the CLI-only arguments stripped out."""
         payload = {}
-        for field in ['scope', 'service', 'enabled']:
+        for field in ['scope', 'service']:
             if self.args.get(field) is not None:
                 payload[field] = self.args[field]
         if self.args.get('service_action') is not None:
             payload['action'] = self.args['service_action']
-        return Helper().choice_to_bool(payload)
+        # 'enabled' is converted on its own rather than by running the payload through
+        # choice_to_bool: 'service' is in BOOL_KEYS because it is a yes/no on a NODE, and
+        # a profile's service is the name of a unit - that helper would turn 'cron' into
+        # False, and it did
+        enabled = self.args.get('enabled')
+        if enabled is not None:
+            payload['enabled'] = '' if enabled == '' else \
+                str(enabled).lower() in ['y', 'yes', 'true']
+        return payload
 
 
     def list_profile(self):
@@ -364,6 +381,54 @@ class Profile():
         response = Rest().post_data(self.route, name, request_data)
         self.logger.debug(f'Response => {response}')
         return response
+
+
+    def status_profile(self):
+        """
+        Method to show where every node stands with its profiles.
+        """
+        uri = f'{self.route}/status'
+        if self.args.get('name'):
+            uri = f'{uri}/{self.args["name"]}'
+        get_list = Rest().get_data(uri)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        if not get_list:
+            return Message().show_error('No profile status available.')
+        data = get_list['config']['profiles']['status']
+        summary = get_list['config']['profiles'].get('summary') or {}
+        if self.args['raw']:
+            return Presenter().show_json(Helper().prepare_json(get_list['config']['profiles']))
+
+        # a healthy node says nothing an operator needs to act on, and on a cluster of
+        # any size listing them all buries the handful that do. The counts answer 'is it
+        # fine'; the rows are only what is not.
+        if not self.args.get('name'):
+            counts = [[state, summary[state]] for state in sorted(summary)]
+            Presenter().show_table(' << Profile Status >>', ['state', 'nodes'], counts)
+
+        wanted = ['behind', 'failed', 'frozen']
+        show_all = self.args.get('all') or self.args.get('name')
+        listed = {node: entry for node, entry in data.items()
+                  if show_all or entry.get('state') in wanted}
+        if not listed:
+            return Message().show_success('Every node is in line.')
+
+        fields = ['#', 'node', 'profiles', 'state', 'frozen', 'detail', 'since']
+        rows, num = [], 1
+        for node in sorted(listed):
+            entry = listed[node]
+            detail = entry.get('detail') or ''
+            if len(detail) > 40:
+                detail = detail[:40] + '...'
+            rows.append([num, node, entry.get('profiles') or '-', entry.get('state'),
+                         entry.get('frozen') or '-', detail or '-',
+                         entry.get('since') or '-'])
+            num = num + 1
+        title = ' << Profile Status >>' if show_all else ' << Needing attention >>'
+        return Presenter().show_table(title, fields, rows)
 
 
     def addfile_profile(self):
