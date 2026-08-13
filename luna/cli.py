@@ -50,6 +50,7 @@ try:
     from luna.otherdev import OtherDev
     from luna.secrets import Secrets
     from luna.profile import Profile
+    from luna.boot import Boot
     from luna.service import Service
     from luna.control import Control
     from luna.monitor import Monitor
@@ -68,6 +69,7 @@ try:
         Node,
         Secrets,
         Profile,
+        Boot,
         Service,
         Control,
         Monitor
