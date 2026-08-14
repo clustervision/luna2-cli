@@ -104,7 +104,6 @@ class Cli():
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
         for cls in classes:
             cls(parser=self.parser, subparsers =self.subparsers)
-        print(f"{self.parser}")
         return self.parser
 
     def main(self):
