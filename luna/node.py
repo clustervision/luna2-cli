@@ -181,14 +181,17 @@ class Node():
             elif 'raw' in self.args and self.args['raw']:
                 json_data = Helper().prepare_json(data)
                 response = Presenter().show_json(json_data)
+            elif self.args.get('deviate'):
+                fields = ['#', 'name']
+                rows = [[num, name] for num, name in enumerate(data.keys(), start=1)]
+                title = f' << {self.table.capitalize()} - Deviated >>'
+                response = Presenter().show_table(title, fields, rows)
             else:
                 data = Helper().prepare_json(data, True)
                 fields, rows  = Helper().filter_nodelist_col(self.table, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
                 title = f' << {self.table.capitalize()} >>'
-                if self.args.get('deviate'):
-                    title = f' << {self.table.capitalize()} - Deviated >>'
                 response = Presenter().show_table(title, fields, rows)
         else:
             response = Message().show_error(f'{self.table} is not found.')
