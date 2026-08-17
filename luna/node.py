@@ -75,6 +75,8 @@ class Node():
         node_args = node_menu.add_subparsers(dest='action', title='commands', description='Available node operations')
         node_list = node_args.add_parser('list', help='List All Nodes')
         Arguments().common_list_args(node_list, True)
+        node_list.add_argument('-d', '--deviate', action='store_true', default=None,
+                               help='List only Nodes that deviate from their parent (group) defaults')
         node_show = node_args.add_parser('show', help='Show A Node')
         node_show.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_show)
@@ -170,6 +172,10 @@ class Node():
         self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config'][self.table]
+            if self.args.get('deviate'):
+                data = Helper().filter_deviated(data)
+                if not data:
+                    return Message().show_error(f'No {self.table} deviates from its parent.')
             if self.args.get('csv'):
                 response = Helper().column_csv(self.table, data, self.args['csv'])
             elif 'raw' in self.args and self.args['raw']:
@@ -181,6 +187,8 @@ class Node():
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
                 title = f' << {self.table.capitalize()} >>'
+                if self.args.get('deviate'):
+                    title = f' << {self.table.capitalize()} - Deviated >>'
                 response = Presenter().show_table(title, fields, rows)
         else:
             response = Message().show_error(f'{self.table} is not found.')
