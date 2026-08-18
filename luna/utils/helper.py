@@ -934,6 +934,17 @@ class Helper():
         return {name: item for name, item in data.items() if item.get('_override')}
 
 
+    def deviated_fields(self, table=None, record=None):
+        """
+        This method returns the comma-separated field names that are set locally at
+        this table's own level and therefore deviate from what would otherwise be
+        inherited. Reuses the same _..._source comparison merge_source() already
+        uses to mark overridden fields with '*' in show.
+        """
+        _, resp_overrides = self.merge_source(table, record)
+        return ', '.join(sorted(resp_overrides))
+
+
     def filter_interface(self, table=None, data=None):
         """
         This method will generate the data as for
