@@ -957,9 +957,7 @@ class Helper():
         """
         This method maps each deviated field name to its actual value, decoding
         script/editor content and normalising the daemon's stringified booleans
-        and nulls into real JSON types, for the list -d -R view. Multiline text
-        is split into a list of lines so it reads naturally once pretty-printed,
-        while the result stays valid JSON.
+        and nulls into real JSON types, for the list -d -R view.
         """
         values = {}
         for name in self.deviated_field_names(table, record):
@@ -974,8 +972,6 @@ class Helper():
                     value = False
                 elif lowered in ('none', 'null'):
                     value = None
-            if isinstance(value, str) and '\n' in value:
-                value = value.split('\n')
             values[name] = value
         return values
 
