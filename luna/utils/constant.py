@@ -286,11 +286,13 @@ def overrides(table=None):
             'osimage', 'osimagetag', 'kerneloptions', 'setupbmc', 'bmcsetup', 'netboot', 'ipxe_kernel',
             'bootmenu', 'roles', 'scripts', 'prescript', 'partscript', 'postscript',
             'install_mode', 'disklayout', 'osimage_filter',
-            'provision_interface', 'provision_method', 'provision_fallback', 'routes'
+            'provision_interface', 'provision_method', 'provision_fallback', 'routes',
+            'unmanaged_bmc_users'
         ],
         'group': [
             'provision_method', 'provision_interface', 'provision_fallback', 'kerneloptions',
-            'osimagetag', 'install_mode', 'disklayout', 'osimage_filter', 'routes'
+            'osimagetag', 'install_mode', 'disklayout', 'osimage_filter', 'routes',
+            'ipxe_kernel', 'bootmenu', 'prescript', 'unmanaged_bmc_users'
         ]
     }
     if table and table in static:

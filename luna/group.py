@@ -170,8 +170,15 @@ class Group():
                 json_data = Helper().prepare_json(data)
                 response = Presenter().show_json(json_data)
             elif self.args.get('deviate'):
-                fields = ['#', 'name']
-                rows = [[num, name] for num, name in enumerate(data.keys(), start=1)]
+                fields = ['#', 'name', 'deviated']
+                rows = []
+                for num, name in enumerate(data.keys(), start=1):
+                    record = Rest().get_data(self.table, name)
+                    if record.status_code == 200:
+                        record = record.content['config'][self.table][name]
+                    else:
+                        Message().error_exit(record.content, record.status_code)
+                    rows.append([num, name, Helper().deviated_fields(self.table, record)])
                 title = f' << {self.table.capitalize()} - Deviated >>'
                 response = Presenter().show_table(title, fields, rows)
             else:
