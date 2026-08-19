@@ -1032,6 +1032,84 @@ class Helper():
             Message().show_error(f"Something Went Wrong {status.status_code}")
 
 
+    def filter_deviated(self, data=None):
+        """
+        This method will filter a group/node list dict down to the entries whose
+        _override flag is set, i.e. those that deviate from their parent (group or
+        cluster) defaults.
+        """
+        return {name: item for name, item in data.items() if item.get('_override')}
+
+
+    def deviated_field_names(self, table=None, record=None):
+        """
+        This method returns the sorted field names that are set locally at this
+        table's own level and therefore deviate from what would otherwise be
+        inherited. Reuses the same _..._source comparison merge_source() already
+        uses to mark overridden fields with '*' in show.
+        """
+        _, resp_overrides = self.merge_source(table, record)
+        return sorted(resp_overrides)
+
+
+    def deviated_fields(self, table=None, record=None):
+        """
+        This method returns the comma-separated field names that deviate, for the
+        list -d table view.
+        """
+        return ', '.join(self.deviated_field_names(table, record))
+
+
+    def deviated_values(self, table=None, record=None):
+        """
+        This method maps each deviated field name to its actual value, decoding
+        script/editor content and normalising the daemon's stringified booleans
+        and nulls into real JSON types, for the list -d -R view.
+        """
+        values = {}
+        for name in self.deviated_field_names(table, record):
+            value = record.get(name)
+            if name in EDITOR_KEYS:
+                value = self.base64_decode(value)
+            elif isinstance(value, str):
+                lowered = value.lower()
+                if lowered == 'true':
+                    value = True
+                elif lowered == 'false':
+                    value = False
+                elif lowered in ('none', 'null'):
+                    value = None
+            values[name] = value
+        return values
+
+
+    def show_deviated(self, table=None, data=None, args=None):
+        """
+        This method renders the deviate view of a group/node list: every entry
+        that overrides its parent, and which fields it overrides with.
+
+        The list payload only says THAT an entry deviates, so each one is read
+        again individually -- the *_source fields that name the deviating field
+        are only carried by the per-entry record.
+        """
+        records = {}
+        for name in data.keys():
+            record = Rest().get_data(table, name)
+            if record.status_code == 200:
+                records[name] = record.content['config'][table][name]
+            else:
+                Message().error_exit(record.content, record.status_code)
+        if args.get('raw'):
+            json_data = {name: {'name': name, 'deviated': self.deviated_values(table, record)}
+                         for name, record in records.items()}
+            return Presenter().show_json(json_data)
+        fields = ['#', 'name', 'deviated']
+        rows = [[num, name, self.deviated_fields(table, record)]
+                for num, (name, record) in enumerate(records.items(), start=1)]
+        title = f' << {table.capitalize()} - Deviated >>'
+        return Presenter().show_table(title, fields, rows)
+
+
     def filter_interface(self, table=None, data=None):
         """
         This method will generate the data as for
