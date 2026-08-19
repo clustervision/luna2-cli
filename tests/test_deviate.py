@@ -147,9 +147,7 @@ def test_filter_deviated(helper, label, data, expected):
 
 def test_deviated_field_names_reads_the_sources(helper):
     """Only a field the group supplies itself AND that overrides() knows about."""
-    assert helper.deviated_field_names('group', GROUP_RECORD) == [
-        'prescript', 'provision_method',
-    ]
+    assert helper.deviated_field_names('group', GROUP_RECORD) == ['provision_method']
 
 
 def test_a_field_inherited_from_elsewhere_is_not_deviating(helper):
@@ -171,26 +169,42 @@ def test_a_field_outside_overrides_is_not_deviating(helper):
     assert 'setupbmc' not in helper.deviated_field_names('group', GROUP_RECORD)
 
 
-def test_the_group_script_fields_are_not_symmetrical(helper):
-    """A group's partscript and postscript never report as deviating; its prescript does.
+SCRIPTS = ['prescript', 'partscript', 'postscript']
 
-    A node treats all three the same way. A group does not, because only
-    prescript is in overrides('group') -- so a group carrying its own partscript
-    lists under -d (the daemon flags it) with partscript absent from the cell.
 
-    Pinned as it stands rather than corrected: which of the three a group can
-    meaningfully be said to override is a question for whoever owns the field
-    lists, and widening it here would change what `group show` stars as well.
+@pytest.mark.parametrize('script', SCRIPTS)
+def test_a_group_never_deviates_on_a_script(helper, script):
+    """A group is the root for pre/part/post -- there is nothing above it to deviate from.
+
+    The daemon resolves these three for a group in a loop of their own that has no
+    parent lookup at all: the source comes back 'group' when the group holds any
+    content and 'default' otherwise, and that loop never raises _override. 'group'
+    here means "set", not "overridden", and reporting it as a deviation would name
+    every group that has ever had a partscript.
+
+    A node is the opposite case, and the same daemon loop shows why: it looks up the
+    group's copy first, marks the source 'group' or 'node' accordingly, and raises
+    _override only for 'node'. Hence the next test.
     """
-    assert GROUP_RECORD['_partscript_source'] == 'group'
-    names = helper.deviated_field_names('group', GROUP_RECORD)
-    assert 'prescript' in names
-    assert 'partscript' not in names
-    assert 'postscript' not in names
+    record = {script: 'ZWNobyBoZWxsbwo=', f'_{script}_source': 'group'}
+    assert helper.deviated_field_names('group', record) == []
+
+
+@pytest.mark.parametrize('script', SCRIPTS)
+def test_a_node_does_deviate_on_a_script(helper, script):
+    """All three, symmetrically -- a node genuinely inherits them from its group."""
+    record = {script: 'ZWNobyBoZWxsbwo=', f'_{script}_source': 'node'}
+    assert helper.deviated_field_names('node', record) == [script]
+
+
+@pytest.mark.parametrize('script', SCRIPTS)
+def test_a_node_inheriting_a_script_is_not_deviating(helper, script):
+    record = {script: 'ZWNobyBoZWxsbwo=', f'_{script}_source': 'group'}
+    assert helper.deviated_field_names('node', record) == []
 
 
 def test_deviated_fields_is_the_names_comma_separated(helper):
-    assert helper.deviated_fields('group', GROUP_RECORD) == 'prescript, provision_method'
+    assert helper.deviated_fields('group', GROUP_RECORD) == 'provision_method'
 
 
 def test_a_record_with_nothing_of_its_own_names_no_fields(helper):
@@ -203,10 +217,7 @@ def test_a_record_with_nothing_of_its_own_names_no_fields(helper):
 
 def test_deviated_values_decodes_and_normalises(helper):
     values = helper.deviated_values('group', GROUP_RECORD)
-    assert values == {
-        'prescript': 'echo hello\n',      # base64 in the record, text here
-        'provision_method': 'http',
-    }
+    assert values == {'provision_method': 'http'}
 
 
 VALUE_CASES = [
@@ -214,6 +225,12 @@ VALUE_CASES = [
     ('a stringified false becomes a real boolean', 'setupbmc', 'False', False),
     ('a stringified none becomes null', 'setupbmc', 'None', None),
     ('a plain string is left alone', 'provision_method', 'http', 'http'),
+    # EDITOR_KEYS arrive base64 and must come back as text, or -R prints a blob.
+    ('script content comes back decoded', 'prescript', 'ZWNobyBoZWxsbwo=', 'echo hello\n'),
+    # kerneloptions is an EDITOR_KEY the daemon nonetheless sends as plain text;
+    # base64_decode passes non-base64 through, so it must survive untouched.
+    ('plain text in an editor field survives', 'kerneloptions',
+     'net.ifnames=0 biosdevname=0', 'net.ifnames=0 biosdevname=0'),
 ]
 
 
@@ -236,7 +253,7 @@ def test_the_table_view_names_the_fields(helper, fake_rest, capsys):
     helper.show_deviated('group', {'compute': {'_override': True}}, {'raw': None})
     out = capsys.readouterr().out
     assert 'compute' in out
-    assert 'prescript, provision_method' in out
+    assert 'provision_method' in out
 
 
 def test_the_raw_view_carries_the_values(helper, fake_rest, capsys):
@@ -246,10 +263,7 @@ def test_the_raw_view_carries_the_values(helper, fake_rest, capsys):
     assert payload == {
         'compute': {
             'name': 'compute',
-            'deviated': {
-                'prescript': 'echo hello\n',
-                'provision_method': 'http',
-            },
+            'deviated': {'provision_method': 'http'},
         }
     }
 
