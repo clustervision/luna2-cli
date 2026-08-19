@@ -1032,6 +1032,15 @@ class Helper():
             Message().show_error(f"Something Went Wrong {status.status_code}")
 
 
+    def filter_deviated(self, data=None):
+        """
+        This method will filter a group/node list dict down to the entries whose
+        _override flag is set, i.e. those that deviate from their parent (group or
+        cluster) defaults.
+        """
+        return {name: item for name, item in data.items() if item.get('_override')}
+
+
     def filter_interface(self, table=None, data=None):
         """
         This method will generate the data as for
