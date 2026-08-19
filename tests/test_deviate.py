@@ -169,38 +169,53 @@ def test_a_field_outside_overrides_is_not_deviating(helper):
     assert 'setupbmc' not in helper.deviated_field_names('group', GROUP_RECORD)
 
 
-SCRIPTS = ['prescript', 'partscript', 'postscript']
+# The fields the daemon resolves in its base64 loop: pre/part/post, and the two
+# that joined them with the disk-layout work. A group is the ROOT for all five;
+# a node inherits all five from its group. The asymmetry is the whole point.
+GROUP_ROOT_FIELDS = ['prescript', 'partscript', 'postscript', 'disklayout', 'osimage_filter']
 
 
-@pytest.mark.parametrize('script', SCRIPTS)
-def test_a_group_never_deviates_on_a_script(helper, script):
-    """A group is the root for pre/part/post -- there is nothing above it to deviate from.
+@pytest.mark.parametrize('field', GROUP_ROOT_FIELDS)
+def test_a_group_never_deviates_on_a_root_field(helper, field):
+    """A group is the root for these -- there is nothing above it to deviate from.
 
-    The daemon resolves these three for a group in a loop of their own that has no
-    parent lookup at all: the source comes back 'group' when the group holds any
-    content and 'default' otherwise, and that loop never raises _override. 'group'
-    here means "set", not "overridden", and reporting it as a deviation would name
-    every group that has ever had a partscript.
+    The daemon resolves them for a group in a loop of their own with no parent
+    lookup at all: the source comes back 'group' when the group holds any content
+    and 'default' otherwise, and that loop never raises _override. 'group' on a
+    group therefore means "set", not "overridden". Reporting it as a deviation
+    would name every group that has ever had a partscript.
 
-    A node is the opposite case, and the same daemon loop shows why: it looks up the
+    A node is the opposite case, and the same daemon loop shows why: it reads the
     group's copy first, marks the source 'group' or 'node' accordingly, and raises
     _override only for 'node'. Hence the next test.
     """
-    record = {script: 'ZWNobyBoZWxsbwo=', f'_{script}_source': 'group'}
+    record = {field: 'ZWNobyBoZWxsbwo=', f'_{field}_source': 'group'}
     assert helper.deviated_field_names('group', record) == []
 
 
-@pytest.mark.parametrize('script', SCRIPTS)
-def test_a_node_does_deviate_on_a_script(helper, script):
-    """All three, symmetrically -- a node genuinely inherits them from its group."""
-    record = {script: 'ZWNobyBoZWxsbwo=', f'_{script}_source': 'node'}
-    assert helper.deviated_field_names('node', record) == [script]
+@pytest.mark.parametrize('field', GROUP_ROOT_FIELDS)
+def test_a_node_does_deviate_on_a_root_field(helper, field):
+    """All five, symmetrically -- a node genuinely inherits them from its group."""
+    record = {field: 'ZWNobyBoZWxsbwo=', f'_{field}_source': 'node'}
+    assert helper.deviated_field_names('node', record) == [field]
 
 
-@pytest.mark.parametrize('script', SCRIPTS)
-def test_a_node_inheriting_a_script_is_not_deviating(helper, script):
-    record = {script: 'ZWNobyBoZWxsbwo=', f'_{script}_source': 'group'}
+@pytest.mark.parametrize('field', GROUP_ROOT_FIELDS)
+def test_a_node_inheriting_a_root_field_is_not_deviating(helper, field):
+    record = {field: 'ZWNobyBoZWxsbwo=', f'_{field}_source': 'group'}
     assert helper.deviated_field_names('node', record) == []
+
+
+@pytest.mark.parametrize('field', GROUP_ROOT_FIELDS)
+def test_the_group_override_list_does_not_carry_a_root_field(field):
+    """Stated against the list itself, not only through a record.
+
+    The record tests above would still pass if the field were re-added and the
+    source happened not to say 'group'. This one fails the moment the list grows
+    a field a group cannot inherit, which is how it got here in the first place.
+    """
+    assert field not in overrides('group')
+    assert field in overrides('node')
 
 
 def test_deviated_fields_is_the_names_comma_separated(helper):

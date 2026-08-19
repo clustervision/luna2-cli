@@ -291,7 +291,7 @@ def overrides(table=None):
         ],
         'group': [
             'provision_method', 'provision_interface', 'provision_fallback', 'kerneloptions',
-            'osimagetag', 'install_mode', 'disklayout', 'osimage_filter', 'routes',
+            'osimagetag', 'install_mode', 'routes',
             'ipxe_kernel', 'bootmenu', 'unmanaged_bmc_users'
         ]
     }
