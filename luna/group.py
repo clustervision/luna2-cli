@@ -167,23 +167,7 @@ class Group():
             if self.args.get('csv'):
                 response = Helper().column_csv(self.table, data, self.args['csv'])
             elif self.args.get('deviate'):
-                records = {}
-                for name in data.keys():
-                    record = Rest().get_data(self.table, name)
-                    if record.status_code == 200:
-                        records[name] = record.content['config'][self.table][name]
-                    else:
-                        Message().error_exit(record.content, record.status_code)
-                if 'raw' in self.args and self.args['raw']:
-                    json_data = {name: {'name': name, 'deviated': Helper().deviated_values(self.table, record)}
-                                 for name, record in records.items()}
-                    response = Presenter().show_json(json_data)
-                else:
-                    fields = ['#', 'name', 'deviated']
-                    rows = [[num, name, Helper().deviated_fields(self.table, record)]
-                            for num, (name, record) in enumerate(records.items(), start=1)]
-                    title = f' << {self.table.capitalize()} - Deviated >>'
-                    response = Presenter().show_table(title, fields, rows)
+                response = Helper().show_deviated(self.table, data, self.args)
             elif 'raw' in self.args and self.args['raw']:
                 json_data = Helper().prepare_json(data)
                 response = Presenter().show_json(json_data)

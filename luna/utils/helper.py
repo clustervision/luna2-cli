@@ -1083,6 +1083,33 @@ class Helper():
         return values
 
 
+    def show_deviated(self, table=None, data=None, args=None):
+        """
+        This method renders the deviate view of a group/node list: every entry
+        that overrides its parent, and which fields it overrides with.
+
+        The list payload only says THAT an entry deviates, so each one is read
+        again individually -- the *_source fields that name the deviating field
+        are only carried by the per-entry record.
+        """
+        records = {}
+        for name in data.keys():
+            record = Rest().get_data(table, name)
+            if record.status_code == 200:
+                records[name] = record.content['config'][table][name]
+            else:
+                Message().error_exit(record.content, record.status_code)
+        if args.get('raw'):
+            json_data = {name: {'name': name, 'deviated': self.deviated_values(table, record)}
+                         for name, record in records.items()}
+            return Presenter().show_json(json_data)
+        fields = ['#', 'name', 'deviated']
+        rows = [[num, name, self.deviated_fields(table, record)]
+                for num, (name, record) in enumerate(records.items(), start=1)]
+        title = f' << {table.capitalize()} - Deviated >>'
+        return Presenter().show_table(title, fields, rows)
+
+
     def filter_interface(self, table=None, data=None):
         """
         This method will generate the data as for
