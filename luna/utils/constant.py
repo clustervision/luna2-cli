@@ -267,7 +267,7 @@ def overrides(table=None):
         ],
         'group': [
             'provision_method', 'provision_interface', 'provision_fallback', 'kerneloptions',
-            'osimagetag', 'routes', 'ipxe_kernel', 'bootmenu', 'prescript', 'unmanaged_bmc_users'
+            'osimagetag', 'routes', 'ipxe_kernel', 'bootmenu', 'unmanaged_bmc_users'
         ]
     }
     if table and table in static:
