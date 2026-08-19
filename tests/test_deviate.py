@@ -34,12 +34,20 @@ Three things decide the answer, and each is pinned separately:
 
 (2) is the one that fails quietly. A field missing from overrides() does not
 error: the entry still lists, its `deviated` cell is just short by one, and the
-operator reads a complete answer. The last test in this file closes that class
-rather than naming today's fields -- see its docstring.
+operator reads a complete answer. Two tests close that class rather than naming
+today's fields -- see their docstrings.
 
-luna.utils.log refuses to initialise without root, so the logger is stubbed the
-way tests/test_brief_disklayout.py stubs it. Nothing else here needs privilege,
-a daemon or a database.
+**What these tests cannot tell you.** Everything here runs against records this
+file builds, so it pins the CLI's rule and nothing about the daemon. If the
+payload ever stops carrying `_override` or `_<field>_source`, every test below
+still passes and the command renders an empty or wrong answer. That gap is not
+closable from this side, so it is named rather than papered over: the check that
+does close it is running `list -d` against a real daemon and confirming the fields
+it names are exactly the fields `show` stars.
+
+luna.utils.log refuses to initialise without root -- logging.basicConfig cannot
+open LOG_FILE -- so the logger is stubbed rather than initialised. That is the
+only privilege the module wants; nothing here needs a daemon or a database.
 """
 from __future__ import annotations
 
@@ -67,36 +75,46 @@ def helper():
     return Helper()
 
 
-# A group as GET /config/group/<name> really returns it: every inheritable field
-# carried alongside a _<field>_source saying who supplied the value, booleans and
-# nulls stringified, script bodies base64. Shortened, but not reshaped.
-GROUP_RECORD = {
-    'name': 'compute',
-    'setupbmc': 'True',
-    'kerneloptions': 'net.ifnames=0 biosdevname=0',
-    'prescript': 'ZWNobyBoZWxsbwo=',
-    'partscript': 'bW91bnQgLXQgdG1wZnMgdG1wZnMgL3N5c3Jvb3QK',
-    'netboot': 'True',
-    'bootmenu': 'False',
-    'provision_interface': 'BOOTIF',
-    'provision_method': 'http',
-    'provision_fallback': 'http',
-    'unmanaged_bmc_users': 'None',
-    'ipxe_kernel': 'default',
-    'routes': None,
-    '_override': True,
-    '_setupbmc_source': 'group',
-    '_netboot_source': 'group',
-    '_bootmenu_source': 'default',
-    '_provision_interface_source': 'default',
-    '_provision_method_source': 'group',
-    '_provision_fallback_source': 'cluster',
-    '_kerneloptions_source': 'osimage',
-    '_ipxe_kernel_source': 'default',
-    '_unmanaged_bmc_users_source': 'bmcsetup',
-    '_prescript_source': 'group',
-    '_partscript_source': 'group',
-}
+# --------------------------------------------------------------- the contract
+#
+# The CLI reads exactly two things out of the daemon's payload, and nothing here
+# should imply it reads more:
+#
+#   _override               on a LIST entry -- "this one overrides something"
+#   _<field>_source         on a SHOW record -- who supplied that field's value
+#
+# Records below are BUILT from those two, per case. They are deliberately not a
+# captured daemon response: a frozen copy of another service's output goes stale
+# without any test failing, so the suite would stay green while the CLI rendered
+# the wrong thing. Nothing on this side can detect that -- the only check that can
+# is running the CLI against a real daemon and comparing `list -d` with the fields
+# `show` stars. Keep these tests about the rule, and keep that comparison manual.
+
+
+def record(**sources):
+    """Build a record carrying only the fields a case needs.
+
+    Each keyword is `field=(source, value)` and expands to the field plus its
+    `_<field>_source`, which is the whole of what deviated_field_names reads.
+    """
+    built = {}
+    for field, (source, value) in sources.items():
+        built[field] = value
+        built[f'_{field}_source'] = source
+    return built
+
+
+# One group as a worked example: something of its own, something from each of the
+# three places a group can inherit from, and something set locally that is not an
+# overridable field at all.
+A_GROUP = record(
+    provision_method=('group', 'http'),        # its own -> deviates
+    provision_fallback=('cluster', 'http'),    # from the cluster
+    kerneloptions=('osimage', 'quiet'),        # from the osimage
+    unmanaged_bmc_users=('bmcsetup', 'None'),  # from the bmcsetup
+    bootmenu=('default', 'False'),             # nothing set it
+    setupbmc=('group', 'True'),                # its own, but not overridable
+)
 
 
 class FakeResponse:
@@ -147,12 +165,12 @@ def test_filter_deviated(helper, label, data, expected):
 
 def test_deviated_field_names_reads_the_sources(helper):
     """Only a field the group supplies itself AND that overrides() knows about."""
-    assert helper.deviated_field_names('group', GROUP_RECORD) == ['provision_method']
+    assert helper.deviated_field_names('group', A_GROUP) == ['provision_method']
 
 
 def test_a_field_inherited_from_elsewhere_is_not_deviating(helper):
     """provision_fallback comes from the cluster here, kerneloptions from the osimage."""
-    names = helper.deviated_field_names('group', GROUP_RECORD)
+    names = helper.deviated_field_names('group', A_GROUP)
     assert 'provision_fallback' not in names
     assert 'kerneloptions' not in names
     assert 'bootmenu' not in names  # source 'default'
@@ -165,8 +183,8 @@ def test_a_field_outside_overrides_is_not_deviating(helper):
     for far more fields than the CLI calls overridable, and the extra ones are
     not deviations from anything a parent supplied.
     """
-    assert GROUP_RECORD['_setupbmc_source'] == 'group'
-    assert 'setupbmc' not in helper.deviated_field_names('group', GROUP_RECORD)
+    assert A_GROUP['_setupbmc_source'] == 'group'
+    assert 'setupbmc' not in helper.deviated_field_names('group', A_GROUP)
 
 
 # The fields the daemon resolves in its base64 loop: pre/part/post, and the two
@@ -218,8 +236,23 @@ def test_the_group_override_list_does_not_carry_a_root_field(field):
     assert field in overrides('node')
 
 
+
+@pytest.mark.parametrize('table', ['node', 'group'])
+def test_a_record_with_no_source_keys_reports_nothing(helper, table):
+    """If the payload ever stops carrying the source keys, report nothing, not nonsense.
+
+    This does not detect such a change -- nothing on this side can. It fixes what
+    happens when it arrives: an empty `deviated` cell, which reads as "nothing to
+    report" and is wrong but harmless, rather than a traceback or a cell naming
+    every field the record happens to hold.
+    """
+    bare = {'name': 'x', 'provision_method': 'http', 'kerneloptions': 'quiet'}
+    assert helper.deviated_field_names(table, bare) == []
+    assert helper.deviated_values(table, bare) == {}
+
+
 def test_deviated_fields_is_the_names_comma_separated(helper):
-    assert helper.deviated_fields('group', GROUP_RECORD) == 'provision_method'
+    assert helper.deviated_fields('group', A_GROUP) == 'provision_method'
 
 
 def test_a_record_with_nothing_of_its_own_names_no_fields(helper):
@@ -231,7 +264,7 @@ def test_a_record_with_nothing_of_its_own_names_no_fields(helper):
 # ------------------------------------------------------------- (3) the values
 
 def test_deviated_values_decodes_and_normalises(helper):
-    values = helper.deviated_values('group', GROUP_RECORD)
+    values = helper.deviated_values('group', A_GROUP)
     assert values == {'provision_method': 'http'}
 
 
@@ -258,13 +291,13 @@ def test_deviated_value_types(helper, label, field, stored, expected):
 
 def test_deviated_values_survive_json(helper):
     """-R prints through json.dumps, so every value has to be serialisable."""
-    json.dumps(helper.deviated_values('group', GROUP_RECORD))
+    json.dumps(helper.deviated_values('group', A_GROUP))
 
 
 # ------------------------------------------------------------- the render path
 
 def test_the_table_view_names_the_fields(helper, fake_rest, capsys):
-    fake_rest.served = {'compute': GROUP_RECORD}
+    fake_rest.served = {'compute': A_GROUP}
     helper.show_deviated('group', {'compute': {'_override': True}}, {'raw': None})
     out = capsys.readouterr().out
     assert 'compute' in out
@@ -272,7 +305,7 @@ def test_the_table_view_names_the_fields(helper, fake_rest, capsys):
 
 
 def test_the_raw_view_carries_the_values(helper, fake_rest, capsys):
-    fake_rest.served = {'compute': GROUP_RECORD}
+    fake_rest.served = {'compute': A_GROUP}
     helper.show_deviated('group', {'compute': {'_override': True}}, {'raw': True})
     payload = json.loads(capsys.readouterr().out)
     assert payload == {
@@ -290,7 +323,7 @@ def test_one_record_is_read_per_listed_entry(helper, fake_rest):
     entry, not one request. Anything that changes that has changed what the
     command costs on a cluster, and should be a deliberate decision.
     """
-    fake_rest.served = {'compute': GROUP_RECORD, 'gpu': GROUP_RECORD}
+    fake_rest.served = {'compute': A_GROUP, 'gpu': A_GROUP}
     helper.show_deviated('group', {'compute': {}, 'gpu': {}}, {'raw': None})
     assert fake_rest.calls == [('group', 'compute'), ('group', 'gpu')]
 
