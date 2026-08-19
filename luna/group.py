@@ -73,6 +73,8 @@ class Group():
         group_args = group_menu.add_subparsers(dest='action', title='commands', description='Available group operations')
         group_list = group_args.add_parser('list', help='List Groups')
         Arguments().common_list_args(group_list, True)
+        group_list.add_argument('-d', '--deviate', action='store_true', default=None,
+                                help='List only Groups that deviate from their parent (cluster) defaults')
         group_show = group_args.add_parser('show', help='Show Group details')
         group_show.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(group_show)
@@ -155,8 +157,30 @@ class Group():
         self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config'][self.table]
+            if self.args.get('deviate'):
+                data = Helper().filter_deviated(data)
+                if not data:
+                    return Message().show_error(f'No {self.table} deviates from its parent.')
             if self.args.get('csv'):
                 response = Helper().column_csv(self.table, data, self.args['csv'])
+            elif self.args.get('deviate'):
+                records = {}
+                for name in data.keys():
+                    record = Rest().get_data(self.table, name)
+                    if record.status_code == 200:
+                        records[name] = record.content['config'][self.table][name]
+                    else:
+                        Message().error_exit(record.content, record.status_code)
+                if 'raw' in self.args and self.args['raw']:
+                    json_data = {name: {'name': name, 'deviated': Helper().deviated_values(self.table, record)}
+                                 for name, record in records.items()}
+                    response = Presenter().show_json(json_data)
+                else:
+                    fields = ['#', 'name', 'deviated']
+                    rows = [[num, name, Helper().deviated_fields(self.table, record)]
+                            for num, (name, record) in enumerate(records.items(), start=1)]
+                    title = f' << {self.table.capitalize()} - Deviated >>'
+                    response = Presenter().show_table(title, fields, rows)
             elif 'raw' in self.args and self.args['raw']:
                 json_data = Helper().prepare_json(data)
                 response = Presenter().show_json(json_data)

@@ -925,6 +925,57 @@ class Helper():
             Message().show_error(f"Something Went Wrong {status.status_code}")
 
 
+    def filter_deviated(self, data=None):
+        """
+        This method will filter a group/node list dict down to the entries whose
+        _override flag is set, i.e. those that deviate from their parent (group or
+        cluster) defaults.
+        """
+        return {name: item for name, item in data.items() if item.get('_override')}
+
+
+    def deviated_field_names(self, table=None, record=None):
+        """
+        This method returns the sorted field names that are set locally at this
+        table's own level and therefore deviate from what would otherwise be
+        inherited. Reuses the same _..._source comparison merge_source() already
+        uses to mark overridden fields with '*' in show.
+        """
+        _, resp_overrides = self.merge_source(table, record)
+        return sorted(resp_overrides)
+
+
+    def deviated_fields(self, table=None, record=None):
+        """
+        This method returns the comma-separated field names that deviate, for the
+        list -d table view.
+        """
+        return ', '.join(self.deviated_field_names(table, record))
+
+
+    def deviated_values(self, table=None, record=None):
+        """
+        This method maps each deviated field name to its actual value, decoding
+        script/editor content and normalising the daemon's stringified booleans
+        and nulls into real JSON types, for the list -d -R view.
+        """
+        values = {}
+        for name in self.deviated_field_names(table, record):
+            value = record.get(name)
+            if name in EDITOR_KEYS:
+                value = self.base64_decode(value)
+            elif isinstance(value, str):
+                lowered = value.lower()
+                if lowered == 'true':
+                    value = True
+                elif lowered == 'false':
+                    value = False
+                elif lowered in ('none', 'null'):
+                    value = None
+            values[name] = value
+        return values
+
+
     def filter_interface(self, table=None, data=None):
         """
         This method will generate the data as for
