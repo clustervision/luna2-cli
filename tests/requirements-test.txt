@@ -1,0 +1,2 @@
+# Development-only dependencies for the test suite. Not shipped with the CLI.
+pytest>=7.4
