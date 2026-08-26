@@ -150,6 +150,13 @@ class Node():
         rename_interface.add_argument('interface', help='Name of the Node Interface').completer = Helper().interface_name_completer(self.table)
         rename_interface.add_argument('newinterfacename', help='New Name of the Node Interface')
         rename_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        node_biosgrab = node_args.add_parser('biosgrab', help="Grab a Node's BIOS settings into a BIOS Configuration. "
+                                             'Only what the node\'s own attribute registry says may be carried '
+                                             'to another machine is stored')
+        node_biosgrab.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_biosgrab.add_argument('-b', '--biosconfig', required=True,
+                                   help='BIOS Configuration Name').completer = Helper().name_completer('biosconfig')
+        node_biosgrab.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_listinventory = node_args.add_parser('listinventory', help='List Hardware Inventory of All Nodes')
         Arguments().common_list_args(node_listinventory)
         node_showdisklayout = node_args.add_parser('showdisklayout', help="Show a Node's Disk Layout")
@@ -709,6 +716,31 @@ class Node():
         Message().show_success(f'Collecting inventory for {queued} nodes...')
         if request_id:
             Helper().dig_control_status(request_id, 1, 'inventory')
+        return response
+
+
+    def biosgrab_node(self):
+        """
+        Method to grab a node's BIOS settings into a stored configuration.
+
+        The daemon decides what may be carried, from the node's own attribute
+        registry: anything the machine marks as unique to itself, read-only,
+        immutable or write-only stays behind, as does anything the configuration's
+        exclude list names. The count of what was left behind is in the answer,
+        because a grab that quietly drops half a configuration looks exactly like
+        one that found half a configuration.
+        """
+        node = self.args['name']
+        config = self.args['biosconfig']
+        payload = {'config': {self.table: {node: {'biosconfig': config}}}}
+        response = Rest().post_raw(f'config/{self.table}/{node}/_biosgrab', payload)
+        self.logger.debug(f'HTTP Response => {response.content}')
+        content = response.json() if response.content else {}
+        message = content.get('message', response.content)
+        if response.status_code in (200, 201, 204):
+            Message().show_success(f'{message}')
+        else:
+            Message().error_exit(message, response.status_code)
         return response
 
 

@@ -292,6 +292,25 @@ class Arguments():
         return parser
 
 
+    def common_biosconfig_args(self, parser):
+        """
+        This method will provide the common biosconfig arguments.
+
+        Only the exclude list and the comment: everything else on a configuration
+        is what a machine reported about itself, and is written by a grab.
+        The -E/-qE pair is the same shape osimage uses for its own grab_exclude,
+        so an administrator who knows one knows the other.
+        """
+        parser.add_argument('-E', '--grab_exclude', action='store_true', help='Attribute name patterns excluded from a grab')
+        parser.add_argument('-qE', '--quick-grab_exclude', dest='grab_exclude',
+                                metavar="File-Path OR In-Line", help='Grab Excludes File-Path OR In-Line')
+        parser.add_argument('-c', '--comment', action='store_true', help='Comment')
+        parser.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
+        parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        return parser
+
+
     def common_osimage_args(self, parser):
         """
         This method will provide the common osimage arguments.

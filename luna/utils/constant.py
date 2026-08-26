@@ -118,6 +118,16 @@ def parser_doc(table: str) -> types.SimpleNamespace:
                 from its group unless it names one of its own.
             '''
         },
+        "biosconfig": {
+            "help": "BIOS Configuration operations.",
+            "description":  '''\
+                Luna biosconfig manages BIOS settings grabbed off a golden node,
+                to be pushed to other nodes of the same hardware. A configuration
+                is created by 'luna node biosgrab' rather than by hand, and holds
+                only what the node's own attribute registry says may be carried
+                to another machine. Its exclude list can be changed here.
+            '''
+        },
         "switch": {
             "help": "Switch operations.",
             "description":  '''\
@@ -224,13 +234,16 @@ def actions(table: str) -> list:
     static = {
         "cloud" : network_actions,
         "group": common_actions + member_action + ["ospush"] + interface_actions + disklayout_actions,
-        "node": common_actions + ["osgrab", "ospush"] + interface_actions + inventory_actions + disklayout_actions,
+        "node": common_actions + ["osgrab", "ospush", "biosgrab"] + interface_actions + inventory_actions + disklayout_actions,
         "boot": ["status"],
         "profile": common_actions + member_action + ["status", "addfile", "changefile", "removefile"],
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],
         "osimage": common_actions + member_action + ["pack", "cancel", "kernel", "tag", "updatecerts"],
         "bmcsetup": common_actions + member_action,
         "redfishsetup": common_actions + member_action + ["addaccount", "changeaccount", "removeaccount"],
+        # no add and no clone: a configuration comes into existence by being
+        # grabbed off a node, never by being typed in
+        "biosconfig": ["list", "show", "change", "rename", "remove"],
         "otherdev": common_actions,
         "switch" : common_actions + ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"],
         "control" : ["power", "sel", "chassis", "redfish"],
@@ -253,6 +266,7 @@ def filter_columns(table: str) -> list:
         'cloud': ['name', 'type'],
         'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
         'redfishsetup': ['name', 'scheme', 'port', 'verify', 'accounts'],
+        'biosconfig': ['name', 'manufacturer', 'model', 'biosversion', 'grabbedfrom', 'settings'],
         'group': ['name', 'bmcsetupname', 'osimage', 'roles', 'interfaces'],
         'groupinterface': ['interface', 'network', 'options', 'vlanid', 'vlan_parent',
                            'bond_mode', 'bond_slaves', 'dhcp', 'mtu'],
@@ -349,6 +363,8 @@ def sortby(table: str) -> list:
             'unmanaged_bmc_users', 'comment'
         ],
         'redfishsetup': ['name', 'scheme', 'port', 'verify', 'accounts', 'comment'],
+        'biosconfig': ['name', 'manufacturer', 'model', 'biosversion', 'grabbedfrom', 'settings',
+                       'grab_exclude', 'updated', 'comment'],
         'osimage': [
             'name', 'grab_filesystems', 'grab_exclude', 'initrdfile',
             'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions', 'path', 'imagefile',
