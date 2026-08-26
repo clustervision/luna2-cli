@@ -970,6 +970,27 @@ class Helper():
         return response
 
 
+    def expand_switchports(self, names=None, switchport=None):
+        """
+        Expand a --switchport value against the node names being written.
+        A bracket expression (e.g. swp[1-4]) must expand to exactly one
+        port per node, matched by position; a plain value only applies
+        when a single node is being written.
+        """
+        if switchport in (None, ''):
+            return [switchport] * len(names)
+        expanded = self.get_hostlist(switchport)
+        if not expanded:
+            Message().error_exit(f'Invalid --switchport expression: {switchport}')
+        if len(expanded) != len(names):
+            Message().error_exit(
+                f'--switchport {switchport} expands to {len(expanded)} port(s), which does not '
+                f'match the {len(names)} node(s) supplied. Kindly provide a matching range, '
+                f'e.g. swp[1-{len(names)}].'
+            )
+        return expanded
+
+
     def check_switchport_conflicts(self, switch=None, assignments=None, existing_nodes=None):
         """
         Client-side guard: the daemon does not enforce switch+switchport

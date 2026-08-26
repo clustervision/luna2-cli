@@ -257,6 +257,7 @@ class Node():
         """
         hostlist = Helper().get_hostlist(self.args['name'])
         hostlist = Helper().luna_hostlist(hostlist)
+        switchports = Helper().expand_switchports(hostlist, self.args.get('switchport'))
         if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
             Message().error_exit("ERROR :: Kindly supply the interface in order to use the network, ipaddress, macaddress or options.")
         interface = {}
@@ -298,12 +299,13 @@ class Node():
                         if hostlist:
                             Helper().check_switchport_conflicts(
                                 self.args.get('switch'),
-                                [(each, self.args.get('switchport')) for each in hostlist],
+                                list(zip(hostlist, switchports)),
                                 record.content['config'][self.table]
                             )
-                            for each in hostlist:
+                            for index, each in enumerate(hostlist):
                                 if each not in records:
                                     self.args['name'] = each
+                                    self.args['switchport'] = switchports[index]
                                     Helper().add_record(self.table, self.args)
                         else:
                             Message().error_exit(f'Node Hostlist is: {hostlist}')
@@ -321,11 +323,12 @@ class Node():
         else:
             Helper().check_switchport_conflicts(
                 self.args.get('switch'),
-                [(each, self.args.get('switchport')) for each in hostlist],
+                list(zip(hostlist, switchports)),
                 {}
             )
-            for each in hostlist:
+            for index, each in enumerate(hostlist):
                 self.args['name'] = each
+                self.args['switchport'] = switchports[index]
                 Helper().add_record(self.table, self.args)
         return True
 
@@ -342,6 +345,7 @@ class Node():
         real_args = deepcopy(self.args)
         hostlist = Helper().get_hostlist(self.args['name'])
         hostlist = Helper().luna_hostlist(hostlist)
+        switchports = Helper().expand_switchports(hostlist, self.args.get('switchport'))
         if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
             Message().error_exit("ERROR :: Kindly supply the interface in order to use the network, ipaddress, macaddress or options.")
         interface = {}
@@ -382,13 +386,15 @@ class Node():
                         if hostlist:
                             Helper().check_switchport_conflicts(
                                 self.args.get('switch'),
-                                [(each, self.args.get('switchport')) for each in hostlist],
+                                list(zip(hostlist, switchports)),
                                 record.content['config'][self.table]
                             )
-                            for each in hostlist:
+                            for index, each in enumerate(hostlist):
                                 if each in records:
                                     self.args['name'] = each
+                                    self.args['switchport'] = switchports[index]
                                     real_args['name'] = each
+                                    real_args['switchport'] = switchports[index]
                                     change = Helper().compare_data(self.table, real_args)
                                     if change is True:
                                         Helper().update_record(self.table, self.args, local)
@@ -531,6 +537,7 @@ class Node():
         """
         hostlist = Helper().get_hostlist(self.args['newnodename'])
         hostlist = Helper().luna_hostlist(hostlist)
+        switchports = Helper().expand_switchports(hostlist, self.args.get('switchport'))
         if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
             Message().error_exit("ERROR :: Kindly supply the interface in order to use the network, ipaddress, macaddress or options.")
         interface = {}
@@ -571,12 +578,13 @@ class Node():
                         if hostlist:
                             Helper().check_switchport_conflicts(
                                 self.args.get('switch'),
-                                [(each, self.args.get('switchport')) for each in hostlist],
+                                list(zip(hostlist, switchports)),
                                 record.content['config'][self.table]
                             )
-                            for each in hostlist:
+                            for index, each in enumerate(hostlist):
                                 if each not in records:
                                     self.args['newnodename'] = each
+                                    self.args['switchport'] = switchports[index]
                                     Helper().clone_record(self.table, self.args)
                         else:
                             Message().error_exit(f'Node Hostlist is: {hostlist}')
