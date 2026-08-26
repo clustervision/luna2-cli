@@ -158,6 +158,9 @@ class Node():
         node_showinventory = node_args.add_parser('showinventory', help="Show a Node's Hardware Inventory")
         node_showinventory.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_showinventory)
+        node_refreshinventory = node_args.add_parser('refreshinventory', help="Collect a Node's Inventory over Redfish")
+        node_refreshinventory.add_argument('name', help='Node Name or Node Hostlist').completer = Helper().name_completer(self.table)
+        node_refreshinventory.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
 
@@ -671,6 +674,42 @@ class Node():
                              n.get('capabilities')] for n in nics]
                 Presenter().show_table(f' << {name} NICs [{source}] >>', nic_fields, nic_rows)
         return True
+
+
+    def refreshinventory_node(self):
+        """
+        Method to collect a node's hardware inventory over Redfish, out of band.
+
+        In-band collection only runs while a node is being provisioned, so a node
+        that has never been installed - or is simply powered off - has no inventory
+        at all. This asks the BMC instead, which answers either way.
+        """
+        node = self.args['name']
+        hostlist = Helper().get_hostlist(node)
+        if len(hostlist) == 1:
+            response = Rest().get_raw(f'config/{self.table}/{node}/inventory/_redfish')
+            self.logger.debug(f'HTTP Response => {response.content}')
+            content = response.json() if response.content else {}
+            message = content.get('message', response.content)
+            if response.status_code in (200, 201, 204):
+                Message().show_success(f'{self.table_cap} {node} inventory collected: {message}')
+            else:
+                Message().error_exit(message, response.status_code)
+            return response
+        payload = {'config': {self.table: {'hostlist': node}}}
+        response = Rest().post_raw(f'config/{self.table}/inventory/_redfish', payload)
+        self.logger.debug(f'HTTP Response => {response.content}')
+        if response.status_code != 200:
+            content = response.json() if response.content else {}
+            return Message().error_exit(content.get('message', response.content),
+                                        response.status_code)
+        content = response.json()
+        request_id = content.get('request_id')
+        queued = content.get('config', {}).get(self.table, {}).get('inventory', {}).get('queued')
+        Message().show_success(f'Collecting inventory for {queued} nodes...')
+        if request_id:
+            Helper().dig_control_status(request_id, 1, 'inventory')
+        return response
 
 
     def changeinterface(self):
