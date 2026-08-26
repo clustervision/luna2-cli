@@ -526,6 +526,33 @@ class Helper():
         return response
 
 
+    def show_switch_nodes(self, switch_name=None, raw=None):
+        """
+        Show the nodes attached to a switch, matched by their switch and
+        switchport fields. The daemon has no reverse-lookup endpoint for
+        this, so the full node list is fetched and filtered client-side.
+        """
+        response = Rest().get_data('node')
+        if response.status_code != 200:
+            return False
+        data = response.content.get('config', {}).get('node', {})
+        matches = []
+        for name in sorted(data.keys()):
+            node = data[name]
+            if node.get('switch') == switch_name:
+                matches.append({'name': name, 'switchport': node.get('switchport'), 'group': node.get('group')})
+        if raw:
+            Presenter().show_json(matches)
+            return True
+        if not matches:
+            return True
+        fields = ['#', 'Node', 'Switchport', 'Group']
+        rows = [[i + 1, m['name'], m['switchport'], m['group']] for i, m in enumerate(matches)]
+        title = f' << Switch {switch_name} Attached Nodes >>'
+        Presenter().show_table(title, fields, rows)
+        return True
+
+
     def member_record(self, table=None, args=None):
         """
         This method fetch the nodes to the provided entity.
