@@ -109,6 +109,15 @@ def parser_doc(table: str) -> types.SimpleNamespace:
                 profiles. In here netchannels and passwords can be configured.
             '''
         },
+        "redfishsetup": {
+            "help": "Redfish Setup operations.",
+            "description":  '''\
+                Luna redfishsetup manages how Luna reaches a BMC over Redfish -
+                the scheme, the port and whether the certificate is verified -
+                together with the accounts it logs in with. A node picks one up
+                from its group unless it names one of its own.
+            '''
+        },
         "switch": {
             "help": "Switch operations.",
             "description":  '''\
@@ -221,6 +230,7 @@ def actions(table: str) -> list:
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],
         "osimage": common_actions + member_action + ["pack", "cancel", "kernel", "tag", "updatecerts"],
         "bmcsetup": common_actions + member_action,
+        "redfishsetup": common_actions + member_action + ["addaccount", "changeaccount", "removeaccount"],
         "otherdev": common_actions,
         "switch" : common_actions + ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"],
         "control" : ["power", "sel", "chassis", "redfish"],
@@ -242,6 +252,7 @@ def filter_columns(table: str) -> list:
     static = {
         'cloud': ['name', 'type'],
         'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
+        'redfishsetup': ['name', 'scheme', 'port', 'verify', 'accounts'],
         'group': ['name', 'bmcsetupname', 'osimage', 'roles', 'interfaces'],
         'groupinterface': ['interface', 'network', 'options', 'vlanid', 'vlan_parent',
                            'bond_mode', 'bond_slaves', 'dhcp', 'mtu'],
@@ -283,7 +294,7 @@ def overrides(table=None):
     response = False
     static = {
         'node': [
-            'osimage', 'osimagetag', 'kerneloptions', 'setupbmc', 'bmcsetup', 'netboot', 'ipxe_kernel',
+            'osimage', 'osimagetag', 'kerneloptions', 'setupbmc', 'bmcsetup', 'redfishsetup', 'netboot', 'ipxe_kernel',
             'bootmenu', 'roles', 'scripts', 'prescript', 'partscript', 'postscript',
             'install_mode', 'disklayout', 'osimage_filter',
             'provision_interface', 'provision_method', 'provision_fallback', 'routes',
@@ -318,7 +329,7 @@ def sortby(table: str) -> list:
         'node': [
             'info', 'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions',
             'interfaces', 'routes', 'status', 'vendor', 'assettag', 'position', 'switch', 'switchport',
-            'cloud', 'setupbmc', 'bmcsetup', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
+            'cloud', 'setupbmc', 'bmcsetup', 'redfishsetup', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
             'bootmenu', 'service', 'roles', 'scripts', 'profiles', '_prescript_source', 'prescript',
             '_partscript_source', 'partscript', '_postscript_source', 'postscript',
             'install_mode', '_disklayout_source', 'disklayout',
@@ -328,7 +339,7 @@ def sortby(table: str) -> list:
         ],
         'group': [
             'info', 'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
-            'routes', 'setupbmc', 'bmcsetupname', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
+            'routes', 'setupbmc', 'bmcsetupname', 'redfishsetupname', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
             'bootmenu', 'roles', 'scripts', 'profiles', 'prescript', 'partscript', 'postscript',
             'install_mode', 'disklayout', 'osimage_filter',
             'provision_interface', 'provision_method', 'provision_fallback', 'comment'
@@ -337,6 +348,7 @@ def sortby(table: str) -> list:
             'name', 'userid', 'username', 'password', 'netchannel', 'mgmtchannel',
             'unmanaged_bmc_users', 'comment'
         ],
+        'redfishsetup': ['name', 'scheme', 'port', 'verify', 'accounts', 'comment'],
         'osimage': [
             'name', 'grab_filesystems', 'grab_exclude', 'initrdfile',
             'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions', 'path', 'imagefile',

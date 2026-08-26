@@ -140,3 +140,86 @@ def test_the_parser_actually_builds(filename):
     scopes = {'node', 'group', 'cluster'}
     missing = sorted({verb for verb in verbs if verb not in scopes} - actions)
     assert not missing, f'{filename}: {missing} build but cannot be dispatched'
+
+
+def _explicit_dispatch():
+    """The command -> class-name branches spelled out in cli.py's dispatcher."""
+    import re
+    path = os.path.join(MODULES, 'cli.py')
+    with open(path, 'r', encoding='utf-8') as handle:
+        source = handle.read()
+    pattern = r'self\.args\["command"\] == "(\w+)":\s*\n\s*call = globals\(\)\["(\w+)"\]'
+    return dict(re.findall(pattern, source))
+
+
+@pytest.mark.parametrize('filename', list(_entity_modules()))
+def test_every_command_resolves_to_a_class_the_dispatcher_can_reach(filename):
+    """
+    The dispatcher falls back to globals()[command.capitalize()], and capitalize is
+    not the casing several of these classes use: OSImage, BMCSetup, OtherDev and
+    RedfishSetup all become something that is not their name. Each therefore needs
+    an explicit branch, and forgetting one is not a parse error or a startup error
+    -- the command parses, completes, prints its own help, and dies with a KeyError
+    the moment it is run.
+
+    Derived from the modules on disk rather than from a list of names, so the next
+    entity is covered without anyone remembering this file exists.
+    """
+    import importlib
+
+    import luna.cli
+
+    entity = filename[:-3]
+    module = importlib.import_module(f'luna.{entity}')
+    cls = next((getattr(module, name) for name in dir(module)
+                if name.lower() == entity and isinstance(getattr(module, name), type)), None)
+    if cls is None:
+        pytest.skip(f'{filename} has no {entity} class')
+
+    expected = _explicit_dispatch().get(entity, entity.capitalize())
+    resolved = getattr(luna.cli, expected, None)
+    assert resolved is not None, (
+        f'`luna {entity}` dispatches to globals()["{expected}"], which does not exist. '
+        f'The class is {cls.__name__} -- add a branch for it in Cli.main, as osimage, '
+        f'bmcsetup and otherdev have.'
+    )
+    assert resolved is cls, (
+        f'`luna {entity}` dispatches to {resolved.__name__}, not {cls.__name__}'
+    )
+
+
+@pytest.mark.parametrize('filename', list(_entity_modules()))
+def test_every_entity_module_is_in_the_classes_list(filename):
+    """
+    cli.py holds a hardcoded `classes` list, and a module absent from it is imported
+    and never wired into the parser -- so the subcommand does not exist and nothing
+    complains.
+    """
+    import importlib
+
+    import luna.cli
+
+    entity = filename[:-3]
+    module = importlib.import_module(f'luna.{entity}')
+    cls = next((getattr(module, name) for name in dir(module)
+                if name.lower() == entity and isinstance(getattr(module, name), type)), None)
+    if cls is None:
+        pytest.skip(f'{filename} has no {entity} class')
+    assert cls.__name__ in _registered_classes(), (
+        f'{cls.__name__} is not in the classes list in cli.py, so `luna {entity}` '
+        f'never reaches the parser'
+    )
+
+
+def _registered_classes():
+    """The names in cli.py's hardcoded `classes` list, read as code rather than text -
+    the last entry carries no trailing comma, and a text match misses it."""
+    with open(os.path.join(MODULES, 'cli.py'), 'r', encoding='utf-8') as handle:
+        tree = ast.parse(handle.read())
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign) and isinstance(node.value, ast.List):
+            for target in node.targets:
+                if isinstance(target, ast.Name) and target.id == 'classes':
+                    return {element.id for element in node.value.elts
+                            if isinstance(element, ast.Name)}
+    raise AssertionError('no `classes` list found in cli.py')
