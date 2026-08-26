@@ -68,6 +68,37 @@ class Arguments():
         return parser
     
 
+    def common_redfishsetup_args(self, parser):
+        """
+        This method will provide the common redfishsetup arguments.
+        """
+        parser.add_argument('-s', '--scheme', choices=['https', 'http'], help='Scheme to reach the Redfish service with')
+        parser.add_argument('-P', '--port', type=int, help='Port the Redfish service listens on')
+        # no short flag: every free letter already means something else in a
+        # neighbouring command, and a short flag that means two things is worse
+        # than none at all
+        parser.add_argument('--verify', choices=['y', 'n'], help='Verify the BMC certificate')
+        parser.add_argument('-c', '--comment', action='store_true', help='Comment')
+        parser.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
+        parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        return parser
+
+
+    def common_redfishaccount_args(self, parser):
+        """
+        This method will provide the common redfishsetup account arguments.
+        """
+        parser.add_argument('-u', '--username', help='Username to log in to the BMC with')
+        parser.add_argument('-p', '--password', help='Password')
+        parser.add_argument('-r', '--role', help='Redfish role, e.g. Administrator, Operator or ReadOnly')
+        parser.add_argument('-c', '--comment', action='store_true', help='Comment')
+        parser.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
+        parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        return parser
+
+
     def common_cloud_args(self, parser):
         """
         This method will provide the common Cloud arguments.
@@ -90,6 +121,7 @@ class Arguments():
         parser.add_argument('-qk', '--quick-kerneloptions', dest='kerneloptions',
                                 metavar="File-Path OR In-Line", help='Kernel Options File-Path OR In-Line')
         parser.add_argument('-b', '--bmcsetupname', help='BMC Setup Name').completer = Helper().name_completer("bmcsetup")
+        parser.add_argument('-F', '--redfishsetupname', help='Redfish Setup Name').completer = Helper().name_completer("redfishsetup")
         parser.add_argument('-d', '--domain', help='Domain Name')
         parser.add_argument('-r', '--roles', help='Sets the roles used for the group. Multiple roles can be supplied comma separated')
         parser.add_argument('-s', '--scripts', help='Sets the scripts used for the group. Multiple scripts can be supplied comma separated')
@@ -158,6 +190,7 @@ class Arguments():
         parser.add_argument('-e', '--setupbmc', choices=BOOL_CHOICES,
                               metavar=BOOL_META, help='BMC Setup')
         parser.add_argument('-b', '--bmcsetup', help='BMC Setup')
+        parser.add_argument('-F', '--redfishsetup', help='Redfish Setup').completer = Helper().name_completer("redfishsetup")
         parser.add_argument('--switch', help='Sets the switch for the node. Used for port based node detection').completer = Helper().name_completer("switch")
         parser.add_argument('--switchport', help='Sets the switch port for the node. Used for port based node detection')
         parser.add_argument('--cloud', help='Cloud Name').completer = Helper().name_completer("cloud")

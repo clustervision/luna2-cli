@@ -987,7 +987,14 @@ class Helper():
             for case in possible_cases:
                 if case in content['control'][system]:
                     for key, value in content['control'][system][case].items():
-                        result[key] = case.upper()
+                        # redfish answers with what it actually did - which resource a
+                        # setting was staged on, which task an upload became. That is the
+                        # outcome the operator asked for, where 'power on' is not, so it
+                        # is shown instead of a bare OK.
+                        if system == 'redfish' and case == 'ok' and value:
+                            result[key] = value
+                        else:
+                            result[key] = case.upper()
         result = dict(sorted(result.items()))
 
         header = "| #     |     Node Name      |       "

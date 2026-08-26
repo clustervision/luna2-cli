@@ -45,6 +45,7 @@ try:
     from luna.cluster import Cluster
     from luna.cloud import Cloud
     from luna.bmcsetup import BMCSetup
+    from luna.redfishsetup import RedfishSetup
     from luna.node import Node
     from luna.switch import Switch
     from luna.otherdev import OtherDev
@@ -63,6 +64,7 @@ try:
         Network,
         OSImage,
         BMCSetup,
+        RedfishSetup,
         Switch,
         OtherDev,
         Group,
@@ -152,6 +154,8 @@ class Cli():
                     call = globals()["OSImage"]
                 elif self.args["command"] == "bmcsetup":
                     call = globals()["BMCSetup"]
+                elif self.args["command"] == "redfishsetup":
+                    call = globals()["RedfishSetup"]
                 elif self.args["command"] == "otherdev":
                     call = globals()["OtherDev"]
                 else:
