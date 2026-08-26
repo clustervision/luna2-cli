@@ -1805,7 +1805,7 @@ class Helper():
         return fields, osimage, rows
 
 
-    def filter_nodelist_col(self, table=None, data=None):
+    def filter_nodelist_col(self, table=None, data=None, extra_fields=None):
         """
         This method will generate the data as for
         row format
@@ -1814,6 +1814,8 @@ class Helper():
         self.logger.debug(f'Data => {data}')
         fields, rows, colored_fields = [], [], []
         fields = filter_columns(table)
+        if extra_fields:
+            fields = fields + [field for field in extra_fields if field not in fields]
         self.logger.debug(f'Fields => {fields}')
         macaddress_row = []
         ipaddress_row = []

@@ -79,6 +79,8 @@ class Node():
         Arguments().common_list_args(node_list, True)
         node_list.add_argument('-d', '--deviate', action='store_true', default=None,
                                help='List only Nodes that deviate from their parent (group) defaults')
+        node_list.add_argument('-p', '--port', action='store_true', default=None,
+                               help='Include switch and switchport columns in the listing')
         node_show = node_args.add_parser('show', help='Show A Node')
         node_show.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_show)
@@ -224,7 +226,8 @@ class Node():
                 response = Presenter().show_json(json_data)
             else:
                 data = Helper().prepare_json(data, True)
-                fields, rows  = Helper().filter_nodelist_col(self.table, data)
+                extra_fields = ['switch', 'switchport'] if self.args.get('port') else None
+                fields, rows  = Helper().filter_nodelist_col(self.table, data, extra_fields)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
                 title = f' << {self.table.capitalize()} >>'
