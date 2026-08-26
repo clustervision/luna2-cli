@@ -296,6 +296,11 @@ class Node():
                     records = list(record.content['config'][self.table].keys())
                     if any(x in records for x in hostlist) is False:
                         if hostlist:
+                            Helper().check_switchport_conflicts(
+                                self.args.get('switch'),
+                                [(each, self.args.get('switchport')) for each in hostlist],
+                                record.content['config'][self.table]
+                            )
                             for each in hostlist:
                                 if each not in records:
                                     self.args['name'] = each
@@ -314,6 +319,11 @@ class Node():
             else:
                 Message().error_exit('Node are not available at this moment.')
         else:
+            Helper().check_switchport_conflicts(
+                self.args.get('switch'),
+                [(each, self.args.get('switchport')) for each in hostlist],
+                {}
+            )
             for each in hostlist:
                 self.args['name'] = each
                 Helper().add_record(self.table, self.args)
@@ -370,6 +380,11 @@ class Node():
                     records = list(record.content['config'][self.table].keys())
                     if all(x in records for x in hostlist) is True:
                         if hostlist:
+                            Helper().check_switchport_conflicts(
+                                self.args.get('switch'),
+                                [(each, self.args.get('switchport')) for each in hostlist],
+                                record.content['config'][self.table]
+                            )
                             for each in hostlist:
                                 if each in records:
                                     self.args['name'] = each
@@ -554,6 +569,11 @@ class Node():
                     records = list(record.content['config'][self.table].keys())
                     if all(x in records for x in hostlist) is False:
                         if hostlist:
+                            Helper().check_switchport_conflicts(
+                                self.args.get('switch'),
+                                [(each, self.args.get('switchport')) for each in hostlist],
+                                record.content['config'][self.table]
+                            )
                             for each in hostlist:
                                 if each not in records:
                                     self.args['newnodename'] = each

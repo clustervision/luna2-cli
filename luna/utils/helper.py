@@ -970,6 +970,36 @@ class Helper():
         return response
 
 
+    def check_switchport_conflicts(self, switch=None, assignments=None, existing_nodes=None):
+        """
+        Client-side guard: the daemon does not enforce switch+switchport
+        uniqueness, so verify none of the assignments about to be written
+        collide with each other or with another node already on the same
+        switch. Best-effort only - a concurrent write, or anything that
+        talks to the daemon API directly, can still race past this.
+        """
+        if not switch or not assignments:
+            return
+        existing_nodes = existing_nodes or {}
+        seen = {}
+        for name, port in assignments:
+            if not port:
+                continue
+            for other_name, other_data in existing_nodes.items():
+                if other_name == name:
+                    continue
+                if other_data.get('switch') == switch and other_data.get('switchport') == port:
+                    Message().error_exit(
+                        f'Switchport {port} on switch {switch} is already assigned to node {other_name}.'
+                    )
+            if port in seen:
+                Message().error_exit(
+                    f'Switchport {port} on switch {switch} is assigned to more than one node in this '
+                    f'command ({seen[port]}, {name}).'
+                )
+            seen[port] = name
+
+
     def common_list_args(self, parser=None, csv=False):
         """
         This method will provide the common list and show arguments..
