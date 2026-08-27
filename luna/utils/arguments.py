@@ -91,7 +91,14 @@ class Arguments():
         """
         parser.add_argument('-u', '--username', help='Username to log in to the BMC with')
         parser.add_argument('-p', '--password', help='Password')
-        parser.add_argument('-r', '--role', help='Redfish role, e.g. Administrator, Operator or ReadOnly')
+        # the three DMTF predefined roles are offered, and anything is accepted:
+        # a board may publish OEM roles of its own, and Luna treats a name it does
+        # not recognise as unknown rather than unusable
+        parser.add_argument('-r', '--role',
+                            help='Redfish role. Administrator, Operator and ReadOnly are '
+                                 'the predefined ones; a vendor role is accepted too'
+                            ).completer = Helper().value_completer(
+                                ['Administrator', 'Operator', 'ReadOnly'])
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')

@@ -176,7 +176,10 @@ class Node():
         node_showinventory.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_showinventory)
         node_refreshinventory = node_args.add_parser('refreshinventory', help="Collect a Node's Inventory over Redfish")
-        node_refreshinventory.add_argument('name', help='Node Name or Node Hostlist').completer = Helper().name_completer(self.table)
+        node_refreshinventory.add_argument('name', nargs='?',
+                                           help='Node Name or Node Hostlist').completer = Helper().name_completer(self.table)
+        node_refreshinventory.add_argument('-g', '--group',
+                                           help='Every node of this Group').completer = Helper().name_completer('group')
         node_refreshinventory.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
@@ -701,7 +704,12 @@ class Node():
         that has never been installed - or is simply powered off - has no inventory
         at all. This asks the BMC instead, which answers either way.
         """
-        node = self.args['name']
+        node = self.args.get('name')
+        if self.args.get('group'):
+            payload = {'config': {self.table: {'group': self.args['group']}}}
+            return self.collect_inventory(payload)
+        if not node:
+            return Message().error_exit('Give a node, a hostlist, or -g <group>', 400)
         hostlist = Helper().get_hostlist(node)
         if len(hostlist) == 1:
             response = Rest().get_raw(f'config/{self.table}/{node}/inventory/_redfish')
@@ -713,7 +721,11 @@ class Node():
             else:
                 Message().error_exit(message, response.status_code)
             return response
-        payload = {'config': {self.table: {'hostlist': node}}}
+        return self.collect_inventory({'config': {self.table: {'hostlist': node}}})
+
+
+    def collect_inventory(self, payload=None):
+        """Schedule a Redfish inventory sweep and stream what comes back."""
         response = Rest().post_raw(f'config/{self.table}/inventory/_redfish', payload)
         self.logger.debug(f'HTTP Response => {response.content}')
         if response.status_code != 200:
