@@ -46,6 +46,7 @@ BOOL_KEYS = [
     'nextnode_discover',
     'dhcp',
     'setupbmc',
+    'setupredfish',
     'netboot',
     'bootmenu',
     'service'
@@ -116,6 +117,16 @@ def parser_doc(table: str) -> types.SimpleNamespace:
                 the scheme, the port and whether the certificate is verified -
                 together with the accounts it logs in with. A node picks one up
                 from its group unless it names one of its own.
+            '''
+        },
+        "biosconfig": {
+            "help": "BIOS Configuration operations.",
+            "description":  '''\
+                Luna biosconfig manages BIOS settings grabbed off a golden node,
+                to be pushed to other nodes of the same hardware. A configuration
+                is created by 'luna node biosgrab' rather than by hand, and holds
+                only what the node's own attribute registry says may be carried
+                to another machine. Its exclude list can be changed here.
             '''
         },
         "switch": {
@@ -218,19 +229,22 @@ def actions(table: str) -> list:
     common_actions = ["list", "show", "add", "change", "rename", "clone", "remove"]
     network_actions = ["list", "show", "add", "change", "rename", "remove"]
     interface_actions = ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"]
-    inventory_actions = ["listinventory", "showinventory"]
+    inventory_actions = ["listinventory", "showinventory", "refreshinventory"]
     disklayout_actions = ["showdisklayout"]
     member_action = ["member"]
     static = {
         "cloud" : network_actions,
         "group": common_actions + member_action + ["ospush"] + interface_actions + disklayout_actions,
-        "node": common_actions + ["osgrab", "ospush"] + interface_actions + inventory_actions + disklayout_actions,
+        "node": common_actions + ["osgrab", "ospush", "biosgrab", "biospush"] + interface_actions + inventory_actions + disklayout_actions,
         "boot": ["status"],
         "profile": common_actions + member_action + ["status", "addfile", "changefile", "removefile"],
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],
         "osimage": common_actions + member_action + ["pack", "cancel", "kernel", "tag", "updatecerts"],
         "bmcsetup": common_actions + member_action,
         "redfishsetup": common_actions + member_action + ["addaccount", "changeaccount", "removeaccount"],
+        # no add and no clone: a configuration comes into existence by being
+        # grabbed off a node, never by being typed in
+        "biosconfig": ["list", "show", "change", "rename", "remove", "status"],
         "otherdev": common_actions,
         "switch" : common_actions + ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"],
         "control" : ["power", "sel", "chassis", "redfish"],
@@ -253,6 +267,7 @@ def filter_columns(table: str) -> list:
         'cloud': ['name', 'type'],
         'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
         'redfishsetup': ['name', 'scheme', 'port', 'verify', 'accounts'],
+        'biosconfig': ['name', 'manufacturer', 'model', 'biosversion', 'grabbedfrom', 'settings'],
         'group': ['name', 'bmcsetupname', 'osimage', 'roles', 'interfaces'],
         'groupinterface': ['interface', 'network', 'options', 'vlanid', 'vlan_parent',
                            'bond_mode', 'bond_slaves', 'dhcp', 'mtu'],
@@ -329,7 +344,8 @@ def sortby(table: str) -> list:
         'node': [
             'info', 'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions',
             'interfaces', 'routes', 'status', 'vendor', 'assettag', 'position', 'switch', 'switchport',
-            'cloud', 'setupbmc', 'bmcsetup', 'redfishsetup', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
+            'cloud', 'setupbmc', 'bmcsetup', 'setupredfish', 'redfishsetup',
+            'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
             'bootmenu', 'service', 'roles', 'scripts', 'profiles', '_prescript_source', 'prescript',
             '_partscript_source', 'partscript', '_postscript_source', 'postscript',
             'install_mode', '_disklayout_source', 'disklayout',
@@ -339,7 +355,8 @@ def sortby(table: str) -> list:
         ],
         'group': [
             'info', 'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
-            'routes', 'setupbmc', 'bmcsetupname', 'redfishsetupname', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
+            'routes', 'setupbmc', 'bmcsetupname', 'setupredfish', 'redfishsetupname',
+            'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
             'bootmenu', 'roles', 'scripts', 'profiles', 'prescript', 'partscript', 'postscript',
             'install_mode', 'disklayout', 'osimage_filter',
             'provision_interface', 'provision_method', 'provision_fallback', 'comment'
@@ -349,6 +366,8 @@ def sortby(table: str) -> list:
             'unmanaged_bmc_users', 'comment'
         ],
         'redfishsetup': ['name', 'scheme', 'port', 'verify', 'accounts', 'comment'],
+        'biosconfig': ['name', 'manufacturer', 'model', 'biosversion', 'grabbedfrom', 'settings',
+                       'grab_exclude', 'updated', 'comment'],
         'osimage': [
             'name', 'grab_filesystems', 'grab_exclude', 'initrdfile',
             'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions', 'path', 'imagefile',

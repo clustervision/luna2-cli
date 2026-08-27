@@ -150,6 +150,23 @@ class Node():
         rename_interface.add_argument('interface', help='Name of the Node Interface').completer = Helper().interface_name_completer(self.table)
         rename_interface.add_argument('newinterfacename', help='New Name of the Node Interface')
         rename_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        node_biosgrab = node_args.add_parser('biosgrab', help="Grab a Node's BIOS settings into a BIOS Configuration. "
+                                             'Only what the node\'s own attribute registry says may be carried '
+                                             'to another machine is stored')
+        node_biosgrab.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_biosgrab.add_argument('-b', '--biosconfig', required=True,
+                                   help='BIOS Configuration Name').completer = Helper().name_completer('biosconfig')
+        node_biosgrab.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        node_biospush = node_args.add_parser('biospush', help="Apply a stored BIOS Configuration to a Node. "
+                                             'The work is queued and reported as it goes, because a BIOS '
+                                             'change can need more than one reboot to land')
+        node_biospush.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_biospush.add_argument('-b', '--biosconfig', required=True,
+                                   help='BIOS Configuration Name').completer = Helper().name_completer('biosconfig')
+        node_biospush.add_argument('-m', '--version-match', choices=['strict', 'warn', 'ignore'],
+                                   help='What to do when the configuration was grabbed at a different '
+                                        'BIOS version than the node runs. Defaults to the cluster setting')
+        node_biospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_listinventory = node_args.add_parser('listinventory', help='List Hardware Inventory of All Nodes')
         Arguments().common_list_args(node_listinventory)
         node_showdisklayout = node_args.add_parser('showdisklayout', help="Show a Node's Disk Layout")
@@ -158,6 +175,12 @@ class Node():
         node_showinventory = node_args.add_parser('showinventory', help="Show a Node's Hardware Inventory")
         node_showinventory.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_showinventory)
+        node_refreshinventory = node_args.add_parser('refreshinventory', help="Collect a Node's Inventory over Redfish")
+        node_refreshinventory.add_argument('name', nargs='?',
+                                           help='Node Name or Node Hostlist').completer = Helper().name_completer(self.table)
+        node_refreshinventory.add_argument('-g', '--group',
+                                           help='Every node of this Group').completer = Helper().name_completer('group')
+        node_refreshinventory.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
 
@@ -671,6 +694,107 @@ class Node():
                              n.get('capabilities')] for n in nics]
                 Presenter().show_table(f' << {name} NICs [{source}] >>', nic_fields, nic_rows)
         return True
+
+
+    def refreshinventory_node(self):
+        """
+        Method to collect a node's hardware inventory over Redfish, out of band.
+
+        In-band collection only runs while a node is being provisioned, so a node
+        that has never been installed - or is simply powered off - has no inventory
+        at all. This asks the BMC instead, which answers either way.
+        """
+        node = self.args.get('name')
+        if self.args.get('group'):
+            payload = {'config': {self.table: {'group': self.args['group']}}}
+            return self.collect_inventory(payload)
+        if not node:
+            return Message().error_exit('Give a node, a hostlist, or -g <group>', 400)
+        hostlist = Helper().get_hostlist(node)
+        if len(hostlist) == 1:
+            response = Rest().get_raw(f'config/{self.table}/{node}/inventory/_redfish')
+            self.logger.debug(f'HTTP Response => {response.content}')
+            content = response.json() if response.content else {}
+            message = content.get('message', response.content)
+            if response.status_code in (200, 201, 204):
+                Message().show_success(f'{self.table_cap} {node} inventory collected: {message}')
+            else:
+                Message().error_exit(message, response.status_code)
+            return response
+        return self.collect_inventory({'config': {self.table: {'hostlist': node}}})
+
+
+    def collect_inventory(self, payload=None):
+        """Schedule a Redfish inventory sweep and stream what comes back."""
+        response = Rest().post_raw(f'config/{self.table}/inventory/_redfish', payload)
+        self.logger.debug(f'HTTP Response => {response.content}')
+        if response.status_code != 200:
+            content = response.json() if response.content else {}
+            return Message().error_exit(content.get('message', response.content),
+                                        response.status_code)
+        content = response.json()
+        request_id = content.get('request_id')
+        queued = content.get('config', {}).get(self.table, {}).get('inventory', {}).get('queued')
+        Message().show_success(f'Collecting inventory for {queued} nodes...')
+        if request_id:
+            Helper().dig_control_status(request_id, 1, 'inventory')
+        return response
+
+
+    def biosgrab_node(self):
+        """
+        Method to grab a node's BIOS settings into a stored configuration.
+
+        The daemon decides what may be carried, from the node's own attribute
+        registry: anything the machine marks as unique to itself, read-only,
+        immutable or write-only stays behind, as does anything the configuration's
+        exclude list names. The count of what was left behind is in the answer,
+        because a grab that quietly drops half a configuration looks exactly like
+        one that found half a configuration.
+        """
+        node = self.args['name']
+        config = self.args['biosconfig']
+        payload = {'config': {self.table: {node: {'biosconfig': config}}}}
+        response = Rest().post_raw(f'config/{self.table}/{node}/_biosgrab', payload)
+        self.logger.debug(f'HTTP Response => {response.content}')
+        content = response.json() if response.content else {}
+        message = content.get('message', response.content)
+        if response.status_code in (200, 201, 204):
+            Message().show_success(f'{message}')
+        else:
+            Message().error_exit(message, response.status_code)
+        return response
+
+
+    def biospush_node(self):
+        """
+        Method to apply a stored BIOS configuration to a node.
+
+        The daemon queues it and answers at once with a request to watch, because
+        a stage is a write, a reset and a wait for the machine to finish POST - and
+        a configuration whose attributes depend on one another takes more than one
+        of those. The plan is recomputed against the machine on every run rather
+        than remembered, so running this twice is safe and the second run is a
+        no-op when the first one landed.
+        """
+        node = self.args['name']
+        config = self.args['biosconfig']
+        record = {'biosconfig': config}
+        if self.args.get('version_match'):
+            record['version_match'] = self.args['version_match']
+        payload = {'config': {self.table: {node: record}}}
+        response = Rest().post_raw(f'config/{self.table}/{node}/_biospush', payload)
+        self.logger.debug(f'HTTP Response => {response.content}')
+        content = response.json() if response.content else {}
+        message = content.get('message', response.content)
+        if response.status_code not in (200, 201, 204):
+            return Message().error_exit(message, response.status_code)
+        request_id = content.get('request_id')
+        if not request_id:
+            return Message().show_success(f'{message}')
+        Message().show_success(f'{message}')
+        Helper().dig_control_status(request_id, 1, 'bios')
+        return response
 
 
     def changeinterface(self):

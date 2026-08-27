@@ -91,7 +91,14 @@ class Arguments():
         """
         parser.add_argument('-u', '--username', help='Username to log in to the BMC with')
         parser.add_argument('-p', '--password', help='Password')
-        parser.add_argument('-r', '--role', help='Redfish role, e.g. Administrator, Operator or ReadOnly')
+        # the three DMTF predefined roles are offered, and anything is accepted:
+        # a board may publish OEM roles of its own, and Luna treats a name it does
+        # not recognise as unknown rather than unusable
+        parser.add_argument('-r', '--role',
+                            help='Redfish role. Administrator, Operator and ReadOnly are '
+                                 'the predefined ones; a vendor role is accepted too'
+                            ).completer = Helper().value_completer(
+                                ['Administrator', 'Operator', 'ReadOnly'])
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
@@ -285,6 +292,25 @@ class Arguments():
         parser.add_argument('-z', '--zone', help='Internal or external Network Zone')
         parser.add_argument('-n', '--non_authoritative', choices=BOOL_CHOICES,
                                  metavar=BOOL_META, help='Set this network as non-authoritative for its DNS zone definition')
+        parser.add_argument('-c', '--comment', action='store_true', help='Comment')
+        parser.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
+        parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        return parser
+
+
+    def common_biosconfig_args(self, parser):
+        """
+        This method will provide the common biosconfig arguments.
+
+        Only the exclude list and the comment: everything else on a configuration
+        is what a machine reported about itself, and is written by a grab.
+        The -E/-qE pair is the same shape osimage uses for its own grab_exclude,
+        so an administrator who knows one knows the other.
+        """
+        parser.add_argument('-E', '--grab_exclude', action='store_true', help='Attribute name patterns excluded from a grab')
+        parser.add_argument('-qE', '--quick-grab_exclude', dest='grab_exclude',
+                                metavar="File-Path OR In-Line", help='Grab Excludes File-Path OR In-Line')
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
