@@ -1348,7 +1348,11 @@ class Helper():
                 else:
                     dictionary[key] = value
             elif isinstance(value, dict):
-                return self.nested_dict(dictionary, limit)
+                # the nested value, not the dictionary that holds it. Recursing on the
+                # container never gets smaller, so any response with a dictionary inside
+                # a dictionary spun until Python gave up - which is every --raw on a
+                # status view, and it is not new
+                dictionary[key] = self.nested_dict(value, limit)
             elif isinstance(value, list):
                 return self.nested_list(dictionary, key, value, limit)
         return dictionary
