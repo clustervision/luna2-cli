@@ -234,7 +234,7 @@ def actions(table: str) -> list:
     static = {
         "cloud" : network_actions,
         "group": common_actions + member_action + ["ospush"] + interface_actions + disklayout_actions,
-        "node": common_actions + ["osgrab", "ospush", "biosgrab"] + interface_actions + inventory_actions + disklayout_actions,
+        "node": common_actions + ["osgrab", "ospush", "biosgrab", "biospush"] + interface_actions + inventory_actions + disklayout_actions,
         "boot": ["status"],
         "profile": common_actions + member_action + ["status", "addfile", "changefile", "removefile"],
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],
@@ -243,7 +243,7 @@ def actions(table: str) -> list:
         "redfishsetup": common_actions + member_action + ["addaccount", "changeaccount", "removeaccount"],
         # no add and no clone: a configuration comes into existence by being
         # grabbed off a node, never by being typed in
-        "biosconfig": ["list", "show", "change", "rename", "remove"],
+        "biosconfig": ["list", "show", "change", "rename", "remove", "status"],
         "otherdev": common_actions,
         "switch" : common_actions + ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"],
         "control" : ["power", "sel", "chassis", "redfish"],

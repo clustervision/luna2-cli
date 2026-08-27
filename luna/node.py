@@ -157,6 +157,16 @@ class Node():
         node_biosgrab.add_argument('-b', '--biosconfig', required=True,
                                    help='BIOS Configuration Name').completer = Helper().name_completer('biosconfig')
         node_biosgrab.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        node_biospush = node_args.add_parser('biospush', help="Apply a stored BIOS Configuration to a Node. "
+                                             'The work is queued and reported as it goes, because a BIOS '
+                                             'change can need more than one reboot to land')
+        node_biospush.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_biospush.add_argument('-b', '--biosconfig', required=True,
+                                   help='BIOS Configuration Name').completer = Helper().name_completer('biosconfig')
+        node_biospush.add_argument('-m', '--version-match', choices=['strict', 'warn', 'ignore'],
+                                   help='What to do when the configuration was grabbed at a different '
+                                        'BIOS version than the node runs. Defaults to the cluster setting')
+        node_biospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_listinventory = node_args.add_parser('listinventory', help='List Hardware Inventory of All Nodes')
         Arguments().common_list_args(node_listinventory)
         node_showdisklayout = node_args.add_parser('showdisklayout', help="Show a Node's Disk Layout")
@@ -741,6 +751,37 @@ class Node():
             Message().show_success(f'{message}')
         else:
             Message().error_exit(message, response.status_code)
+        return response
+
+
+    def biospush_node(self):
+        """
+        Method to apply a stored BIOS configuration to a node.
+
+        The daemon queues it and answers at once with a request to watch, because
+        a stage is a write, a reset and a wait for the machine to finish POST - and
+        a configuration whose attributes depend on one another takes more than one
+        of those. The plan is recomputed against the machine on every run rather
+        than remembered, so running this twice is safe and the second run is a
+        no-op when the first one landed.
+        """
+        node = self.args['name']
+        config = self.args['biosconfig']
+        record = {'biosconfig': config}
+        if self.args.get('version_match'):
+            record['version_match'] = self.args['version_match']
+        payload = {'config': {self.table: {node: record}}}
+        response = Rest().post_raw(f'config/{self.table}/{node}/_biospush', payload)
+        self.logger.debug(f'HTTP Response => {response.content}')
+        content = response.json() if response.content else {}
+        message = content.get('message', response.content)
+        if response.status_code not in (200, 201, 204):
+            return Message().error_exit(message, response.status_code)
+        request_id = content.get('request_id')
+        if not request_id:
+            return Message().show_success(f'{message}')
+        Message().show_success(f'{message}')
+        Helper().dig_control_status(request_id, 1, 'bios')
         return response
 
 

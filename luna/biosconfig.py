@@ -86,6 +86,15 @@ class BiosConfig():
         biosconfig_rename.add_argument('name', help='BIOS Configuration Name').completer = Helper().name_completer(self.table)
         biosconfig_rename.add_argument('newbiosname', help='New BIOS Configuration Name')
         biosconfig_rename.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        biosconfig_status = biosconfig_args.add_parser('status', help='What every node was last seen holding')
+        biosconfig_status.add_argument('name', nargs='?',
+                                       help='Name of a single Node').completer = Helper().name_completer('node')
+        biosconfig_status.add_argument('-a', '--all', action='store_true', default=None,
+                                       help='Every node, not only the ones worth looking at')
+        biosconfig_status.add_argument('-R', '--raw', action='store_true', default=None,
+                                       help='Raw JSON output')
+        biosconfig_status.add_argument('-v', '--verbose', action='store_true', default=None,
+                                       help='Verbose Mode')
         biosconfig_remove = biosconfig_args.add_parser('remove', help='Remove a BIOS Configuration')
         biosconfig_remove.add_argument('name', help='BIOS Configuration Name').completer = Helper().name_completer(self.table)
         biosconfig_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
@@ -130,6 +139,58 @@ class BiosConfig():
                 return True
             rows = [[key, settings[key]] for key in sorted(settings)]
             Presenter().show_table(f' << {name} Settings >>', ['Attribute', 'Value'], rows)
+        return True
+
+
+    def status_biosconfig(self):
+        """
+        Method to show what every node was last seen holding.
+
+        Read entirely from stored inventory: no BMC is contacted, so this answers
+        for machines that are switched off, and it answers in one query rather
+        than one connection per node. The price of that is that it is a record of
+        the last time we looked, never of this moment - which is why every row
+        carries when that was, and why it does not pretend to say how many stages
+        a node still needs. Ask the machine for that, with 'luna node biospush'.
+        """
+        uri = f'{self.route}/status'
+        if self.args.get('name'):
+            uri = f'{uri}/{self.args["name"]}'
+        get_list = Rest().get_data(uri)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        if not get_list:
+            return Message().show_error('No BIOS status available.')
+        data = get_list['config'][self.table]['status']
+        summary = get_list['config'][self.table].get('summary') or {}
+        if self.args['raw']:
+            return Presenter().show_json(Helper().prepare_json(get_list['config'][self.table]))
+
+        # the counts answer 'is it fine'; the rows are only what is not. A line per
+        # node is useful on a rack and useless on a cluster, and the handful that
+        # need action are exactly what gets buried
+        if not self.args.get('name'):
+            counts = [[state, summary[state]] for state in sorted(summary)]
+            Presenter().show_table(' << BIOS Status >>', ['state', 'nodes'], counts)
+
+        show_all = self.args.get('all') or self.args.get('name')
+        rows, num = [], 1
+        for node in sorted(data):
+            row = data[node]
+            if not show_all and row['state'] in ('matched', 'unknown'):
+                continue
+            rows.append([num, node, row['config'] or '-', row['state'],
+                         row['bios_version'] or '-', row['digest'] or '-',
+                         row['since'] or '-'])
+            num += 1
+        if rows:
+            Presenter().show_table(
+                ' << BIOS Status >>',
+                ['#', 'node', 'config', 'state', 'bios', 'digest', 'last seen'], rows)
+        elif not show_all:
+            Message().show_success('Nothing needs attention.')
         return True
 
 
