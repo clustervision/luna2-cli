@@ -89,6 +89,8 @@ class BiosConfig():
         biosconfig_status = biosconfig_args.add_parser('status', help='What every node was last seen holding')
         biosconfig_status.add_argument('name', nargs='?',
                                        help='Name of a single Node').completer = Helper().name_completer('node')
+        biosconfig_status.add_argument('-g', '--group',
+                                       help='Only the nodes of this Group').completer = Helper().name_completer('group')
         biosconfig_status.add_argument('-a', '--all', action='store_true', default=None,
                                        help='Every node, not only the ones worth looking at')
         biosconfig_status.add_argument('-R', '--raw', action='store_true', default=None,
@@ -156,6 +158,8 @@ class BiosConfig():
         uri = f'{self.route}/status'
         if self.args.get('name'):
             uri = f'{uri}/{self.args["name"]}'
+        elif self.args.get('group'):
+            uri = f'{uri}/group/{self.args["group"]}'
         get_list = Rest().get_data(uri)
         if get_list.status_code == 200:
             get_list = get_list.content
@@ -181,14 +185,15 @@ class BiosConfig():
             row = data[node]
             if not show_all and row['state'] in ('matched', 'unknown'):
                 continue
-            rows.append([num, node, row['config'] or '-', row['state'],
-                         row['bios_version'] or '-', row['digest'] or '-',
-                         row['since'] or '-'])
+            rows.append([num, node, row.get('group') or '-', row['config'] or '-',
+                         row['state'], row['bios_version'] or '-',
+                         row['digest'] or '-', row['since'] or '-'])
             num += 1
         if rows:
             Presenter().show_table(
                 ' << BIOS Status >>',
-                ['#', 'node', 'config', 'state', 'bios', 'digest', 'last seen'], rows)
+                ['#', 'node', 'group', 'config', 'state', 'bios', 'digest',
+                 'last seen'], rows)
         elif not show_all:
             Message().show_success('Nothing needs attention.')
         return True
