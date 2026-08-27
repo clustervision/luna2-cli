@@ -223,3 +223,54 @@ def _registered_classes():
                     return {element.id for element in node.value.elts
                             if isinstance(element, ast.Name)}
     raise AssertionError('no `classes` list found in cli.py')
+
+
+@pytest.mark.parametrize('filename', list(_entity_modules()))
+def test_every_dispatchable_verb_has_a_method_to_run(filename):
+    """
+    The list above proves a verb is *accepted*. It does not prove anything will
+    happen when it is.
+
+    Dispatch is `methodcaller(f'{action}_{entity}')` - a name assembled at
+    runtime - so a verb that is in the parser and in the action list and has no
+    matching method parses, completes, passes every other check here, and then
+    raises AttributeError at the moment an operator runs it. Three lists agreeing
+    and a fourth thing missing.
+
+    Derived like the rest: the method names come off the class, so the next verb
+    is covered without anyone remembering this file.
+    """
+    import importlib
+
+    tree = _parsed(filename)
+    actions = _dispatch_actions(tree)
+    if actions is None:
+        pytest.skip(f'{filename} does not dispatch through an action list')
+    entity = filename[:-3]
+    module = importlib.import_module(f'luna.{entity}')
+    cls = next((getattr(module, name) for name in dir(module)
+                if name.lower() == entity and isinstance(getattr(module, name), type)), None)
+    if cls is None:
+        pytest.skip(f'{filename} has no {entity} class')
+
+    available = set(dir(cls))
+    scopes = {'node', 'group', 'cluster'}
+    missing = []
+    for verb in sorted(_parser_verbs(tree) & actions):
+        if verb in scopes:
+            continue
+        # three dispatch shapes are in use and all of them are legitimate: the
+        # bare verb (node's interface verbs), the verb with the entity appended
+        # (the common one), and the entity prefixed to the verb with a further
+        # sub-action after it (network_dns_add, and osimage's list_tag). A method
+        # that begins with any of those spellings counts as present
+        if verb in available or f'{verb}_{entity}' in available:
+            continue
+        if any(name.startswith((f'{verb}_', f'{entity}_{verb}')) for name in available):
+            continue
+        # and osimage's tag verbs, which put the verb last: list_tag, show_tag
+        if any(name.endswith(f'_{verb}') for name in available):
+            continue
+        missing.append(verb)
+    assert not missing, (f'{filename}: {missing} dispatch to a method that does not '
+                         f'exist - typing them raises AttributeError')
