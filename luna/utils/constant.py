@@ -46,6 +46,7 @@ BOOL_KEYS = [
     'nextnode_discover',
     'dhcp',
     'setupbmc',
+    'setupredfish',
     'netboot',
     'bootmenu',
     'service'
@@ -343,7 +344,8 @@ def sortby(table: str) -> list:
         'node': [
             'info', 'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions',
             'interfaces', 'routes', 'status', 'vendor', 'assettag', 'position', 'switch', 'switchport',
-            'cloud', 'setupbmc', 'bmcsetup', 'redfishsetup', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
+            'cloud', 'setupbmc', 'bmcsetup', 'setupredfish', 'redfishsetup',
+            'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
             'bootmenu', 'service', 'roles', 'scripts', 'profiles', '_prescript_source', 'prescript',
             '_partscript_source', 'partscript', '_postscript_source', 'postscript',
             'install_mode', '_disklayout_source', 'disklayout',
@@ -353,7 +355,8 @@ def sortby(table: str) -> list:
         ],
         'group': [
             'info', 'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
-            'routes', 'setupbmc', 'bmcsetupname', 'redfishsetupname', 'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
+            'routes', 'setupbmc', 'bmcsetupname', 'setupredfish', 'redfishsetupname',
+            'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
             'bootmenu', 'roles', 'scripts', 'profiles', 'prescript', 'partscript', 'postscript',
             'install_mode', 'disklayout', 'osimage_filter',
             'provision_interface', 'provision_method', 'provision_fallback', 'comment'
