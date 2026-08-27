@@ -108,6 +108,22 @@ class Helper():
         return completer
 
 
+    def value_completer(self, values):
+        """
+        This method returns a completer offering a fixed list of values.
+
+        It suggests without restricting, which is the point: argparse choices would
+        also validate, and a Redfish role must not be validated against a list of
+        ours. A vendor may define roles with any privilege set it likes, so an
+        unrecognised name is unknown rather than wrong - the daemon treats it that
+        way, and the command line has to agree or an operator cannot type the name
+        their board actually uses.
+        """
+        def completer(prefix, parsed_args, **kwargs):
+            return [value for value in values if value.startswith(prefix)]
+        return completer
+
+
     def secret_name_completer(self, kind, entity=None):
         """
         This method returns a completer function for the given kind of resource.
