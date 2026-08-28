@@ -129,6 +129,18 @@ def parser_doc(table: str) -> types.SimpleNamespace:
                 to another machine. Its exclude list can be changed here.
             '''
         },
+        "firmwarecatalog": {
+            "help": "Firmware Catalogue operations.",
+            "description":  '''\
+                Luna firmwarecatalog holds the version each firmware component
+                should be running, per kind of hardware, and the image that
+                carries it. It is keyed on the manufacturer and model a board
+                reports and never on a group, because one group routinely holds
+                more than one platform. An entry is written here rather than
+                grabbed from a machine: it is desired state, so it has to be
+                stated. Apply it with 'luna node firmwarepush'.
+            '''
+        },
         "switch": {
             "help": "Switch operations.",
             "description":  '''\
@@ -234,8 +246,8 @@ def actions(table: str) -> list:
     member_action = ["member"]
     static = {
         "cloud" : network_actions,
-        "group": common_actions + member_action + ["ospush"] + interface_actions + disklayout_actions,
-        "node": common_actions + ["osgrab", "ospush", "biosgrab", "biospush"] + interface_actions + inventory_actions + disklayout_actions,
+        "group": common_actions + member_action + ["ospush", "firmwarepush"] + interface_actions + disklayout_actions,
+        "node": common_actions + ["osgrab", "ospush", "biosgrab", "biospush", "firmwarepush"] + interface_actions + inventory_actions + disklayout_actions,
         "boot": ["status"],
         "profile": common_actions + member_action + ["status", "addfile", "changefile", "removefile"],
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],
@@ -245,6 +257,10 @@ def actions(table: str) -> list:
         # no add and no clone: a configuration comes into existence by being
         # grabbed off a node, never by being typed in
         "biosconfig": ["list", "show", "change", "rename", "remove", "status"],
+        # an entry is desired state, written by hand, so unlike biosconfig it has
+        # an add. There is no clone: two entries differing in one field is how a
+        # catalogue starts disagreeing with itself about the same hardware
+        "firmwarecatalog": ["list", "show", "add", "change", "rename", "remove", "status"],
         "otherdev": common_actions,
         "switch" : common_actions + ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"],
         "control" : ["power", "sel", "chassis", "redfish"],
@@ -268,6 +284,7 @@ def filter_columns(table: str) -> list:
         'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
         'redfishsetup': ['name', 'scheme', 'port', 'verify', 'accounts'],
         'biosconfig': ['name', 'manufacturer', 'model', 'biosversion', 'grabbedfrom', 'settings'],
+        'firmwarecatalog': ['name', 'manufacturer', 'model', 'component', 'version', 'imagefile'],
         'group': ['name', 'bmcsetupname', 'osimage', 'roles', 'interfaces'],
         'groupinterface': ['interface', 'network', 'options', 'vlanid', 'vlan_parent',
                            'bond_mode', 'bond_slaves', 'dhcp', 'mtu'],
@@ -368,6 +385,8 @@ def sortby(table: str) -> list:
         'redfishsetup': ['name', 'scheme', 'port', 'verify', 'accounts', 'comment'],
         'biosconfig': ['name', 'manufacturer', 'model', 'biosversion', 'grabbedfrom', 'settings',
                        'grab_exclude', 'updated', 'comment'],
+        'firmwarecatalog': ['name', 'manufacturer', 'model', 'component', 'version', 'imagefile',
+                            'updated', 'comment'],
         'osimage': [
             'name', 'grab_filesystems', 'grab_exclude', 'initrdfile',
             'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions', 'path', 'imagefile',

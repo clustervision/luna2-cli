@@ -318,6 +318,28 @@ class Arguments():
         return parser
 
 
+    def common_firmwarecatalog_args(self, parser):
+        """
+        This method will provide the common firmware catalogue arguments.
+
+        The three that make an entry addressable - the hardware it is for, the
+        component it updates and the version - are what the daemon requires at
+        creation, and they are not marked required here: change reuses this
+        parser, and an entry that already has them does not want them typed
+        again to alter one field.
+        """
+        parser.add_argument('-m', '--manufacturer', help='Manufacturer, as the board reports it')
+        parser.add_argument('-M', '--model', help='Model, as the board reports it')
+        parser.add_argument('-C', '--component', help='Component this entry updates, e.g. BMC or BIOS')
+        parser.add_argument('-V', '--version', help='Version this hardware should be running')
+        parser.add_argument('-i', '--imagefile', help='Image file carrying that version')
+        parser.add_argument('-c', '--comment', action='store_true', help='Comment')
+        parser.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
+        parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        return parser
+
+
     def common_osimage_args(self, parser):
         """
         This method will provide the common osimage arguments.

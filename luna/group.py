@@ -38,6 +38,7 @@ from luna.utils.log import Log
 from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
+from luna.firmwarecatalog import firmware_push
 
 class Group():
     """
@@ -110,6 +111,16 @@ class Group():
         group_ospush.add_argument('--nodry', action='store_true', default=None,
                                   help='No Dry flag to avoid dry run')
         group_ospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        group_firmwarepush = group_args.add_parser('firmwarepush', help='Update the firmware of all Group member Nodes '
+                                                   'to what the catalogue asks. Use --dry-run first.')
+        group_firmwarepush.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        group_firmwarepush.add_argument('-C', '--component',
+                                        help='Only this component, e.g. BMC or BIOS')
+        group_firmwarepush.add_argument('-n', '--dry-run', action='store_true', default=None,
+                                        help='Say what would happen and record nothing')
+        group_firmwarepush.add_argument('-R', '--raw', action='store_true', default=None,
+                                        help='Raw JSON output of a dry run')
+        group_firmwarepush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         group_interfaces = group_args.add_parser('listinterface', help='List Group Interfaces')
         group_interfaces.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(group_interfaces)
@@ -298,6 +309,19 @@ class Group():
         Method to push an osimage to a group.
         """
         return Helper().push_osimage(self.table, self.args)
+
+
+    def firmwarepush_group(self):
+        """
+        Method to update the firmware of every node of a group.
+
+        Answered per node and not per group. A group is an operational grouping
+        and not a statement about what is in the chassis - it routinely holds more
+        than one platform - so each member's own hardware selects its own
+        catalogue entries, and a member the catalogue does not cover is reported
+        rather than taking the rest of the group down with it.
+        """
+        return firmware_push(self.table, self.args)
 
 
     def clone_group(self):
