@@ -47,6 +47,7 @@ try:
     from luna.bmcsetup import BMCSetup
     from luna.redfishsetup import RedfishSetup
     from luna.biosconfig import BiosConfig
+    from luna.firmwarecatalog import FirmwareCatalog
     from luna.node import Node
     from luna.switch import Switch
     from luna.otherdev import OtherDev
@@ -67,6 +68,7 @@ try:
         BMCSetup,
         RedfishSetup,
         BiosConfig,
+        FirmwareCatalog,
         Switch,
         OtherDev,
         Group,
@@ -160,6 +162,8 @@ class Cli():
                     call = globals()["RedfishSetup"]
                 elif self.args["command"] == "biosconfig":
                     call = globals()["BiosConfig"]
+                elif self.args["command"] == "firmwarecatalog":
+                    call = globals()["FirmwareCatalog"]
                 elif self.args["command"] == "otherdev":
                     call = globals()["OtherDev"]
                 else:

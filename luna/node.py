@@ -39,6 +39,7 @@ from luna.utils.log import Log
 from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
+from luna.firmwarecatalog import firmware_push
 
 
 class Node():
@@ -167,6 +168,16 @@ class Node():
                                    help='What to do when the configuration was grabbed at a different '
                                         'BIOS version than the node runs. Defaults to the cluster setting')
         node_biospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        node_firmwarepush = node_args.add_parser('firmwarepush', help="Update a Node's firmware to what the catalogue asks. "
+                                                 "Use --dry-run first to see what it would do.")
+        node_firmwarepush.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_firmwarepush.add_argument('-C', '--component',
+                                       help='Only this component, e.g. BMC or BIOS')
+        node_firmwarepush.add_argument('-n', '--dry-run', action='store_true', default=None,
+                                       help='Say what would happen and record nothing')
+        node_firmwarepush.add_argument('-R', '--raw', action='store_true', default=None,
+                                       help='Raw JSON output of a dry run')
+        node_firmwarepush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_listinventory = node_args.add_parser('listinventory', help='List Hardware Inventory of All Nodes')
         Arguments().common_list_args(node_listinventory)
         node_showdisklayout = node_args.add_parser('showdisklayout', help="Show a Node's Disk Layout")
@@ -795,6 +806,20 @@ class Node():
         Message().show_success(f'{message}')
         Helper().dig_control_status(request_id, 1, 'bios')
         return response
+
+
+    def firmwarepush_node(self):
+        """
+        Method to update a node's firmware to what the catalogue asks.
+
+        The catalogue decides per node, from the hardware the board reported, so
+        this asks for nothing that is not covered and refuses rather than guessing
+        a version. The daemon records the request and the sweeper carries it out:
+        a component takes minutes and a board can need several, so there is
+        nothing to hold a connection open for. Read the outcome with
+        'luna firmwarecatalog status'.
+        """
+        return firmware_push(self.table, self.args)
 
 
     def changeinterface(self):
