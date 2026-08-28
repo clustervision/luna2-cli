@@ -419,14 +419,13 @@ class Helper():
         """
         Method to render the v2 disklayout of a node or group as tables.
 
-        The layout is already carried by the ordinary show payload, so this reads
-        the same record rather than asking the daemon for anything new. It also
-        reports where the layout came from: _<field>_source says whether the node
-        holds its own or inherits the group's, which is the first thing anyone
-        reading a layout wants to know.
+        Reads the dedicated /config/<table>/<name>/disklayout route, which returns
+        just the layout and its _disklayout_source rather than the whole record -
+        the source says whether the node holds its own layout or inherits the
+        group's, which is the first thing anyone reading a layout wants to know.
         """
         row_name = args['name']
-        get_list = Rest().get_data(table, row_name)
+        get_list = Rest().get_data(table, row_name + '/disklayout')
         if get_list.status_code == 200:
             get_list = get_list.content
         else:
