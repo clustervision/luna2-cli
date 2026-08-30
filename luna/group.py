@@ -39,6 +39,7 @@ from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
 from luna.firmwarecatalog import firmware_push
+from luna.biosconfig import bios_push
 
 class Group():
     """
@@ -111,6 +112,16 @@ class Group():
         group_ospush.add_argument('--nodry', action='store_true', default=None,
                                   help='No Dry flag to avoid dry run')
         group_ospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        group_biospush = group_args.add_parser('biospush', help="Apply a BIOS Configuration to every node of a Group. "
+                                               'Without a name, each node gets what it is assigned - its own, '
+                                               'else the group\'s - and the request is refused if one has none')
+        group_biospush.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        group_biospush.add_argument('-b', '--biosconfig',
+                                    help='BIOS Configuration Name').completer = Helper().name_completer('biosconfig')
+        group_biospush.add_argument('-m', '--version-match', choices=['strict', 'warn', 'ignore'],
+                                    help='What to do when the configuration was grabbed at a different '
+                                         'BIOS version than a node runs. Defaults to the cluster setting')
+        group_biospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         group_firmwarepush = group_args.add_parser('firmwarepush', help='Update the firmware of all Group member Nodes '
                                                    'to what the catalogue asks. Use --dry-run first.')
         group_firmwarepush.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
@@ -302,6 +313,15 @@ class Group():
         Method to remove a group in Luna Configuration.
         """
         return Helper().delete_record(self.table, self.args)
+
+
+    def biospush_group(self):
+        """
+        Method to apply a BIOS configuration to every node of a group - the one
+        named, or each node's assignment. Queued and reported as it goes, as the
+        node form is.
+        """
+        return bios_push(self.table, self.args)
 
 
     def ospush_group(self):
