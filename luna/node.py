@@ -40,6 +40,7 @@ from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
 from luna.firmwarecatalog import firmware_push
+from luna.biosconfig import bios_push
 
 
 class Node():
@@ -162,8 +163,9 @@ class Node():
                                              'The work is queued and reported as it goes, because a BIOS '
                                              'change can need more than one reboot to land')
         node_biospush.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
-        node_biospush.add_argument('-b', '--biosconfig', required=True,
-                                   help='BIOS Configuration Name').completer = Helper().name_completer('biosconfig')
+        node_biospush.add_argument('-b', '--biosconfig',
+                                   help='BIOS Configuration Name; without it, what the node is '
+                                        'assigned (node, then group) is pushed').completer = Helper().name_completer('biosconfig')
         node_biospush.add_argument('-m', '--version-match', choices=['strict', 'warn', 'ignore'],
                                    help='What to do when the configuration was grabbed at a different '
                                         'BIOS version than the node runs. Defaults to the cluster setting')
@@ -748,7 +750,7 @@ class Node():
         queued = content.get('config', {}).get(self.table, {}).get('inventory', {}).get('queued')
         Message().show_success(f'Collecting inventory for {queued} nodes...')
         if request_id:
-            Helper().dig_control_status(request_id, 1, 'inventory')
+            Helper().dig_status(request_id, 1, 'inventory')
         return response
 
 
@@ -788,24 +790,7 @@ class Node():
         than remembered, so running this twice is safe and the second run is a
         no-op when the first one landed.
         """
-        node = self.args['name']
-        config = self.args['biosconfig']
-        record = {'biosconfig': config}
-        if self.args.get('version_match'):
-            record['version_match'] = self.args['version_match']
-        payload = {'config': {self.table: {node: record}}}
-        response = Rest().post_raw(f'config/{self.table}/{node}/_biospush', payload)
-        self.logger.debug(f'HTTP Response => {response.content}')
-        content = response.json() if response.content else {}
-        message = content.get('message', response.content)
-        if response.status_code not in (200, 201, 204):
-            return Message().error_exit(message, response.status_code)
-        request_id = content.get('request_id')
-        if not request_id:
-            return Message().show_success(f'{message}')
-        Message().show_success(f'{message}')
-        Helper().dig_control_status(request_id, 1, 'bios')
-        return response
+        return bios_push(self.table, self.args)
 
 
     def firmwarepush_node(self):

@@ -1035,23 +1035,55 @@ class Helper():
         return count
 
 
-    def dig_control_status(self, request_id=None, count=None, system=None):
+    def dig_status(self, request_id=None, count=None, system=None, route='control'):
         """
-        This method will fetch the status of Control API.
+        This method streams a request's status until the daemon says the stream
+        ended, and returns whether everything it saw succeeded.
+
+        One poller for both status channels, because there is one status table
+        behind them and only the rendering differs. The control channel parses
+        every message as node:command result:message and answers a structured
+        per-node result; the generic one answers the lines as they were written.
+        Work reporting free-text progress - a BIOS push, a stage at a time - has
+        to read the generic one: a plain line makes the control endpoint fail
+        rather than print it, and then nothing after it is shown either.
+
+        Which channel is the caller's to say, since only the caller knows what
+        its own work writes. Which renderer is not: the reply says which shape it
+        is, so a caller cannot name a channel and get the wrong printer.
+
+        A loop rather than the recursion this grew from: a BIOS push polls every
+        two seconds across reboots, which is deep enough for that to matter.
         """
-        uri = f'control/status/{request_id}'
-        sleep(2)
-        status = Rest().get_raw(uri)
-        status_json = status.json()
-        if status.status_code == 200:
-            count = Helper().control_print(system, status_json, count)
-            return self.dig_control_status(request_id, count, system)
-        elif status.status_code == 404:
-            hr_line = 'X--------------------------------------------'
-            hr_line += '--------------------------------------------X'
-            Message().show_success(hr_line)
-        else:
-            Message().show_error(f"Something Went Wrong {status.status_code}")
+        count = count or 1
+        outcome = True
+        while True:
+            sleep(2)
+            status = Rest().get_raw(f'{route}/status/{request_id}')
+            if status is False:
+                # get_raw answers False on an SSL error without exiting. Tested
+                # against the sentinel and not for truth: a Response is falsy for
+                # any code outside 2xx, so 'not status' would swallow the 404 that
+                # ends the stream and poll for ever
+                continue
+            if status.status_code == 404:
+                hr_line = 'X--------------------------------------------'
+                hr_line += '--------------------------------------------X'
+                Message().show_success(hr_line)
+                return outcome
+            if status.status_code != 200:
+                Message().show_error(f"Something Went Wrong {status.status_code}")
+                return False
+            content = status.json()
+            if 'control' in content:
+                count = Helper().control_print(system, content, count)
+                continue
+            # this batch's own status, not the running outcome: marking every
+            # later line FAILED because an earlier one was is a lie about them
+            failed = content.get('status') not in (200, None)
+            outcome = outcome and not failed
+            for line in [entry for entry in (content.get('message') or '').split(';;') if entry]:
+                Message().show_success(f'[{"FAILED" if failed else "======"}] {line}')
 
 
     def filter_deviated(self, data=None):

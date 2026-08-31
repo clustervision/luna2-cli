@@ -126,7 +126,11 @@ def parser_doc(table: str) -> types.SimpleNamespace:
                 to be pushed to other nodes of the same hardware. A configuration
                 is created by 'luna node biosgrab' rather than by hand, and holds
                 only what the node's own attribute registry says may be carried
-                to another machine. Its exclude list can be changed here.
+                to another machine. Its exclude list can be changed here, and a
+                clone of it becomes a profile once entries are changed on it
+                by concept (--set hyperthreading=off). Assign a configuration to
+                a node or a group (--biosconfig) and 'biospush' with no name
+                pushes what is assigned.
             '''
         },
         "firmwarecatalog": {
@@ -246,7 +250,7 @@ def actions(table: str) -> list:
     member_action = ["member"]
     static = {
         "cloud" : network_actions,
-        "group": common_actions + member_action + ["ospush", "firmwarepush"] + interface_actions + disklayout_actions,
+        "group": common_actions + member_action + ["ospush", "biospush", "firmwarepush"] + interface_actions + disklayout_actions,
         "node": common_actions + ["osgrab", "ospush", "biosgrab", "biospush", "firmwarepush"] + interface_actions + inventory_actions + disklayout_actions,
         "boot": ["status"],
         "profile": common_actions + member_action + ["status", "addfile", "changefile", "removefile"],
@@ -254,9 +258,9 @@ def actions(table: str) -> list:
         "osimage": common_actions + member_action + ["pack", "cancel", "kernel", "tag", "updatecerts"],
         "bmcsetup": common_actions + member_action,
         "redfishsetup": common_actions + member_action + ["addaccount", "changeaccount", "removeaccount"],
-        # no add and no clone: a configuration comes into existence by being
-        # grabbed off a node, never by being typed in
-        "biosconfig": ["list", "show", "change", "rename", "remove", "status"],
+        # no add: a configuration comes into existence by being grabbed off a
+        # node, never by being typed in. A clone of that grab is a profile
+        "biosconfig": ["list", "show", "change", "clone", "rename", "remove", "status"],
         # an entry is desired state, written by hand, so unlike biosconfig it has
         # an add. There is no clone: two entries differing in one field is how a
         # catalogue starts disagreeing with itself about the same hardware
@@ -326,7 +330,7 @@ def overrides(table=None):
     response = False
     static = {
         'node': [
-            'osimage', 'osimagetag', 'kerneloptions', 'setupbmc', 'bmcsetup', 'redfishsetup', 'netboot', 'ipxe_kernel',
+            'osimage', 'osimagetag', 'kerneloptions', 'setupbmc', 'bmcsetup', 'redfishsetup', 'biosconfig', 'netboot', 'ipxe_kernel',
             'bootmenu', 'roles', 'scripts', 'prescript', 'partscript', 'postscript',
             'install_mode', 'disklayout', 'osimage_filter',
             'provision_interface', 'provision_method', 'provision_fallback', 'routes',
@@ -361,7 +365,7 @@ def sortby(table: str) -> list:
         'node': [
             'info', 'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions',
             'interfaces', 'routes', 'status', 'vendor', 'assettag', 'position', 'switch', 'switchport',
-            'cloud', 'setupbmc', 'bmcsetup', 'setupredfish', 'redfishsetup',
+            'cloud', 'setupbmc', 'bmcsetup', 'setupredfish', 'redfishsetup', 'biosconfig',
             'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
             'bootmenu', 'service', 'roles', 'scripts', 'profiles', '_prescript_source', 'prescript',
             '_partscript_source', 'partscript', '_postscript_source', 'postscript',
@@ -372,7 +376,7 @@ def sortby(table: str) -> list:
         ],
         'group': [
             'info', 'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
-            'routes', 'setupbmc', 'bmcsetupname', 'setupredfish', 'redfishsetupname',
+            'routes', 'setupbmc', 'bmcsetupname', 'setupredfish', 'redfishsetupname', 'biosconfig',
             'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
             'bootmenu', 'roles', 'scripts', 'profiles', 'prescript', 'partscript', 'postscript',
             'install_mode', 'disklayout', 'osimage_filter',

@@ -157,7 +157,7 @@ class Control():
                     request_id = content['request_id'] if 'request_id' in content else None
                     count = Helper().control_print(self.args['system'], content ,1)
                     if request_id:
-                        Helper().dig_control_status(request_id, count, self.args['system'])
+                        Helper().dig_status(request_id, count, self.args['system'])
                         control_process.terminate()
         return response
 
@@ -207,7 +207,7 @@ class Control():
             request_id = content['request_id'] if 'request_id' in content else None
             count = Helper().control_print(self.args['system'], content, 1)
             if request_id:
-                Helper().dig_control_status(request_id, count, self.args['system'])
+                Helper().dig_status(request_id, count, self.args['system'])
         finally:
             control_process.terminate()
         return response

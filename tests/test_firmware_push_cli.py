@@ -149,3 +149,42 @@ def test_a_dry_run_that_would_change_nothing_says_so(wire, monkeypatch):
     push('node', dry_run=True)
     assert wire['tables'] == []
     assert ('show_success', 'Nothing would change.') in wire['messages']
+
+
+STATUS = {'config': {'firmwarecatalog': {
+    'status': {'node001': {'group': 'compute', 'component': 'BMC', 'request_id': 'r1',
+                           'state': 'done', 'message': 'BMC now at the catalogue version',
+                           'restore': 'pending', 'since': '2026-08-30'},
+               'node002': {'group': 'compute', 'component': 'BMC', 'request_id': 'r1',
+                           'state': 'done', 'message': 'BMC now at the catalogue version',
+                           'restore': 'done: BMC answers; nothing to restore', 'since': '2026-08-30'}},
+    'summary': {'done': 2}}}}
+
+
+def status(wire, monkeypatch, **args):
+    import luna.firmwarecatalog as firmware
+    monkeypatch.setattr(firmware.Rest, 'get_data',
+                        lambda self, uri, *a, **k: wire['fetched'].append(uri) or FakeResponse(payload=STATUS),
+                        raising=False)
+    record = {'action': 'status', 'name': None, 'group': None, 'raw': None, 'all': None, 'verbose': None}
+    record.update(args)
+    cmd = firmware.FirmwareCatalog.__new__(firmware.FirmwareCatalog)
+    cmd.args, cmd.table, cmd.route = record, 'firmwarecatalog', 'firmwarecatalog'
+    return cmd.status_firmwarecatalog()
+
+
+def test_status_shows_the_restore_a_flash_owes_and_keeps_it_in_view_until_settled(wire, monkeypatch):
+    """
+    A BMC flash is not over when the flash is: the node still owes a restore. So the
+    restore column is shown, and a done request with a pending restore still needs
+    attention - hiding it with the done ones is how the admin learns of it from the board.
+    """
+    status(wire, monkeypatch)
+    table = [t for t in wire['tables'] if t['fields'][0] == '#'][0]
+    assert table['fields'][-1] == 'restore'
+    assert [row[1] for row in table['rows']] == ['node001']
+    assert table['rows'][0][-1] == 'pending'
+    wire['tables'].clear()
+    status(wire, monkeypatch, all=True)
+    table = [t for t in wire['tables'] if t['fields'][0] == '#'][0]
+    assert [row[-1] for row in table['rows']] == ['pending', 'done: BMC answers; nothing to restore']

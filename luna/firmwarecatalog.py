@@ -192,15 +192,18 @@ class FirmwareCatalog():
         rows, num = [], 1
         for node in sorted(data):
             row = data[node]
-            if not show_all and row['state'] == 'done':
+            # a flash that reset the BMC is not over until the restore it owes has
+            # settled, so a done request with a pending restore still needs attention
+            if not show_all and row['state'] == 'done' and row.get('restore', '') != 'pending':
                 continue
             rows.append([num, node, row.get('group') or '-', row['component'] or 'all',
-                         row['state'], row['since'] or '-', row['message'] or '-'])
+                         row['state'], row['since'] or '-', row['message'] or '-',
+                         row.get('restore') or '-'])
             num += 1
         if rows:
             Presenter().show_table(
                 ' << Firmware Status >>',
-                ['#', 'node', 'group', 'component', 'state', 'since', 'message'], rows)
+                ['#', 'node', 'group', 'component', 'state', 'since', 'message', 'restore'], rows)
         elif not show_all:
             Message().show_success('Nothing needs attention.')
         return True

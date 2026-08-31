@@ -39,15 +39,57 @@ from luna.utils.message import Message
 from luna.utils.arguments import Arguments
 
 
+def bios_push(table=None, args=None):
+    """
+    Push a BIOS configuration to a node or to every node of a group - the one
+    named with --biosconfig, or, without one, what each node is assigned.
+
+    The daemon queues it and answers at once with a request to watch, because a
+    stage is a write, a reset and a wait for the machine to finish POST - and a
+    configuration whose attributes depend on one another takes more than one of
+    those. The plan is recomputed against the machine on every run rather than
+    remembered, so running this twice is safe and the second run is a no-op when
+    the first one landed. Shared by the node and the group form, which differ
+    only in what they are aimed at.
+    """
+    name = args['name']
+    record = {}
+    if args.get('biosconfig'):
+        record['biosconfig'] = args['biosconfig']
+    if args.get('version_match'):
+        record['version_match'] = args['version_match']
+    payload = {'config': {table: {name: record}}}
+    response = Rest().post_raw(f'config/{table}/{name}/_biospush', payload)
+    content = response.json() if response.content else {}
+    message = content.get('message', response.content)
+    if response.status_code not in (200, 201, 204):
+        return Message().error_exit(message, response.status_code)
+    request_id = content.get('request_id')
+    if not request_id:
+        return Message().show_success(f'{message}')
+    Message().show_success(f'{message}')
+    # the generic channel, not the control one: a push reports free-text progress
+    # per node and per stage, which the control endpoint's parser cannot read
+    if not Helper().dig_status(request_id, 1, 'bios', route='config'):
+        # exits non-zero, as the osimage pack and clone paths do for the same
+        # reason: a push that reported failures must be detectable by a script,
+        # not only readable by whoever watched it
+        Message().show_failed_exit(f'[ FAILED ] BIOS push for {table} {name} finished '
+                                   'with failures - see the lines above')
+    return response
+
+
 class BiosConfig():
     """
-    BIOS Configuration Class, responsible to list, show, change, rename and
-    remove a stored BIOS configuration.
+    BIOS Configuration Class, responsible to list, show, change, clone, rename
+    and remove a stored BIOS configuration.
 
     There is deliberately no add: a configuration comes into existence by being
     grabbed off a node - see 'luna node biosgrab' - because a set of BIOS
     settings nobody's hardware ever reported is exactly what a golden node is
-    there to avoid.
+    there to avoid. A profile is a clone of that grab with a few entries changed
+    by concept (--set hyperthreading=off), each validated against the registry
+    of the board the configuration came from.
     """
 
     def __init__(self, args=None, parser=None, subparsers=None):
@@ -82,6 +124,16 @@ class BiosConfig():
         biosconfig_change = biosconfig_args.add_parser('change', help='Change a BIOS Configuration')
         biosconfig_change.add_argument('name', help='BIOS Configuration Name').completer = Helper().name_completer(self.table)
         Arguments().common_biosconfig_args(biosconfig_change)
+        biosconfig_change.add_argument('-S', '--set', action='append', metavar='ENTRY=VALUE',
+                                       help='Change one entry: a concept (hyperthreading=off, '
+                                            'sriov=on, boot_mode=uefi) or an attribute name as the '
+                                            'board publishes it. Repeatable. Refused by name for '
+                                            'anything the board type cannot express')
+        biosconfig_clone = biosconfig_args.add_parser('clone', help='Clone a BIOS Configuration, '
+                                                      'to change entries on the copy')
+        biosconfig_clone.add_argument('name', help='BIOS Configuration Name').completer = Helper().name_completer(self.table)
+        biosconfig_clone.add_argument('newbiosname', help='New BIOS Configuration Name')
+        biosconfig_clone.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         biosconfig_rename = biosconfig_args.add_parser('rename', help='Rename a BIOS Configuration')
         biosconfig_rename.add_argument('name', help='BIOS Configuration Name').completer = Helper().name_completer(self.table)
         biosconfig_rename.add_argument('newbiosname', help='New BIOS Configuration Name')
@@ -185,14 +237,14 @@ class BiosConfig():
             row = data[node]
             if not show_all and row['state'] in ('matched', 'unknown'):
                 continue
-            rows.append([num, node, row.get('group') or '-', row['config'] or '-',
-                         row['state'], row['bios_version'] or '-',
+            rows.append([num, node, row.get('group') or '-', row.get('assigned') or '-',
+                         row['config'] or '-', row['state'], row['bios_version'] or '-',
                          row['digest'] or '-', row['since'] or '-'])
             num += 1
         if rows:
             Presenter().show_table(
                 ' << BIOS Status >>',
-                ['#', 'node', 'group', 'config', 'state', 'bios', 'digest',
+                ['#', 'node', 'group', 'assigned', 'holding', 'state', 'bios', 'digest',
                  'last seen'], rows)
         elif not show_all:
             Message().show_success('Nothing needs attention.')
@@ -201,13 +253,35 @@ class BiosConfig():
 
     def change_biosconfig(self):
         """
-        This method updates what an administrator owns on a BIOS configuration.
+        This method updates what an administrator owns on a BIOS configuration:
+        its exclude list, its comment, and individual entries through --set.
+
+        The entries are sent as typed; the daemon resolves a concept to the
+        attribute the board type publishes and refuses by name what it cannot,
+        so nothing here knows a vendor's spelling either.
         """
+        entries = self.args.pop('set', None)
+        if entries:
+            resolved = {}
+            for entry in entries:
+                key, separator, value = str(entry).partition('=')
+                if not separator or not key.strip():
+                    Message().error_exit(f'--set takes ENTRY=VALUE, not {entry!r}')
+                resolved[key.strip()] = value.strip()
+            self.args['set'] = resolved
         change = Helper().compare_data(self.table, self.args)
         if change is True:
             Helper().update_record(self.table, self.args)
         else:
             Message().show_error('Nothing is changed, Kindly change something to update')
+
+
+    def clone_biosconfig(self):
+        """
+        This method clones a BIOS configuration under a new name - the start of
+        a profile, before entries are changed on it.
+        """
+        return Helper().clone_record(self.table, self.args)
 
 
     def rename_biosconfig(self):
