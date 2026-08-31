@@ -178,3 +178,32 @@ def test_a_later_good_line_is_not_marked_failed_by_an_earlier_bad_one(polled, ca
     printed = capsys.readouterr().out
     assert '[FAILED] 12:00:00 :: node002: refused' in printed
     assert '[======] 12:00:04 :: node003: applied' in printed
+
+
+def test_a_failed_push_exits_non_zero(monkeypatch, capsys):
+    """
+    A push that reported failures has to be detectable by a script, not only
+    readable by whoever watched it. Same signal the osimage pack and clone
+    paths give for the same reason.
+    """
+    import luna.biosconfig as biosconfig
+    monkeypatch.setattr(biosconfig.Rest, 'post_raw',
+                        lambda self, route, payload: FakeResponse(200, {'message': 'queued',
+                                                                       'request_id': 'req-11'}))
+    monkeypatch.setattr(biosconfig.Helper, 'dig_status',
+                        lambda self, *a, **k: False)
+
+    with pytest.raises(SystemExit) as exited:
+        biosconfig.bios_push('node', {'name': 'node001', 'biosconfig': 'golden'})
+    assert exited.value.code == 1
+    assert 'FAILED' in capsys.readouterr().err
+
+
+def test_a_clean_push_does_not_exit(monkeypatch):
+    """The other half: success must not become an exit."""
+    import luna.biosconfig as biosconfig
+    monkeypatch.setattr(biosconfig.Rest, 'post_raw',
+                        lambda self, route, payload: FakeResponse(200, {'message': 'queued',
+                                                                       'request_id': 'req-12'}))
+    monkeypatch.setattr(biosconfig.Helper, 'dig_status', lambda self, *a, **k: True)
+    assert biosconfig.bios_push('node', {'name': 'node001', 'biosconfig': 'golden'}) is not None

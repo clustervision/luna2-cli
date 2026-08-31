@@ -71,8 +71,11 @@ def bios_push(table=None, args=None):
     # the generic channel, not the control one: a push reports free-text progress
     # per node and per stage, which the control endpoint's parser cannot read
     if not Helper().dig_status(request_id, 1, 'bios', route='config'):
-        Message().show_error(f'BIOS push for {table} {name} finished with failures '
-                             '- see the lines above')
+        # exits non-zero, as the osimage pack and clone paths do for the same
+        # reason: a push that reported failures must be detectable by a script,
+        # not only readable by whoever watched it
+        Message().show_failed_exit(f'[ FAILED ] BIOS push for {table} {name} finished '
+                                   'with failures - see the lines above')
     return response
 
 
