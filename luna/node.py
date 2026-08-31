@@ -750,7 +750,7 @@ class Node():
         queued = content.get('config', {}).get(self.table, {}).get('inventory', {}).get('queued')
         Message().show_success(f'Collecting inventory for {queued} nodes...')
         if request_id:
-            Helper().dig_control_status(request_id, 1, 'inventory')
+            Helper().dig_status(request_id, 1, 'inventory')
         return response
 
 

@@ -68,7 +68,11 @@ def bios_push(table=None, args=None):
     if not request_id:
         return Message().show_success(f'{message}')
     Message().show_success(f'{message}')
-    Helper().dig_control_status(request_id, 1, 'bios')
+    # the generic channel, not the control one: a push reports free-text progress
+    # per node and per stage, which the control endpoint's parser cannot read
+    if not Helper().dig_status(request_id, 1, 'bios', route='config'):
+        Message().show_error(f'BIOS push for {table} {name} finished with failures '
+                             '- see the lines above')
     return response
 
 
