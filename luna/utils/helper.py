@@ -111,14 +111,8 @@ class Helper():
 
     def value_completer(self, values):
         """
-        This method returns a completer offering a fixed list of values.
-
-        It suggests without restricting, which is the point: argparse choices would
-        also validate, and a Redfish role must not be validated against a list of
-        ours. A vendor may define roles with any privilege set it likes, so an
-        unrecognised name is unknown rather than wrong - the daemon treats it that
-        way, and the command line has to agree or an operator cannot type the name
-        their board actually uses.
+        Completer that suggests from a fixed list without restricting to it -
+        a Redfish role, for example, must not be validated against our list.
         """
         def completer(prefix, parsed_args, **kwargs):
             return [value for value in values if value.startswith(prefix)]
@@ -311,8 +305,7 @@ class Helper():
     def disklayout_b64(self, raw=None):
         """
         Canonicalize a YAML/JSON disklayout document to JSON and base64-encode it.
-        A malformed layout aborts the command (nothing is stored) with a clear error,
-        the visudo discipline: reject the edit, keep the stored config untouched.
+        A malformed layout aborts the command rather than storing anything.
         """
         try:
             canonical = disklayout_canonicalize(raw)
@@ -357,8 +350,7 @@ class Helper():
     def column_csv(self, table=None, data=None, column=None):
         """
         Output a single column across all records as a comma-separated line.
-        The column is matched against the top-level fields of each record. Empty values are skipped.
-        Only meant for the list context.
+        Only meant for the list context; empty values are skipped.
         """
         def collect(value, into):
             """Append scalar value(s) to `into`, skipping composite (dict) values."""
@@ -417,12 +409,8 @@ class Helper():
 
     def show_disklayout(self, table=None, args=None):
         """
-        Method to render the v2 disklayout of a node or group as tables.
-
-        Reads the dedicated /config/<table>/<name>/disklayout route, which returns
-        just the layout and its _disklayout_source rather than the whole record -
-        the source says whether the node holds its own layout or inherits the
-        group's, which is the first thing anyone reading a layout wants to know.
+        Render the v2 disklayout of a node or group as tables, via the dedicated
+        /config/<table>/<name>/disklayout route (layout + _disklayout_source only).
         """
         row_name = args['name']
         get_list = Rest().get_data(table, row_name + '/disklayout')
@@ -431,10 +419,7 @@ class Helper():
         else:
             Message().error_exit(get_list.content, get_list.status_code)
         record = (get_list or {}).get('config', {}).get(table, {}).get(row_name, {})
-        # The API carries editor-style fields base64-encoded (the same convention
-        # prescript/partscript/postscript use), so decode before parsing. Reading
-        # the record straight from Rest() skips prepare_json, which is where the
-        # show path would have done this for us.
+        # Reading straight from Rest() skips prepare_json, so decode here instead.
         raw = self.base64_decode(record.get('disklayout') or '') or ''
         source = record.get('_disklayout_source') or 'node'
         if not raw.strip():
@@ -511,9 +496,7 @@ class Helper():
                 if "full_scripts" in args:
                     limit = False if args["full_scripts"] == True else True
                 if isinstance(json_data, dict) and json_data.get('disklayout'):
-                    # Summarise BEFORE the length limit runs: disklayout is an
-                    # EDITOR_KEY, so less_content would otherwise cut the JSON
-                    # mid-document and leave an unparseable fragment on screen.
+                    # Summarise BEFORE the length limit runs, or it would cut the JSON mid-document.
                     json_data['disklayout'] = self.brief_disklayout(json_data['disklayout'])
                 # json_data is already decoded above; limit_content() avoids decoding it again.
                 data = self.limit_content(json_data, limit)
@@ -1003,10 +986,7 @@ class Helper():
             for case in possible_cases:
                 if case in content['control'][system]:
                     for key, value in content['control'][system][case].items():
-                        # redfish answers with what it actually did - which resource a
-                        # setting was staged on, which task an upload became. That is the
-                        # outcome the operator asked for, where 'power on' is not, so it
-                        # is shown instead of a bare OK.
+                        # redfish shows what it actually did (staged resource, task id) instead of a bare OK.
                         if system == 'redfish' and case == 'ok' and value:
                             result[key] = value
                         else:
@@ -1038,23 +1018,8 @@ class Helper():
 
     def dig_status(self, request_id=None, count=None, system=None, route='control'):
         """
-        This method streams a request's status until the daemon says the stream
-        ended, and returns whether everything it saw succeeded.
-
-        One poller for both status channels, because there is one status table
-        behind them and only the rendering differs. The control channel parses
-        every message as node:command result:message and answers a structured
-        per-node result; the generic one answers the lines as they were written.
-        Work reporting free-text progress - a BIOS push, a stage at a time - has
-        to read the generic one: a plain line makes the control endpoint fail
-        rather than print it, and then nothing after it is shown either.
-
-        Which channel is the caller's to say, since only the caller knows what
-        its own work writes. Which renderer is not: the reply says which shape it
-        is, so a caller cannot name a channel and get the wrong printer.
-
-        A loop rather than the recursion this grew from: a BIOS push polls every
-        two seconds across reboots, which is deep enough for that to matter.
+        Stream a request's status until the daemon ends the stream, returning
+        whether everything it saw succeeded. One poller for both status channels.
         """
         count = count or 1
         outcome = True
@@ -1062,10 +1027,8 @@ class Helper():
             sleep(2)
             status = Rest().get_raw(f'{route}/status/{request_id}')
             if status is False:
-                # get_raw answers False on an SSL error without exiting. Tested
-                # against the sentinel and not for truth: a Response is falsy for
-                # any code outside 2xx, so 'not status' would swallow the 404 that
-                # ends the stream and poll for ever
+                # get_raw answers False on an SSL error; 'not status' would also
+                # match the 404 that ends the stream, so test the sentinel itself.
                 continue
             if status.status_code == 404:
                 hr_line = 'X--------------------------------------------'
@@ -1088,38 +1051,25 @@ class Helper():
 
 
     def filter_deviated(self, data=None):
-        """
-        This method will filter a group/node list dict down to the entries whose
-        _override flag is set, i.e. those that deviate from their parent (group or
-        cluster) defaults.
-        """
+        """Filter a group/node list dict down to the entries whose _override flag is set."""
         return {name: item for name, item in data.items() if item.get('_override')}
 
 
     def deviated_field_names(self, table=None, record=None):
-        """
-        This method returns the sorted field names that are set locally at this
-        table's own level and therefore deviate from what would otherwise be
-        inherited. Reuses the same _..._source comparison merge_source() already
-        uses to mark overridden fields with '*' in show.
-        """
+        """Sorted field names set locally at this level, via merge_source()'s _..._source comparison."""
         _, resp_overrides = self.merge_source(table, record)
         return sorted(resp_overrides)
 
 
     def deviated_fields(self, table=None, record=None):
-        """
-        This method returns the comma-separated field names that deviate, for the
-        list -d table view.
-        """
+        """Comma-separated field names that deviate, for the list -d table view."""
         return ', '.join(self.deviated_field_names(table, record))
 
 
     def deviated_values(self, table=None, record=None):
         """
-        This method maps each deviated field name to its actual value, decoding
-        script/editor content and normalising the daemon's stringified booleans
-        and nulls into real JSON types, for the list -d -R view.
+        Map each deviated field name to its value, for the list -d -R view.
+        Decodes editor content and normalises stringified booleans/nulls.
         """
         values = {}
         for name in self.deviated_field_names(table, record):
@@ -1140,12 +1090,8 @@ class Helper():
 
     def show_deviated(self, table=None, data=None, args=None):
         """
-        This method renders the deviate view of a group/node list: every entry
-        that overrides its parent, and which fields it overrides with.
-
-        The list payload only says THAT an entry deviates, so each one is read
-        again individually -- the *_source fields that name the deviating field
-        are only carried by the per-entry record.
+        Render the deviate view: every entry that overrides its parent, and with
+        which fields. Each is re-read individually for its per-entry *_source fields.
         """
         records = {}
         for name in data.keys():
@@ -1431,10 +1377,7 @@ class Helper():
                 else:
                     dictionary[key] = value
             elif isinstance(value, dict):
-                # the nested value, not the dictionary that holds it. Recursing on the
-                # container never gets smaller, so any response with a dictionary inside
-                # a dictionary spun until Python gave up - which is every --raw on a
-                # status view, and it is not new
+                # Recurse on the nested value, not the container - else it never gets smaller.
                 dictionary[key] = self.nested_dict(value, limit)
             elif isinstance(value, list):
                 return self.nested_list(dictionary, key, value, limit)
@@ -1536,9 +1479,7 @@ class Helper():
         rows, colored_fields = [], []
         fields = filter_columns(table)
         self.logger.debug(f'Fields => {fields}')
-        # Built from the field list rather than a fixed sequence of appends: a column
-        # added to filter_columns/sortby then cannot silently desync from the rows,
-        # and a scope that carries no entity column (cluster) needs no special case.
+        # Built from the field list, not fixed appends, so it can't desync from filter_columns/sortby.
         for key in data:
             for value in data[key]:
                 self.logger.debug(f'Key => {key} and Value => {value}')
@@ -1577,9 +1518,7 @@ class Helper():
         rows, colored_fields = [], []
         fields = sortby(table)
         self.logger.debug(f'Fields => {fields}')
-        # Built from the field list rather than a fixed sequence of appends: a column
-        # added to filter_columns/sortby then cannot silently desync from the rows,
-        # and a scope that carries no entity column (cluster) needs no special case.
+        # Built from the field list, not fixed appends, so it can't desync from filter_columns/sortby.
         for key in data:
             for value in data[key]:
                 self.logger.debug(f'Key => {key} and Value => {value}')
@@ -1617,23 +1556,8 @@ class Helper():
 
     def brief_disklayout(self, raw=None):
         """
-        Render a stored disklayout as a short block for `show`, in the same shape
-        `show` already uses for interfaces: an unindented header per set, then its
-        volumes indented under it.
-
-        `show` is the command everyone runs first, so the layout should be legible
-        there rather than a wall of JSON truncated by the table. The full document
-        stays one command away via showdisklayout (-R for the JSON).
-
-        A set's volumes share ONE line, and that is load-bearing rather than
-        cosmetic: less_content keeps only the first three lines of anything longer
-        than 60 characters, so a line per volume would silently lose most of itself
-        on screen. Provider and volume names are the detail that gets dropped here;
-        showdisklayout carries them.
-
-        Never raises. This sits in the common show path for both node and group,
-        and stored content is not ours to trust -- a layout that cannot be parsed
-        must not take `luna node show` down with it.
+        Render a stored disklayout as a short block for `show`. Never raises -
+        unparseable content must not take `luna node show` down with it.
         """
         if raw is None or not str(raw).strip():
             return raw
