@@ -111,8 +111,14 @@ class Helper():
 
     def value_completer(self, values):
         """
-        Completer that suggests from a fixed list without restricting to it -
-        a Redfish role, for example, must not be validated against our list.
+        This method returns a completer offering a fixed list of values.
+
+        It suggests without restricting, which is the point: argparse choices would
+        also validate, and a Redfish role must not be validated against a list of
+        ours. A vendor may define roles with any privilege set it likes, so an
+        unrecognised name is unknown rather than wrong - the daemon treats it that
+        way, and the command line has to agree or an operator cannot type the name
+        their board actually uses.
         """
         def completer(prefix, parsed_args, **kwargs):
             return [value for value in values if value.startswith(prefix)]
@@ -305,7 +311,8 @@ class Helper():
     def disklayout_b64(self, raw=None):
         """
         Canonicalize a YAML/JSON disklayout document to JSON and base64-encode it.
-        A malformed layout aborts the command rather than storing anything.
+        A malformed layout aborts the command (nothing is stored) with a clear error,
+        the visudo discipline: reject the edit, keep the stored config untouched.
         """
         try:
             canonical = disklayout_canonicalize(raw)
@@ -409,8 +416,12 @@ class Helper():
 
     def show_disklayout(self, table=None, args=None):
         """
-        Render the v2 disklayout of a node or group as tables, via the dedicated
-        /config/<table>/<name>/disklayout route (layout + _disklayout_source only).
+        Method to render the v2 disklayout of a node or group as tables.
+
+        Reads the dedicated /config/<table>/<name>/disklayout route, which returns
+        just the layout and its _disklayout_source rather than the whole record -
+        the source says whether the node holds its own layout or inherits the
+        group's, which is the first thing anyone reading a layout wants to know.
         """
         row_name = args['name']
         get_list = Rest().get_data(table, row_name + '/disklayout')
@@ -419,7 +430,10 @@ class Helper():
         else:
             Message().error_exit(get_list.content, get_list.status_code)
         record = (get_list or {}).get('config', {}).get(table, {}).get(row_name, {})
-        # Reading straight from Rest() skips prepare_json, so decode here instead.
+        # The API carries editor-style fields base64-encoded (the same convention
+        # prescript/partscript/postscript use), so decode before parsing. Reading
+        # the record straight from Rest() skips prepare_json, which is where the
+        # show path would have done this for us.
         raw = self.base64_decode(record.get('disklayout') or '') or ''
         source = record.get('_disklayout_source') or 'node'
         if not raw.strip():
@@ -496,7 +510,9 @@ class Helper():
                 if "full_scripts" in args:
                     limit = False if args["full_scripts"] == True else True
                 if isinstance(json_data, dict) and json_data.get('disklayout'):
-                    # Summarise BEFORE the length limit runs, or it would cut the JSON mid-document.
+                    # Summarise BEFORE the length limit runs: disklayout is an
+                    # EDITOR_KEY, so less_content would otherwise cut the JSON
+                    # mid-document and leave an unparseable fragment on screen.
                     json_data['disklayout'] = self.brief_disklayout(json_data['disklayout'])
                 # json_data is already decoded above; limit_content() avoids decoding it again.
                 data = self.limit_content(json_data, limit)
@@ -1018,8 +1034,23 @@ class Helper():
 
     def dig_status(self, request_id=None, count=None, system=None, route='control'):
         """
-        Stream a request's status until the daemon ends the stream, returning
-        whether everything it saw succeeded. One poller for both status channels.
+        This method streams a request's status until the daemon says the stream
+        ended, and returns whether everything it saw succeeded.
+
+        One poller for both status channels, because there is one status table
+        behind them and only the rendering differs. The control channel parses
+        every message as node:command result:message and answers a structured
+        per-node result; the generic one answers the lines as they were written.
+        Work reporting free-text progress - a BIOS push, a stage at a time - has
+        to read the generic one: a plain line makes the control endpoint fail
+        rather than print it, and then nothing after it is shown either.
+
+        Which channel is the caller's to say, since only the caller knows what
+        its own work writes. Which renderer is not: the reply says which shape it
+        is, so a caller cannot name a channel and get the wrong printer.
+
+        A loop rather than the recursion this grew from: a BIOS push polls every
+        two seconds across reboots, which is deep enough for that to matter.
         """
         count = count or 1
         outcome = True
@@ -1027,8 +1058,10 @@ class Helper():
             sleep(2)
             status = Rest().get_raw(f'{route}/status/{request_id}')
             if status is False:
-                # get_raw answers False on an SSL error; 'not status' would also
-                # match the 404 that ends the stream, so test the sentinel itself.
+                # get_raw answers False on an SSL error without exiting. Tested
+                # against the sentinel and not for truth: a Response is falsy for
+                # any code outside 2xx, so 'not status' would swallow the 404 that
+                # ends the stream and poll for ever
                 continue
             if status.status_code == 404:
                 hr_line = 'X--------------------------------------------'
@@ -1556,8 +1589,23 @@ class Helper():
 
     def brief_disklayout(self, raw=None):
         """
-        Render a stored disklayout as a short block for `show`. Never raises -
-        unparseable content must not take `luna node show` down with it.
+        Render a stored disklayout as a short block for `show`, in the same shape
+        `show` already uses for interfaces: an unindented header per set, then its
+        volumes indented under it.
+
+        `show` is the command everyone runs first, so the layout should be legible
+        there rather than a wall of JSON truncated by the table. The full document
+        stays one command away via showdisklayout (-R for the JSON).
+
+        A set's volumes share ONE line, and that is load-bearing rather than
+        cosmetic: less_content keeps only the first three lines of anything longer
+        than 60 characters, so a line per volume would silently lose most of itself
+        on screen. Provider and volume names are the detail that gets dropped here;
+        showdisklayout carries them.
+
+        Never raises. This sits in the common show path for both node and group,
+        and stored content is not ours to trust -- a layout that cannot be parsed
+        must not take `luna node show` down with it.
         """
         if raw is None or not str(raw).strip():
             return raw
