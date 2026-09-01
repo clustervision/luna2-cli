@@ -49,7 +49,8 @@ from nested_lookup import nested_lookup, nested_update, nested_delete, nested_al
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
-from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby, divider, spacer, overrides, parser_doc
+from luna.utils.constant import (EDITOR_KEYS, BOOL_KEYS, NORMALIZE_KEYS, TYPOGRAPHIC_LOOKALIKES,
+    filter_columns, sortby, divider, spacer, overrides, parser_doc)
 from luna.utils.disklayout import canonicalize as disklayout_canonicalize, to_yaml as disklayout_to_yaml, DisklayoutError
 from luna.utils.message import Message
 
@@ -263,8 +264,7 @@ class Helper():
                         if key == 'disklayout':
                             content = self.disklayout_b64(content[0])
                         else:
-                            content = self.base64_encode(
-                                content[0].encode('utf-8', 'surrogateescape'))
+                            content = self.base64_encode_text(key, content[0])
                         payload = nested_update(payload, key=key, value=content)
         return payload
 
@@ -302,7 +302,7 @@ class Helper():
         if key == 'disklayout':
             response = self.disklayout_b64(edited)
         else:
-            response = self.base64_encode(edited)
+            response = self.base64_encode_text(key, edited)
         os.remove(filename)
         os.rmdir(tmp_folder)
         return response
@@ -357,8 +357,7 @@ class Helper():
     def column_csv(self, table=None, data=None, column=None):
         """
         Output a single column across all records as a comma-separated line.
-        The column is matched against the top-level fields of each record. Empty values are skipped.
-        Only meant for the list context.
+        Only meant for the list context; empty values are skipped.
         """
         def collect(value, into):
             """Append scalar value(s) to `into`, skipping composite (dict) values."""
@@ -510,12 +509,13 @@ class Helper():
                 limit = True
                 if "full_scripts" in args:
                     limit = False if args["full_scripts"] == True else True
-                if isinstance(data, dict) and data.get('disklayout'):
+                if isinstance(json_data, dict) and json_data.get('disklayout'):
                     # Summarise BEFORE the length limit runs: disklayout is an
                     # EDITOR_KEY, so less_content would otherwise cut the JSON
                     # mid-document and leave an unparseable fragment on screen.
-                    data['disklayout'] = self.brief_disklayout(data['disklayout'])
-                data = Helper().prepare_json(data, limit)
+                    json_data['disklayout'] = self.brief_disklayout(json_data['disklayout'])
+                # json_data is already decoded above; limit_content() avoids decoding it again.
+                data = self.limit_content(json_data, limit)
                 fields, rows  = self.filter_data_col(table, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
@@ -1080,10 +1080,7 @@ class Helper():
             for case in possible_cases:
                 if case in content['control'][system]:
                     for key, value in content['control'][system][case].items():
-                        # redfish answers with what it actually did - which resource a
-                        # setting was staged on, which task an upload became. That is the
-                        # outcome the operator asked for, where 'power on' is not, so it
-                        # is shown instead of a bare OK.
+                        # redfish shows what it actually did (staged resource, task id) instead of a bare OK.
                         if system == 'redfish' and case == 'ok' and value:
                             result[key] = value
                         else:
@@ -1165,38 +1162,25 @@ class Helper():
 
 
     def filter_deviated(self, data=None):
-        """
-        This method will filter a group/node list dict down to the entries whose
-        _override flag is set, i.e. those that deviate from their parent (group or
-        cluster) defaults.
-        """
+        """Filter a group/node list dict down to the entries whose _override flag is set."""
         return {name: item for name, item in data.items() if item.get('_override')}
 
 
     def deviated_field_names(self, table=None, record=None):
-        """
-        This method returns the sorted field names that are set locally at this
-        table's own level and therefore deviate from what would otherwise be
-        inherited. Reuses the same _..._source comparison merge_source() already
-        uses to mark overridden fields with '*' in show.
-        """
+        """Sorted field names set locally at this level, via merge_source()'s _..._source comparison."""
         _, resp_overrides = self.merge_source(table, record)
         return sorted(resp_overrides)
 
 
     def deviated_fields(self, table=None, record=None):
-        """
-        This method returns the comma-separated field names that deviate, for the
-        list -d table view.
-        """
+        """Comma-separated field names that deviate, for the list -d table view."""
         return ', '.join(self.deviated_field_names(table, record))
 
 
     def deviated_values(self, table=None, record=None):
         """
-        This method maps each deviated field name to its actual value, decoding
-        script/editor content and normalising the daemon's stringified booleans
-        and nulls into real JSON types, for the list -d -R view.
+        Map each deviated field name to its value, for the list -d -R view.
+        Decodes editor content and normalises stringified booleans/nulls.
         """
         values = {}
         for name in self.deviated_field_names(table, record):
@@ -1217,12 +1201,8 @@ class Helper():
 
     def show_deviated(self, table=None, data=None, args=None):
         """
-        This method renders the deviate view of a group/node list: every entry
-        that overrides its parent, and which fields it overrides with.
-
-        The list payload only says THAT an entry deviates, so each one is read
-        again individually -- the *_source fields that name the deviating field
-        are only carried by the per-entry record.
+        Render the deviate view: every entry that overrides its parent, and with
+        which fields. Each is re-read individually for its per-entry *_source fields.
         """
         records = {}
         for name in data.keys():
@@ -1412,6 +1392,40 @@ class Helper():
         return content
 
 
+    def normalize_typography(self, text=None):
+        """
+        Replace TYPOGRAPHIC_LOOKALIKES with their plain ASCII equivalent.
+        Returns (text, changed) so a caller can warn only when something changed.
+        """
+        changed = any(bad in text for bad in TYPOGRAPHIC_LOOKALIKES)
+        if changed:
+            for bad, good in TYPOGRAPHIC_LOOKALIKES.items():
+                text = text.replace(bad, good)
+        return text, changed
+
+
+    def base64_encode_text(self, key=None, content=None):
+        """
+        Base64-encode content (str or bytes), normalizing it first if key is in
+        NORMALIZE_KEYS. content itself stays untouched (byte-preserving for secrets/profile files).
+        """
+        if isinstance(content, bytes):
+            try:
+                text = content.decode('utf-8')
+            except UnicodeDecodeError:
+                return self.base64_encode(content)
+        else:
+            text = content
+        if key in NORMALIZE_KEYS:
+            text, changed = self.normalize_typography(text)
+            if changed:
+                Message().show_warning(
+                    f"WARNING :: {key} contained curly quotes, dashes or other "
+                    f"typographic characters from a rich-text paste; replaced "
+                    f"them with plain ASCII equivalents.")
+        return self.base64_encode(text.encode('utf-8', 'surrogateescape'))
+
+
     def base64_decode(self, content=None):
         """
         This method will decode the base 64 string.
@@ -1420,10 +1434,11 @@ class Helper():
             if content is not None:
                 content = content.replace("\r", "\\r")
                 content = base64.b64decode(content, validate=True).decode("utf-8")
-        except binascii.Error:
-            self.logger.debug(f'Base64 Decode Error => {content}')
         except UnicodeDecodeError:
             self.logger.debug(f'Base64 Unicode Decode Error => {content}')
+        except ValueError:
+            # Covers binascii.Error and the ValueError b64decode raises for non-ASCII input.
+            self.logger.debug(f'Base64 Decode Error => {content}')
         return content
 
 
@@ -1473,10 +1488,7 @@ class Helper():
                 else:
                     dictionary[key] = value
             elif isinstance(value, dict):
-                # the nested value, not the dictionary that holds it. Recursing on the
-                # container never gets smaller, so any response with a dictionary inside
-                # a dictionary spun until Python gave up - which is every --raw on a
-                # status view, and it is not new
+                # Recurse on the nested value, not the container - else it never gets smaller.
                 dictionary[key] = self.nested_dict(value, limit)
             elif isinstance(value, list):
                 return self.nested_list(dictionary, key, value, limit)
@@ -1521,6 +1533,22 @@ class Helper():
         return content
 
 
+    def limit_content(self, data=None, limit=False):
+        """
+        Trim already-decoded EDITOR_KEYS values for the table view, without
+        running them back through prepare_json()'s base64_decode step.
+        """
+        if isinstance(data, list):
+            return [self.limit_content(item, limit) for item in data]
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if isinstance(value, str) and key in EDITOR_KEYS:
+                    data[key] = self.less_content(value, limit)
+                elif isinstance(value, (dict, list)):
+                    data[key] = self.limit_content(value, limit)
+        return data
+
+
     def prepare_json(self, json_data=None, limit=False):
         """
         This method will decode the base 64 string.
@@ -1562,9 +1590,7 @@ class Helper():
         rows, colored_fields = [], []
         fields = filter_columns(table)
         self.logger.debug(f'Fields => {fields}')
-        # Built from the field list rather than a fixed sequence of appends: a column
-        # added to filter_columns/sortby then cannot silently desync from the rows,
-        # and a scope that carries no entity column (cluster) needs no special case.
+        # Built from the field list, not fixed appends, so it can't desync from filter_columns/sortby.
         for key in data:
             for value in data[key]:
                 self.logger.debug(f'Key => {key} and Value => {value}')
@@ -1603,9 +1629,7 @@ class Helper():
         rows, colored_fields = [], []
         fields = sortby(table)
         self.logger.debug(f'Fields => {fields}')
-        # Built from the field list rather than a fixed sequence of appends: a column
-        # added to filter_columns/sortby then cannot silently desync from the rows,
-        # and a scope that carries no entity column (cluster) needs no special case.
+        # Built from the field list, not fixed appends, so it can't desync from filter_columns/sortby.
         for key in data:
             for value in data[key]:
                 self.logger.debug(f'Key => {key} and Value => {value}')
