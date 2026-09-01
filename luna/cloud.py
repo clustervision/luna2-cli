@@ -69,6 +69,7 @@ class Cloud():
         cloud_show.add_argument('name', help='Cloud Provider Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(cloud_show)
         cloud_add = cloud_args.add_parser('add', help='Add Cloud Provider')
+        cloud_add.add_argument('name', help='Cloud Provider Name')
         Arguments().common_cloud_args(cloud_add)
         cloud_change = cloud_args.add_parser('change', help='Change a Cloud Provider')
         cloud_change.add_argument('name', help='Cloud Provider Name').completer = Helper().name_completer(self.table)
