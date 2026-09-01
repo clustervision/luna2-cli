@@ -49,7 +49,8 @@ from nested_lookup import nested_lookup, nested_update, nested_delete, nested_al
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
-from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby, divider, spacer, overrides, parser_doc
+from luna.utils.constant import (EDITOR_KEYS, BOOL_KEYS, NORMALIZE_KEYS, TYPOGRAPHIC_LOOKALIKES,
+    filter_columns, sortby, divider, spacer, overrides, parser_doc)
 from luna.utils.disklayout import canonicalize as disklayout_canonicalize, to_yaml as disklayout_to_yaml, DisklayoutError
 from luna.utils.message import Message
 
@@ -263,8 +264,7 @@ class Helper():
                         if key == 'disklayout':
                             content = self.disklayout_b64(content[0])
                         else:
-                            content = self.base64_encode(
-                                content[0].encode('utf-8', 'surrogateescape'))
+                            content = self.base64_encode_text(key, content[0])
                         payload = nested_update(payload, key=key, value=content)
         return payload
 
@@ -302,7 +302,7 @@ class Helper():
         if key == 'disklayout':
             response = self.disklayout_b64(edited)
         else:
-            response = self.base64_encode(edited)
+            response = self.base64_encode_text(key, edited)
         os.remove(filename)
         os.rmdir(tmp_folder)
         return response
@@ -1335,6 +1335,62 @@ class Helper():
         except binascii.Error:
             self.logger.debug(f'Base64 Encode Error => {content}')
         return content
+
+
+    def normalize_typography(self, text=None):
+        """
+        Replace common rich-text paste artefacts (curly quotes, non-breaking
+        hyphens, en/em dashes, a stray zero-width space, ...) with their plain
+        ASCII equivalent - see TYPOGRAPHIC_LOOKALIKES for the exact table.
+
+        Word, Outlook and most browsers substitute these for the ASCII original
+        as you type, and the two look identical in an editor. Stored verbatim
+        they used to crash 'luna node show' outright (TRIX-1868); left in an
+        actual script rather than a comment they are worse, because a POSIX
+        shell does not recognise a curly quote as a quote at all.
+
+        Returns (text, changed) so a caller can warn only when something was
+        actually rewritten.
+        """
+        changed = any(bad in text for bad in TYPOGRAPHIC_LOOKALIKES)
+        if changed:
+            for bad, good in TYPOGRAPHIC_LOOKALIKES.items():
+                text = text.replace(bad, good)
+        return text, changed
+
+
+    def base64_encode_text(self, key=None, content=None):
+        """
+        Base64-encode a value for one of the free-text EDITOR_KEYS fields, run
+        through normalize_typography() first for the keys in NORMALIZE_KEYS.
+
+        content may be a str (a command-line argument, already decoded with
+        surrogateescape by argv) or bytes (read back from the interactive
+        editor's temp file); either way the result is exactly what
+        base64_encode(content.encode('utf-8', 'surrogateescape')) already
+        produced for every key outside NORMALIZE_KEYS.
+
+        Only NORMALIZE_KEYS is rewritten. content itself is deliberately
+        excluded even though it is base64-encoded the same way: it is a
+        byte-preserving path for binary secrets and profile files
+        (tests/test_content_encoding.py), and mangling a coincidental
+        codepoint match in binary data would be a worse bug than this one.
+        """
+        if isinstance(content, bytes):
+            try:
+                text = content.decode('utf-8')
+            except UnicodeDecodeError:
+                return self.base64_encode(content)
+        else:
+            text = content
+        if key in NORMALIZE_KEYS:
+            text, changed = self.normalize_typography(text)
+            if changed:
+                Message().show_warning(
+                    f"WARNING :: {key} contained curly quotes, dashes or other "
+                    f"typographic characters from a rich-text paste; replaced "
+                    f"them with plain ASCII equivalents.")
+        return self.base64_encode(text.encode('utf-8', 'surrogateescape'))
 
 
     def base64_decode(self, content=None):
