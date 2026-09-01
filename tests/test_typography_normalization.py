@@ -5,25 +5,9 @@
 # Copyright (C) 2026  ClusterVision Solutions b.v.
 
 """
-Rich-text paste artefacts in comment/pre/part/postscript (TRIX-1868).
-
-Word, Outlook and most browsers substitute a curly quote, a non-breaking
-hyphen, an en/em dash, ... for the plain ASCII original as you type - the two
-look identical in an editor. Stored verbatim, one of these used to crash
-'luna node show' outright (see test_base64_decode_non_ascii.py and
-test_show_data_single_decode.py); left inside an actual script rather than a
-comment, it is worse, because a POSIX shell does not recognise a curly quote
-as a quote at all - DISK="/dev/sda" typed with curly double quotes just sets
-DISK to a literal string containing three extra bytes.
-
-normalize_typography() rewrites the known lookalikes to their ASCII original.
-base64_encode_text() is the single choke point that applies it: the inline
---quick-* argument path (prepare_payload) and the interactive editor path
-(open_editor) both go through it, for exactly the free-text keys named in
-NORMALIZE_KEYS. content is deliberately NOT one of them - it is a
-byte-preserving path for binary secrets and profile files
-(test_content_encoding.py), and a coincidental codepoint match in binary data
-must not be corrupted by this.
+Rich-text paste artefacts (curly quotes, non-breaking hyphens, ...) get
+normalized to plain ASCII in comment/pre/part/postscript, but not content,
+which is a byte-preserving path for binary secrets/profile files (TRIX-1868).
 """
 
 import base64
@@ -84,9 +68,7 @@ def test_base64_encode_text_normalizes_a_normalize_key_and_warns():
 
 
 def test_base64_encode_text_leaves_content_untouched_even_with_a_lookalike():
-    """content is excluded from NORMALIZE_KEYS on purpose: it is the
-    byte-preserving path used for binary secrets and profile files, and a
-    coincidental match must not be rewritten."""
+    """content is excluded from NORMALIZE_KEYS: a coincidental match must not be rewritten."""
     with patch('luna.utils.helper.Message') as message:
         encoded = Helper().base64_encode_text('content', "it’s fine")
     assert base64.b64decode(encoded).decode('utf-8') == "it’s fine"
@@ -94,8 +76,7 @@ def test_base64_encode_text_leaves_content_untouched_even_with_a_lookalike():
 
 
 def test_base64_encode_text_binary_content_still_round_trips():
-    """The same byte-preservation guarantee test_content_encoding.py pins for
-    Profile.file_content must hold for the shared choke point too."""
+    """Same byte-preservation guarantee test_content_encoding.py pins, for this choke point too."""
     binary = bytes([0x01, 0x02, 0xff, 0xfe, 0x00, 0x7f])
     with patch('luna.utils.helper.Message'):
         encoded = Helper().base64_encode_text('content', binary)
@@ -103,8 +84,7 @@ def test_base64_encode_text_binary_content_still_round_trips():
 
 
 def test_prepare_payload_normalizes_an_inline_quick_partscript_argument():
-    """The exact reproduction from the ticket: --quick-partscript on the
-    command line with a Word-pasted apostrophe and non-breaking hyphen."""
+    """The exact reproduction from the ticket, via --quick-partscript."""
     text = "# Now it’s safe to re‑create everything"
     with patch('luna.utils.helper.Message') as message:
         payload = Helper().prepare_payload(None, {'name': 'n1', 'partscript': text})
@@ -114,9 +94,7 @@ def test_prepare_payload_normalizes_an_inline_quick_partscript_argument():
 
 
 def test_prepare_payload_does_not_touch_disklayout_text():
-    """disklayout is machine syntax (JSON/YAML), not prose a paste artefact
-    would land in, and it has its own canonicalizing encoder (disklayout_b64).
-    It must not go through typography normalization at all."""
+    """disklayout is machine syntax, not prose, and must skip normalization entirely."""
     layout = '{"version": 2, "sets": [{"role": "os", "devices": ["/dev/sda"], ' \
              '"volumes": ["/boot/efi", "/boot", "/"]}]}'
     with patch('luna.utils.helper.Message') as message:

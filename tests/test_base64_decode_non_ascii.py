@@ -5,25 +5,8 @@
 # Copyright (C) 2026  ClusterVision Solutions b.v.
 
 """
-'luna node show' on a script containing a curly quote (TRIX-1868).
-
-Someone pasted Word/Outlook text into a partscript. Word substitutes typographic
-lookalikes for the ASCII original as you type - here, U+2019 RIGHT SINGLE
-QUOTATION MARK for a straight apostrophe. Luna stores that fine (it is valid
-UTF-8), but showing it back calls Helper().base64_decode() on the stored value,
-which - for reasons explained in show_data() and TRIX-1868 - is sometimes handed
-plain, already-decoded text rather than actual base64.
-
-base64.b64decode(..., validate=True) starts by doing content.encode('ascii'),
-which fails for that curly quote. base64 catches the UnicodeEncodeError itself
-and re-raises it as a plain ValueError('string argument should contain only
-ASCII characters') - not the UnicodeEncodeError you would expect - and
-base64_decode only caught binascii.Error (also a ValueError, but a different
-subclass) and UnicodeDecodeError. Neither matched, so the exception reached the
-CLI's top level and 'luna node show' died instead of printing the record.
-
-The fix is a plain `except ValueError`, which also covers binascii.Error since
-that is itself a ValueError subclass.
+base64_decode() must not crash on non-ASCII text (TRIX-1868): a pasted curly
+quote made b64decode raise ValueError, which the old except clauses missed.
 """
 
 import logging
@@ -50,9 +33,7 @@ def test_a_curly_quote_does_not_crash_the_decode():
 
 
 def test_plain_ascii_text_that_is_not_base64_is_unaffected():
-    """The pre-existing behaviour this must not regress: invalid-but-ASCII text
-    (the common case, since prepare_json can run the decode step twice - see
-    show_data()) already came back unchanged via the binascii.Error branch."""
+    """Pre-existing behaviour: invalid-but-ASCII text already came back unchanged."""
     text = "not valid base64 either"
     assert Helper().base64_decode(text) == text
 

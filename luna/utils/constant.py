@@ -55,22 +55,10 @@ EDITOR_KEYS = [
     'options', 'content', 'comment', 'prescript', 'partscript', 'postscript', 'grab_filesystems',
     'grab_exclude', 'kerneloptions', 'ztpconfig', 'disklayout', 'osimage_filter'
 ]
-# Free-text EDITOR_KEYS fields normalised by Helper().normalize_typography(): prose a
-# human actually types or pastes, where a Word/Outlook copy-paste plants a lookalike
-# character (TRIX-1868). The rest of EDITOR_KEYS is deliberately excluded:
-# - content is a byte-preserving path for binary secrets and profile files
-#   (tests/test_content_encoding.py) - rewriting a coincidentally-matching byte would
-#   corrupt it.
-# - disklayout/ztpconfig are machine syntax (JSON/YAML), options/kerneloptions are
-#   command-line tokens, grab_filesystems/grab_exclude/osimage_filter are path lists -
-#   none of them are prose a paste artefact would plausibly land in, and canonicalising
-#   punctuation there risks changing what was actually meant.
+# Free-text fields where a Word/Outlook paste can land a lookalike character (TRIX-1868).
+# content is excluded: it is a byte-preserving path for binary secrets/profile files.
 NORMALIZE_KEYS = ['comment', 'prescript', 'partscript', 'postscript']
-# Rich-text editors (Word, Outlook, most browsers) substitute these for their plain
-# ASCII original as you type, and the two are visually indistinguishable in an editor.
-# Stored verbatim they can silently break the shell actually running a script - e.g.
-# DISK="/dev/sda" typed with curly double quotes is not a quoted assignment to a POSIX
-# shell at all, just a literal string containing three extra bytes.
+# Rich-text (Word/Outlook/browser) punctuation mapped to its plain ASCII equivalent.
 TYPOGRAPHIC_LOOKALIKES = {
     '‘': "'",   # LEFT SINGLE QUOTATION MARK
     '’': "'",   # RIGHT SINGLE QUOTATION MARK

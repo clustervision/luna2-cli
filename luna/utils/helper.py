@@ -515,9 +515,7 @@ class Helper():
                     # EDITOR_KEY, so less_content would otherwise cut the JSON
                     # mid-document and leave an unparseable fragment on screen.
                     json_data['disklayout'] = self.brief_disklayout(json_data['disklayout'])
-                # json_data is already fully decoded above - trim it in place rather
-                # than running it back through prepare_json(), which would decode it
-                # a second time (see limit_content()).
+                # json_data is already decoded above; limit_content() avoids decoding it again.
                 data = self.limit_content(json_data, limit)
                 fields, rows  = self.filter_data_col(table, data)
                 self.logger.debug(f'Fields => {fields}')
@@ -1339,18 +1337,8 @@ class Helper():
 
     def normalize_typography(self, text=None):
         """
-        Replace common rich-text paste artefacts (curly quotes, non-breaking
-        hyphens, en/em dashes, a stray zero-width space, ...) with their plain
-        ASCII equivalent - see TYPOGRAPHIC_LOOKALIKES for the exact table.
-
-        Word, Outlook and most browsers substitute these for the ASCII original
-        as you type, and the two look identical in an editor. Stored verbatim
-        they used to crash 'luna node show' outright (TRIX-1868); left in an
-        actual script rather than a comment they are worse, because a POSIX
-        shell does not recognise a curly quote as a quote at all.
-
-        Returns (text, changed) so a caller can warn only when something was
-        actually rewritten.
+        Replace TYPOGRAPHIC_LOOKALIKES with their plain ASCII equivalent.
+        Returns (text, changed) so a caller can warn only when something changed.
         """
         changed = any(bad in text for bad in TYPOGRAPHIC_LOOKALIKES)
         if changed:
@@ -1361,20 +1349,8 @@ class Helper():
 
     def base64_encode_text(self, key=None, content=None):
         """
-        Base64-encode a value for one of the free-text EDITOR_KEYS fields, run
-        through normalize_typography() first for the keys in NORMALIZE_KEYS.
-
-        content may be a str (a command-line argument, already decoded with
-        surrogateescape by argv) or bytes (read back from the interactive
-        editor's temp file); either way the result is exactly what
-        base64_encode(content.encode('utf-8', 'surrogateescape')) already
-        produced for every key outside NORMALIZE_KEYS.
-
-        Only NORMALIZE_KEYS is rewritten. content itself is deliberately
-        excluded even though it is base64-encoded the same way: it is a
-        byte-preserving path for binary secrets and profile files
-        (tests/test_content_encoding.py), and mangling a coincidental
-        codepoint match in binary data would be a worse bug than this one.
+        Base64-encode content (str or bytes), normalizing it first if key is in
+        NORMALIZE_KEYS. content itself stays untouched (byte-preserving for secrets/profile files).
         """
         if isinstance(content, bytes):
             try:
@@ -1404,13 +1380,7 @@ class Helper():
         except UnicodeDecodeError:
             self.logger.debug(f'Base64 Unicode Decode Error => {content}')
         except ValueError:
-            # binascii.Error (invalid base64) is itself a ValueError subclass, and
-            # base64.b64decode(..., validate=True) raises a plain ValueError of its
-            # own when content is not even ASCII to begin with (e.g. text with a
-            # curly quote pasted from Word) - encode('ascii') fails internally and
-            # base64 re-raises it as ValueError rather than the UnicodeEncodeError
-            # you would expect. Either way this was never base64: hand back what
-            # was passed in rather than crashing the whole CLI (TRIX-1868).
+            # Covers binascii.Error and the ValueError b64decode raises for non-ASCII input.
             self.logger.debug(f'Base64 Decode Error => {content}')
         return content
 
@@ -1511,17 +1481,8 @@ class Helper():
 
     def limit_content(self, data=None, limit=False):
         """
-        This method trims already-decoded EDITOR_KEYS values for the table view.
-
-        show_data() decodes a record once via prepare_json(), then used to call
-        prepare_json() a second time just to get less_content()'s length limit
-        applied. But prepare_json() decodes as it goes (nested_alter -> callback
-        -> base64_decode), so that second pass ran base64_decode on plaintext -
-        harmless for a script that happened to be plain ASCII (base64_decode
-        quietly hands back what it was given), but a crash for one containing a
-        character copy-pasted from a rich-text editor (TRIX-1868). This walks the
-        same already-decoded structure and only ever calls less_content, so a
-        record is decoded exactly once no matter how it renders.
+        Trim already-decoded EDITOR_KEYS values for the table view, without
+        running them back through prepare_json()'s base64_decode step.
         """
         if isinstance(data, list):
             return [self.limit_content(item, limit) for item in data]
