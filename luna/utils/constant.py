@@ -362,24 +362,41 @@ def sortby(table: str) -> list:
             'user', 'debug'
         ],
         'cloud': ['name', 'type'],
+        # grouped, and the groups are what the dividers below draw a rule between:
+        # identity, then where the machine is, then how we reach its BMC, then how
+        # it boots, then what is layered onto it, then how it is installed, then the
+        # scripts, then provisioning. A field that is not listed here still appears -
+        # it is appended at the end - so adding one to the schema and forgetting this
+        # list is untidy rather than invisible.
         'node': [
-            'info', 'name', 'hostname', 'group', 'osimage', 'osimagetag', 'kerneloptions',
-            'interfaces', 'routes', 'status', 'vendor', 'assettag', 'position', 'switch', 'switchport',
-            'cloud', 'setupbmc', 'bmcsetup', 'setupredfish', 'redfishsetup', 'biosconfig',
-            'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
-            'bootmenu', 'service', 'roles', 'scripts', 'profiles', '_prescript_source', 'prescript',
-            '_partscript_source', 'partscript', '_postscript_source', 'postscript',
+            'info',
+            'name', 'hostname', 'status', 'group', 'osimage', 'osimagetag',
+            'interfaces', 'routes', 'vendor', 'assettag', 'position', 'switch', 'switchport',
+            'cloud',
+            'setupbmc', 'setupredfish', 'bmcsetup', 'redfishsetup', 'unmanaged_bmc_users',
+            'netboot', 'ipxe_kernel', 'kerneloptions', 'biosconfig', 'bootmenu', 'service',
+            'roles', 'scripts', 'profiles', 'profiles_digest',
             'install_mode', '_disklayout_source', 'disklayout',
             '_osimage_filter_source', 'osimage_filter',
+            '_prescript_source', 'prescript',
+            '_partscript_source', 'partscript',
+            '_postscript_source', 'postscript',
             'provision_interface', 'provision_method', 'provision_fallback', 'tpm_uuid',
-            'tpm_pubkey', 'tpm_sha256', 'comment',  'macaddress'
+            'tpm_pubkey', 'tpm_sha256', 'comment', 'macaddress'
         ],
+        # the same blocks as 'node' above, in the same order, minus the fields a
+        # group does not have. Reading one after the other should not feel like
+        # two different tools.
         'group': [
-            'info', 'name', 'domain', 'osimage', 'osimagetag', 'kerneloptions', 'interfaces',
-            'routes', 'setupbmc', 'bmcsetupname', 'setupredfish', 'redfishsetupname', 'biosconfig',
-            'unmanaged_bmc_users', 'netboot', 'ipxe_kernel',
-            'bootmenu', 'roles', 'scripts', 'profiles', 'prescript', 'partscript', 'postscript',
+            'info',
+            'name', 'domain', 'osimage', 'osimagetag',
+            'interfaces', 'routes',
+            'setupbmc', 'setupredfish', 'bmcsetupname', 'redfishsetupname',
+            'unmanaged_bmc_users',
+            'netboot', 'ipxe_kernel', 'kerneloptions', 'biosconfig', 'bootmenu',
+            'roles', 'scripts', 'profiles',
             'install_mode', 'disklayout', 'osimage_filter',
+            'prescript', 'partscript', 'postscript',
             'provision_interface', 'provision_method', 'provision_fallback', 'comment'
         ],
         'bmcsetup': [
@@ -434,10 +451,19 @@ def divider(table=None):
     This method returns when a divider after what field is desired for a table
     """
     response = False
+    # the LAST field of each block in sortby() above. Both spellings of every one:
+    # a field that deviates from its parent renders as '<name> *' (helper.py adds
+    # the marker), and the rule is matched on what is rendered - so listing only
+    # the bare name loses the divider exactly when a node overrides that field.
+    node_blocks = ['info', 'osimagetag', 'cloud', 'unmanaged_bmc_users', 'service',
+                   'profiles_digest', 'osimage_filter', 'prescript', 'partscript',
+                   'postscript', 'comment']
+    group_blocks = ['info', 'osimagetag', 'routes', 'unmanaged_bmc_users', 'bootmenu',
+                    'profiles', 'osimage_filter', 'prescript', 'partscript', 'postscript',
+                    'comment']
     static = {
-        'node': ['info','scripts', 'prescript', 'partscript', 'postscript', 'osimage_filter',
-                 'scripts *', 'prescript *', 'partscript *', 'postscript *'],
-        'group': ['info','scripts', 'prescript', 'partscript', 'postscript', 'osimage_filter']
+        'node': node_blocks + [f'{field} *' for field in node_blocks],
+        'group': group_blocks + [f'{field} *' for field in group_blocks]
     }
     if table in static:
         response = list(static[table])
