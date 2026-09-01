@@ -1342,10 +1342,17 @@ class Helper():
             if content is not None:
                 content = content.replace("\r", "\\r")
                 content = base64.b64decode(content, validate=True).decode("utf-8")
-        except binascii.Error:
-            self.logger.debug(f'Base64 Decode Error => {content}')
         except UnicodeDecodeError:
             self.logger.debug(f'Base64 Unicode Decode Error => {content}')
+        except ValueError:
+            # binascii.Error (invalid base64) is itself a ValueError subclass, and
+            # base64.b64decode(..., validate=True) raises a plain ValueError of its
+            # own when content is not even ASCII to begin with (e.g. text with a
+            # curly quote pasted from Word) - encode('ascii') fails internally and
+            # base64 re-raises it as ValueError rather than the UnicodeEncodeError
+            # you would expect. Either way this was never base64: hand back what
+            # was passed in rather than crashing the whole CLI (TRIX-1868).
+            self.logger.debug(f'Base64 Decode Error => {content}')
         return content
 
 
