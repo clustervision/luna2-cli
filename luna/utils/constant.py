@@ -370,9 +370,8 @@ def sortby(table: str) -> list:
         # list is untidy rather than invisible.
         'node': [
             'info',
-            'name', 'hostname', 'status', 'group', 'osimage', 'osimagetag',
-            'interfaces', 'routes', 'vendor', 'assettag', 'position', 'switch', 'switchport',
-            'cloud',
+            'name', 'hostname', 'status', 'vendor', 'assettag', 'group', 'osimage', 'osimagetag',
+            'interfaces', 'routes', 'position', 'switch', 'switchport', 'cloud',
             'setupbmc', 'setupredfish', 'bmcsetup', 'redfishsetup', 'unmanaged_bmc_users',
             'netboot', 'ipxe_kernel', 'kerneloptions', 'biosconfig', 'bootmenu', 'service',
             'roles', 'scripts', 'profiles', 'profiles_digest',
