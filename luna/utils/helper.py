@@ -510,12 +510,15 @@ class Helper():
                 limit = True
                 if "full_scripts" in args:
                     limit = False if args["full_scripts"] == True else True
-                if isinstance(data, dict) and data.get('disklayout'):
+                if isinstance(json_data, dict) and json_data.get('disklayout'):
                     # Summarise BEFORE the length limit runs: disklayout is an
                     # EDITOR_KEY, so less_content would otherwise cut the JSON
                     # mid-document and leave an unparseable fragment on screen.
-                    data['disklayout'] = self.brief_disklayout(data['disklayout'])
-                data = Helper().prepare_json(data, limit)
+                    json_data['disklayout'] = self.brief_disklayout(json_data['disklayout'])
+                # json_data is already fully decoded above - trim it in place rather
+                # than running it back through prepare_json(), which would decode it
+                # a second time (see limit_content()).
+                data = self.limit_content(json_data, limit)
                 fields, rows  = self.filter_data_col(table, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
@@ -1448,6 +1451,31 @@ class Helper():
                     else:
                         content = content[:60]+' ...'
         return content
+
+
+    def limit_content(self, data=None, limit=False):
+        """
+        This method trims already-decoded EDITOR_KEYS values for the table view.
+
+        show_data() decodes a record once via prepare_json(), then used to call
+        prepare_json() a second time just to get less_content()'s length limit
+        applied. But prepare_json() decodes as it goes (nested_alter -> callback
+        -> base64_decode), so that second pass ran base64_decode on plaintext -
+        harmless for a script that happened to be plain ASCII (base64_decode
+        quietly hands back what it was given), but a crash for one containing a
+        character copy-pasted from a rich-text editor (TRIX-1868). This walks the
+        same already-decoded structure and only ever calls less_content, so a
+        record is decoded exactly once no matter how it renders.
+        """
+        if isinstance(data, list):
+            return [self.limit_content(item, limit) for item in data]
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if isinstance(value, str) and key in EDITOR_KEYS:
+                    data[key] = self.less_content(value, limit)
+                elif isinstance(value, (dict, list)):
+                    data[key] = self.limit_content(value, limit)
+        return data
 
 
     def prepare_json(self, json_data=None, limit=False):
