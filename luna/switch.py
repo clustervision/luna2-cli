@@ -234,7 +234,9 @@ class Switch():
         """
         This method show a specific switch.
         """
-        return Helper().show_data(self.table, self.args)
+        response = Helper().show_data(self.table, self.args)
+        Helper().show_switch_nodes(self.args['name'], self.args.get('raw'))
+        return response
 
 
     def add_switch(self):
