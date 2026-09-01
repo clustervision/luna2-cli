@@ -61,8 +61,17 @@ class Rest():
         self.request_timeout = 20
         self.security = True if self.security.lower() in ['y', 'yes', 'true']  else False
         self.session = Session()
+        # read=0 on purpose. A read timeout means the connection was made and the
+        # daemon simply has not answered yet - the request landed, and a control
+        # action is not idempotent, so repeating it can power-cycle a node twice.
+        # It also arrives as extra load on a daemon that is by definition already
+        # slow, which is the opposite of backing off. A failed *connection* is
+        # different: nothing was delivered, so those are still worth retrying.
         self.retries = Retry(
-            total= 6,
+            total=6,
+            connect=6,
+            read=0,
+            status=6,
             backoff_factor=0.2,
             status_forcelist=[502, 503, 504],
             allowed_methods={'GET', 'POST'},
