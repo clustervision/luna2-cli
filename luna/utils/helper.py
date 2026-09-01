@@ -526,6 +526,33 @@ class Helper():
         return response
 
 
+    def show_switch_nodes(self, switch_name=None, raw=None):
+        """
+        Show the nodes attached to a switch, matched by their switch and
+        switchport fields. The daemon has no reverse-lookup endpoint for
+        this, so the full node list is fetched and filtered client-side.
+        """
+        response = Rest().get_data('node')
+        if response.status_code != 200:
+            return False
+        data = response.content.get('config', {}).get('node', {})
+        matches = []
+        for name in sorted(data.keys()):
+            node = data[name]
+            if node.get('switch') == switch_name:
+                matches.append({'name': name, 'switchport': node.get('switchport'), 'group': node.get('group')})
+        if raw:
+            Presenter().show_json(matches)
+            return True
+        if not matches:
+            return True
+        fields = ['#', 'Node', 'Switchport', 'Group']
+        rows = [[i + 1, m['name'], m['switchport'], m['group']] for i, m in enumerate(matches)]
+        title = f' << Switch {switch_name} Attached Nodes >>'
+        Presenter().show_table(title, fields, rows)
+        return True
+
+
     def member_record(self, table=None, args=None):
         """
         This method fetch the nodes to the provided entity.
@@ -941,6 +968,57 @@ class Helper():
             else:
                 response.append(each)
         return response
+
+
+    def expand_switchports(self, names=None, switchport=None):
+        """
+        Expand a --switchport value against the node names being written.
+        A bracket expression (e.g. swp[1-4]) must expand to exactly one
+        port per node, matched by position; a plain value only applies
+        when a single node is being written.
+        """
+        if switchport in (None, ''):
+            return [switchport] * len(names)
+        expanded = self.get_hostlist(switchport)
+        if not expanded:
+            Message().error_exit(f'Invalid --switchport expression: {switchport}')
+        if len(expanded) != len(names):
+            Message().error_exit(
+                f'--switchport {switchport} expands to {len(expanded)} port(s), which does not '
+                f'match the {len(names)} node(s) supplied. Kindly provide a matching range, '
+                f'e.g. swp[1-{len(names)}].'
+            )
+        return expanded
+
+
+    def check_switchport_conflicts(self, switch=None, assignments=None, existing_nodes=None):
+        """
+        Client-side guard: the daemon does not enforce switch+switchport
+        uniqueness, so verify none of the assignments about to be written
+        collide with each other or with another node already on the same
+        switch. Best-effort only - a concurrent write, or anything that
+        talks to the daemon API directly, can still race past this.
+        """
+        if not switch or not assignments:
+            return
+        existing_nodes = existing_nodes or {}
+        seen = {}
+        for name, port in assignments:
+            if not port:
+                continue
+            for other_name, other_data in existing_nodes.items():
+                if other_name == name:
+                    continue
+                if other_data.get('switch') == switch and other_data.get('switchport') == port:
+                    Message().error_exit(
+                        f'Switchport {port} on switch {switch} is already assigned to node {other_name}.'
+                    )
+            if port in seen:
+                Message().error_exit(
+                    f'Switchport {port} on switch {switch} is assigned to more than one node in this '
+                    f'command ({seen[port]}, {name}).'
+                )
+            seen[port] = name
 
 
     def common_list_args(self, parser=None, csv=False):
@@ -1778,7 +1856,7 @@ class Helper():
         return fields, osimage, rows
 
 
-    def filter_nodelist_col(self, table=None, data=None):
+    def filter_nodelist_col(self, table=None, data=None, extra_fields=None):
         """
         This method will generate the data as for
         row format
@@ -1787,6 +1865,8 @@ class Helper():
         self.logger.debug(f'Data => {data}')
         fields, rows, colored_fields = [], [], []
         fields = filter_columns(table)
+        if extra_fields:
+            fields = fields + [field for field in extra_fields if field not in fields]
         self.logger.debug(f'Fields => {fields}')
         macaddress_row = []
         ipaddress_row = []
