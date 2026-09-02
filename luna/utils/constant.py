@@ -313,7 +313,7 @@ def filter_columns(table: str) -> list:
     response = False
     static = {
         'cloud': ['name', 'type'],
-        'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users'],
+        'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users', 'cipher'],
         'redfishsetup': ['name', 'scheme', 'port', 'verify', 'accounts'],
         'biosconfig': ['name', 'manufacturer', 'model', 'biosversion', 'grabbedfrom', 'settings'],
         'firmwarecatalog': ['name', 'manufacturer', 'model', 'component', 'version', 'imagefile'],

@@ -61,6 +61,12 @@ class Arguments():
         parser.add_argument('-n', '--netchannel', type=int, help='Network Channel')
         parser.add_argument('-m', '--mgmtchannel', type=int, help='Management Channel')
         parser.add_argument('-U', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
+        parser.add_argument('-C', '--cipher', type=int,
+                            help='IPMI cipher suite, as ipmitool -C takes it. '
+                                 '3 (HMAC-SHA1) is the default when unset and what almost '
+                                 'every board accepts; 17 (HMAC-SHA256) is what a hardened '
+                                 'board may require, and it refuses 3 in a way that looks '
+                                 'like a wrong password')
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
