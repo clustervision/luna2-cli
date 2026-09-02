@@ -55,34 +55,9 @@ EDITOR_KEYS = [
     'options', 'content', 'comment', 'prescript', 'partscript', 'postscript', 'grab_filesystems',
     'grab_exclude', 'kerneloptions', 'ztpconfig', 'disklayout', 'osimage_filter'
 ]
-# Free-text fields where a Word/Outlook paste can land a lookalike character (TRIX-1868).
+# Free-text fields rejected if they contain a non-ASCII character (TRIX-1868).
 # content is excluded: it is a byte-preserving path for binary secrets/profile files.
-NORMALIZE_KEYS = ['comment', 'prescript', 'partscript', 'postscript']
-# Rich-text (Word/Outlook/browser) punctuation mapped to its plain ASCII equivalent.
-TYPOGRAPHIC_LOOKALIKES = {
-    '‘': "'",   # LEFT SINGLE QUOTATION MARK
-    '’': "'",   # RIGHT SINGLE QUOTATION MARK
-    '‚': "'",   # SINGLE LOW-9 QUOTATION MARK
-    '‛': "'",   # SINGLE HIGH-REVERSED-9 QUOTATION MARK
-    '′': "'",   # PRIME
-    '“': '"',   # LEFT DOUBLE QUOTATION MARK
-    '”': '"',   # RIGHT DOUBLE QUOTATION MARK
-    '„': '"',   # DOUBLE LOW-9 QUOTATION MARK
-    '‟': '"',   # DOUBLE HIGH-REVERSED-9 QUOTATION MARK
-    '″': '"',   # DOUBLE PRIME
-    '‐': '-',   # HYPHEN
-    '‑': '-',   # NON-BREAKING HYPHEN
-    '‒': '-',   # FIGURE DASH
-    '–': '-',   # EN DASH
-    '—': '-',   # EM DASH
-    '―': '-',   # HORIZONTAL BAR
-    ' ': ' ',   # NO-BREAK SPACE
-    ' ': ' ',   # FIGURE SPACE
-    ' ': ' ',   # THIN SPACE
-    '​': '',    # ZERO WIDTH SPACE
-    '­': '',    # SOFT HYPHEN
-    '…': '...'  # HORIZONTAL ELLIPSIS
-}
+ASCII_ONLY_KEYS = ['comment', 'prescript', 'partscript', 'postscript']
 SERVICE_ACTIONS = ['start', 'stop', 'restart', 'reload', 'status']
 SERVICES = ['dhcp', 'dns']
 TOOL_DESCRIPTION = '''\

@@ -49,7 +49,7 @@ from nested_lookup import nested_lookup, nested_update, nested_delete, nested_al
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
-from luna.utils.constant import (EDITOR_KEYS, BOOL_KEYS, NORMALIZE_KEYS, TYPOGRAPHIC_LOOKALIKES,
+from luna.utils.constant import (EDITOR_KEYS, BOOL_KEYS, ASCII_ONLY_KEYS,
     filter_columns, sortby, divider, spacer, overrides, parser_doc)
 from luna.utils.disklayout import canonicalize as disklayout_canonicalize, to_yaml as disklayout_to_yaml, DisklayoutError
 from luna.utils.message import Message
@@ -256,6 +256,8 @@ class Helper():
                             if key == 'disklayout':
                                 content = self.disklayout_b64(raw)
                             else:
+                                if key in ASCII_ONLY_KEYS:
+                                    self.check_ascii_only(key, raw)
                                 content = self.base64_encode(raw)
                             payload = nested_update(payload, key=key, value=content)
                         else:
@@ -264,7 +266,9 @@ class Helper():
                         if key == 'disklayout':
                             content = self.disklayout_b64(content[0])
                         else:
-                            content = self.base64_encode_text(key, content[0])
+                            if key in ASCII_ONLY_KEYS:
+                                self.check_ascii_only(key, content[0])
+                            content = self.base64_encode(content[0].encode('utf-8', 'surrogateescape'))
                         payload = nested_update(payload, key=key, value=content)
         return payload
 
@@ -302,7 +306,9 @@ class Helper():
         if key == 'disklayout':
             response = self.disklayout_b64(edited)
         else:
-            response = self.base64_encode_text(key, edited)
+            if key in ASCII_ONLY_KEYS:
+                self.check_ascii_only(key, edited)
+            response = self.base64_encode(edited)
         os.remove(filename)
         os.rmdir(tmp_folder)
         return response
@@ -1392,38 +1398,33 @@ class Helper():
         return content
 
 
-    def normalize_typography(self, text=None):
+    def check_ascii_only(self, key=None, content=None):
         """
-        Replace TYPOGRAPHIC_LOOKALIKES with their plain ASCII equivalent.
-        Returns (text, changed) so a caller can warn only when something changed.
-        """
-        changed = any(bad in text for bad in TYPOGRAPHIC_LOOKALIKES)
-        if changed:
-            for bad, good in TYPOGRAPHIC_LOOKALIKES.items():
-                text = text.replace(bad, good)
-        return text, changed
-
-
-    def base64_encode_text(self, key=None, content=None):
-        """
-        Base64-encode content (str or bytes), normalizing it first if key is in
-        NORMALIZE_KEYS. content itself stays untouched (byte-preserving for secrets/profile files).
+        Exit with a clear error if content (str or bytes, for an ASCII_ONLY_KEYS
+        field) contains any non-ASCII character - e.g. a curly quote or dash
+        pasted from a rich-text editor (TRIX-1868).
         """
         if isinstance(content, bytes):
             try:
                 text = content.decode('utf-8')
-            except UnicodeDecodeError:
-                return self.base64_encode(content)
+            except UnicodeDecodeError as error:
+                Message().error_exit(f'ERROR :: {key} is not valid UTF-8 text :: {error}')
+                return
         else:
             text = content
-        if key in NORMALIZE_KEYS:
-            text, changed = self.normalize_typography(text)
-            if changed:
-                Message().show_warning(
-                    f"WARNING :: {key} contained curly quotes, dashes or other "
-                    f"typographic characters from a rich-text paste; replaced "
-                    f"them with plain ASCII equivalents.")
-        return self.base64_encode(text.encode('utf-8', 'surrogateescape'))
+        positions = {}
+        for index, char in enumerate(text):
+            if ord(char) > 127:
+                positions.setdefault(char, []).append(index)
+        if positions:
+            detail = '\n'.join(
+                f"  {char!r} (U+{ord(char):04X}) at position {indexes[0]}"
+                + (f", {len(indexes)} occurrences" if len(indexes) > 1 else '')
+                for char, indexes in positions.items())
+            Message().error_exit(
+                f"ERROR :: {key} contains characters outside plain ASCII - remove "
+                f"them (often a curly quote or dash pasted from a rich-text editor) "
+                f"and try again:\n{detail}")
 
 
     def base64_decode(self, content=None):
