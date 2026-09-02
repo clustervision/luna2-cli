@@ -163,3 +163,110 @@ def test_the_completion_is_valid_shell(completion):
     import subprocess
     result = subprocess.run(['bash', '-n', COMPLETION], capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
+
+
+# --- the flags, not just the verbs ------------------------------------------
+
+ARGUMENTS = os.path.join(MODULES, 'utils', 'arguments.py')
+
+
+def _option_strings_of(call):
+    """The dashed option strings of one add_argument call, ignoring positionals."""
+    return {a.value for a in call.args
+            if isinstance(a, ast.Constant) and isinstance(a.value, str)
+            and a.value.startswith('-')}
+
+
+def _shared_arg_helpers():
+    """
+    {helper name: {flags it adds}} from utils/arguments.py. Entities do not spell
+    most of their flags out - they call common_bmcsetup_args(parser) and friends -
+    so a test that only walked the entity module would see almost nothing.
+    """
+    with open(ARGUMENTS, 'r', encoding='utf-8') as handle:
+        tree = ast.parse(handle.read())
+    helpers = {}
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.FunctionDef):
+            continue
+        # Only what the helper adds unconditionally. common_list_args adds --csv
+        # inside `if csv:`, so it exists for `list` and not for `show`, and
+        # counting it for every caller would report a flag that is not offered.
+        flags = set()
+        for inner in node.body:
+            for call in ast.walk(inner):
+                if (isinstance(call, ast.Call) and isinstance(call.func, ast.Attribute)
+                        and call.func.attr == 'add_argument'
+                        and not isinstance(inner, ast.If)):
+                    flags |= _option_strings_of(call)
+        if flags:
+            helpers[node.name] = flags
+    return helpers
+
+
+def _flags_by_verb(filename):
+    """
+    {verb: {flags}} for one entity module, following both the flags added straight
+    onto a verb's parser and the shared helpers that parser is handed to.
+    """
+    with open(os.path.join(MODULES, filename), 'r', encoding='utf-8') as handle:
+        tree = ast.parse(handle.read())
+    helpers = _shared_arg_helpers()
+    variable_verb = {}
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.Assign) and len(node.targets) == 1
+                and isinstance(node.targets[0], ast.Name)
+                and isinstance(node.value, ast.Call)
+                and isinstance(node.value.func, ast.Attribute)
+                and node.value.func.attr == 'add_parser'
+                and node.value.args
+                and isinstance(node.value.args[0], ast.Constant)):
+            variable_verb[node.targets[0].id] = node.value.args[0].value
+    flags = {verb: set() for verb in variable_verb.values()}
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
+            continue
+        # verb_parser.add_argument('-x', '--yy')
+        if (node.func.attr == 'add_argument' and isinstance(node.func.value, ast.Name)
+                and node.func.value.id in variable_verb):
+            flags[variable_verb[node.func.value.id]] |= _option_strings_of(node)
+        # Arguments().common_something_args(verb_parser)
+        elif node.func.attr in helpers and node.args:
+            first = node.args[0]
+            if isinstance(first, ast.Name) and first.id in variable_verb:
+                flags[variable_verb[first.id]] |= helpers[node.func.attr]
+    return flags
+
+
+@pytest.mark.parametrize('filename', list(_entity_modules()))
+def test_every_flag_the_parser_offers_can_be_completed(filename, completion):
+    """
+    The verbs were checked and the flags were not, so a new option could be added
+    to the parser and this file stayed green while the flag silently did not
+    complete. That is how --cipher on bmcsetup shipped uncompletable.
+
+    Only the missing direction is asserted, as with the verbs: a flag you can type
+    but cannot complete is the failure worth catching, while a stale extra in the
+    completion is harmless and would fail on anything built dynamically.
+    """
+    entity = filename[:-3]
+    by_verb = _flags_by_verb(filename)
+    if not by_verb:
+        pytest.skip(f'{filename} builds its subcommands dynamically')
+    problems = []
+    for verb, wanted in sorted(by_verb.items()):
+        if not wanted:
+            continue
+        offered = _array(completion, f'_shtab_luna_{entity}_{verb}_option_strings')
+        if offered is None:
+            continue          # the verb itself is missing - the verb test says so
+        missing = sorted(wanted - offered)
+        if missing:
+            problems.append(f'{entity} {verb}: {missing}')
+    assert not problems, (
+        'these flags can be typed but will not complete:\n  ' + '\n  '.join(problems)
+        + '\nSplice them into the matching _option_strings array. Do not regenerate '
+          'the whole file: it needs a live daemon, it bakes that box\'s controller '
+          'hostnames in as literal option strings, and it drops flags the generating '
+          'box\'s package does not have.'
+    )
