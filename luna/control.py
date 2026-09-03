@@ -46,6 +46,13 @@ class Control():
     It is responsible to perform all power related operations on the Nodes.
     """
 
+    # a single node's action is answered synchronously, and one action can be
+    # several BMC round trips: arming a boot override and resetting is about
+    # 18 s on an AMI board. The daemon bounds each BMC call itself, so waiting
+    # longer here costs nothing on a dead BMC and stops a slow one from turning
+    # an action that already happened into a reported timeout
+    action_timeout = 60
+
     def __init__(self, args=None, parser=None, subparsers=None):
         self.logger = Log.get_logger()
         self.args = args
@@ -88,6 +95,12 @@ class Control():
             action_parser = chassis_menu.add_parser(action, help=f'Node(s) {action.capitalize()}', usage='%(prog)s [-h] [-v] [node|hostlist]')
             action_parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
             action_parser.add_argument('node', help='Node Name or Node Hostlist').completer = Helper().name_completer("node")
+        nextboot_parser = control_args.add_parser('nextboot', help='Next Boot Operations')
+        nextboot_menu = nextboot_parser.add_subparsers(dest='action')
+        for action in actions('nextboot'):
+            action_parser = nextboot_menu.add_parser(action, help=f'Node(s) {action.capitalize()}', usage='%(prog)s [-h] [-v] [node|hostlist]')
+            action_parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+            action_parser.add_argument('node', help='Node Name or Node Hostlist').completer = Helper().name_completer("node")
         redfish_parser = control_args.add_parser('redfish', help='RedFish Operations')
         redfish_menu = redfish_parser.add_subparsers(dest='action')
         for action in actions('redfish'):
@@ -112,7 +125,7 @@ class Control():
             uri = f'{self.route}/action/{self.args["system"]}'
             uri = f'{uri}/{self.args["node"]}/_{self.args["action"]}'
             self.logger.debug(f'URI => {uri}')
-            response = Rest().get_raw(uri)
+            response = Rest().get_raw(uri, timeout=self.action_timeout)
             self.logger.debug(f'HTTP STATUS => {response.status_code}')
             self.logger.debug(f'HTTP Response => {response.content}')
             # status = True if response.status_code == [200, 204] else False

@@ -376,10 +376,12 @@ class Rest():
         return response
 
 
-    def get_raw(self, route=None, uri=None, noexit=False):
+    def get_raw(self, route=None, uri=None, noexit=False, timeout=None):
         """
         This method is based on REST API's GET method.
         It will fetch the records from Luna 2 Daemon via REST API's.
+        A caller whose request is known to be slow to answer may pass its own
+        timeout; the default is the one every other request uses.
         """
         response = False
         headers = {'x-access-tokens': self.get_token()}
@@ -392,7 +394,7 @@ class Rest():
                 daemon_url,
                 stream=True,
                 headers=headers,
-                timeout=self.request_timeout,
+                timeout=timeout or self.request_timeout,
                 verify=self.security
             )
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
