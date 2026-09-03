@@ -248,7 +248,7 @@ def actions(table: str) -> list:
     common_actions = ["list", "show", "add", "change", "rename", "clone", "remove"]
     network_actions = ["list", "show", "add", "change", "rename", "remove"]
     interface_actions = ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"]
-    inventory_actions = ["listinventory", "showinventory", "refreshinventory"]
+    inventory_actions = ["listinventory", "showinventory", "refreshinventory", "setupredfish"]
     disklayout_actions = ["showdisklayout"]
     member_action = ["member"]
     static = {
