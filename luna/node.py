@@ -196,6 +196,12 @@ class Node():
         node_refreshinventory.add_argument('-g', '--group',
                                            help='Every node of this Group').completer = Helper().name_completer('group')
         node_refreshinventory.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        node_setupredfish = node_args.add_parser('setupredfish', help="Create or correct a Node's Redfish accounts from its redfishsetup")
+        node_setupredfish.add_argument('name', nargs='?',
+                                       help='Node Name or Node Hostlist').completer = Helper().name_completer(self.table)
+        node_setupredfish.add_argument('-g', '--group',
+                                       help='Every node of this Group').completer = Helper().name_completer('group')
+        node_setupredfish.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
 
@@ -784,6 +790,33 @@ class Node():
             Helper().dig_status(request_id, 1, 'inventory')
         return response
 
+
+    def setupredfish_node(self):
+        """
+        Method to make a node's BMC carry the Redfish accounts its redfishsetup
+        describes, with their roles. The same work an install queues for a node
+        with setupredfish on, done now for a BMC that already answers.
+        """
+        node = self.args.get('name')
+        if self.args.get('group'):
+            payload = {'config': {self.table: {'group': self.args['group']}}}
+        elif node:
+            payload = {'config': {self.table: {'hostlist': node}}}
+        else:
+            return Message().error_exit('Give a node, a hostlist, or -g <group>', 400)
+        response = Rest().post_raw(f'config/{self.table}/redfishaccounts/_provision', payload)
+        self.logger.debug(f'HTTP Response => {response.content}')
+        if response.status_code != 200:
+            content = response.json() if response.content else {}
+            return Message().error_exit(content.get('message', response.content),
+                                        response.status_code)
+        content = response.json()
+        request_id = content.get('request_id')
+        queued = content.get('config', {}).get(self.table, {}).get('accounts', {}).get('queued')
+        Message().show_success(f'Settling Redfish accounts for {queued} nodes...')
+        if request_id:
+            Helper().dig_status(request_id, 1, 'redfish')
+        return response
 
     def biosgrab_node(self):
         """
