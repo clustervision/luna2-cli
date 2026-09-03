@@ -166,12 +166,53 @@ def test_power_sel_and_chassis_keep_the_single_node_get(monkeypatch, system, act
 
     asked = []
     monkeypatch.setattr(control.Rest, 'get_raw',
-                        lambda self, uri: asked.append(uri) or FakeResponse(payload={}),
+                        lambda self, uri, timeout=None: asked.append(uri) or FakeResponse(payload={}),
                         raising=False)
     monkeypatch.setattr(control.Presenter, 'show_table_col',
                         lambda self, *a, **k: True, raising=False)
     control_with({'system': system, 'action': action, 'node': 'node001'}).action_status()
     assert asked == [f'control/action/{system}/node001/_{action}']
+
+
+# --- nextboot: a slow BMC must not turn a reset into a reported timeout ----
+
+def test_a_single_node_control_action_waits_longer_than_a_lookup(monkeypatch):
+    """
+    Arming the boot override and resetting is several Redfish round trips, about
+    18 s on an AMI board, against the 20 s every other request gets. The daemon
+    bounds each BMC call itself, so a longer wait costs nothing on a dead BMC and
+    stops a slow one from reporting failure for a node already rebooting.
+    """
+    import luna.control as control
+    asked = []
+    monkeypatch.setattr(control.Rest, 'get_raw',
+                        lambda self, uri, timeout=None: asked.append((uri, timeout))
+                        or FakeResponse(payload={}), raising=False)
+    monkeypatch.setattr(control.Presenter, 'show_table_col',
+                        lambda self, *a, **k: True, raising=False)
+    control_with({'system': 'nextboot', 'action': 'bios', 'node': 'node001'}).action_status()
+    assert asked == [('control/action/nextboot/node001/_bios', control.Control.action_timeout)]
+    assert control.Control.action_timeout > 20
+
+
+def test_the_rest_layer_uses_the_caller_timeout_only_when_given(monkeypatch):
+    from luna.utils import rest
+    seen = []
+
+    class FakeSession():
+        def get(self, url, **kwargs):
+            seen.append(kwargs.get('timeout'))
+            return FakeResponse(payload={})
+    instance = rest.Rest.__new__(rest.Rest)
+    instance.logger = luna_log.Log.get_logger()
+    instance.daemon = 'https://daemon:7050'
+    instance.security = False
+    instance.request_timeout = 20
+    instance.session = FakeSession()
+    monkeypatch.setattr(rest.Rest, 'get_token', lambda self: 'token', raising=False)
+    instance.get_raw('control/action/power/node001/_status')
+    instance.get_raw('control/action/nextboot/node001/_bios', timeout=60)
+    assert seen == [20, 60]
 
 
 # --- what the operator is shown --------------------------------------------
