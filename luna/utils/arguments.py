@@ -135,6 +135,8 @@ class Arguments():
                                 metavar="File-Path OR In-Line", help='Kernel Options File-Path OR In-Line')
         parser.add_argument('-b', '--bmcsetupname', help='BMC Setup Name').completer = Helper().name_completer("bmcsetup")
         parser.add_argument('-F', '--redfishsetupname', help='Redfish Setup Name').completer = Helper().name_completer("redfishsetup")
+        parser.add_argument('-E', '--setupredfish', choices=BOOL_CHOICES,
+                               metavar=BOOL_META, help='Lets Luna create the Redfish accounts of the redfishsetup on the BMC')
         parser.add_argument('-bc', '--biosconfig', help='BIOS Configuration the nodes of this group should hold; '
                             'biospush with no name pushes it').completer = Helper().name_completer("biosconfig")
         parser.add_argument('-d', '--domain', help='Domain Name')
@@ -206,6 +208,8 @@ class Arguments():
                               metavar=BOOL_META, help='BMC Setup')
         parser.add_argument('-b', '--bmcsetup', help='BMC Setup')
         parser.add_argument('-F', '--redfishsetup', help='Redfish Setup').completer = Helper().name_completer("redfishsetup")
+        parser.add_argument('-E', '--setupredfish', choices=BOOL_CHOICES,
+                               metavar=BOOL_META, help='Lets Luna create the Redfish accounts of the redfishsetup on the BMC')
         parser.add_argument('-bc', '--biosconfig', help='BIOS Configuration this node should hold; '
                             'biospush with no name pushes it').completer = Helper().name_completer("biosconfig")
         parser.add_argument('--switch', help='Sets the switch for the node. Used for port based node detection').completer = Helper().name_completer("switch")

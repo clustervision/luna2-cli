@@ -248,7 +248,7 @@ def actions(table: str) -> list:
     common_actions = ["list", "show", "add", "change", "rename", "clone", "remove"]
     network_actions = ["list", "show", "add", "change", "rename", "remove"]
     interface_actions = ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"]
-    inventory_actions = ["listinventory", "showinventory", "refreshinventory"]
+    inventory_actions = ["listinventory", "showinventory", "refreshinventory", "setupredfish"]
     disklayout_actions = ["showdisklayout"]
     member_action = ["member"]
     static = {
@@ -270,11 +270,15 @@ def actions(table: str) -> list:
         "firmwarecatalog": ["list", "show", "add", "change", "rename", "remove", "status"],
         "otherdev": common_actions,
         "switch" : common_actions + ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"],
-        "control" : ["power", "sel", "chassis", "redfish"],
+        "control" : ["power", "sel", "chassis", "redfish", "nextboot"],
         "power" : ["on", "off", "status", "reset"],
         "sel" : ["list", "clear"],
         "chassis" : ["identify", "noidentify"],
         "redfish" : ["upload", "setting"],
+        # bios arms a one-shot boot into BIOS setup and resets; status reads the
+        # override back; clear disarms it without a reset. Redfish only: the IPMI
+        # boot flags are not reliable
+        "nextboot" : ["bios", "status", "clear"],
         "tag_osimage" : ["change", "remove"]
     }
     response = list(static[table])
