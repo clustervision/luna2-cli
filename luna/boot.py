@@ -39,6 +39,7 @@ __status__      = 'Development'
 
 import json
 from datetime import datetime
+from textwrap import wrap
 from operator import methodcaller
 from luna.utils.constant import actions
 from luna.utils.helper import Helper
@@ -148,6 +149,18 @@ class Boot():
     # with. It is the timestamp's real job: the anchor tells you which boot, this tells
     # you which nodes are not coming.
     STUCK_MINUTES = 60
+
+    # How many stuck nodes are named before the rest become a count. A boot does not go
+    # wrong for one node, it goes wrong for a rack or a switch at a time, and five
+    # hundred names in a table cell tell an operator less than the count does. What
+    # identifies the fault at that scale is the stage they all stopped in, so that is
+    # summarised first and always, and the names are the detail behind it.
+    STUCK_LISTED = 12
+
+    # Nothing in this block is allowed past this, wrapped across rows if it has to be.
+    # Every count here is bounded, but a node name is not: names run to a rack and a
+    # position on real clusters, so a fixed number of them is not a fixed width.
+    ROW_WIDTH = 96
 
     def boot_phase(self, status=None):
         """
@@ -391,15 +404,28 @@ class Boot():
                         f"   {entry['nodes']:>4}/{data['nodes']}   {entry['note']}")
         divider = ['total']
         if data['stuck']:
-            worst = data['stuck'][0]
+            stuck, worst = data['stuck'], data['stuck'][0]
             divider.append(fields[-1])
+            by_stage = {}
+            for node in stuck:
+                by_stage[node['stage']] = by_stage.get(node['stage'], 0) + 1
+            # one entry per stage, so this line is the same length for five nodes as
+            # for five hundred - and at five hundred the stage is the diagnosis
+            ranked = sorted(by_stage.items(), key=lambda item: -item[1])
+            where = ', '.join(f'{count} in {stage}' for stage, count in ranked[:3])
+            if len(ranked) > 3:
+                where = f'{where}, {sum(count for _, count in ranked[3:])} elsewhere'
             fields.append('stuck')
-            rows.append(f"{len(data['stuck'])} silent for over "
-                        f"{self.age(self.STUCK_MINUTES)}, worst {worst['node']} "
-                        f"in {worst['stage']} for {self.age(worst['minutes'])}")
+            rows.append(f"{len(stuck)} silent for over {self.age(self.STUCK_MINUTES)}"
+                        f"   {where}   worst {worst['node']} "
+                        f"{self.age(worst['minutes'])}")
             if self.args.get('verbose'):
-                fields.append('')
-                rows.append(', '.join(node['node'] for node in data['stuck']))
+                named = [node['node'] for node in stuck[:self.STUCK_LISTED]]
+                if len(stuck) > self.STUCK_LISTED:
+                    named.append(f'and {len(stuck) - self.STUCK_LISTED} more')
+                for line in wrap(', '.join(named), self.ROW_WIDTH) or ['']:
+                    fields.append('')
+                    rows.append(line)
         return Presenter().show_table_col(' << Boot Progress >> ', fields, rows,
                                           divider=divider)
 

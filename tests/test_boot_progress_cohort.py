@@ -151,3 +151,62 @@ def test_the_worst_node_is_the_one_reported_first(boot):
         for n in (2, 5, 9)
     }
     assert boot.stuck_nodes(states, sorted(states))[0]['node'] == 'node09'
+
+
+def test_five_hundred_stuck_nodes_do_not_flood_the_view(boot, monkeypatch, capsys):
+    """
+    A boot does not fail for one node. It fails for a rack, a switch or an image at a
+    time, and the view has to stay the same size when it does - a row per node, or five
+    hundred names in one cell, is a view nobody can read at the moment they most need
+    to. The stage they stopped in is what identifies the fault at that scale.
+    """
+    now = datetime.utcnow()
+    old = (now - timedelta(hours=3)).strftime('%Y-%m-%d %H:%M:%S')
+    nodes = {f'node{n:04d}': ('install.unpack' if n % 25 else 'install.download', old)
+             for n in range(500)}
+    payload = _states(nodes)
+    monkeypatch.setattr('luna.boot.Rest', lambda: type('R', (), {
+        'get_raw': staticmethod(lambda route: FakeResponse(payload))})())
+    boot.args = {'group': None, 'all': None, 'raw': None, 'verbose': None}
+    boot.show_progress(sorted(nodes))
+    printed = capsys.readouterr().out
+    assert '500 silent for over' in printed
+    assert '480 in unpack' in printed and '20 in download' in printed
+    # the whole block, borders and all, stays inside a terminal
+    assert max(len(line) for line in printed.splitlines()) < 120, 'the view got wide'
+    assert len(printed.splitlines()) < 20, 'the view got long'
+
+
+def test_verbose_names_a_readable_number_of_them(boot, monkeypatch, capsys):
+    """Detail is capped: the rest is a count, not another four hundred names."""
+    now = datetime.utcnow()
+    old = (now - timedelta(hours=3)).strftime('%Y-%m-%d %H:%M:%S')
+    nodes = {f'node{n:04d}': ('install.unpack', old) for n in range(500)}
+    payload = _states(nodes)
+    monkeypatch.setattr('luna.boot.Rest', lambda: type('R', (), {
+        'get_raw': staticmethod(lambda route: FakeResponse(payload))})())
+    boot.args = {'group': None, 'all': None, 'raw': None, 'verbose': True}
+    boot.show_progress(sorted(nodes))
+    printed = capsys.readouterr().out
+    assert f'and {500 - Boot.STUCK_LISTED} more' in printed
+    assert printed.count('node0') <= Boot.STUCK_LISTED + 2
+
+
+def test_real_node_names_do_not_widen_the_view(boot, monkeypatch, capsys):
+    """
+    Capping the count of names bounds the row only if names are short. On a real
+    cluster they carry a rack and a position, so the cap is a width and the list
+    wraps onto as many rows as it needs.
+    """
+    old = (datetime.utcnow() - timedelta(hours=3)).strftime('%Y-%m-%d %H:%M:%S')
+    nodes = {f'compute-rack{n // 40:02d}-node{n % 40:02d}': ('install.unpack', old)
+             for n in range(500)}
+    payload = _states(nodes)
+    monkeypatch.setattr('luna.boot.Rest', lambda: type('R', (), {
+        'get_raw': staticmethod(lambda route: FakeResponse(payload))})())
+    boot.args = {'group': None, 'all': None, 'raw': None, 'verbose': True}
+    boot.show_progress(sorted(nodes))
+    printed = capsys.readouterr().out
+    assert max(len(line) for line in printed.splitlines()) < 120, 'the view got wide'
+    # the wrap can put 'and' on the line above, which is the point of wrapping
+    assert '488 more' in printed
