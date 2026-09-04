@@ -94,7 +94,8 @@ class Boot():
     # dozen post-install steps node417 is on.
     BOOT_PHASES = [
         ('ipxe', ('rendered',)),
-        ('download', ('download', 'unpack')),
+        ('download', ('download',)),
+        ('unpack', ('unpack', 'lpart.part')),
         ('done', ('success', 'booted')),
     ]
 
