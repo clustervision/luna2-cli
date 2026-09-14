@@ -127,7 +127,7 @@ class Profile():
         profile_status.add_argument('-v', '--verbose', action='store_true', default=None,
                                     help='Verbose Mode')
         ## >>>>>>> Profile Command >>>>>>> addfile
-        profile_addfile = profile_args.add_parser('addfile', help='Add a file to a Profile')
+        profile_addfile = profile_args.add_parser('addfile', help='Add a file to a Profile, creating the Profile if it does not exist')
         profile_addfile.add_argument('name', help='Name of the Profile').completer = Helper().name_completer(self.route)
         profile_addfile.add_argument('file', help='Name of the file inside the Profile')
         self.common_file_args(profile_addfile)
@@ -286,7 +286,8 @@ class Profile():
             Message().error_exit(f'Profile {name} already present', existing.status_code)
         payload = self.profile_payload()
         if not payload:
-            return Message().show_error('Nothing to add: supply a service, an action or a file')
+            return Message().show_error('Nothing to add: supply a service and an action, or start '
+                                        'the profile with addfile')
         request_data = {'config': {self.route: {name: payload}}}
         self.logger.debug(f'Payload => {request_data}')
         response = Rest().post_data(self.route, name, request_data)
@@ -538,9 +539,11 @@ class Profile():
         Method to add a file to a Profile.
         """
         name, filename = self.args['name'], self.args['file']
-        if Rest().get_data(f'{self.route}/{name}').status_code != 200:
-            Message().error_exit(f'Profile {name} is not available', 404)
-        if self.profile_file(name, filename):
+        # a profile that does not exist yet is created by its first file: the daemon
+        # refuses an empty profile, and one that only places files has no service to
+        # create it with
+        existing = Rest().get_data(f'{self.route}/{name}').status_code == 200
+        if existing and self.profile_file(name, filename):
             Message().error_exit(f'File {filename} is already in profile {name}', 400)
         payload = self.file_payload()
         for required in ['path', 'content']:
@@ -549,7 +552,10 @@ class Profile():
                                             f'supply -p and -c or -qc')
         response = self.post_file(payload)
         if response.status_code in (200, 201, 204):
-            Message().show_success(f'File {filename} is added to profile {name}.')
+            if existing:
+                Message().show_success(f'File {filename} is added to profile {name}.')
+            else:
+                Message().show_success(f'Profile {name} created with file {filename}.')
         else:
             Message().error_exit(response.content, response.status_code)
         return response
