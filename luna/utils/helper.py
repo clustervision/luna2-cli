@@ -50,7 +50,7 @@ from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
 from luna.utils.constant import (EDITOR_KEYS, BOOL_KEYS, ASCII_ONLY_KEYS,
-    filter_columns, sortby, divider, spacer, overrides, parser_doc)
+    filter_columns, filter_nested, sortby, divider, spacer, overrides, parser_doc)
 from luna.utils.disklayout import canonicalize as disklayout_canonicalize, to_yaml as disklayout_to_yaml, DisklayoutError
 from luna.utils.message import Message
 
@@ -1282,16 +1282,18 @@ class Helper():
         return fields, rows
 
 
-    def nested_lines(self, entries=None):
+    def nested_lines(self, entries=None, keys=None):
         """
         One cell for a list of records - a group's interfaces, a redfishsetup's
         accounts. Each record opens with its identifying key flush left and the
         rest of its fields indented beneath it, so the eye finds where one record
-        ends and the next begins.
+        ends and the next begins. With keys given, only those fields are shown.
         """
         lines = []
         for entry in entries:
             for key, value in entry.items():
+                if keys and key not in keys:
+                    continue
                 self.logger.debug(f'Key => {key} Value => {value}')
                 indent = '' if key in ('interface', 'name') else '  '
                 lines.append(f'{indent}{key} = {value}')
@@ -1322,7 +1324,7 @@ class Helper():
             for ele in data:
                 if field_key in list((data[ele].keys())):
                     if isinstance(data[ele][field_key], list):
-                        new_list = self.nested_lines(data[ele][field_key])
+                        new_list = self.nested_lines(data[ele][field_key], filter_nested(table))
                         new_list = new_list if num == len(data) else f'{new_list}\n'
                         val_row.append(new_list)
                     elif field_key == 'tpm_uuid':

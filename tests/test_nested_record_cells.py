@@ -16,6 +16,9 @@ Both views now render a record as its identifying line flush left with its
 fields indented beneath, and the list view leaves a blank line between rows.
 Both go through Helper().nested_lines, and both are pinned here because the two
 call sites are the two places the old loop lived.
+
+The list is the overview, so it keeps only an account's name and username, the
+way bmcsetup list leaves its credentials to bmcsetup show. Show has all of it.
 """
 
 import logging
@@ -36,16 +39,25 @@ def _stub_logger():
 
 
 ACCOUNTS = [
-    {'name': 'fwadmin', 'username': 'luna-fwadmin', 'role': 'Administrator'},
-    {'name': 'op', 'username': 'luna-op', 'role': 'Operator'},
+    {'name': 'fwadmin', 'username': 'luna-fwadmin', 'password': 's3cret', 'role': 'Administrator'},
+    {'name': 'op', 'username': 'luna-op', 'password': 'hunter2', 'role': 'Operator'},
 ]
 
-EXPECTED_ACCOUNTS = (
+LIST_ACCOUNTS = (
     'name = fwadmin\n'
     '  username = luna-fwadmin\n'
+    'name = op\n'
+    '  username = luna-op'
+)
+
+SHOW_ACCOUNTS = (
+    'name = fwadmin\n'
+    '  username = luna-fwadmin\n'
+    '  password = s3cret\n'
     '  role = Administrator\n'
     'name = op\n'
     '  username = luna-op\n'
+    '  password = hunter2\n'
     '  role = Operator'
 )
 
@@ -55,23 +67,24 @@ def setup(name):
             'accounts': [dict(a) for a in ACCOUNTS]}
 
 
-def test_list_view_indents_fields_under_each_account():
+def test_list_view_keeps_name_and_username_and_nothing_else():
     fields, rows = Helper().filter_data('redfishsetup', {'hw': setup('hw')})
     accounts = rows[0][fields.index('accounts')]
-    assert accounts == EXPECTED_ACCOUNTS
+    assert accounts == LIST_ACCOUNTS
+    assert 'password' not in accounts
 
 
 def test_list_view_leaves_a_blank_line_between_rows_but_not_after_the_last():
     data = {'hw': setup('hw'), 'abc': setup('abc')}
     fields, rows = Helper().filter_data('redfishsetup', data)
     column = fields.index('accounts')
-    assert rows[0][column] == EXPECTED_ACCOUNTS + '\n'
-    assert rows[1][column] == EXPECTED_ACCOUNTS
+    assert rows[0][column] == LIST_ACCOUNTS + '\n'
+    assert rows[1][column] == LIST_ACCOUNTS
 
 
-def test_show_view_opens_each_account_with_its_name_flush_left():
+def test_show_view_has_the_whole_account_with_its_name_flush_left():
     fields, rows = Helper().filter_data_col('redfishsetup', setup('hw'))
-    assert rows[fields.index('accounts')] == EXPECTED_ACCOUNTS
+    assert rows[fields.index('accounts')] == SHOW_ACCOUNTS
 
 
 def test_show_view_still_opens_an_interface_record_on_its_interface_line():
