@@ -1282,6 +1282,22 @@ class Helper():
         return fields, rows
 
 
+    def nested_lines(self, entries=None):
+        """
+        One cell for a list of records - a group's interfaces, a redfishsetup's
+        accounts. Each record opens with its identifying key flush left and the
+        rest of its fields indented beneath it, so the eye finds where one record
+        ends and the next begins.
+        """
+        lines = []
+        for entry in entries:
+            for key, value in entry.items():
+                self.logger.debug(f'Key => {key} Value => {value}')
+                indent = '' if key in ('interface', 'name') else '  '
+                lines.append(f'{indent}{key} = {value}')
+        return '\n'.join(lines)
+
+
     def filter_data(self, table=None, data=None):
         """
         This method will generate the data as for
@@ -1306,17 +1322,9 @@ class Helper():
             for ele in data:
                 if field_key in list((data[ele].keys())):
                     if isinstance(data[ele][field_key], list):
-                        new_list = []
-                        for internal in data[ele][field_key]:
-                            for internal_val in internal:
-                                self.logger.debug(f'Key => {internal_val}')
-                                self.logger.debug(f'Value => {internal[internal_val]}')
-                                in_key = internal_val
-                                in_val = internal[internal_val]
-                                new_list.append(f'{in_key} = {in_val} ')
-                        new_list = '\n'.join(new_list)
+                        new_list = self.nested_lines(data[ele][field_key])
+                        new_list = new_list if num == len(data) else f'{new_list}\n'
                         val_row.append(new_list)
-                        new_list = []
                     elif field_key == 'tpm_uuid':
                         if data[ele][field_key]:
                             val_row.append(True)
@@ -1749,17 +1757,7 @@ class Helper():
                 key_name += ' *'
             fields.append(key_name)
             if isinstance(key[1], list):
-                new_list = []
-                for internal in key[1]:
-                    for internal_val in internal:
-                        self.logger.debug(f'Key: {internal_val} Value: {internal[internal_val]}')
-                        if internal_val == "interface":
-                            new_list.append(f'{internal_val} = {internal[internal_val]}')
-                        else:
-                            new_list.append(f'  {internal_val} = {internal[internal_val]}')
-                new_list = '\n'.join(new_list)
-                rows.append(new_list)
-                new_list = []
+                rows.append(self.nested_lines(key[1]))
             elif isinstance(key[1], dict):
                 new_list = []
                 num = 1
