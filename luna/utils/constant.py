@@ -329,6 +329,21 @@ def filter_columns(table: str) -> list:
     return response
 
 
+def filter_nested(table: str) -> list:
+    """
+    The keys a list view keeps of a record inside a cell. The list is the
+    overview and, like bmcsetup's, leaves credentials out; show renders the
+    whole record.
+    """
+    response = False
+    static = {
+        'redfishsetup': ['name', 'username'],
+    }
+    if table in static:
+        response = list(static[table])
+    return response
+
+
 def overrides(table=None):
     """
     This method has information regarding what could be an override for what table: node, group,
