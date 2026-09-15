@@ -301,13 +301,22 @@ class Secrets():
                     json_data = Helper().prepare_json(data)
                     Presenter().show_json(json_data)
                 else:
+                    # every scope the daemon answered with, in the order the installer
+                    # applies them: cluster, then the group's, then the node's own. A
+                    # section is headed by the names it actually holds - a node's list
+                    # carries its group's secrets, and those are the group's, not the
+                    # node's
+                    if 'cluster' in data:
+                        table = f'cluster{self.route}'
+                        fields, rows = Helper().get_secrets(table, {'cluster': data['cluster']})
+                        Presenter().show_table(' << Cluster Secrets >>', fields, rows)
                     if 'group' in data:
                         table = f'group{self.route}'
                         fields, rows  =  Helper().get_secrets(table, data['group'])
                         self.logger.debug(f'Fields => {fields}')
                         self.logger.debug(f'Rows => {rows}')
                         if 'name' in self.args:
-                            title = f' << Group {self.args["name"]} Secrets >>'
+                            title = f' << Group {", ".join(data["group"])} Secrets >>'
                         else:
                             title = ' << Group Secrets >>'
                         Presenter().show_table(title, fields, rows)
@@ -317,7 +326,7 @@ class Secrets():
                         self.logger.debug(f'Fields => {fields}')
                         self.logger.debug(f'Rows => {rows}')
                         if 'name' in self.args:
-                            title = f' << Node {self.args["name"]} Secrets >>'
+                            title = f' << Node {", ".join(data["node"])} Secrets >>'
                         else:
                             title = ' << Node Secrets >>'
                         Presenter().show_table(title, fields, rows)
@@ -352,6 +361,12 @@ class Secrets():
                     json_data = Helper().prepare_json(data)
                     response = Presenter().show_json(json_data)
                 else:
+                    # the cluster section is what every node gets before its group's and
+                    # its own; leaving it out shows two scopes of the three
+                    if 'cluster' in data:
+                        table = f'cluster{self.route}'
+                        fields, rows = Helper().filter_secret_col(table, {'cluster': data['cluster']})
+                        response = Presenter().show_table_col('Cluster Secrets', fields, rows)
                     if 'group' in data:
                         table = f'group{self.route}'
                         fields, rows  = Helper().filter_secret_col(table, data['group'])
@@ -503,7 +518,7 @@ class Secrets():
                     response = Rest().post_data(self.route, uri, request_data)
                     self.logger.debug(f'Response => {response}')
                     if response.status_code == 204:
-                        Message().show_success(f'{entity.capitalize()} {entity_name} secret {pre_payload["name"]} is update.')
+                        Message().show_success(f'{entity.capitalize()} {entity_name} secret {pre_payload["name"]} is updated.')
                     else:
                         Message().error_exit(response.content, response.status_code)
         else:
