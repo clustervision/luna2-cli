@@ -46,12 +46,11 @@ class Control():
     It is responsible to perform all power related operations on the Nodes.
     """
 
-    # a single node's action is answered synchronously, and one action can be
-    # several BMC round trips: arming a boot override and resetting is about
-    # 18 s on an AMI board. The daemon bounds each BMC call itself, so waiting
-    # longer here costs nothing on a dead BMC and stops a slow one from turning
-    # an action that already happened into a reported timeout
-    action_timeout = 60
+    # a single node's action is answered synchronously and can be several BMC
+    # round trips, each bounded by the daemon at up to 30 s. This has to outlast
+    # them, or a slow board turns an action that then completes into a reported
+    # timeout; on a dead BMC the daemon gives up first, so it costs nothing
+    action_timeout = 180
 
     def __init__(self, args=None, parser=None, subparsers=None):
         self.logger = Log.get_logger()

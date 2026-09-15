@@ -178,10 +178,9 @@ def test_power_sel_and_chassis_keep_the_single_node_get(monkeypatch, system, act
 
 def test_a_single_node_control_action_waits_longer_than_a_lookup(monkeypatch):
     """
-    Arming the boot override and resetting is several Redfish round trips, about
-    18 s on an AMI board, against the 20 s every other request gets. The daemon
-    bounds each BMC call itself, so a longer wait costs nothing on a dead BMC and
-    stops a slow one from reporting failure for a node already rebooting.
+    A single-node action is several Redfish round trips, each bounded by the
+    daemon at up to 30 s, against the 20 s every other request gets. The CLI has
+    to outlast them or it reports failure for an action that then completes.
     """
     import luna.control as control
     asked = []
@@ -192,7 +191,7 @@ def test_a_single_node_control_action_waits_longer_than_a_lookup(monkeypatch):
                         lambda self, *a, **k: True, raising=False)
     control_with({'system': 'nextboot', 'action': 'bios', 'node': 'node001'}).action_status()
     assert asked == [('control/action/nextboot/node001/_bios', control.Control.action_timeout)]
-    assert control.Control.action_timeout > 20
+    assert control.Control.action_timeout >= 5 * 30, 'five BMC calls at the daemon bound'
 
 
 def test_the_rest_layer_uses_the_caller_timeout_only_when_given(monkeypatch):
