@@ -1017,7 +1017,7 @@ class Helper():
                     continue
                 if other_data.get('switch') == switch and other_data.get('switchport') == port:
                     Message().error_exit(
-                        f'Switchport {port} on switch {switch} is already assigned to node {other_name}.'
+                        f'Switchport {port} on switch {switch} is already assigned to node {other_name}'
                     )
             if port in seen:
                 Message().error_exit(
