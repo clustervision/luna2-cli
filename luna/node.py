@@ -187,6 +187,9 @@ class Node():
         node_showdisklayout = node_args.add_parser('showdisklayout', help="Show a Node's Disk Layout")
         node_showdisklayout.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_showdisklayout)
+        node_showmounts = node_args.add_parser('showmounts', help="Show a Node's Network Mounts")
+        node_showmounts.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        Arguments().common_list_args(node_showmounts)
         node_showinventory = node_args.add_parser('showinventory', help="Show a Node's Hardware Inventory")
         node_showinventory.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_showinventory)
@@ -248,6 +251,13 @@ class Node():
         Method to show a node's disk layout in Luna Configuration.
         """
         return Helper().show_disklayout(self.table, self.args)
+
+
+    def showmounts_node(self):
+        """
+        Method to show a node's resolved network mounts in Luna Configuration.
+        """
+        return Helper().show_mounts(self.table, self.args)
 
 
     def show_node(self):

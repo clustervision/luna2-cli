@@ -83,6 +83,9 @@ class Group():
         group_showdisklayout = group_args.add_parser('showdisklayout', help="Show a Group's Disk Layout")
         group_showdisklayout.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(group_showdisklayout)
+        group_showmounts = group_args.add_parser('showmounts', help="Show a Group's Network Mounts")
+        group_showmounts.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        Arguments().common_list_args(group_showmounts)
         group_show.add_argument('-f', '--full-scripts', action='store_true', default=None, help='Show the Full Scripts')
         group_member = group_args.add_parser('member', help='Group Used by Nodes')
         group_member.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
@@ -211,6 +214,13 @@ class Group():
         Method to show a group's disk layout in Luna Configuration.
         """
         return Helper().show_disklayout(self.table, self.args)
+
+
+    def showmounts_group(self):
+        """
+        Method to show a group's resolved network mounts in Luna Configuration.
+        """
+        return Helper().show_mounts(self.table, self.args)
 
 
     def show_group(self):

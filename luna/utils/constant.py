@@ -53,7 +53,7 @@ BOOL_KEYS = [
 ]
 EDITOR_KEYS = [
     'options', 'content', 'comment', 'prescript', 'partscript', 'postscript', 'grab_filesystems',
-    'grab_exclude', 'kerneloptions', 'ztpconfig', 'disklayout', 'osimage_filter'
+    'grab_exclude', 'kerneloptions', 'ztpconfig', 'disklayout', 'osimage_filter', 'mounts'
 ]
 # Free-text fields rejected if they contain a non-ASCII character (TRIX-1868).
 # content is excluded: it is a byte-preserving path for binary secrets/profile files.
@@ -249,7 +249,7 @@ def actions(table: str) -> list:
     network_actions = ["list", "show", "add", "change", "rename", "remove"]
     interface_actions = ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"]
     inventory_actions = ["listinventory", "showinventory", "refreshinventory", "setupredfish"]
-    disklayout_actions = ["showdisklayout"]
+    disklayout_actions = ["showdisklayout", "showmounts"]
     member_action = ["member"]
     static = {
         "cloud" : network_actions,
@@ -354,13 +354,13 @@ def overrides(table=None):
         'node': [
             'osimage', 'osimagetag', 'kerneloptions', 'setupbmc', 'bmcsetup', 'redfishsetup', 'biosconfig', 'netboot', 'ipxe_kernel',
             'bootmenu', 'roles', 'scripts', 'prescript', 'partscript', 'postscript',
-            'install_mode', 'disklayout', 'osimage_filter',
+            'install_mode', 'disklayout', 'osimage_filter', 'mounts',
             'provision_interface', 'provision_method', 'provision_fallback', 'routes',
             'unmanaged_bmc_users'
         ],
         'group': [
             'provision_method', 'provision_interface', 'provision_fallback', 'kerneloptions',
-            'osimagetag', 'install_mode', 'routes',
+            'osimagetag', 'install_mode', 'routes', 'mounts',
             'ipxe_kernel', 'bootmenu', 'unmanaged_bmc_users'
         ]
     }
@@ -377,7 +377,7 @@ def sortby(table: str) -> list:
     static = {
         'cluster': [
             'name', 'controller', 'technical_contacts', 'provision_method', 'provision_fallback',
-            'install_mode',
+            'install_mode', 'mounts',
             'nameserver_ip', 'forwardserver_ip', 'domain_search', 'bind_legacy', 'dnssec_enable',
             'dnssec_validation', 'ntp_server', 'security',
             'nextnode_discover', 'createnode_ondemand', 'createnode_macashost', 'packing_bootpause',
@@ -399,6 +399,7 @@ def sortby(table: str) -> list:
             'roles', 'scripts', 'profiles', 'profiles_digest',
             'install_mode', '_disklayout_source', 'disklayout',
             '_osimage_filter_source', 'osimage_filter',
+            '_mounts_source', 'mounts',
             '_prescript_source', 'prescript',
             '_partscript_source', 'partscript',
             '_postscript_source', 'postscript',
@@ -416,7 +417,7 @@ def sortby(table: str) -> list:
             'unmanaged_bmc_users',
             'netboot', 'ipxe_kernel', 'kerneloptions', 'biosconfig', 'bootmenu',
             'roles', 'scripts', 'profiles',
-            'install_mode', 'disklayout', 'osimage_filter',
+            'install_mode', 'disklayout', 'osimage_filter', '_mounts_source', 'mounts',
             'prescript', 'partscript', 'postscript',
             'provision_interface', 'provision_method', 'provision_fallback', 'comment'
         ],
