@@ -86,6 +86,19 @@ class Group():
         group_showmounts = group_args.add_parser('showmounts', help="Show a Group's Network Mounts")
         group_showmounts.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(group_showmounts)
+        group_addmount = group_args.add_parser('addmount', help="Add one Network Mount to a Group's document, or replace the one at its path")
+        group_addmount.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        group_addmount.add_argument('-qmnt', '--quick-mount', dest='mount', required=True, metavar="File-Path OR In-Line",
+                                     help='One mount entry, YAML or JSON, e.g. {path: /trinity/scratch, server: controller}')
+        group_removemount = group_args.add_parser('removemount', help="Remove one Network Mount from a Group's document by its path")
+        group_removemount.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        group_removemount.add_argument('path', help='Mountpoint of the entry to remove')
+        group_assignprofile = group_args.add_parser('assignprofile', help="Assign one Profile to a Group, beside the ones it has")
+        group_assignprofile.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        group_assignprofile.add_argument('profile', help='Name of the Profile')
+        group_unassignprofile = group_args.add_parser('unassignprofile', help="Take one Profile away from a Group")
+        group_unassignprofile.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        group_unassignprofile.add_argument('profile', help='Name of the Profile')
         group_show.add_argument('-f', '--full-scripts', action='store_true', default=None, help='Show the Full Scripts')
         group_member = group_args.add_parser('member', help='Group Used by Nodes')
         group_member.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
@@ -221,6 +234,34 @@ class Group():
         Method to show a group's resolved network mounts in Luna Configuration.
         """
         return Helper().show_mounts(self.table, self.args)
+
+
+    def addmount_group(self):
+        """
+        Method to add or replace one entry in a group's network mounts document.
+        """
+        return Helper().add_mount(self.table, self.args)
+
+
+    def removemount_group(self):
+        """
+        Method to remove one entry from a group's network mounts document.
+        """
+        return Helper().remove_mount(self.table, self.args)
+
+
+    def assignprofile_group(self):
+        """
+        Method to assign one profile to a group beside the ones it has.
+        """
+        return Helper().change_profile(self.table, self.args, assign=True)
+
+
+    def unassignprofile_group(self):
+        """
+        Method to take one profile away from a group.
+        """
+        return Helper().change_profile(self.table, self.args, assign=False)
 
 
     def show_group(self):

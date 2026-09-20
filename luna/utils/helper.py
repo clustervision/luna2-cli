@@ -555,6 +555,51 @@ class Helper():
         return True
 
 
+    def _post_and_tell(self, table=None, uri=None, payload=None):
+        """Post one change to a sub-route of a record and show the daemon's answer."""
+        response = Rest().post_data(table, uri, payload)
+        if response and response.status_code in [200, 201, 204]:
+            content = response.content
+            message = content.get('message') if isinstance(content, dict) else content
+            Message().show_success(message or f'{table.capitalize()} is updated.')
+            return True
+        Message().error_exit(response.content if response else 'no answer from the daemon',
+                             response.status_code if response else 500)
+        return False
+
+    def add_mount(self, table=None, args=None):
+        """
+        Add one entry to the mounts document of the cluster, a group or a node, or
+        replace the one at its path. The entry comes as a file or in-line, YAML or JSON.
+        """
+        from luna.utils.mounts import entry as mounts_entry, MountsError
+        raw = args.get('mount') or ''
+        if raw and os.path.isfile(raw):
+            with open(raw, 'rb') as handle:
+                raw = handle.read()
+        try:
+            payload = mounts_entry(raw)
+        except MountsError as exp:
+            Message().error_exit(str(exp))
+        name = args.get('name')
+        return self._post_and_tell(table, f'{name}/mounts' if name else 'mounts', payload)
+
+    def remove_mount(self, table=None, args=None):
+        """
+        Remove the entry at a path from the mounts document of the cluster, a group or a node.
+        """
+        name = args.get('name')
+        return self._post_and_tell(table, f'{name}/mounts/_remove' if name else 'mounts/_remove',
+                                   {'path': args.get('path')})
+
+    def change_profile(self, table=None, args=None, assign=True):
+        """
+        Assign one profile to a group or node beside the ones it has, or take one away.
+        """
+        name = args.get('name')
+        uri = f'{name}/profiles' if assign else f'{name}/profiles/_unassign'
+        return self._post_and_tell(table, uri, {'profile': args.get('profile')})
+
     def show_data(self, table=None, args=None):
         """
         Method to show a switch in Luna Configuration.

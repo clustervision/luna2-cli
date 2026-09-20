@@ -53,6 +53,10 @@ class Cluster():
                 self.change_cluster()
             elif self.args["action"] == 'showmounts':
                 self.showmounts_cluster()
+            elif self.args["action"] == 'addmount':
+                Helper().add_mount(self.table, self.args)
+            elif self.args["action"] == 'removemount':
+                Helper().remove_mount(self.table, self.args)
             else:
                 Message().show_warning('Use change as an argument to make an change in cluster.')
         else:
@@ -71,6 +75,11 @@ class Cluster():
         cluster_show.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         cluster_showmounts = cluster_args.add_parser('showmounts', help="Show the Cluster's Network Mounts")
         Arguments().common_list_args(cluster_showmounts)
+        cluster_addmount = cluster_args.add_parser('addmount', help="Add one Network Mount to the Cluster's document, or replace the one at its path")
+        cluster_addmount.add_argument('-qmnt', '--quick-mount', dest='mount', required=True, metavar="File-Path OR In-Line",
+                                      help='One mount entry, YAML or JSON, e.g. {path: /trinity/scratch, server: controller}')
+        cluster_removemount = cluster_args.add_parser('removemount', help="Remove one Network Mount from the Cluster's document by its path")
+        cluster_removemount.add_argument('path', help='Mountpoint of the entry to remove')
         cluster_change = cluster_args.add_parser('change', help='Change Cluster')
         cluster_change.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         for controller in controllers:

@@ -249,12 +249,13 @@ def actions(table: str) -> list:
     network_actions = ["list", "show", "add", "change", "rename", "remove"]
     interface_actions = ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"]
     inventory_actions = ["listinventory", "showinventory", "refreshinventory", "setupredfish"]
-    disklayout_actions = ["showdisklayout", "showmounts"]
+    disklayout_actions = ["showdisklayout", "showmounts", "addmount", "removemount"]
+    profile_actions = ["assignprofile", "unassignprofile"]
     member_action = ["member"]
     static = {
         "cloud" : network_actions,
-        "group": common_actions + member_action + ["ospush", "biospush", "firmwarepush"] + interface_actions + disklayout_actions,
-        "node": common_actions + ["osgrab", "ospush", "biosgrab", "biospush", "firmwarepush"] + interface_actions + inventory_actions + disklayout_actions,
+        "group": common_actions + member_action + ["ospush", "biospush", "firmwarepush"] + interface_actions + disklayout_actions + profile_actions,
+        "node": common_actions + ["osgrab", "ospush", "biosgrab", "biospush", "firmwarepush"] + interface_actions + inventory_actions + disklayout_actions + profile_actions,
         "boot": ["status"],
         "profile": common_actions + member_action + ["status", "addfile", "changefile", "removefile"],
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],

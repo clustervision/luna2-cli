@@ -84,6 +84,15 @@ def canonicalize(raw: bytes | str) -> bytes:
     return json.dumps(doc, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 
 
+def entry(raw: bytes | str) -> dict[str, Any]:
+    """Parse one mount entry, YAML or JSON, for addmount: an object with a path,
+    every scalar kept a string as in the document. The daemon checks the rest."""
+    parsed = yamldoc.parse(yamldoc.decode(raw, "mount entry", MountsError), _StrLoader, MountsError)
+    if not isinstance(parsed, dict) or not isinstance(parsed.get("path"), str) or not parsed["path"]:
+        raise MountsError("a mount entry must be an object with a path, e.g. {path: /trinity/scratch, server: controller}")
+    return dict(parsed)
+
+
 def to_yaml(raw: bytes | str) -> str:
     """Render a stored (canonical JSON) mounts document as YAML for the editor.
     Re-parsing the echoed YAML canonicalizes back to identical bytes."""
