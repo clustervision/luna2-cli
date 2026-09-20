@@ -560,14 +560,13 @@ class Helper():
         cluster, config.cluster."""
         return {'config': {table: {name: inner} if name else inner}}
 
-    def _post_and_tell(self, table=None, uri=None, payload=None):
+    def _post_and_tell(self, table=None, uri=None, payload=None, name=None):
         """Post one change to a sub-route of a record and show the daemon's answer."""
         response = Rest().post_data(table, uri, payload)
         if response and response.status_code in [200, 201, 204]:
             # a creation answers 201 with its message, an update or removal 204 with none
             content = response.content if response.status_code != 204 else None
             message = content.get('message') if isinstance(content, dict) else content
-            name = uri.split('/', 1)[0] if '/' in uri else None
             Message().show_success(message or (f'{table.capitalize()} {name} is updated.' if name else f'{table.capitalize()} is updated.'))
             return True
         Message().error_exit(response.content if response else 'no answer from the daemon',
@@ -592,7 +591,7 @@ class Helper():
         encoded = self.base64_encode(json.dumps(entry).encode())
         name = args.get('name')
         return self._post_and_tell(table, f'{name}/mounts' if name else 'mounts',
-                                   self._envelope(table, name, {'mount': encoded}))
+                                   self._envelope(table, name, {'mount': encoded}), name)
 
     def remove_mount(self, table=None, args=None):
         """
@@ -600,7 +599,7 @@ class Helper():
         """
         name = args.get('name')
         return self._post_and_tell(table, f'{name}/mounts/_remove' if name else 'mounts/_remove',
-                                   self._envelope(table, name, {'path': args.get('path')}))
+                                   self._envelope(table, name, {'path': args.get('path')}), name)
 
     def change_profile(self, table=None, args=None, assign=True):
         """
@@ -608,7 +607,7 @@ class Helper():
         """
         name = args.get('name')
         uri = f'{name}/profiles' if assign else f'{name}/profiles/_unassign'
-        return self._post_and_tell(table, uri, self._envelope(table, name, {'profile': args.get('profile')}))
+        return self._post_and_tell(table, uri, self._envelope(table, name, {'profile': args.get('profile')}), name)
 
     def show_data(self, table=None, args=None):
         """
