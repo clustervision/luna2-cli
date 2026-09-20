@@ -564,9 +564,11 @@ class Helper():
         """Post one change to a sub-route of a record and show the daemon's answer."""
         response = Rest().post_data(table, uri, payload)
         if response and response.status_code in [200, 201, 204]:
-            content = response.content
+            # a creation answers 201 with its message, an update or removal 204 with none
+            content = response.content if response.status_code != 204 else None
             message = content.get('message') if isinstance(content, dict) else content
-            Message().show_success(message or f'{table.capitalize()} is updated.')
+            name = uri.split('/', 1)[0] if '/' in uri else None
+            Message().show_success(message or (f'{table.capitalize()} {name} is updated.' if name else f'{table.capitalize()} is updated.'))
             return True
         Message().error_exit(response.content if response else 'no answer from the daemon',
                              response.status_code if response else 500)
