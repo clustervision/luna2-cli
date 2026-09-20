@@ -555,6 +555,11 @@ class Helper():
         return True
 
 
+    def _envelope(self, table=None, name=None, inner=None):
+        """The config envelope every POST carries: config.<table>.<name> or, for the
+        cluster, config.cluster."""
+        return {'config': {table: {name: inner} if name else inner}}
+
     def _post_and_tell(self, table=None, uri=None, payload=None):
         """Post one change to a sub-route of a record and show the daemon's answer."""
         response = Rest().post_data(table, uri, payload)
@@ -578,11 +583,14 @@ class Helper():
             with open(raw, 'rb') as handle:
                 raw = handle.read()
         try:
-            payload = mounts_entry(raw)
+            entry = mounts_entry(raw)
         except MountsError as exp:
             Message().error_exit(str(exp))
+        # the entry travels base64 inside the config envelope, as the whole document does
+        encoded = self.base64_encode(json.dumps(entry).encode())
         name = args.get('name')
-        return self._post_and_tell(table, f'{name}/mounts' if name else 'mounts', payload)
+        return self._post_and_tell(table, f'{name}/mounts' if name else 'mounts',
+                                   self._envelope(table, name, {'mount': encoded}))
 
     def remove_mount(self, table=None, args=None):
         """
@@ -590,7 +598,7 @@ class Helper():
         """
         name = args.get('name')
         return self._post_and_tell(table, f'{name}/mounts/_remove' if name else 'mounts/_remove',
-                                   {'path': args.get('path')})
+                                   self._envelope(table, name, {'path': args.get('path')}))
 
     def change_profile(self, table=None, args=None, assign=True):
         """
@@ -598,7 +606,7 @@ class Helper():
         """
         name = args.get('name')
         uri = f'{name}/profiles' if assign else f'{name}/profiles/_unassign'
-        return self._post_and_tell(table, uri, {'profile': args.get('profile')})
+        return self._post_and_tell(table, uri, self._envelope(table, name, {'profile': args.get('profile')}))
 
     def show_data(self, table=None, args=None):
         """
