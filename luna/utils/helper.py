@@ -572,22 +572,6 @@ class Helper():
                              response.status_code if response else 500)
         return False
 
-    def _mounts_source(self, table=None, name=None):
-        """Which level a group's or node's mounts document currently resolves from."""
-        response = Rest().get_data(table, f'{name}/mounts')
-        if response and response.status_code == 200:
-            record = (response.content or {}).get('config', {}).get(table, {}).get(name, {})
-            return record.get('_mounts_source')
-        return None
-
-    def _tell_copy_down(self, table=None, name=None, source=None):
-        """A daemon update answers 204 with no body, so the daemon's own note about a
-        copied document never reaches us; it is repeated here from what was seen before
-        the call. Same fact, told where it is heard."""
-        if name and source and source != table:
-            Message().show_success(f'The {source} mounts document was copied to {table} {name} first; '
-                                   f'{table} {name} now owns it and deviates from it.')
-
     def add_mount(self, table=None, args=None):
         """
         Add one entry to the mounts document of the cluster, a group or a node, or
@@ -605,22 +589,16 @@ class Helper():
         # the entry travels base64 inside the config envelope, as the whole document does
         encoded = self.base64_encode(json.dumps(entry).encode())
         name = args.get('name')
-        source = self._mounts_source(table, name) if name else None
-        done = self._post_and_tell(table, f'{name}/mounts' if name else 'mounts',
+        return self._post_and_tell(table, f'{name}/mounts' if name else 'mounts',
                                    self._envelope(table, name, {'mount': encoded}))
-        self._tell_copy_down(table, name, source)
-        return done
 
     def remove_mount(self, table=None, args=None):
         """
         Remove the entry at a path from the mounts document of the cluster, a group or a node.
         """
         name = args.get('name')
-        source = self._mounts_source(table, name) if name else None
-        done = self._post_and_tell(table, f'{name}/mounts/_remove' if name else 'mounts/_remove',
+        return self._post_and_tell(table, f'{name}/mounts/_remove' if name else 'mounts/_remove',
                                    self._envelope(table, name, {'path': args.get('path')}))
-        self._tell_copy_down(table, name, source)
-        return done
 
     def change_profile(self, table=None, args=None, assign=True):
         """
