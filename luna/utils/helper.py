@@ -51,7 +51,9 @@ from luna.utils.log import Log
 from luna.utils.presenter import Presenter
 from luna.utils.constant import (EDITOR_KEYS, BOOL_KEYS, ASCII_ONLY_KEYS,
     filter_columns, filter_nested, sortby, divider, spacer, overrides, parser_doc)
-from luna.utils.disklayout import canonicalize as disklayout_canonicalize, to_yaml as disklayout_to_yaml, DisklayoutError
+from luna.utils.disklayout import canonicalize as disklayout_canonicalize, to_yaml as disklayout_to_yaml
+from luna.utils.mounts import canonicalize as mounts_canonicalize, to_yaml as mounts_to_yaml
+from luna.utils.yamldoc import DocumentError
 from luna.utils.message import Message
 
 
@@ -253,8 +255,8 @@ class Helper():
                         if os.path.isfile(content[0]):
                             with open(content[0], 'rb') as file_data:
                                 raw = file_data.read()
-                            if key == 'disklayout':
-                                content = self.disklayout_b64(raw)
+                            if key in self.DOCUMENT_KEYS:
+                                content = self.document_b64(key, raw)
                             else:
                                 if key in ASCII_ONLY_KEYS:
                                     self.check_ascii_only(key, raw)
@@ -263,8 +265,8 @@ class Helper():
                         else:
                             Message().error_exit(f'ERROR :: {content[0]} is a Invalid filepath.')
                     else:
-                        if key == 'disklayout':
-                            content = self.disklayout_b64(content[0])
+                        if key in self.DOCUMENT_KEYS:
+                            content = self.document_b64(key, content[0])
                         else:
                             if key in ASCII_ONLY_KEYS:
                                 self.check_ascii_only(key, content[0])
@@ -291,11 +293,11 @@ class Helper():
         temp_file = open(filename, "x", encoding='utf-8')
         if value:
             value = self.base64_decode(value)
-            if key == 'disklayout':
+            if key in self.DOCUMENT_KEYS:
                 try:
-                    value = disklayout_to_yaml(value)
-                except DisklayoutError as error:
-                    Message().error_exit(f'ERROR :: stored disklayout is invalid :: {error}')
+                    value = self.DOCUMENT_KEYS[key][1](value)
+                except DocumentError as error:
+                    Message().error_exit(f'ERROR :: stored {key} is invalid :: {error}')
             temp_file.write(value)
             temp_file.close()
         subprocess.check_output(f"sed -i 's/\r$//' {editor}", shell=True)
@@ -303,8 +305,8 @@ class Helper():
         subprocess.check_output(f"sed -i 's/\r$//' {filename}", shell=True)
         with open(filename, 'rb') as file_data:
             edited = file_data.read()
-        if key == 'disklayout':
-            response = self.disklayout_b64(edited)
+        if key in self.DOCUMENT_KEYS:
+            response = self.document_b64(key, edited)
         else:
             if key in ASCII_ONLY_KEYS:
                 self.check_ascii_only(key, edited)
@@ -314,16 +316,24 @@ class Helper():
         return response
 
 
-    def disklayout_b64(self, raw=None):
+    # The fields authored as a YAML/JSON document: (canonicalize, to_yaml) per key.
+    # Both travel base64 like every other editor field; the difference is the
+    # canonical pass on the way in and the YAML echo on the way into the editor.
+    DOCUMENT_KEYS = {
+        'disklayout': (disklayout_canonicalize, disklayout_to_yaml),
+        'mounts': (mounts_canonicalize, mounts_to_yaml),
+    }
+
+    def document_b64(self, key=None, raw=None):
         """
-        Canonicalize a YAML/JSON disklayout document to JSON and base64-encode it.
-        A malformed layout aborts the command (nothing is stored) with a clear error,
-        the visudo discipline: reject the edit, keep the stored config untouched.
+        Canonicalize a YAML/JSON document (disklayout, mounts) to JSON and base64-encode
+        it. A malformed document aborts the command (nothing is stored) with a clear
+        error, the visudo discipline: reject the edit, keep the stored config untouched.
         """
         try:
-            canonical = disklayout_canonicalize(raw)
-        except DisklayoutError as error:
-            Message().error_exit(f'ERROR :: invalid disklayout :: {error}')
+            canonical = self.DOCUMENT_KEYS[key][0](raw)
+        except DocumentError as error:
+            Message().error_exit(f'ERROR :: invalid {key} :: {error}')
         return self.base64_encode(canonical)
 
 
@@ -489,6 +499,116 @@ class Helper():
         return True
 
 
+    def show_mounts(self, table=None, args=None):
+        """
+        Method to render the network mounts document of the cluster, a group or a
+        node as a table, the twin of show_disklayout.
+
+        Reads the dedicated /config/<table>[/<name>]/mounts route, which returns
+        just the document and its _mounts_source: the source says which level
+        (cluster, group, node) the document resolved from, which is the first
+        thing anyone reading it wants to know.
+        """
+        row_name = args.get('name')
+        uri = row_name + '/mounts' if row_name else 'mounts'
+        get_list = Rest().get_data(table, uri)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        record = (get_list or {}).get('config', {}).get(table, {})
+        if row_name:
+            record = record.get(row_name, {})
+        raw = self.base64_decode(record.get('mounts') or '') or ''
+        source = record.get('_mounts_source') or table
+        who = f'{table} {row_name}' if row_name else table
+        if not raw.strip():
+            Message().show_warning(f'No mounts are configured for {who}.')
+            return True
+        try:
+            document = json.loads(raw)
+        except ValueError as exp:
+            Message().show_error(f'The stored mounts document is not valid JSON: {exp}')
+            Presenter().show_json(raw)
+            return True
+        if args['raw']:
+            Presenter().show_json(Helper().prepare_json(document))
+            return True
+
+        title = f'{who.capitalize()} Mounts [from {source}]'
+        rows = []
+        for mount in document.get('mounts') or []:
+            export = mount.get('export') or {}
+            clients = ', '.join(
+                f"{client.get('to')}({client.get('options')})" if client.get('options') else str(client.get('to'))
+                for client in export.get('clients') or [])
+            rows.append([
+                mount.get('path'), mount.get('type') or 'nfs', mount.get('server') or '-',
+                mount.get('source') or '-', mount.get('options') or '-',
+                mount.get('state') or '-',
+                clients if export else '-',
+            ])
+        Presenter().show_table(
+            title,
+            ['Path', 'Type', 'Server', 'Source', 'Options', 'State', 'Exported to'],
+            rows)
+        return True
+
+
+    def _envelope(self, table=None, name=None, inner=None):
+        """The config envelope every POST carries: config.<table>.<name> or, for the
+        cluster, config.cluster."""
+        return {'config': {table: {name: inner} if name else inner}}
+
+    def _post_and_tell(self, table=None, uri=None, payload=None, name=None):
+        """Post one change to a sub-route of a record and show the daemon's answer."""
+        response = Rest().post_data(table, uri, payload)
+        if response and response.status_code in [200, 201, 204]:
+            # a creation answers 201 with its message, an update or removal 204 with none
+            content = response.content if response.status_code != 204 else None
+            message = content.get('message') if isinstance(content, dict) else content
+            Message().show_success(message or (f'{table.capitalize()} {name} is updated.' if name else f'{table.capitalize()} is updated.'))
+            return True
+        Message().error_exit(response.content if response else 'no answer from the daemon',
+                             response.status_code if response else 500)
+        return False
+
+    def add_mount(self, table=None, args=None):
+        """
+        Add one entry to the mounts document of the cluster, a group or a node, or
+        replace the one at its path. The entry comes as a file or in-line, YAML or JSON.
+        """
+        from luna.utils.mounts import entry as mounts_entry, MountsError
+        raw = args.get('mount') or ''
+        if raw and os.path.isfile(raw):
+            with open(raw, 'rb') as handle:
+                raw = handle.read()
+        try:
+            entry = mounts_entry(raw)
+        except MountsError as exp:
+            Message().error_exit(str(exp))
+        # the entry travels base64 inside the config envelope, as the whole document does
+        encoded = self.base64_encode(json.dumps(entry).encode())
+        name = args.get('name')
+        return self._post_and_tell(table, f'{name}/mounts' if name else 'mounts',
+                                   self._envelope(table, name, {'mount': encoded}), name)
+
+    def remove_mount(self, table=None, args=None):
+        """
+        Remove the entry at a path from the mounts document of the cluster, a group or a node.
+        """
+        name = args.get('name')
+        return self._post_and_tell(table, f'{name}/mounts/_remove' if name else 'mounts/_remove',
+                                   self._envelope(table, name, {'path': args.get('path')}), name)
+
+    def change_profile(self, table=None, args=None, assign=True):
+        """
+        Assign one profile to a group or node beside the ones it has, or take one away.
+        """
+        name = args.get('name')
+        uri = f'{name}/profiles' if assign else f'{name}/profiles/_unassign'
+        return self._post_and_tell(table, uri, self._envelope(table, name, {'profile': args.get('profile')}), name)
+
     def show_data(self, table=None, args=None):
         """
         Method to show a switch in Luna Configuration.
@@ -520,6 +640,8 @@ class Helper():
                     # EDITOR_KEY, so less_content would otherwise cut the JSON
                     # mid-document and leave an unparseable fragment on screen.
                     json_data['disklayout'] = self.brief_disklayout(json_data['disklayout'])
+                if isinstance(json_data, dict) and json_data.get('mounts'):
+                    json_data['mounts'] = self.brief_mounts(json_data['mounts'])
                 # json_data is already decoded above; limit_content() avoids decoding it again.
                 data = self.limit_content(json_data, limit)
                 fields, rows  = self.filter_data_col(table, data)
@@ -1725,6 +1847,32 @@ class Helper():
         except (ValueError, TypeError, AttributeError, KeyError) as exp:
             self.logger.debug(f'Could not summarise disklayout => {exp}')
             return '<unreadable disklayout JSON - see showdisklayout -R>'
+
+
+    def brief_mounts(self, raw=None):
+        """
+        Render a stored mounts document as one short line for `show`: the paths
+        it declares. The full document stays one command away via showmounts.
+
+        One line, deliberately: less_content keeps only the first three lines of
+        anything longer than 60 characters, so a line per mount would silently
+        lose most of a real document on screen.
+
+        Never raises, for the same reason as brief_disklayout: stored content is
+        not ours to trust and must not take `show` down with it.
+        """
+        if raw is None or not str(raw).strip():
+            return raw
+        try:
+            document = json.loads(raw)
+            mounts = document.get('mounts')
+            if not isinstance(mounts, list):
+                raise ValueError('mounts must be a list')
+            paths = [str(mount.get('path')) for mount in mounts]
+            return f"{len(paths)} mounts: {', '.join(paths)}" if paths else 'no mounts'
+        except (ValueError, TypeError, AttributeError, KeyError) as exp:
+            self.logger.debug(f'Could not summarise mounts => {exp}')
+            return '<unreadable mounts JSON - see showmounts -R>'
 
 
     def filter_data_col(self, table=None, data=None):

@@ -163,6 +163,10 @@ class Arguments():
                         help='OSImage Filter JSON (v1.4)')
         parser.add_argument('-qof', '--quick-osimage-filter', dest='osimage_filter',
                         metavar="File-Path OR In-Line", help='OSImage Filter JSON File-Path OR In-Line')
+        parser.add_argument('-mnt', '--mounts', action='store_true',
+                        help='Network mounts document (YAML or JSON)')
+        parser.add_argument('-qmnt', '--quick-mounts', dest='mounts',
+                        metavar="File-Path OR In-Line", help='Network mounts YAML/JSON File-Path OR In-Line')
         parser.add_argument('-i', '--provision_interface', help='Overrides the Cluster provisioning interface')
         parser.add_argument('-p', '--provision_method', help='Overrides Cluster (primary) provisioning method')
         parser.add_argument('-f', '--provision_fallback', help='Overrides Cluster fallback provisioning method')
@@ -238,6 +242,10 @@ class Arguments():
                         help='OSImage Filter JSON (v1.4)')
         parser.add_argument('-qof', '--quick-osimage-filter', dest='osimage_filter',
                         metavar="File-Path OR In-Line", help='OSImage Filter JSON File-Path OR In-Line')
+        parser.add_argument('-mnt', '--mounts', action='store_true',
+                        help='Network mounts document (YAML or JSON)')
+        parser.add_argument('-qmnt', '--quick-mounts', dest='mounts',
+                        metavar="File-Path OR In-Line", help='Network mounts YAML/JSON File-Path OR In-Line')
         parser.add_argument('-i', '--provision_interface', help='Overrides the Cluster or Group provisioning interface')
         parser.add_argument('-p', '--provision_method', help='Overrides Cluster or Group (primary) provisioning method')
         parser.add_argument('-f', '--provision_fallback', help='Overrides Cluster or Group fallback provisioning method')

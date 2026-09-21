@@ -187,6 +187,22 @@ class Node():
         node_showdisklayout = node_args.add_parser('showdisklayout', help="Show a Node's Disk Layout")
         node_showdisklayout.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_showdisklayout)
+        node_showmounts = node_args.add_parser('showmounts', help="Show a Node's Network Mounts")
+        node_showmounts.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        Arguments().common_list_args(node_showmounts)
+        node_addmount = node_args.add_parser('addmount', help="Add one Network Mount to a Node's document, or replace the one at its path")
+        node_addmount.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_addmount.add_argument('-qmnt', '--quick-mount', dest='mount', required=True, metavar="File-Path OR In-Line",
+                                     help='One mount entry, YAML or JSON, e.g. {path: /trinity/scratch, server: controller}')
+        node_removemount = node_args.add_parser('removemount', help="Remove one Network Mount from a Node's document by its path")
+        node_removemount.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_removemount.add_argument('path', help='Mountpoint of the entry to remove')
+        node_assignprofile = node_args.add_parser('assignprofile', help="Assign one Profile to a Node, beside the ones it has")
+        node_assignprofile.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_assignprofile.add_argument('profile', help='Name of the Profile')
+        node_unassignprofile = node_args.add_parser('unassignprofile', help="Take one Profile away from a Node")
+        node_unassignprofile.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_unassignprofile.add_argument('profile', help='Name of the Profile')
         node_showinventory = node_args.add_parser('showinventory', help="Show a Node's Hardware Inventory")
         node_showinventory.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_showinventory)
@@ -248,6 +264,41 @@ class Node():
         Method to show a node's disk layout in Luna Configuration.
         """
         return Helper().show_disklayout(self.table, self.args)
+
+
+    def showmounts_node(self):
+        """
+        Method to show a node's resolved network mounts in Luna Configuration.
+        """
+        return Helper().show_mounts(self.table, self.args)
+
+
+    def addmount_node(self):
+        """
+        Method to add or replace one entry in a node's network mounts document.
+        """
+        return Helper().add_mount(self.table, self.args)
+
+
+    def removemount_node(self):
+        """
+        Method to remove one entry from a node's network mounts document.
+        """
+        return Helper().remove_mount(self.table, self.args)
+
+
+    def assignprofile_node(self):
+        """
+        Method to assign one profile to a node beside the ones it has.
+        """
+        return Helper().change_profile(self.table, self.args, assign=True)
+
+
+    def unassignprofile_node(self):
+        """
+        Method to take one profile away from a node.
+        """
+        return Helper().change_profile(self.table, self.args, assign=False)
 
 
     def show_node(self):

@@ -50,21 +50,18 @@ canonical JSON unchanged.
 """
 from __future__ import annotations
 
-import codecs
 import json
 import re
 from typing import Any
 
-import yaml
+from luna.utils import yamldoc
+from luna.utils.yamldoc import DocumentError
 
 __author__ = "ClusterVision Solutions b.v."
 __copyright__ = "Copyright 2025, Luna2 Project [CLI]"
 __license__ = "GPL"
 
-# Guard against pathological input before the parser ever sees it (the YAML
-# "billion laughs" alias-expansion vector is separately blocked below, but a
-# hard byte ceiling is a cheap belt for any large-payload attempt).
-MAX_INPUT_BYTES = 1 << 20  # 1 MiB -- a disklayout is a few hundred bytes.
+MAX_INPUT_BYTES = yamldoc.MAX_INPUT_BYTES
 
 # The only supported schema version (mirrors v2 SchemaVersion in types.go). Filled
 # when absent; the node-side validator requires version == this value.
@@ -76,102 +73,26 @@ SchemaVersion = 2
 _INT_FIELDS = frozenset({"version", "count", "spares"})
 _BOOL_FIELDS = frozenset({"save", "persistent", "clear_uefi_nvram"})
 
-# YAML-1.1 boolean words we accept in the declared bool fields (case-folded).
-# These are exactly the words PyYAML would otherwise coerce implicitly; we accept
-# them ONLY here and keep them as literal strings everywhere else.
-_TRUE_WORDS = frozenset({"true", "yes", "on", "y"})
-_FALSE_WORDS = frozenset({"false", "no", "off", "n"})
 
 
-class DisklayoutError(ValueError):
+class DisklayoutError(DocumentError):
     """A disklayout document could not be canonicalized. Message is operator-facing."""
 
 
-class _StrLoader(yaml.SafeLoader):
-    """A SafeLoader that keeps every plain scalar a string and refuses YAML sugar.
-
-    Typed scalar tags (bool/int/float/timestamp) are neutralized to ``str`` so
-    the Norway problem cannot bite; explicit ``null`` is preserved as ``None``
-    (faithful JSON). Duplicate mapping keys, merge keys, and aliases are hard
-    errors -- a disklayout is a flat data document, none of them can appear
-    without an authoring mistake or a hostile payload.
-    """
-
-    def compose_node(self, parent: Any, index: Any) -> Any:
-        # Refuse aliases (and thus the "billion laughs" expansion DoS). Anchors
-        # without a referencing alias are inert, but an alias event only exists
-        # to expand one, so blocking it here closes the vector.
-        if self.check_event(yaml.events.AliasEvent):  # type: ignore[no-untyped-call]
-            raise DisklayoutError("YAML anchors and aliases aren't supported")
-        return super().compose_node(parent, index)
-
-
-def _construct_str(loader: yaml.SafeLoader, node: yaml.nodes.Node) -> str:
-    return str(loader.construct_scalar(node))  # type: ignore[arg-type]
-
-
-def _construct_mapping_nodup(loader: yaml.SafeLoader, node: yaml.nodes.MappingNode) -> dict[str, Any]:
-    mapping: dict[Any, Any] = {}
-    for key_node, value_node in node.value:
-        if key_node.tag == "tag:yaml.org,2002:merge":
-            raise DisklayoutError("YAML merge keys (<<) aren't supported")
-        key = loader.construct_object(key_node, deep=True)
-        if not isinstance(key, str):
-            raise DisklayoutError(f"keys must be text, got {type(key).__name__}")
-        if key in mapping:
-            raise DisklayoutError(f"duplicate key '{key}'")
-        mapping[key] = loader.construct_object(value_node, deep=True)
-    return mapping
-
-
-for _tag in (
-    "tag:yaml.org,2002:bool",
-    "tag:yaml.org,2002:int",
-    "tag:yaml.org,2002:float",
-    "tag:yaml.org,2002:timestamp",
-):
-    _StrLoader.add_constructor(_tag, _construct_str)
-_StrLoader.add_constructor("tag:yaml.org,2002:map", _construct_mapping_nodup)
+# the shared string-preserving loader, raising this module's error
+_StrLoader = yamldoc.make_loader(DisklayoutError)
 
 
 def _decode(raw: bytes | str) -> str:
-    """Decode input bytes to a UTF-8 string, tolerating a UTF-8 BOM only."""
-    if isinstance(raw, str):
-        return raw
-    if len(raw) > MAX_INPUT_BYTES:
-        raise DisklayoutError("disklayout is too big")
-    for bom in (codecs.BOM_UTF16_LE, codecs.BOM_UTF16_BE, codecs.BOM_UTF32_LE, codecs.BOM_UTF32_BE):
-        if raw.startswith(bom):
-            raise DisklayoutError("disklayout must be UTF-8")
-    try:
-        return raw.decode("utf-8-sig")  # strips a leading UTF-8 BOM if present
-    except UnicodeDecodeError as err:
-        raise DisklayoutError("not valid UTF-8") from err
+    return yamldoc.decode(raw, "disklayout", DisklayoutError)
 
 
 def _coerce_int(key: str, value: Any) -> int:
-    if isinstance(value, bool):
-        raise DisklayoutError(f"{key} must be a whole number, not true/false")
-    if isinstance(value, int):
-        return value
-    if isinstance(value, str):
-        try:
-            return int(value.strip(), 10)
-        except ValueError:
-            raise DisklayoutError(f"{key} must be a whole number, got '{value}'") from None
-    raise DisklayoutError(f"{key} must be a whole number, got {type(value).__name__}")
+    return yamldoc.coerce_int(key, value, DisklayoutError)
 
 
 def _coerce_bool(key: str, value: Any) -> bool:
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, str):
-        folded = value.strip().lower()
-        if folded in _TRUE_WORDS:
-            return True
-        if folded in _FALSE_WORDS:
-            return False
-    raise DisklayoutError(f"{key} must be true or false, got '{value}'")
+    return yamldoc.coerce_bool(key, value, DisklayoutError)
 
 
 def _coerce(node: Any) -> Any:
@@ -203,42 +124,8 @@ _SKELETON = (
     "      volumes: [/boot/efi, /boot, /]"
 )
 
-# Short, plain hints for PyYAML's most cryptic complaints, matched as substrings
-# against the parser's `problem` text.
-_YAML_HINTS = (
-    ("mapping values are not allowed here",
-     "missing space after ':' (write 'key: value'), or wrong indentation"),
-    ("cannot start any token",
-     "invalid character, often a tab. use spaces, not tabs"),
-    ("could not find expected ':'",
-     "missing ':' or inconsistent indentation"),
-    ("while scanning a quoted scalar",
-     "unclosed quote"),
-    ("while parsing a flow",
-     "unclosed '[' or '{', or a stray ',' or ':'"),
-    ("while parsing a block",
-     "check indentation: items under a key must line up"),
-)
-
-
-def _yaml_hint(problem: str) -> str:
-    for needle, advice in _YAML_HINTS:
-        if needle in problem:
-            return advice
-    return ""
-
-
 def _parse(text: str) -> Any:
-    try:
-        return yaml.load(text, Loader=_StrLoader)  # noqa: S506 -- _StrLoader is a SafeLoader subclass
-    except DisklayoutError:
-        raise
-    except yaml.YAMLError as err:
-        mark = getattr(err, "problem_mark", None) or getattr(err, "context_mark", None)
-        where = f" at line {mark.line + 1}, column {mark.column + 1}" if mark is not None else ""
-        problem = getattr(err, "problem", None) or str(err).splitlines()[0]
-        hint = _yaml_hint(problem)
-        raise DisklayoutError(f"invalid YAML{where}: {hint or problem}") from err
+    return yamldoc.parse(text, _StrLoader, DisklayoutError)
 
 
 # --------------------------------------------------------------------------- #
@@ -436,7 +323,4 @@ def to_yaml(raw: bytes | str) -> str:
         obj = json.loads(_decode(raw))
     except json.JSONDecodeError as err:
         raise DisklayoutError(f"stored layout is not valid JSON: {err}") from err
-    # default_flow_style=None renders leaf collections (each volume map, the
-    # devices list) inline on one line for readability while the structure stays
-    # block. No sort_keys kwarg -> works across PyYAML 3.x-6.x (CLI runs 3.10/6.0.2).
-    return yaml.safe_dump(obj, default_flow_style=None, allow_unicode=True)
+    return yamldoc.dump(obj)
