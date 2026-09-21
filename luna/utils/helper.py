@@ -410,6 +410,11 @@ class Helper():
         Method to show a switch in Luna Configuration. Detail True will return the full details.
         """
         response = {'controllers': []} if detail is True else []
+        ini_file, _ = Rest.credential_files()
+        if not (os.path.isfile(ini_file) and os.access(ini_file, os.R_OK)):
+            # the parser is being built for someone who has not logged in yet: no daemon
+            # to ask, and the only verb they can run is the login that creates the file
+            return response
         urllib3.disable_warnings()
         check = Rest().daemon_validation(parser=True)
         if check is not True:

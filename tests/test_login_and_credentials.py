@@ -110,6 +110,20 @@ def test_login_and_logout_are_dispatched_without_credentials(home, monkeypatch):
     assert reached == ['login', 'logout'], 'a listing without any ini is still refused before its verb runs'
 
 
+def test_the_whole_parser_builds_for_a_person_who_has_not_logged_in(home, monkeypatch):
+    """The cluster and network parsers fetch the controller names from the daemon while the
+    arguments are being built; without a readable credential file that fetch must yield
+    nothing rather than refuse, or luna access login can never be parsed."""
+    from luna import cli as luna_cli
+    from luna.utils.helper import Helper
+    os.remove(home.controller_ini)
+    assert Helper().get_controllers() == []
+    monkeypatch.setattr(luna_cli.Cli, 'get_version', lambda self: '2.2')
+    parser = luna_cli.Cli().get_parser()
+    args = vars(parser.parse_args(['access', 'login', 'alice']))
+    assert args['command'] == 'access' and args['action'] == 'login' and args['username'] == 'alice'
+
+
 def test_the_signing_key_is_optional_in_the_ini(home):
     from luna.utils.rest import Rest
     assert Rest().secret_key is None, 'no SECRET_KEY line, no error: the key stays on the daemon'
