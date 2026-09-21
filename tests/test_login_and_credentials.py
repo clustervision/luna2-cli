@@ -291,3 +291,13 @@ def test_the_log_falls_back_to_the_own_directory_when_the_system_log_is_not_writ
     monkeypatch.setattr(os, 'access', lambda path, mode: False)
     assert luna_log.Log.log_file().endswith('.luna/luna2-cli.log'), 'a read-only system log falls back'
     assert stat.S_IMODE(os.stat(home.root / 'home' / '.luna').st_mode) == 0o700
+
+
+def test_the_mode_is_shown_with_its_meaning_in_words():
+    """The letters stay, because chmod takes them; every show says beside them what each
+    class may do, so nobody has to know that x means operate."""
+    from luna.utils.helper import Helper
+    assert Helper().access_in_words('rwxr-x---') == 'rwxr-x--- (owner: read, change, operate · team: read, operate · others: nothing)'
+    assert Helper().access_in_words('rw-r--r--') == 'rw-r--r-- (owner: read, change · team: read · others: read)'
+    assert Helper().access_in_words(None) is None and Helper().access_in_words('770') == '770', 'anything else passes through'
+
