@@ -38,6 +38,7 @@ from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
 from luna.utils.presenter import Presenter
+from luna.access import _message
 
 ROLES = ['admin', 'manager', 'operator', 'reader']
 
@@ -156,11 +157,11 @@ class UserGroup():
         A create answers 201 with its message, an update 204 with none: say what was done.
         """
         if response.status_code == 201:
-            Message().show_success(response.content)
+            Message().show_success(_message(response))
         elif response.status_code == 204:
             Message().show_success(f"usergroup {self.args.get('name') or ''}: {self.args['action']} done.".replace('  ', ' '))
         else:
-            Message().error_exit(response.content, response.status_code)
+            Message().error_exit(_message(response), response.status_code)
 
 
     def member_usergroup(self):
@@ -170,7 +171,7 @@ class UserGroup():
         name = self.args['name']
         response = Rest().get_raw(f'config/usergroup/{name}/members')
         if response.status_code != 200:
-            Message().error_exit(response.content, response.status_code)
+            Message().error_exit(_message(response), response.status_code)
         members = response.json()['config']['usergroup'][name]['members']
         if self.args.get('raw'):
             return Presenter().show_json(members)
@@ -204,7 +205,7 @@ class UserGroup():
         """
         response = Rest().get_raw('config/usergroupmap')
         if response.status_code != 200:
-            Message().error_exit(response.content, response.status_code)
+            Message().error_exit(_message(response), response.status_code)
         entries = response.json()['config']['usergroupmap']
         if self.args.get('raw'):
             return Presenter().show_json(entries)

@@ -29,6 +29,7 @@ __maintainer__  = "Antoine Schonewille"
 __email__       = "antoine.schonewille@clustervision.com"
 __status__      = "Development"
 
+import json
 import os
 from configparser import RawConfigParser
 from getpass import getpass
@@ -45,6 +46,19 @@ GOVERNED = {'node': 'node', 'group': 'group', 'osimage': 'osimage', 'bmcsetup': 
             'redfishsetup': 'redfishsetup', 'biosconfig': 'biosconfig', 'firmwarecatalog': 'firmwarecatalog',
             'profile': 'profile', 'cluster': 'cluster', 'network': 'network', 'route': 'route',
             'cloud': 'cloud', 'switch': 'switch', 'rack': 'rack', 'otherdev': 'otherdevices'}
+
+
+def _message(response):
+    """
+    The daemon's own sentence out of an error answer, so a refusal reads as the daemon
+    worded it and not as a JSON body.
+    """
+    content = response.content
+    try:
+        body = json.loads(content) if isinstance(content, (bytes, str)) else content
+        return body.get('message', content) if isinstance(body, dict) else content
+    except ValueError:
+        return content.decode() if isinstance(content, bytes) else content
 
 
 class Access():
@@ -156,7 +170,7 @@ class Access():
         """
         response = Rest().get_raw('whoami')
         if response.status_code != 200:
-            Message().error_exit(response.content, response.status_code)
+            Message().error_exit(_message(response), response.status_code)
         answer = response.json()
         if self.args.get('raw'):
             return Presenter().show_json(answer)
@@ -182,7 +196,7 @@ class Access():
             # an update answers 204 with no body, as every update does: say what was done
             Message().show_success(f'{self.args["entity"]} {name}: {field} set to {self.args[field]}.')
         else:
-            Message().error_exit(response.content, response.status_code)
+            Message().error_exit(_message(response), response.status_code)
 
     def chmod_access(self):
         return self._change('chmod', 'access')

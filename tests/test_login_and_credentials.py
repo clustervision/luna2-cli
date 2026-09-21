@@ -198,11 +198,13 @@ def test_a_refusal_is_shown_as_the_daemon_worded_it(home, monkeypatch, capsys):
     from luna.access import Access
     import luna.access as access
     message = 'node node001 requires w; you hold r-x (manager in intel)'
+    # the raw route helper hands the daemon's error body back as bytes; the person reads the sentence
     monkeypatch.setattr(access.Rest, 'post_raw',
-                        lambda self, route, payload: types.SimpleNamespace(status_code=403, content=message))
+                        lambda self, route, payload: types.SimpleNamespace(status_code=403, content=json.dumps({'message': message}).encode()))
     with pytest.raises(SystemExit):
         Access(args={'action': 'chmod', 'entity': 'node', 'name': 'node001', 'access': 'rwxrwx---'})
-    assert message in capsys.readouterr().err
+    err = capsys.readouterr().err
+    assert message in err and "b'" not in err and '{' not in err, err
 
 
 def test_the_three_verbs_post_to_the_generic_routes(home, monkeypatch, capsys):
