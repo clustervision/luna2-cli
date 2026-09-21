@@ -1454,6 +1454,9 @@ class Helper():
                         new_list = self.nested_lines(data[ele][field_key], filter_nested(table))
                         new_list = new_list if num == len(data) else f'{new_list}\n'
                         val_row.append(new_list)
+                    elif isinstance(data[ele][field_key], dict):
+                        # a map such as usergroups {name: role} reads as 'name (role), ...'
+                        val_row.append(', '.join(f'{k} ({v})' for k, v in data[ele][field_key].items()))
                     elif field_key == 'tpm_uuid':
                         if data[ele][field_key]:
                             val_row.append(True)

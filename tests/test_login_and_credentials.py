@@ -301,3 +301,14 @@ def test_the_mode_is_shown_with_its_meaning_in_words():
     assert Helper().access_in_words('rw-r--r--') == 'rw-r--r-- (owner: read, change · team: read · others: read)'
     assert Helper().access_in_words(None) is None and Helper().access_in_words('770') == '770', 'anything else passes through'
 
+
+def test_a_map_in_a_listing_reads_as_names_with_their_values(home):
+    """luna user list showed usergroups as {} and {'physics': 'admin'}: the raw map. It reads
+    as 'physics (admin)' and stays blank when empty."""
+    from luna.utils.helper import Helper
+    data = {'alice': {'name': 'alice', 'usergroups': {'physics': 'admin', 'chemistry': 'reader'}},
+            'eve': {'name': 'eve', 'usergroups': {}}}
+    fields, rows = Helper().filter_data('user', data)
+    column = fields.index('usergroups')
+    assert rows[0][column] == 'physics (admin), chemistry (reader)' and rows[1][column] == ''
+
