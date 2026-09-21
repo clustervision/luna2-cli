@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # This code is part of the TrinityX software suite
-# Copyright (C) 2023  ClusterVision Solutions b.v.
+# Copyright (C) 2026  ClusterVision Solutions b.v.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ Access Class for the CLI: logging in as oneself, asking who one is, and changing
 may do what with an object, as chmod, chgrp and chown do for a file.
 """
 __author__      = "Antoine Schonewille"
-__copyright__   = "Copyright 2025, Luna2 Project [CLI]"
+__copyright__   = "Copyright 2026, Luna2 Project [CLI]"
 __license__     = "GPL"
 __version__     = "2.2"
 __maintainer__  = "Antoine Schonewille"
