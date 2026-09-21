@@ -205,15 +205,18 @@ def test_a_refusal_is_shown_as_the_daemon_worded_it(home, monkeypatch, capsys):
     assert message in capsys.readouterr().err
 
 
-def test_the_three_verbs_post_to_the_generic_routes(home, monkeypatch):
+def test_the_three_verbs_post_to_the_generic_routes(home, monkeypatch, capsys):
     from luna.access import Access
     import luna.access as access
     posted = []
     monkeypatch.setattr(access.Rest, 'post_raw',
-                        lambda self, route, payload: posted.append((route, payload)) or types.SimpleNamespace(status_code=204, content='ok'))
+                        lambda self, route, payload: posted.append((route, payload)) or types.SimpleNamespace(status_code=204, content=b''))
     Access(args={'action': 'chmod', 'entity': 'otherdev', 'name': 'pdu1', 'access': '750'})
     Access(args={'action': 'chgrp', 'entity': 'node', 'name': 'node001', 'usergroups': '+intel,-amd'})
     Access(args={'action': 'chown', 'entity': 'cluster', 'name': 'cluster', 'owners': 'alice'})
+    out = capsys.readouterr().out
+    assert 'otherdev pdu1: access set to 750' in out and 'cluster cluster: owners set to alice' in out, \
+        'a 204 carries no body: the verb says what it did'
     assert posted == [
         ('config/otherdevices/pdu1/_chmod', {'config': {'otherdevices': {'pdu1': {'access': '750'}}}}),
         ('config/node/node001/_chgrp', {'config': {'node': {'node001': {'usergroups': ['+intel', '-amd']}}}}),

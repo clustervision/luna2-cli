@@ -151,6 +151,18 @@ class UserGroup():
         return Helper().delete_record(self.table, self.args)
 
 
+    def _done(self, response):
+        """
+        A create answers 201 with its message, an update 204 with none: say what was done.
+        """
+        if response.status_code == 201:
+            Message().show_success(response.content)
+        elif response.status_code == 204:
+            Message().show_success(f"usergroup {self.args.get('name') or ''}: {self.args['action']} done.".replace('  ', ' '))
+        else:
+            Message().error_exit(response.content, response.status_code)
+
+
     def member_usergroup(self):
         """
         The members of a usergroup, with the role each holds.
@@ -173,8 +185,7 @@ class UserGroup():
         name = self.args['name']
         body = {'config': {'usergroup': {name: {'username': self.args['username'], 'role': self.args['role']}}}}
         response = Rest().post_raw(f'config/usergroup/{name}/members', body)
-        Message().show_success(response.content) if response.status_code in (201, 204) \
-            else Message().error_exit(response.content, response.status_code)
+        self._done(response)
 
 
     def removemember_usergroup(self):
@@ -184,8 +195,7 @@ class UserGroup():
         name = self.args['name']
         body = {'config': {'usergroup': {name: {'username': self.args['username']}}}}
         response = Rest().post_raw(f'config/usergroup/{name}/members/_remove', body)
-        Message().show_success(response.content) if response.status_code in (201, 204) \
-            else Message().error_exit(response.content, response.status_code)
+        self._done(response)
 
 
     def map_usergroup(self):
@@ -209,8 +219,7 @@ class UserGroup():
         body = {'config': {'usergroupmap': {'source': self.args['source'], 'external_group': self.args['external_group'],
                                             'usergroup': self.args['name'], 'role': self.args['role']}}}
         response = Rest().post_raw('config/usergroupmap', body)
-        Message().show_success(response.content) if response.status_code in (201, 204) \
-            else Message().error_exit(response.content, response.status_code)
+        self._done(response)
 
 
     def removemap_usergroup(self):
@@ -219,5 +228,4 @@ class UserGroup():
         """
         body = {'config': {'usergroupmap': {'source': self.args['source'], 'external_group': self.args['external_group']}}}
         response = Rest().post_raw('config/usergroupmap/_remove', body)
-        Message().show_success(response.content) if response.status_code in (201, 204) \
-            else Message().error_exit(response.content, response.status_code)
+        self._done(response)

@@ -179,7 +179,8 @@ class Access():
         body = {'config': {entity: {name: {field: value}}}}
         response = Rest().post_raw(f'config/{entity}/{name}/_{verb}', body)
         if response.status_code in (201, 204):
-            Message().show_success(response.content)
+            # an update answers 204 with no body, as every update does: say what was done
+            Message().show_success(f'{self.args["entity"]} {name}: {field} set to {self.args[field]}.')
         else:
             Message().error_exit(response.content, response.status_code)
 
