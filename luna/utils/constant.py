@@ -307,8 +307,8 @@ def actions(table: str) -> list:
         # boot flags are not reliable
         "nextboot" : ["bios", "status", "clear"],
         "tag_osimage" : ["change", "remove"],
-        "user": network_actions,
-        "usergroup": network_actions + ["member", "addmember", "removemember", "map", "addmap", "removemap"],
+        "user": network_actions + ["access"],
+        "usergroup": network_actions + ["member", "addmember", "removemember", "map", "addmap", "removemap", "access"],
         "access": ["login", "logout", "whoami", "chmod", "chgrp", "chown"]
     }
     response = list(static[table])

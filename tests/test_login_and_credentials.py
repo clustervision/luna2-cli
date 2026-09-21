@@ -312,3 +312,23 @@ def test_a_map_in_a_listing_reads_as_names_with_their_values(home):
     column = fields.index('usergroups')
     assert rows[0][column] == 'physics (admin), chemistry (reader)' and rows[1][column] == ''
 
+
+def test_the_access_verbs_render_what_is_held_in_words(home, monkeypatch, capsys):
+    """luna user access and luna usergroup access: one row per object, the three characters
+    a person holds with their meaning beside them."""
+    import types
+    from luna.utils.helper import Helper
+    from luna import user as luna_user, usergroup as luna_usergroup
+    import luna.utils.rest as rest
+    assert Helper().access_triplet_in_words('r-x') == 'r-x (read, operate)'
+    assert Helper().access_triplet_in_words('---') == '--- (nothing)'
+    answers = {'config/user/bob/_access': {'config': {'user': {'bob': {'access': {'node': {'node001': 'r--'}, 'osimage': {'shared': 'r--'}}}}}},
+               'config/usergroup/intel/_access': {'config': {'usergroup': {'intel': {'access': {'node': {'node001': {'admin': 'r-x', 'manager': 'r-x', 'operator': 'r-x', 'reader': 'r--'}}}}}}}}
+    monkeypatch.setattr(rest.Rest, 'get_raw', lambda self, path, **kw: types.SimpleNamespace(status_code=200, json=lambda: answers[path]))
+    luna_user.User({'action': 'access', 'name': 'bob', 'raw': False, 'verbose': None})
+    out = capsys.readouterr().out
+    assert 'node001' in out and 'r-- (read)' in out and 'shared' in out
+    luna_usergroup.UserGroup({'action': 'access', 'name': 'intel', 'raw': False, 'verbose': None})
+    out = capsys.readouterr().out
+    assert 'node001' in out and 'r-x (read, operate)' in out and 'r-- (read)' in out
+

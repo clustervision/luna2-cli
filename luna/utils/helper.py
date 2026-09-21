@@ -1939,6 +1939,17 @@ class Helper():
         return fields, rows
 
 
+    def access_triplet_in_words(self, triplet=None):
+        """
+        Three characters as a person holds them, with their meaning: 'r-x (read, operate)'.
+        """
+        text = str(triplet or '')
+        if len(text) != 3 or any(c not in 'rwx-' for c in text):
+            return triplet
+        names = {'r': 'read', 'w': 'change', 'x': 'operate'}
+        words = [names[c] for c in text if c != '-']
+        return f"{text} ({', '.join(words) if words else 'nothing'})"
+
     def access_in_words(self, mode=None):
         """
         The mode as the daemon renders it, followed by what each class may do, in words:

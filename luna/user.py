@@ -36,6 +36,9 @@ from luna.utils.log import Log
 from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
+from luna.utils.rest import Rest
+from luna.utils.presenter import Presenter
+from luna.access import _message
 
 
 class User():
@@ -70,6 +73,9 @@ class User():
         user_show = user_args.add_parser('show', help='Show a User')
         user_show.add_argument('name', help='Username').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(user_show)
+        user_access = user_args.add_parser('access', help='What a User holds, per kind of object')
+        user_access.add_argument('name', help='Username').completer = Helper().name_completer(self.table)
+        Arguments().common_list_args(user_access)
         user_add = user_args.add_parser('add', help='Add a User')
         user_add.add_argument('name', help='Username')
         self.user_args(user_add)
@@ -128,6 +134,23 @@ class User():
         This method shows one user.
         """
         return Helper().show_data(self.table, self.args)
+
+
+    def access_user(self):
+        """
+        What the user holds: every object it reaches, with the mode in words beside the letters.
+        """
+        name = self.args['name']
+        response = Rest().get_raw(f'config/user/{name}/_access')
+        if response.status_code != 200:
+            Message().error_exit(_message(response), response.status_code)
+        held = response.json()['config']['user'][name]['access']
+        if self.args.get('raw'):
+            return Presenter().show_json(held)
+        rows = [[kind, obj, Helper().access_triplet_in_words(mode)] for kind in sorted(held) for obj, mode in sorted(held[kind].items())]
+        if not rows:
+            return Message().show_success(f'{name} holds nothing.')
+        return Presenter().show_table(f'What {name} holds', ['kind', 'object', 'access'], rows)
 
 
     def add_user(self):

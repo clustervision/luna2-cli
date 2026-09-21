@@ -89,6 +89,9 @@ class UserGroup():
         ug_remove = args.add_parser('remove', help='Remove a Usergroup, its memberships and its map entries')
         ug_remove.add_argument('name', help='Usergroup Name').completer = Helper().name_completer(self.table)
         ug_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        ug_access = args.add_parser('access', help='What each role in a Usergroup holds on the objects it is listed on')
+        ug_access.add_argument('name', help='Usergroup Name').completer = Helper().name_completer(self.table)
+        Arguments().common_list_args(ug_access)
         ug_member = args.add_parser('member', help='List the members of a Usergroup with their roles')
         ug_member.add_argument('name', help='Usergroup Name').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(ug_member)
@@ -162,6 +165,24 @@ class UserGroup():
             Message().show_success(f"usergroup {self.args.get('name') or ''}: {self.args['action']} done.".replace('  ', ' '))
         else:
             Message().error_exit(_message(response), response.status_code)
+
+
+    def access_usergroup(self):
+        """
+        What each role in the usergroup holds on every object it is listed on.
+        """
+        name = self.args['name']
+        response = Rest().get_raw(f'config/usergroup/{name}/_access')
+        if response.status_code != 200:
+            Message().error_exit(_message(response), response.status_code)
+        held = response.json()['config']['usergroup'][name]['access']
+        if self.args.get('raw'):
+            return Presenter().show_json(held)
+        roles = ['admin', 'manager', 'operator', 'reader']
+        rows = [[kind, obj] + [Helper().access_triplet_in_words(modes[r]) for r in roles] for kind in sorted(held) for obj, modes in sorted(held[kind].items())]
+        if not rows:
+            return Message().show_success(f'{name} is listed on nothing.')
+        return Presenter().show_table(f'What {name} holds', ['kind', 'object'] + roles, rows)
 
 
     def member_usergroup(self):
