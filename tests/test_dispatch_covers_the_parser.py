@@ -125,9 +125,11 @@ def test_the_parser_actually_builds(filename):
         cls(parser=parser, subparsers=subparsers)
     except (NameError, AttributeError, TypeError) as exp:
         pytest.fail(f'{filename}: building the parser raised {type(exp).__name__}: {exp}')
-    except Exception as exp:  # pylint: disable=broad-except
+    except (Exception, SystemExit) as exp:  # pylint: disable=broad-except
         # cluster.py reaches the daemon while building - that is a known property of
-        # this CLI, and shtab needs a live controller for the same reason
+        # this CLI, and shtab needs a live controller for the same reason. Without a
+        # daemon the build ends in a connection error, or in the CLI's own exit when
+        # the shared token cannot be renewed as this user; both mean the same here.
         pytest.skip(f'{filename} needs a live daemon to build its parser: {exp}')
 
     registered = subparsers.choices.get(entity)

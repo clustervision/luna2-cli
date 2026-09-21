@@ -1,0 +1,251 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# This code is part of the TrinityX software suite
+# Copyright (C) 2026  ClusterVision Solutions b.v.
+
+"""
+Logging in as oneself (TRIX-2091, the CLI half of TRIX-2121).
+
+The credential file order is the contract: a person's own ~/.luna/luna.ini first, the
+controller's file second, and the token cache follows the file that was used, so root on
+the controller keeps the shared token exactly as today. The signing key is not needed to
+read a token any more: expiry is read unverified, and the daemon decides validity.
+"""
+import json
+import logging
+import os
+import stat
+import time
+import types
+
+import pytest
+from jwt import encode
+
+import luna.utils.log as luna_log
+
+
+@pytest.fixture(autouse=True)
+def _stub_logger():
+    luna_log.Log._Log__logger = logging.getLogger('test')
+
+
+@pytest.fixture
+def home(tmp_path, monkeypatch):
+    """A home directory of our own, and a controller ini we control."""
+    monkeypatch.setenv('HOME', str(tmp_path / 'home'))
+    os.makedirs(tmp_path / 'home')
+    controller_ini = tmp_path / 'controller' / 'luna.ini'
+    os.makedirs(controller_ini.parent)
+    controller_ini.write_text('[API]\nUSERNAME = luna\nPASSWORD = luna\nENDPOINT = ctrl:7050\n'
+                              'PROTOCOL = https\nVERIFY_CERTIFICATE = no\n')
+    import luna.utils.rest as rest
+    monkeypatch.setattr(rest, 'INI_FILE', str(controller_ini))
+    monkeypatch.setattr(rest, 'TOKEN_FILE', str(tmp_path / 'controller' / 'token.txt'))
+    import luna.access as access
+    monkeypatch.setattr(access, 'INI_FILE', str(controller_ini))
+    return types.SimpleNamespace(root=tmp_path, controller_ini=controller_ini,
+                                 user_ini=tmp_path / 'home' / '.luna' / 'luna.ini',
+                                 user_token=tmp_path / 'home' / '.luna' / 'token')
+
+
+def _own_login(home, username='alice'):
+    os.makedirs(home.user_ini.parent, mode=0o700, exist_ok=True)
+    home.user_ini.write_text(f'[API]\nUSERNAME = {username}\nPASSWORD = pw\nENDPOINT = ctrl:7050\n'
+                             'PROTOCOL = https\nVERIFY_CERTIFICATE = no\n')
+
+
+def _token(exp_offset=3600):
+    return encode({'id': 7, 'exp': int(time.time()) + exp_offset}, 'a-key-the-client-does-not-have', 'HS256')
+
+
+# ── the file order ──────────────────────────────────────────────────────────
+
+def test_the_controller_ini_is_used_when_there_is_no_own_login(home):
+    from luna.utils.rest import Rest
+    rest = Rest()
+    assert rest.ini_file == str(home.controller_ini)
+    assert rest.token_file.endswith('controller/token.txt'), 'root keeps the shared token as today'
+    assert rest.username == 'luna'
+
+
+def test_the_own_login_is_read_first_and_the_token_follows_it(home):
+    from luna.utils.rest import Rest
+    _own_login(home)
+    rest = Rest()
+    assert rest.ini_file == str(home.user_ini)
+    assert rest.token_file == str(home.user_token)
+    assert rest.username == 'alice'
+
+
+def test_neither_file_is_a_clear_refusal_naming_the_login_verb(home, capsys):
+    from luna.utils.rest import Rest
+    os.remove(home.controller_ini)
+    with pytest.raises(SystemExit):
+        Rest()
+    err = capsys.readouterr().err
+    assert 'luna login' in err and str(home.controller_ini) in err
+
+
+def test_the_signing_key_is_optional_in_the_ini(home):
+    from luna.utils.rest import Rest
+    assert Rest().secret_key is None, 'no SECRET_KEY line, no error: the key stays on the daemon'
+
+
+# ── the token without the key ───────────────────────────────────────────────
+
+def test_a_cached_token_is_accepted_on_its_expiry_alone(home, monkeypatch):
+    from luna.utils.rest import Rest
+    _own_login(home)
+    rest = Rest()
+    os.makedirs(home.user_token.parent, exist_ok=True)
+    home.user_token.write_text(_token())
+    monkeypatch.setattr(rest, 'token', lambda: pytest.fail('a valid cached token must not trigger a login'))
+    assert rest.get_token() == home.user_token.read_text()
+
+
+def test_an_expired_token_is_renewed_by_logging_in(home, monkeypatch):
+    from luna.utils.rest import Rest
+    _own_login(home)
+    rest = Rest()
+    os.makedirs(home.user_token.parent, exist_ok=True)
+    home.user_token.write_text(_token(-10))
+    monkeypatch.setattr(rest, 'token', lambda: 'fresh')
+    assert rest.get_token() == 'fresh'
+
+
+def test_a_token_without_an_expiry_claim_is_replaced(home, monkeypatch):
+    """A token that says nothing about its expiry cannot be trusted to be current."""
+    from luna.utils.rest import Rest
+    _own_login(home)
+    rest = Rest()
+    os.makedirs(home.user_token.parent, exist_ok=True)
+    home.user_token.write_text(encode({'id': 7}, 'k', 'HS256'))
+    monkeypatch.setattr(rest, 'token', lambda: 'fresh')
+    assert rest.get_token() == 'fresh'
+
+
+def test_a_stored_token_is_readable_by_its_owner_only(home):
+    from luna.utils.rest import Rest
+    _own_login(home)
+    rest = Rest()
+    rest.store_token('t')
+    mode = stat.S_IMODE(os.stat(home.user_token).st_mode)
+    assert mode == 0o600, oct(mode)
+    assert stat.S_IMODE(os.stat(home.user_token.parent).st_mode) == 0o700
+
+
+def test_a_token_the_daemon_refuses_is_renewed_once_and_the_call_resent(home, monkeypatch):
+    from luna.utils.rest import Rest
+    _own_login(home)
+    rest = Rest()
+    calls = []
+
+    def fake_get(url, **kwargs):
+        calls.append(kwargs['headers']['x-access-tokens'])
+        return types.SimpleNamespace(status_code=401 if len(calls) == 1 else 200, content=b'{}',
+                                     json=lambda: {})
+    monkeypatch.setattr(rest.session, 'get', fake_get)
+    monkeypatch.setattr(rest, 'get_token', lambda: 'stale')
+    monkeypatch.setattr(rest, 'token', lambda: 'renewed')
+    response = rest.send('get', 'https://ctrl:7050/config/node')
+    assert response.status_code == 200
+    assert calls == ['stale', 'renewed']
+
+
+# ── luna login and logout ───────────────────────────────────────────────────
+
+def test_login_writes_the_own_files_readable_by_the_owner_only(home, monkeypatch):
+    from luna.access import Access
+    import luna.access as access
+    monkeypatch.setattr(access, 'getpass', lambda prompt='': 'pw')
+    monkeypatch.setattr(os, 'geteuid', lambda: 1000)
+    fetched = []
+    monkeypatch.setattr(access.Rest, 'token', lambda self: fetched.append(self.ini_file) or 't')
+    Access(args={'action': 'login', 'username': 'alice'})
+    assert home.user_ini.exists()
+    assert stat.S_IMODE(os.stat(home.user_ini).st_mode) == 0o600
+    text = home.user_ini.read_text()
+    assert 'username = alice' in text.lower() and 'endpoint = ctrl:7050' in text.lower(), \
+        'the endpoint is copied from the controller ini so a person need not know it'
+    assert 'secret_key' not in text.lower()
+    assert fetched == [str(home.user_ini)], 'the token was fetched through the own file'
+
+
+def test_root_without_a_username_keeps_the_controller_account(home, monkeypatch, capsys):
+    from luna.access import Access
+    monkeypatch.setattr(os, 'geteuid', lambda: 0)
+    with pytest.raises(SystemExit):
+        Access(args={'action': 'login', 'username': None})
+    assert 'root already holds the controller account' in capsys.readouterr().err
+    assert not home.user_ini.exists(), 'nothing may shadow the break-glass file'
+
+
+def test_logout_removes_both_own_files(home, capsys):
+    from luna.access import Access
+    _own_login(home)
+    os.makedirs(home.user_token.parent, exist_ok=True)
+    home.user_token.write_text('t')
+    Access(args={'action': 'logout'})
+    assert not home.user_ini.exists() and not home.user_token.exists()
+    Access(args={'action': 'logout'})
+    assert 'not logged in' in capsys.readouterr().out
+
+
+# ── refusals reach the person verbatim ──────────────────────────────────────
+
+def test_a_refusal_is_shown_as_the_daemon_worded_it(home, monkeypatch, capsys):
+    from luna.access import Access
+    import luna.access as access
+    message = 'node node001 requires w; you hold r-x (manager in intel)'
+    monkeypatch.setattr(access.Rest, 'post_raw',
+                        lambda self, route, payload: types.SimpleNamespace(status_code=403, content=message))
+    with pytest.raises(SystemExit):
+        Access(args={'action': 'chmod', 'entity': 'node', 'name': 'node001', 'access': 'rwxrwx---'})
+    assert message in capsys.readouterr().err
+
+
+def test_the_three_verbs_post_to_the_generic_routes(home, monkeypatch):
+    from luna.access import Access
+    import luna.access as access
+    posted = []
+    monkeypatch.setattr(access.Rest, 'post_raw',
+                        lambda self, route, payload: posted.append((route, payload)) or types.SimpleNamespace(status_code=204, content='ok'))
+    Access(args={'action': 'chmod', 'entity': 'otherdev', 'name': 'pdu1', 'access': '750'})
+    Access(args={'action': 'chgrp', 'entity': 'node', 'name': 'node001', 'usergroups': '+intel,-amd'})
+    Access(args={'action': 'chown', 'entity': 'cluster', 'name': 'cluster', 'owners': 'alice'})
+    assert posted == [
+        ('config/otherdevices/pdu1/_chmod', {'config': {'otherdevices': {'pdu1': {'access': '750'}}}}),
+        ('config/node/node001/_chgrp', {'config': {'node': {'node001': {'usergroups': ['+intel', '-amd']}}}}),
+        ('config/cluster/cluster/_chown', {'config': {'cluster': {'cluster': {'owners': 'alice'}}}}),
+    ]
+
+
+def test_every_governed_listing_shows_owners_usergroups_and_access():
+    """ls -l: the three fields join every governed list and show, and no ungoverned one."""
+    from luna.utils.constant import ACCESS_FIELDS, GOVERNED_TABLES, filter_columns, sortby
+    for table in GOVERNED_TABLES:
+        assert all(field in filter_columns(table) for field in ACCESS_FIELDS), table
+        assert all(field in sortby(table) for field in ACCESS_FIELDS), table
+    for table in ('user', 'usergroup', 'dns', 'groupinterface'):
+        # a user's own usergroups are a listing field in their own right; owners and access are not
+        assert not any(field in (filter_columns(table) or []) for field in ('owners', 'access')), table
+
+
+# ── the log follows the person too ─────────────────────────────────────────
+
+def test_the_log_falls_back_to_the_own_directory_when_the_system_log_is_not_writable(home, monkeypatch):
+    """Logging in as oneself does not need root: a person who may not append to
+    /var/log/luna gets a log beside their login; root keeps the system file."""
+    import luna.utils.log as luna_log
+    system_log = home.root / 'var' / 'luna2-cli.log'
+    monkeypatch.setattr(luna_log, 'LOG_FILE', str(system_log))
+    assert luna_log.Log.log_file() == str(home.root / 'home' / '.luna' / 'luna2-cli.log'), \
+        'the system directory does not exist and is not ours to create'
+    os.makedirs(system_log.parent)
+    assert luna_log.Log.log_file() == str(system_log), 'a writable system directory wins'
+    system_log.write_text('')
+    os.chmod(system_log, 0o444)
+    monkeypatch.setattr(os, 'access', lambda path, mode: False)
+    assert luna_log.Log.log_file().endswith('.luna/luna2-cli.log'), 'a read-only system log falls back'
+    assert stat.S_IMODE(os.stat(home.root / 'home' / '.luna').st_mode) == 0o700

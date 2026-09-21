@@ -41,7 +41,7 @@ import jwt
 import urllib3
 from urllib3.util import Retry
 from luna.utils.log import Log
-from luna.utils.constant import INI_FILE, TOKEN_FILE
+from luna.utils.constant import INI_FILE, TOKEN_FILE, USER_INI_FILE, USER_TOKEN_FILE
 from luna.utils.message import Message
 
 
@@ -56,6 +56,7 @@ class Rest():
         from luna.ini from Luna 2 Daemon.
         """
         self.logger = Log.get_logger()
+        self.ini_file, self.token_file = self.credential_files()
         self.username,self.password,self.daemon,self.secret_key,self.security = self.get_ini_info()
         urllib3.disable_warnings()
         self.request_timeout = 20
@@ -105,29 +106,43 @@ class Rest():
         return check
 
 
+    @staticmethod
+    def credential_files():
+        """
+        The person's own login first, the controller's file second, and the token cache
+        follows the file that was used: root on the controller keeps the shared token as
+        today, a person who ran luna login holds their own.
+        """
+        user_ini = os.path.expanduser(USER_INI_FILE)
+        if os.path.isfile(user_ini) and os.access(user_ini, os.R_OK):
+            return user_ini, os.path.expanduser(USER_TOKEN_FILE)
+        return INI_FILE, TOKEN_FILE
+
     def get_ini_info(self):
         """
         This method will get the information from the INI File.
         """
         errors = []
-        file_check = os.path.isfile(INI_FILE)
-        read_check = os.access(INI_FILE, os.R_OK)
-        self.logger.debug(f'INI File => {INI_FILE} READ Check is {read_check}')
+        ini_file = self.ini_file
+        file_check = os.path.isfile(ini_file)
+        read_check = os.access(ini_file, os.R_OK)
+        self.logger.debug(f'INI File => {ini_file} READ Check is {read_check}')
         if file_check and read_check:
             parser = RawConfigParser()
-            parser.read(INI_FILE)
+            parser.read(ini_file)
             if parser.has_section('API'):
                 self.username, errors = self.get_option(parser, errors, 'API', 'USERNAME')
                 self.password, errors = self.get_option(parser, errors, 'API', 'PASSWORD')
-                self.secret_key, errors = self.get_option(parser, errors, 'API', 'SECRET_KEY')
+                # the signing key stays on the daemon; a client reads expiry unverified
+                self.secret_key = parser.get('API', 'SECRET_KEY', fallback=None)
                 protocol, errors = self.get_option(parser, errors, 'API', 'PROTOCOL')
                 daemon, errors = self.get_option(parser, errors, 'API', 'ENDPOINT')
                 self.daemon = f'{protocol}://{daemon}'
                 self.security, errors = self.get_option(parser, errors, 'API', 'VERIFY_CERTIFICATE')
             else:
-                errors.append(f'API section is not found in {INI_FILE}.')
+                errors.append(f'API section is not found in {ini_file}.')
         else:
-            errors.append(f'{INI_FILE} is not found on this machine.')
+            errors.append(f'{ini_file} is not found on this machine, and no {USER_INI_FILE}: run luna login')
         if errors:
             Message().show_error('You need to fix following errors...')
             num = 1
@@ -149,6 +164,21 @@ class Rest():
             error.append(f'{option} is not found in {section} section in {INI_FILE}.')
         return response, error
 
+
+    def send(self, method=None, url=None, **kwargs):
+        """
+        One request with the cached token. A 401 means the daemon no longer accepts the
+        token (expired on its clock, user disabled, key rotated): log in once and resend.
+        The token is never inspected here beyond its expiry; the daemon decides.
+        """
+        extra = {'Content-Type': 'application/json'} if 'json' in kwargs else {}
+        kwargs['headers'] = {'x-access-tokens': self.get_token(), **extra}
+        response = getattr(self.session, method)(url, **kwargs)
+        if response.status_code == 401:
+            self.logger.debug('Token refused by the daemon, logging in again once.')
+            kwargs['headers'] = {'x-access-tokens': self.token(), **extra}
+            response = getattr(self.session, method)(url, **kwargs)
+        return response
 
     def get_response(self, data=None):
         """
@@ -194,8 +224,10 @@ class Rest():
                 data = call.json()
                 if 'token' in data:
                     response = data['token']
-                    with open(TOKEN_FILE, 'w', encoding='utf-8') as file_data:
-                        file_data.write(response)
+                    try:
+                        self.store_token(response)
+                    except PermissionError as exp:
+                        Message().error_exit(str(exp))
                 elif 'message' in data:
                     Message().error_exit(data["message"], call.status_code)
             else:
@@ -209,22 +241,40 @@ class Rest():
         return response
 
 
+    def store_token(self, token=None):
+        """
+        The token cache beside the credential file that was used, readable by its owner only.
+        """
+        directory = os.path.dirname(self.token_file)
+        try:
+            if directory and not os.path.isdir(directory):
+                os.makedirs(directory, mode=0o700, exist_ok=True)
+            with open(self.token_file, 'w', encoding='utf-8') as file_data:
+                file_data.write(token)
+            os.chmod(self.token_file, 0o600)
+        except PermissionError as exp:
+            # somebody else's cache, root's on a controller: say so where a person can act on it
+            raise PermissionError(f'{self.token_file} is not yours to write: run luna login to work as yourself') from exp
+
     def get_token(self):
         """
-        This method will fetch a valid token for further use.
+        This method will fetch a valid token for further use. Expiry is read from the token
+        without verifying the signature: the key stays on the daemon, which is the only place
+        a token's validity is decided. A refused token is renewed by logging in again.
         """
         response = False
-        if os.path.isfile(TOKEN_FILE):
-            with open(TOKEN_FILE, 'r', encoding='utf-8') as token:
+        if os.path.isfile(self.token_file):
+            with open(self.token_file, 'r', encoding='utf-8') as token:
                 token_data = token.read()
             try:
-                jwt.decode(token_data, self.secret_key, algorithms=['HS256'])
+                jwt.decode(token_data, options={'verify_signature': False, 'verify_exp': True, 'require': ['exp']})
                 response = token_data
-            except jwt.exceptions.DecodeError:
-                self.logger.debug('Token Decode Error, Getting New Token.')
-                response = self.token()
             except jwt.exceptions.ExpiredSignatureError:
                 self.logger.debug('Expired Signature Error, Getting New Token.')
+                response = self.token()
+            except jwt.exceptions.PyJWTError as exp:
+                # unreadable, or without an expiry claim: not ours to keep
+                self.logger.debug(f'Token unusable ({exp}), Getting New Token.')
                 response = self.token()
         if response is False:
             response = self.token()
@@ -237,17 +287,15 @@ class Rest():
         It will fetch the records from Luna 2 Daemon  via REST API's.
         """
         response = False
-        headers = {'x-access-tokens': self.get_token()}
         daemon_url = f'{self.daemon}/config/{table}'
         if name:
             daemon_url = f'{self.daemon}/config/{table}/{name}'
         self.logger.debug(f'GET URL => {daemon_url}')
         try:
-            response = self.session.get(
-                daemon_url,
+            response = self.send(
+                'get', daemon_url,
                 params=data,
                 stream=True,
-                headers=headers,
                 timeout=self.request_timeout,
                 verify=self.security
             )
@@ -269,19 +317,16 @@ class Rest():
         And use for creating and updating records.
         """
         response = False
-        headers = {'x-access-tokens': self.get_token(), 'Content-Type':'application/json'}
         daemon_url = f'{self.daemon}/config/{table}'
         if name:
             daemon_url = f'{daemon_url}/{name}'
         self.logger.debug(f'POST URL => {daemon_url}')
         self.logger.debug(f'POST DATA => {data}')
         try:
-            response = self.session.post(
-                daemon_url,
+            response = self.send(
+                'post', daemon_url,
                 json=data,
-                stream=True,
-                headers=headers,
-                timeout=self.request_timeout,
+                stream=True,                timeout=self.request_timeout,
                 verify=self.security
             )
             response = self.get_response(response)
@@ -299,14 +344,12 @@ class Rest():
         It will delete the records from Luna 2 Daemon via REST API's.
         """
         response = False
-        headers = {'x-access-tokens': self.get_token()}
         daemon_url = f'{self.daemon}/config/{table}/{name}/_delete'
         self.logger.debug(f'GET URL => {daemon_url}')
         try:
-            response = self.session.get(
-                daemon_url,
+            response = self.send(
+                'get', daemon_url,
                 stream=True,
-                headers=headers,
                 timeout=self.request_timeout,
                 verify=self.security
             )
@@ -326,16 +369,13 @@ class Rest():
         And use for cloning the records.
         """
         response = False
-        headers = {'x-access-tokens': self.get_token(), 'Content-Type':'application/json'}
         daemon_url = f'{self.daemon}/config/{table}/{name}/_clone'
         self.logger.debug(f'Clone URL => {daemon_url}')
         try:
-            response = self.session.post(
-                daemon_url,
+            response = self.send(
+                'post', daemon_url,
                 json=data,
-                stream=True,
-                headers=headers,
-                timeout=self.request_timeout,
+                stream=True,                timeout=self.request_timeout,
                 verify=self.security
             )
             response = self.get_response(response)
@@ -353,17 +393,15 @@ class Rest():
         It will fetch the records from Luna 2 Daemon via REST API's.
         """
         response = False
-        headers = {'x-access-tokens': self.get_token()}
         daemon_url = f'{self.daemon}/config/{table}'
         if name:
             daemon_url = f'{daemon_url}/{name}'
         self.logger.debug(f'Status URL => {daemon_url}')
         try:
-            response = self.session.get(
-                daemon_url,
+            response = self.send(
+                'get', daemon_url,
                 params=data,
                 stream=True,
-                headers=headers,
                 timeout=self.request_timeout,
                 verify=self.security
             )
@@ -384,16 +422,14 @@ class Rest():
         timeout; the default is the one every other request uses.
         """
         response = False
-        headers = {'x-access-tokens': self.get_token()}
         daemon_url = f'{self.daemon}/{route}'
         if uri:
             daemon_url = f'{daemon_url}/{uri}'
         self.logger.debug(f'RAW URL => {daemon_url}')
         try:
-            response = self.session.get(
-                daemon_url,
+            response = self.send(
+                'get', daemon_url,
                 stream=True,
-                headers=headers,
                 timeout=timeout or self.request_timeout,
                 verify=self.security
             )
@@ -414,16 +450,13 @@ class Rest():
         It will fetch the records from Luna 2 Daemon via REST API's.
         """
         response = False
-        headers = {'x-access-tokens': self.get_token(), 'Content-Type':'application/json'}
         daemon_url = f'{self.daemon}/{route}'
         self.logger.debug(f'Clone URL => {daemon_url}')
         try:
-            response = self.session.post(
-                daemon_url,
+            response = self.send(
+                'post', daemon_url,
                 json=payload,
-                stream=True,
-                headers=headers,
-                timeout=self.request_timeout,
+                stream=True,                timeout=self.request_timeout,
                 verify=self.security
             )
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
