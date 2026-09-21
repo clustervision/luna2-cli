@@ -87,6 +87,29 @@ def test_neither_file_is_a_clear_refusal_naming_the_login_verb(home, capsys):
     assert 'luna login' in err and str(home.controller_ini) in err
 
 
+def test_login_and_logout_are_dispatched_without_credentials(home, monkeypatch):
+    """A person's first luna login has no ~/.luna yet and cannot read the controller's ini;
+    the dispatcher must not demand credentials before the verb that creates them runs.
+    Every other verb still passes the check first."""
+    from luna import cli as luna_cli
+    from luna.utils.rest import Rest
+    os.remove(home.controller_ini)
+    reached = []
+    monkeypatch.setattr(luna_cli, 'Access', lambda args, parser, subparsers: reached.append(args['action']))
+    monkeypatch.setattr(luna_cli, 'Node', lambda args, parser, subparsers: reached.append('node'))
+    monkeypatch.setattr(Rest, 'daemon_validation', lambda self: reached.append('validated'))
+    for action in ('login', 'logout'):
+        tool = luna_cli.Cli()
+        tool.args = {'command': 'access', 'action': action, 'verbose': None}
+        tool.call_class()
+    assert reached == ['login', 'logout'], 'no Rest() was built, which would have refused for want of an ini'
+    tool = luna_cli.Cli()
+    tool.args = {'command': 'node', 'action': 'list', 'verbose': None}
+    with pytest.raises(SystemExit):
+        tool.call_class()
+    assert reached == ['login', 'logout'], 'a listing without any ini is still refused before its verb runs'
+
+
 def test_the_signing_key_is_optional_in_the_ini(home):
     from luna.utils.rest import Rest
     assert Rest().secret_key is None, 'no SECRET_KEY line, no error: the key stays on the daemon'

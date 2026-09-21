@@ -177,7 +177,9 @@ class Cli():
                 else:
                     call = globals()[self.args["command"].capitalize()]
                 urllib3.disable_warnings()
-                Rest().daemon_validation()
+                if not (self.args["command"] == "access" and self.args.get("action") in ("login", "logout")):
+                    # these two create or remove the person's credentials: nothing to validate yet
+                    Rest().daemon_validation()
                 call(self.args, self.parser, self.subparsers)
             else:
                 self.parser.print_help(sys.stdout)
