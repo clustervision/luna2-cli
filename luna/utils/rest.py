@@ -24,7 +24,7 @@ Microservice Class for the CLI
 __author__      = "Sumit Sharma"
 __copyright__   = "Copyright 2025, Luna2 Project [CLI]"
 __license__     = "GPL"
-__version__     = "2.1"
+__version__     = "2.2"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
@@ -61,8 +61,17 @@ class Rest():
         self.request_timeout = 20
         self.security = True if self.security.lower() in ['y', 'yes', 'true']  else False
         self.session = Session()
+        # read=0 on purpose. A read timeout means the connection was made and the
+        # daemon simply has not answered yet - the request landed, and a control
+        # action is not idempotent, so repeating it can power-cycle a node twice.
+        # It also arrives as extra load on a daemon that is by definition already
+        # slow, which is the opposite of backing off. A failed *connection* is
+        # different: nothing was delivered, so those are still worth retrying.
         self.retries = Retry(
-            total= 6,
+            total=6,
+            connect=6,
+            read=0,
+            status=6,
             backoff_factor=0.2,
             status_forcelist=[502, 503, 504],
             allowed_methods={'GET', 'POST'},
@@ -367,10 +376,12 @@ class Rest():
         return response
 
 
-    def get_raw(self, route=None, uri=None, noexit=False):
+    def get_raw(self, route=None, uri=None, noexit=False, timeout=None):
         """
         This method is based on REST API's GET method.
         It will fetch the records from Luna 2 Daemon via REST API's.
+        A caller whose request is known to be slow to answer may pass its own
+        timeout; the default is the one every other request uses.
         """
         response = False
         headers = {'x-access-tokens': self.get_token()}
@@ -383,7 +394,7 @@ class Rest():
                 daemon_url,
                 stream=True,
                 headers=headers,
-                timeout=self.request_timeout,
+                timeout=timeout or self.request_timeout,
                 verify=self.security
             )
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')

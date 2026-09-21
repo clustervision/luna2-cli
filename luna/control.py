@@ -24,12 +24,13 @@ Control Class for the CLI
 __author__      = "Sumit Sharma"
 __copyright__   = "Copyright 2025, Luna2 Project [CLI]"
 __license__     = "GPL"
-__version__     = "2.1"
+__version__     = "2.2"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 from textwrap import wrap
+from base64 import b64encode
 from multiprocessing import Process
 from argparse import FileType
 from luna.utils.helper import Helper
@@ -44,6 +45,12 @@ class Control():
     Control class is a power control area.
     It is responsible to perform all power related operations on the Nodes.
     """
+
+    # a single node's action is answered synchronously and can be several BMC
+    # round trips, each bounded by the daemon at up to 30 s. This has to outlast
+    # them, or a slow board turns an action that then completes into a reported
+    # timeout; on a dead BMC the daemon gives up first, so it costs nothing
+    action_timeout = 180
 
     def __init__(self, args=None, parser=None, subparsers=None):
         self.logger = Log.get_logger()
@@ -87,12 +94,19 @@ class Control():
             action_parser = chassis_menu.add_parser(action, help=f'Node(s) {action.capitalize()}', usage='%(prog)s [-h] [-v] [node|hostlist]')
             action_parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
             action_parser.add_argument('node', help='Node Name or Node Hostlist').completer = Helper().name_completer("node")
+        nextboot_parser = control_args.add_parser('nextboot', help='Next Boot Operations')
+        nextboot_menu = nextboot_parser.add_subparsers(dest='action')
+        for action in actions('nextboot'):
+            action_parser = nextboot_menu.add_parser(action, help=f'Node(s) {action.capitalize()}', usage='%(prog)s [-h] [-v] [node|hostlist]')
+            action_parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+            action_parser.add_argument('node', help='Node Name or Node Hostlist').completer = Helper().name_completer("node")
         redfish_parser = control_args.add_parser('redfish', help='RedFish Operations')
         redfish_menu = redfish_parser.add_subparsers(dest='action')
         for action in actions('redfish'):
             action_parser = redfish_menu.add_parser(action, help=f'Node(s) {action.capitalize()}', usage='%(prog)s [-h] [-v] [node|hostlist]')
             action_parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
             action_parser.add_argument('node', help='Node Name or Node Hostlist').completer = Helper().name_completer("node")
+            action_parser.add_argument('-U', '--uri', help='Redfish resource, e.g. /redfish/v1/Systems/1/Bios')
             action_parser.add_argument('-f', '--file', type=FileType('r'), help='File Path')
         return parser
 
@@ -103,17 +117,14 @@ class Control():
         """
         message = ''
         response = False
+        if self.args['system'] == 'redfish':
+            return self.redfish_action()
         hostlist = Helper().get_hostlist(self.args['node'])
         if len(hostlist) == 1:
             uri = f'{self.route}/action/{self.args["system"]}'
             uri = f'{uri}/{self.args["node"]}/_{self.args["action"]}'
             self.logger.debug(f'URI => {uri}')
-            if 'file' in self.args:
-                if self.args['file']:
-                    print('<<<<<========== File Data [Under Development]==========>>>>>')
-                    print(self.args["file"].read())
-                    print('<<<<<========== File Data [Under Development]==========>>>>>')
-            response = Rest().get_raw(uri)
+            response = Rest().get_raw(uri, timeout=self.action_timeout)
             self.logger.debug(f'HTTP STATUS => {response.status_code}')
             self.logger.debug(f'HTTP Response => {response.content}')
             # status = True if response.status_code == [200, 204] else False
@@ -158,6 +169,57 @@ class Control():
                     request_id = content['request_id'] if 'request_id' in content else None
                     count = Helper().control_print(self.args['system'], content ,1)
                     if request_id:
-                        Helper().dig_control_status(request_id, count, self.args['system'])
+                        Helper().dig_status(request_id, count, self.args['system'])
                         control_process.terminate()
+        return response
+
+
+    def redfish_action(self):
+        """
+        This method sends a Redfish interaction and reports it per node.
+
+        Redfish always takes the hostlist form, including for a single node. The
+        action carries a body and the single-node control route is a GET, so this
+        is the only path that can carry one - and it leaves power, sel and chassis
+        on the route they have always used.
+        """
+        if not self.args['uri']:
+            return Message().show_error(
+                f"Redfish {self.args['action']} needs a resource to work on: -U/--uri")
+        if not self.args['file']:
+            return Message().show_error(
+                f"Redfish {self.args['action']} needs content to send: -f/--file")
+        # the content travels base64: the daemon strips quotes out of every string in
+        # a request body, so raw JSON would arrive mangled. It is the same convention
+        # the script fields already use.
+        content = b64encode(self.args['file'].read().encode()).decode()
+        uri = f'{self.route}/action/{self.args["system"]}/_{self.args["action"]}'
+        payload = {
+            'control': {
+                self.args['system']: {
+                    self.args['action']: {
+                        'hostlist': self.args['node'],
+                        'uri': self.args['uri'],
+                        'content': content
+                    }
+                }
+            }
+        }
+        control_process = Process(target=Helper().loader, args=("Talking to the BMCs...",))
+        control_process.start()
+        try:
+            response = Rest().post_raw(uri, payload)
+            self.logger.debug(f'HTTP STATUS => {response.status_code}')
+            self.logger.debug(f'HTTP Response => {response.content}')
+            if response.status_code != 200:
+                content = response.json() if response.content else {}
+                return Message().error_exit(content.get('message', response.content),
+                                            response.status_code)
+            content = response.json()
+            request_id = content['request_id'] if 'request_id' in content else None
+            count = Helper().control_print(self.args['system'], content, 1)
+            if request_id:
+                Helper().dig_status(request_id, count, self.args['system'])
+        finally:
+            control_process.terminate()
         return response

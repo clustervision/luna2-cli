@@ -24,12 +24,13 @@ Helper Class for the CLI
 __author__      = "Sumit Sharma"
 __copyright__   = "Copyright 2025, Luna2 Project [CLI]"
 __license__     = "GPL"
-__version__     = "2.1"
+__version__     = "2.2"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 import os
+import json
 from time import time, sleep
 import base64
 import binascii
@@ -48,7 +49,11 @@ from nested_lookup import nested_lookup, nested_update, nested_delete, nested_al
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
-from luna.utils.constant import EDITOR_KEYS, BOOL_KEYS, filter_columns, sortby, divider, spacer, overrides, parser_doc
+from luna.utils.constant import (EDITOR_KEYS, BOOL_KEYS, ASCII_ONLY_KEYS,
+    filter_columns, filter_nested, sortby, divider, spacer, overrides, parser_doc)
+from luna.utils.disklayout import canonicalize as disklayout_canonicalize, to_yaml as disklayout_to_yaml
+from luna.utils.mounts import canonicalize as mounts_canonicalize, to_yaml as mounts_to_yaml
+from luna.utils.yamldoc import DocumentError
 from luna.utils.message import Message
 
 
@@ -103,6 +108,22 @@ class Helper():
             """
             self.logger.info(f"prefix: {type(prefix)} {prefix}")
             return [n for n in self.get_all_names(kind) if n.startswith(prefix)]
+        return completer
+
+
+    def value_completer(self, values):
+        """
+        This method returns a completer offering a fixed list of values.
+
+        It suggests without restricting, which is the point: argparse choices would
+        also validate, and a Redfish role must not be validated against a list of
+        ours. A vendor may define roles with any privilege set it likes, so an
+        unrecognised name is unknown rather than wrong - the daemon treats it that
+        way, and the command line has to agree or an operator cannot type the name
+        their board actually uses.
+        """
+        def completer(prefix, parsed_args, **kwargs):
+            return [value for value in values if value.startswith(prefix)]
         return completer
 
 
@@ -233,12 +254,23 @@ class Helper():
                     if os.path.exists(content[0]):
                         if os.path.isfile(content[0]):
                             with open(content[0], 'rb') as file_data:
-                                content = self.base64_encode(file_data.read())
-                                payload = nested_update(payload, key=key, value=content)
+                                raw = file_data.read()
+                            if key in self.DOCUMENT_KEYS:
+                                content = self.document_b64(key, raw)
+                            else:
+                                if key in ASCII_ONLY_KEYS:
+                                    self.check_ascii_only(key, raw)
+                                content = self.base64_encode(raw)
+                            payload = nested_update(payload, key=key, value=content)
                         else:
                             Message().error_exit(f'ERROR :: {content[0]} is a Invalid filepath.')
                     else:
-                        content = self.base64_encode(bytes(content[0], 'utf-8'))
+                        if key in self.DOCUMENT_KEYS:
+                            content = self.document_b64(key, content[0])
+                        else:
+                            if key in ASCII_ONLY_KEYS:
+                                self.check_ascii_only(key, content[0])
+                            content = self.base64_encode(content[0].encode('utf-8', 'surrogateescape'))
                         payload = nested_update(payload, key=key, value=content)
         return payload
 
@@ -261,16 +293,48 @@ class Helper():
         temp_file = open(filename, "x", encoding='utf-8')
         if value:
             value = self.base64_decode(value)
+            if key in self.DOCUMENT_KEYS:
+                try:
+                    value = self.DOCUMENT_KEYS[key][1](value)
+                except DocumentError as error:
+                    Message().error_exit(f'ERROR :: stored {key} is invalid :: {error}')
             temp_file.write(value)
             temp_file.close()
         subprocess.check_output(f"sed -i 's/\r$//' {editor}", shell=True)
         subprocess.call([editor, filename])
         subprocess.check_output(f"sed -i 's/\r$//' {filename}", shell=True)
         with open(filename, 'rb') as file_data:
-            response = self.base64_encode(file_data.read())
+            edited = file_data.read()
+        if key in self.DOCUMENT_KEYS:
+            response = self.document_b64(key, edited)
+        else:
+            if key in ASCII_ONLY_KEYS:
+                self.check_ascii_only(key, edited)
+            response = self.base64_encode(edited)
         os.remove(filename)
         os.rmdir(tmp_folder)
         return response
+
+
+    # The fields authored as a YAML/JSON document: (canonicalize, to_yaml) per key.
+    # Both travel base64 like every other editor field; the difference is the
+    # canonical pass on the way in and the YAML echo on the way into the editor.
+    DOCUMENT_KEYS = {
+        'disklayout': (disklayout_canonicalize, disklayout_to_yaml),
+        'mounts': (mounts_canonicalize, mounts_to_yaml),
+    }
+
+    def document_b64(self, key=None, raw=None):
+        """
+        Canonicalize a YAML/JSON document (disklayout, mounts) to JSON and base64-encode
+        it. A malformed document aborts the command (nothing is stored) with a clear
+        error, the visudo discipline: reject the edit, keep the stored config untouched.
+        """
+        try:
+            canonical = self.DOCUMENT_KEYS[key][0](raw)
+        except DocumentError as error:
+            Message().error_exit(f'ERROR :: invalid {key} :: {error}')
+        return self.base64_encode(canonical)
 
 
     def get_list(self, table=None, args=None):
@@ -309,8 +373,7 @@ class Helper():
     def column_csv(self, table=None, data=None, column=None):
         """
         Output a single column across all records as a comma-separated line.
-        The column is matched against the top-level fields of each record. Empty values are skipped.
-        Only meant for the list context.
+        Only meant for the list context; empty values are skipped.
         """
         def collect(value, into):
             """Append scalar value(s) to `into`, skipping composite (dict) values."""
@@ -367,6 +430,185 @@ class Helper():
         return response
 
 
+    def show_disklayout(self, table=None, args=None):
+        """
+        Method to render the v2 disklayout of a node or group as tables.
+
+        Reads the dedicated /config/<table>/<name>/disklayout route, which returns
+        just the layout and its _disklayout_source rather than the whole record -
+        the source says whether the node holds its own layout or inherits the
+        group's, which is the first thing anyone reading a layout wants to know.
+        """
+        row_name = args['name']
+        get_list = Rest().get_data(table, row_name + '/disklayout')
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        record = (get_list or {}).get('config', {}).get(table, {}).get(row_name, {})
+        # The API carries editor-style fields base64-encoded (the same convention
+        # prescript/partscript/postscript use), so decode before parsing. Reading
+        # the record straight from Rest() skips prepare_json, which is where the
+        # show path would have done this for us.
+        raw = self.base64_decode(record.get('disklayout') or '') or ''
+        source = record.get('_disklayout_source') or 'node'
+        if not raw.strip():
+            # No layout declared is a legal state, not an error: install_mode=auto
+            # then falls back to a RAM root.
+            Message().show_warning(f'No disklayout is configured for {table} {row_name}.')
+            return True
+        try:
+            layout = json.loads(raw)
+        except ValueError as exp:
+            # Stored but unreadable. Say so and hand over what is there rather
+            # than rendering an empty table that looks like "no layout".
+            Message().show_error(f'The stored disklayout is not valid JSON: {exp}')
+            Presenter().show_json(raw)
+            return True
+        if args['raw']:
+            Presenter().show_json(Helper().prepare_json(layout))
+            return True
+
+        title = f'{table.capitalize()} {row_name} Disk Layout [from {source}]'
+        sets = layout.get('sets') or []
+        set_rows = []
+        for a_set in sets:
+            set_rows.append([
+                a_set.get('name'), a_set.get('role'), a_set.get('selection'),
+                a_set.get('raid'),
+                ', '.join(a_set.get('devices') or []) or 'discovered',
+                len(a_set.get('volumes') or []),
+            ])
+        Presenter().show_table(
+            title,
+            ['Set', 'Role', 'Selection', 'RAID', 'Devices', 'Volumes'],
+            set_rows)
+
+        vol_rows = []
+        for a_set in sets:
+            for vol in a_set.get('volumes') or []:
+                vol_rows.append([
+                    a_set.get('name'), vol.get('name'), vol.get('mountpoint'),
+                    vol.get('fs'), vol.get('provider'), vol.get('size') or '-',
+                ])
+        if vol_rows:
+            Presenter().show_table(
+                f'{title} :: Volumes',
+                ['Set', 'Volume', 'Mountpoint', 'Filesystem', 'Provider', 'Size'],
+                vol_rows)
+        return True
+
+
+    def show_mounts(self, table=None, args=None):
+        """
+        Method to render the network mounts document of the cluster, a group or a
+        node as a table, the twin of show_disklayout.
+
+        Reads the dedicated /config/<table>[/<name>]/mounts route, which returns
+        just the document and its _mounts_source: the source says which level
+        (cluster, group, node) the document resolved from, which is the first
+        thing anyone reading it wants to know.
+        """
+        row_name = args.get('name')
+        uri = row_name + '/mounts' if row_name else 'mounts'
+        get_list = Rest().get_data(table, uri)
+        if get_list.status_code == 200:
+            get_list = get_list.content
+        else:
+            Message().error_exit(get_list.content, get_list.status_code)
+        record = (get_list or {}).get('config', {}).get(table, {})
+        if row_name:
+            record = record.get(row_name, {})
+        raw = self.base64_decode(record.get('mounts') or '') or ''
+        source = record.get('_mounts_source') or table
+        who = f'{table} {row_name}' if row_name else table
+        if not raw.strip():
+            Message().show_warning(f'No mounts are configured for {who}.')
+            return True
+        try:
+            document = json.loads(raw)
+        except ValueError as exp:
+            Message().show_error(f'The stored mounts document is not valid JSON: {exp}')
+            Presenter().show_json(raw)
+            return True
+        if args['raw']:
+            Presenter().show_json(Helper().prepare_json(document))
+            return True
+
+        title = f'{who.capitalize()} Mounts [from {source}]'
+        rows = []
+        for mount in document.get('mounts') or []:
+            export = mount.get('export') or {}
+            clients = ', '.join(
+                f"{client.get('to')}({client.get('options')})" if client.get('options') else str(client.get('to'))
+                for client in export.get('clients') or [])
+            rows.append([
+                mount.get('path'), mount.get('type') or 'nfs', mount.get('server') or '-',
+                mount.get('source') or '-', mount.get('options') or '-',
+                mount.get('state') or '-',
+                clients if export else '-',
+            ])
+        Presenter().show_table(
+            title,
+            ['Path', 'Type', 'Server', 'Source', 'Options', 'State', 'Exported to'],
+            rows)
+        return True
+
+
+    def _envelope(self, table=None, name=None, inner=None):
+        """The config envelope every POST carries: config.<table>.<name> or, for the
+        cluster, config.cluster."""
+        return {'config': {table: {name: inner} if name else inner}}
+
+    def _post_and_tell(self, table=None, uri=None, payload=None, name=None):
+        """Post one change to a sub-route of a record and show the daemon's answer."""
+        response = Rest().post_data(table, uri, payload)
+        if response and response.status_code in [200, 201, 204]:
+            # a creation answers 201 with its message, an update or removal 204 with none
+            content = response.content if response.status_code != 204 else None
+            message = content.get('message') if isinstance(content, dict) else content
+            Message().show_success(message or (f'{table.capitalize()} {name} is updated.' if name else f'{table.capitalize()} is updated.'))
+            return True
+        Message().error_exit(response.content if response else 'no answer from the daemon',
+                             response.status_code if response else 500)
+        return False
+
+    def add_mount(self, table=None, args=None):
+        """
+        Add one entry to the mounts document of the cluster, a group or a node, or
+        replace the one at its path. The entry comes as a file or in-line, YAML or JSON.
+        """
+        from luna.utils.mounts import entry as mounts_entry, MountsError
+        raw = args.get('mount') or ''
+        if raw and os.path.isfile(raw):
+            with open(raw, 'rb') as handle:
+                raw = handle.read()
+        try:
+            entry = mounts_entry(raw)
+        except MountsError as exp:
+            Message().error_exit(str(exp))
+        # the entry travels base64 inside the config envelope, as the whole document does
+        encoded = self.base64_encode(json.dumps(entry).encode())
+        name = args.get('name')
+        return self._post_and_tell(table, f'{name}/mounts' if name else 'mounts',
+                                   self._envelope(table, name, {'mount': encoded}), name)
+
+    def remove_mount(self, table=None, args=None):
+        """
+        Remove the entry at a path from the mounts document of the cluster, a group or a node.
+        """
+        name = args.get('name')
+        return self._post_and_tell(table, f'{name}/mounts/_remove' if name else 'mounts/_remove',
+                                   self._envelope(table, name, {'path': args.get('path')}), name)
+
+    def change_profile(self, table=None, args=None, assign=True):
+        """
+        Assign one profile to a group or node beside the ones it has, or take one away.
+        """
+        name = args.get('name')
+        uri = f'{name}/profiles' if assign else f'{name}/profiles/_unassign'
+        return self._post_and_tell(table, uri, self._envelope(table, name, {'profile': args.get('profile')}), name)
+
     def show_data(self, table=None, args=None):
         """
         Method to show a switch in Luna Configuration.
@@ -393,7 +635,15 @@ class Helper():
                 limit = True
                 if "full_scripts" in args:
                     limit = False if args["full_scripts"] == True else True
-                data = Helper().prepare_json(data, limit)
+                if isinstance(json_data, dict) and json_data.get('disklayout'):
+                    # Summarise BEFORE the length limit runs: disklayout is an
+                    # EDITOR_KEY, so less_content would otherwise cut the JSON
+                    # mid-document and leave an unparseable fragment on screen.
+                    json_data['disklayout'] = self.brief_disklayout(json_data['disklayout'])
+                if isinstance(json_data, dict) and json_data.get('mounts'):
+                    json_data['mounts'] = self.brief_mounts(json_data['mounts'])
+                # json_data is already decoded above; limit_content() avoids decoding it again.
+                data = self.limit_content(json_data, limit)
                 fields, rows  = self.filter_data_col(table, data)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
@@ -402,6 +652,33 @@ class Helper():
         else:
             response = Message().show_error(f'{args["name"]} is not found in {table}.')
         return response
+
+
+    def show_switch_nodes(self, switch_name=None, raw=None):
+        """
+        Show the nodes attached to a switch, matched by their switch and
+        switchport fields. The daemon has no reverse-lookup endpoint for
+        this, so the full node list is fetched and filtered client-side.
+        """
+        response = Rest().get_data('node')
+        if response.status_code != 200:
+            return False
+        data = response.content.get('config', {}).get('node', {})
+        matches = []
+        for name in sorted(data.keys()):
+            node = data[name]
+            if node.get('switch') == switch_name:
+                matches.append({'name': name, 'switchport': node.get('switchport'), 'group': node.get('group')})
+        if raw:
+            Presenter().show_json(matches)
+            return True
+        if not matches:
+            return True
+        fields = ['#', 'Node', 'Switchport', 'Group']
+        rows = [[i + 1, m['name'], m['switchport'], m['group']] for i, m in enumerate(matches)]
+        title = f' << Switch {switch_name} Attached Nodes >>'
+        Presenter().show_table(title, fields, rows)
+        return True
 
 
     def member_record(self, table=None, args=None):
@@ -821,6 +1098,57 @@ class Helper():
         return response
 
 
+    def expand_switchports(self, names=None, switchport=None):
+        """
+        Expand a --switchport value against the node names being written.
+        A bracket expression (e.g. swp[1-4]) must expand to exactly one
+        port per node, matched by position; a plain value only applies
+        when a single node is being written.
+        """
+        if switchport in (None, ''):
+            return [switchport] * len(names)
+        expanded = self.get_hostlist(switchport)
+        if not expanded:
+            Message().error_exit(f'Invalid --switchport expression: {switchport}')
+        if len(expanded) != len(names):
+            Message().error_exit(
+                f'--switchport {switchport} expands to {len(expanded)} port(s), which does not '
+                f'match the {len(names)} node(s) supplied. Kindly provide a matching range, '
+                f'e.g. swp[1-{len(names)}].'
+            )
+        return expanded
+
+
+    def check_switchport_conflicts(self, switch=None, assignments=None, existing_nodes=None):
+        """
+        Client-side guard: the daemon does not enforce switch+switchport
+        uniqueness, so verify none of the assignments about to be written
+        collide with each other or with another node already on the same
+        switch. Best-effort only - a concurrent write, or anything that
+        talks to the daemon API directly, can still race past this.
+        """
+        if not switch or not assignments:
+            return
+        existing_nodes = existing_nodes or {}
+        seen = {}
+        for name, port in assignments:
+            if not port:
+                continue
+            for other_name, other_data in existing_nodes.items():
+                if other_name == name:
+                    continue
+                if other_data.get('switch') == switch and other_data.get('switchport') == port:
+                    Message().error_exit(
+                        f'Switchport {port} on switch {switch} is already assigned to node {other_name}'
+                    )
+            if port in seen:
+                Message().error_exit(
+                    f'Switchport {port} on switch {switch} is assigned to more than one node in this '
+                    f'command ({seen[port]}, {name}).'
+                )
+            seen[port] = name
+
+
     def common_list_args(self, parser=None, csv=False):
         """
         This method will provide the common list and show arguments..
@@ -880,7 +1208,11 @@ class Helper():
             for case in possible_cases:
                 if case in content['control'][system]:
                     for key, value in content['control'][system][case].items():
-                        result[key] = case.upper()
+                        # redfish shows what it actually did (staged resource, task id) instead of a bare OK.
+                        if system == 'redfish' and case == 'ok' and value:
+                            result[key] = value
+                        else:
+                            result[key] = case.upper()
         result = dict(sorted(result.items()))
 
         header = "| #     |     Node Name      |       "
@@ -906,23 +1238,116 @@ class Helper():
         return count
 
 
-    def dig_control_status(self, request_id=None, count=None, system=None):
+    def dig_status(self, request_id=None, count=None, system=None, route='control'):
         """
-        This method will fetch the status of Control API.
+        This method streams a request's status until the daemon says the stream
+        ended, and returns whether everything it saw succeeded.
+
+        One poller for both status channels, because there is one status table
+        behind them and only the rendering differs. The control channel parses
+        every message as node:command result:message and answers a structured
+        per-node result; the generic one answers the lines as they were written.
+        Work reporting free-text progress - a BIOS push, a stage at a time - has
+        to read the generic one: a plain line makes the control endpoint fail
+        rather than print it, and then nothing after it is shown either.
+
+        Which channel is the caller's to say, since only the caller knows what
+        its own work writes. Which renderer is not: the reply says which shape it
+        is, so a caller cannot name a channel and get the wrong printer.
+
+        A loop rather than the recursion this grew from: a BIOS push polls every
+        two seconds across reboots, which is deep enough for that to matter.
         """
-        uri = f'control/status/{request_id}'
-        sleep(2)
-        status = Rest().get_raw(uri)
-        status_json = status.json()
-        if status.status_code == 200:
-            count = Helper().control_print(system, status_json, count)
-            return self.dig_control_status(request_id, count, system)
-        elif status.status_code == 404:
-            hr_line = 'X--------------------------------------------'
-            hr_line += '--------------------------------------------X'
-            Message().show_success(hr_line)
-        else:
-            Message().show_error(f"Something Went Wrong {status.status_code}")
+        count = count or 1
+        outcome = True
+        while True:
+            sleep(2)
+            status = Rest().get_raw(f'{route}/status/{request_id}')
+            if status is False:
+                # get_raw answers False on an SSL error without exiting. Tested
+                # against the sentinel and not for truth: a Response is falsy for
+                # any code outside 2xx, so 'not status' would swallow the 404 that
+                # ends the stream and poll for ever
+                continue
+            if status.status_code == 404:
+                hr_line = 'X--------------------------------------------'
+                hr_line += '--------------------------------------------X'
+                Message().show_success(hr_line)
+                return outcome
+            if status.status_code != 200:
+                Message().show_error(f"Something Went Wrong {status.status_code}")
+                return False
+            content = status.json()
+            if 'control' in content:
+                count = Helper().control_print(system, content, count)
+                continue
+            # this batch's own status, not the running outcome: marking every
+            # later line FAILED because an earlier one was is a lie about them
+            failed = content.get('status') not in (200, None)
+            outcome = outcome and not failed
+            for line in [entry for entry in (content.get('message') or '').split(';;') if entry]:
+                Message().show_success(f'[{"FAILED" if failed else "======"}] {line}')
+
+
+    def filter_deviated(self, data=None):
+        """Filter a group/node list dict down to the entries whose _override flag is set."""
+        return {name: item for name, item in data.items() if item.get('_override')}
+
+
+    def deviated_field_names(self, table=None, record=None):
+        """Sorted field names set locally at this level, via merge_source()'s _..._source comparison."""
+        _, resp_overrides = self.merge_source(table, record)
+        return sorted(resp_overrides)
+
+
+    def deviated_fields(self, table=None, record=None):
+        """Comma-separated field names that deviate, for the list -d table view."""
+        return ', '.join(self.deviated_field_names(table, record))
+
+
+    def deviated_values(self, table=None, record=None):
+        """
+        Map each deviated field name to its value, for the list -d -R view.
+        Decodes editor content and normalises stringified booleans/nulls.
+        """
+        values = {}
+        for name in self.deviated_field_names(table, record):
+            value = record.get(name)
+            if name in EDITOR_KEYS:
+                value = self.base64_decode(value)
+            elif isinstance(value, str):
+                lowered = value.lower()
+                if lowered == 'true':
+                    value = True
+                elif lowered == 'false':
+                    value = False
+                elif lowered in ('none', 'null'):
+                    value = None
+            values[name] = value
+        return values
+
+
+    def show_deviated(self, table=None, data=None, args=None):
+        """
+        Render the deviate view: every entry that overrides its parent, and with
+        which fields. Each is re-read individually for its per-entry *_source fields.
+        """
+        records = {}
+        for name in data.keys():
+            record = Rest().get_data(table, name)
+            if record.status_code == 200:
+                records[name] = record.content['config'][table][name]
+            else:
+                Message().error_exit(record.content, record.status_code)
+        if args.get('raw'):
+            json_data = {name: {'name': name, 'deviated': self.deviated_values(table, record)}
+                         for name, record in records.items()}
+            return Presenter().show_json(json_data)
+        fields = ['#', 'name', 'deviated']
+        rows = [[num, name, self.deviated_fields(table, record)]
+                for num, (name, record) in enumerate(records.items(), start=1)]
+        title = f' << {table.capitalize()} - Deviated >>'
+        return Presenter().show_table(title, fields, rows)
 
 
     def filter_interface(self, table=None, data=None):
@@ -979,6 +1404,24 @@ class Helper():
         return fields, rows
 
 
+    def nested_lines(self, entries=None, keys=None):
+        """
+        One cell for a list of records - a group's interfaces, a redfishsetup's
+        accounts. Each record opens with its identifying key flush left and the
+        rest of its fields indented beneath it, so the eye finds where one record
+        ends and the next begins. With keys given, only those fields are shown.
+        """
+        lines = []
+        for entry in entries:
+            for key, value in entry.items():
+                if keys and key not in keys:
+                    continue
+                self.logger.debug(f'Key => {key} Value => {value}')
+                indent = '' if key in ('interface', 'name') else '  '
+                lines.append(f'{indent}{key} = {value}')
+        return '\n'.join(lines)
+
+
     def filter_data(self, table=None, data=None):
         """
         This method will generate the data as for
@@ -1003,17 +1446,9 @@ class Helper():
             for ele in data:
                 if field_key in list((data[ele].keys())):
                     if isinstance(data[ele][field_key], list):
-                        new_list = []
-                        for internal in data[ele][field_key]:
-                            for internal_val in internal:
-                                self.logger.debug(f'Key => {internal_val}')
-                                self.logger.debug(f'Value => {internal[internal_val]}')
-                                in_key = internal_val
-                                in_val = internal[internal_val]
-                                new_list.append(f'{in_key} = {in_val} ')
-                        new_list = '\n'.join(new_list)
+                        new_list = self.nested_lines(data[ele][field_key], filter_nested(table))
+                        new_list = new_list if num == len(data) else f'{new_list}\n'
                         val_row.append(new_list)
-                        new_list = []
                     elif field_key == 'tpm_uuid':
                         if data[ele][field_key]:
                             val_row.append(True)
@@ -1095,6 +1530,35 @@ class Helper():
         return content
 
 
+    def check_ascii_only(self, key=None, content=None):
+        """
+        Exit with a clear error if content (str or bytes, for an ASCII_ONLY_KEYS
+        field) contains any non-ASCII character - e.g. a curly quote or dash
+        pasted from a rich-text editor (TRIX-1868).
+        """
+        if isinstance(content, bytes):
+            try:
+                text = content.decode('utf-8')
+            except UnicodeDecodeError as error:
+                Message().error_exit(f'ERROR :: {key} is not valid UTF-8 text :: {error}')
+                return
+        else:
+            text = content
+        positions = {}
+        for index, char in enumerate(text):
+            if ord(char) > 127:
+                positions.setdefault(char, []).append(index)
+        if positions:
+            detail = '\n'.join(
+                f"  {char!r} (U+{ord(char):04X}) at position {indexes[0]}"
+                + (f", {len(indexes)} occurrences" if len(indexes) > 1 else '')
+                for char, indexes in positions.items())
+            Message().error_exit(
+                f"ERROR :: {key} contains characters outside plain ASCII - remove "
+                f"them (often a curly quote or dash pasted from a rich-text editor) "
+                f"and try again:\n{detail}")
+
+
     def base64_decode(self, content=None):
         """
         This method will decode the base 64 string.
@@ -1103,10 +1567,11 @@ class Helper():
             if content is not None:
                 content = content.replace("\r", "\\r")
                 content = base64.b64decode(content, validate=True).decode("utf-8")
-        except binascii.Error:
-            self.logger.debug(f'Base64 Decode Error => {content}')
         except UnicodeDecodeError:
             self.logger.debug(f'Base64 Unicode Decode Error => {content}')
+        except ValueError:
+            # Covers binascii.Error and the ValueError b64decode raises for non-ASCII input.
+            self.logger.debug(f'Base64 Decode Error => {content}')
         return content
 
 
@@ -1156,7 +1621,8 @@ class Helper():
                 else:
                     dictionary[key] = value
             elif isinstance(value, dict):
-                return self.nested_dict(dictionary, limit)
+                # Recurse on the nested value, not the container - else it never gets smaller.
+                dictionary[key] = self.nested_dict(value, limit)
             elif isinstance(value, list):
                 return self.nested_list(dictionary, key, value, limit)
         return dictionary
@@ -1200,6 +1666,22 @@ class Helper():
         return content
 
 
+    def limit_content(self, data=None, limit=False):
+        """
+        Trim already-decoded EDITOR_KEYS values for the table view, without
+        running them back through prepare_json()'s base64_decode step.
+        """
+        if isinstance(data, list):
+            return [self.limit_content(item, limit) for item in data]
+        if isinstance(data, dict):
+            for key, value in data.items():
+                if isinstance(value, str) and key in EDITOR_KEYS:
+                    data[key] = self.less_content(value, limit)
+                elif isinstance(value, (dict, list)):
+                    data[key] = self.limit_content(value, limit)
+        return data
+
+
     def prepare_json(self, json_data=None, limit=False):
         """
         This method will decode the base 64 string.
@@ -1241,20 +1723,23 @@ class Helper():
         rows, colored_fields = [], []
         fields = filter_columns(table)
         self.logger.debug(f'Fields => {fields}')
+        # Built from the field list, not fixed appends, so it can't desync from filter_columns/sortby.
         for key in data:
-            new_row = []
             for value in data[key]:
                 self.logger.debug(f'Key => {key} and Value => {value}')
-                new_row.append(key)
-                new_row.append(value['name'])
-                new_row.append(value['path'])
-                content = self.base64_decode(value['content'])
-                if content is not None:
-                    new_row.append(content[:60]+'...')
-                else:
-                    new_row.append(content)
-                rows.append(new_row)
                 new_row = []
+                for field in fields:
+                    if field in ('Node', 'Group'):
+                        new_row.append(key)
+                    elif field == 'content':
+                        content = self.base64_decode(value.get('content'))
+                        if content is not None:
+                            new_row.append(content[:60]+'...')
+                        else:
+                            new_row.append(content)
+                    else:
+                        new_row.append(value.get(field))
+                rows.append(new_row)
         for newfield in fields:
             colored_fields.append(newfield)
         fields = colored_fields
@@ -1277,21 +1762,23 @@ class Helper():
         rows, colored_fields = [], []
         fields = sortby(table)
         self.logger.debug(f'Fields => {fields}')
+        # Built from the field list, not fixed appends, so it can't desync from filter_columns/sortby.
         for key in data:
-            new_row = []
             for value in data[key]:
                 self.logger.debug(f'Key => {key} and Value => {value}')
-                new_row.append(key)
-                new_row.append(value['name'])
-                new_row.append(value['path'])
-                content = self.base64_decode(value['content'])
-                if content is not None:
-                    new_row.append(content[:60]+'...')
-                else:
-                    new_row.append(content)
-                # new_row.append(content)
-                rows.append(new_row)
                 new_row = []
+                for field in fields:
+                    if field in ('Node', 'Group'):
+                        new_row.append(key)
+                    elif field == 'content':
+                        content = self.base64_decode(value.get('content'))
+                        if content is not None:
+                            new_row.append(content[:60]+'...')
+                        else:
+                            new_row.append(content)
+                    else:
+                        new_row.append(value.get(field))
+                rows.append(new_row)
         for newfield in fields:
             colored_fields.append(newfield)
         fields = colored_fields
@@ -1309,6 +1796,83 @@ class Helper():
             new_fields.append("")
             new_row.append("")
         return new_fields, new_row
+
+
+    def brief_disklayout(self, raw=None):
+        """
+        Render a stored disklayout as a short block for `show`, in the same shape
+        `show` already uses for interfaces: an unindented header per set, then its
+        volumes indented under it.
+
+        `show` is the command everyone runs first, so the layout should be legible
+        there rather than a wall of JSON truncated by the table. The full document
+        stays one command away via showdisklayout (-R for the JSON).
+
+        A set's volumes share ONE line, and that is load-bearing rather than
+        cosmetic: less_content keeps only the first three lines of anything longer
+        than 60 characters, so a line per volume would silently lose most of itself
+        on screen. Provider and volume names are the detail that gets dropped here;
+        showdisklayout carries them.
+
+        Never raises. This sits in the common show path for both node and group,
+        and stored content is not ours to trust -- a layout that cannot be parsed
+        must not take `luna node show` down with it.
+        """
+        if raw is None or not str(raw).strip():
+            return raw
+        try:
+            layout = json.loads(raw)
+            sets = layout.get('sets')
+            if not isinstance(sets, list):
+                raise ValueError('sets must be a list')
+            lines = []
+            for a_set in sets:
+                devices = a_set.get('devices')
+                where = ', '.join(devices) if isinstance(devices, list) and devices else (
+                    a_set.get('selection') or '?')
+                lines.append(f"set = {a_set.get('name')} ({where}, raid {a_set.get('raid')})")
+                volumes = a_set.get('volumes')
+                if not isinstance(volumes, list):
+                    continue
+                parts = []
+                for vol in volumes:
+                    mount, filesystem = vol.get('mountpoint') or '?', vol.get('fs') or '?'
+                    size = vol.get('size') or '-'
+                    # swap's mountpoint IS "swap"; printing both just repeats it.
+                    parts.append(f'{mount} {size}' if mount == filesystem
+                                 else f'{mount} {filesystem} {size}')
+                if parts:
+                    lines.append('  ' + ', '.join(parts))
+            return '\n'.join(lines) if lines else raw
+        except (ValueError, TypeError, AttributeError, KeyError) as exp:
+            self.logger.debug(f'Could not summarise disklayout => {exp}')
+            return '<unreadable disklayout JSON - see showdisklayout -R>'
+
+
+    def brief_mounts(self, raw=None):
+        """
+        Render a stored mounts document as one short line for `show`: the paths
+        it declares. The full document stays one command away via showmounts.
+
+        One line, deliberately: less_content keeps only the first three lines of
+        anything longer than 60 characters, so a line per mount would silently
+        lose most of a real document on screen.
+
+        Never raises, for the same reason as brief_disklayout: stored content is
+        not ours to trust and must not take `show` down with it.
+        """
+        if raw is None or not str(raw).strip():
+            return raw
+        try:
+            document = json.loads(raw)
+            mounts = document.get('mounts')
+            if not isinstance(mounts, list):
+                raise ValueError('mounts must be a list')
+            paths = [str(mount.get('path')) for mount in mounts]
+            return f"{len(paths)} mounts: {', '.join(paths)}" if paths else 'no mounts'
+        except (ValueError, TypeError, AttributeError, KeyError) as exp:
+            self.logger.debug(f'Could not summarise mounts => {exp}')
+            return '<unreadable mounts JSON - see showmounts -R>'
 
 
     def filter_data_col(self, table=None, data=None):
@@ -1343,17 +1907,7 @@ class Helper():
                 key_name += ' *'
             fields.append(key_name)
             if isinstance(key[1], list):
-                new_list = []
-                for internal in key[1]:
-                    for internal_val in internal:
-                        self.logger.debug(f'Key: {internal_val} Value: {internal[internal_val]}')
-                        if internal_val == "interface":
-                            new_list.append(f'{internal_val} = {internal[internal_val]}')
-                        else:
-                            new_list.append(f'  {internal_val} = {internal[internal_val]}')
-                new_list = '\n'.join(new_list)
-                rows.append(new_list)
-                new_list = []
+                rows.append(self.nested_lines(key[1]))
             elif isinstance(key[1], dict):
                 new_list = []
                 num = 1
@@ -1475,7 +2029,7 @@ class Helper():
         return fields, osimage, rows
 
 
-    def filter_nodelist_col(self, table=None, data=None):
+    def filter_nodelist_col(self, table=None, data=None, extra_fields=None):
         """
         This method will generate the data as for
         row format
@@ -1484,6 +2038,8 @@ class Helper():
         self.logger.debug(f'Data => {data}')
         fields, rows, colored_fields = [], [], []
         fields = filter_columns(table)
+        if extra_fields:
+            fields = fields + [field for field in extra_fields if field not in fields]
         self.logger.debug(f'Fields => {fields}')
         macaddress_row = []
         ipaddress_row = []

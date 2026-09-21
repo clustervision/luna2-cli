@@ -24,7 +24,7 @@ Arguments Class for the CLI for common arguments.
 __author__      = "Sumit Sharma"
 __copyright__   = "Copyright 2025, Luna2 Project [CLI]"
 __license__     = "GPL"
-__version__     = "2.1"
+__version__     = "2.2"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
@@ -61,12 +61,56 @@ class Arguments():
         parser.add_argument('-n', '--netchannel', type=int, help='Network Channel')
         parser.add_argument('-m', '--mgmtchannel', type=int, help='Management Channel')
         parser.add_argument('-U', '--unmanaged_bmc_users', help='Unmanaged BMC Users')
+        parser.add_argument('-C', '--cipher', type=int,
+                            help='IPMI cipher suite, as ipmitool -C takes it. '
+                                 '3 (HMAC-SHA1) is the default when unset and what almost '
+                                 'every board accepts; 17 (HMAC-SHA256) is what a hardened '
+                                 'board may require, and it refuses 3 in a way that looks '
+                                 'like a wrong password')
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
     
+
+    def common_redfishsetup_args(self, parser):
+        """
+        This method will provide the common redfishsetup arguments.
+        """
+        parser.add_argument('-s', '--scheme', choices=['https', 'http'], help='Scheme to reach the Redfish service with')
+        parser.add_argument('-P', '--port', type=int, help='Port the Redfish service listens on')
+        # no short flag: every free letter already means something else in a
+        # neighbouring command, and a short flag that means two things is worse
+        # than none at all
+        parser.add_argument('--verify', choices=['y', 'n'], help='Verify the BMC certificate')
+        parser.add_argument('-c', '--comment', action='store_true', help='Comment')
+        parser.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
+        parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        return parser
+
+
+    def common_redfishaccount_args(self, parser):
+        """
+        This method will provide the common redfishsetup account arguments.
+        """
+        parser.add_argument('-u', '--username', help='Username to log in to the BMC with')
+        parser.add_argument('-p', '--password', help='Password')
+        # the three DMTF predefined roles are offered, and anything is accepted:
+        # a board may publish OEM roles of its own, and Luna treats a name it does
+        # not recognise as unknown rather than unusable
+        parser.add_argument('-r', '--role',
+                            help='Redfish role. Administrator, Operator and ReadOnly are '
+                                 'the predefined ones; a vendor role is accepted too'
+                            ).completer = Helper().value_completer(
+                                ['Administrator', 'Operator', 'ReadOnly'])
+        parser.add_argument('-c', '--comment', action='store_true', help='Comment')
+        parser.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
+        parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        return parser
+
 
     def common_cloud_args(self, parser):
         """
@@ -90,9 +134,15 @@ class Arguments():
         parser.add_argument('-qk', '--quick-kerneloptions', dest='kerneloptions',
                                 metavar="File-Path OR In-Line", help='Kernel Options File-Path OR In-Line')
         parser.add_argument('-b', '--bmcsetupname', help='BMC Setup Name').completer = Helper().name_completer("bmcsetup")
+        parser.add_argument('-F', '--redfishsetupname', help='Redfish Setup Name').completer = Helper().name_completer("redfishsetup")
+        parser.add_argument('-E', '--setupredfish', choices=BOOL_CHOICES,
+                               metavar=BOOL_META, help='Lets Luna create the Redfish accounts of the redfishsetup on the BMC')
+        parser.add_argument('-bc', '--biosconfig', help='BIOS Configuration the nodes of this group should hold; '
+                            'biospush with no name pushes it').completer = Helper().name_completer("biosconfig")
         parser.add_argument('-d', '--domain', help='Domain Name')
         parser.add_argument('-r', '--roles', help='Sets the roles used for the group. Multiple roles can be supplied comma separated')
         parser.add_argument('-s', '--scripts', help='Sets the scripts used for the group. Multiple scripts can be supplied comma separated')
+        parser.add_argument('-pr', '--profiles', help='Sets the profiles used for the group. Multiple profiles can be supplied comma separated. Profiles stack: a node applies its group profiles plus its own')
         parser.add_argument('-rt', '--routes', help='Static routes coupled to the group (comma separated names, "" to clear)')
         parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
         parser.add_argument('-qpre', '--quick-prescript', dest='prescript',
@@ -103,6 +153,20 @@ class Arguments():
         parser.add_argument('-post', '--postscript', action='store_true', help='Post Script')
         parser.add_argument('-qpost', '--quick-postscript', dest='postscript',
                         metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
+        parser.add_argument('--install-mode', dest='install_mode',
+                        choices=['auto', 'sync', 'full', 'local', 'memboot', 'sanitize', 'legacy'],
+                        help='v1.4 install mode')
+        parser.add_argument('-dl', '--disklayout', action='store_true', help='Disk Layout JSON (v1.4)')
+        parser.add_argument('-qdl', '--quick-disklayout', dest='disklayout',
+                        metavar="File-Path OR In-Line", help='Disk Layout JSON File-Path OR In-Line')
+        parser.add_argument('-of', '--osimage-filter', action='store_true', dest='osimage_filter',
+                        help='OSImage Filter JSON (v1.4)')
+        parser.add_argument('-qof', '--quick-osimage-filter', dest='osimage_filter',
+                        metavar="File-Path OR In-Line", help='OSImage Filter JSON File-Path OR In-Line')
+        parser.add_argument('-mnt', '--mounts', action='store_true',
+                        help='Network mounts document (YAML or JSON)')
+        parser.add_argument('-qmnt', '--quick-mounts', dest='mounts',
+                        metavar="File-Path OR In-Line", help='Network mounts YAML/JSON File-Path OR In-Line')
         parser.add_argument('-i', '--provision_interface', help='Overrides the Cluster provisioning interface')
         parser.add_argument('-p', '--provision_method', help='Overrides Cluster (primary) provisioning method')
         parser.add_argument('-f', '--provision_fallback', help='Overrides Cluster fallback provisioning method')
@@ -147,11 +211,17 @@ class Arguments():
         parser.add_argument('-e', '--setupbmc', choices=BOOL_CHOICES,
                               metavar=BOOL_META, help='BMC Setup')
         parser.add_argument('-b', '--bmcsetup', help='BMC Setup')
+        parser.add_argument('-F', '--redfishsetup', help='Redfish Setup').completer = Helper().name_completer("redfishsetup")
+        parser.add_argument('-E', '--setupredfish', choices=BOOL_CHOICES,
+                               metavar=BOOL_META, help='Lets Luna create the Redfish accounts of the redfishsetup on the BMC')
+        parser.add_argument('-bc', '--biosconfig', help='BIOS Configuration this node should hold; '
+                            'biospush with no name pushes it').completer = Helper().name_completer("biosconfig")
         parser.add_argument('--switch', help='Sets the switch for the node. Used for port based node detection').completer = Helper().name_completer("switch")
         parser.add_argument('--switchport', help='Sets the switch port for the node. Used for port based node detection')
         parser.add_argument('--cloud', help='Cloud Name').completer = Helper().name_completer("cloud")
         parser.add_argument('-r', '--roles', help='Overrides Group configured roles used. Multiple roles can be supplied comma separated')
         parser.add_argument('-s', '--scripts', help='Overrides Group configured scripts used. Multiple scripts can be supplied comma separated')
+        parser.add_argument('-pr', '--profiles', help='Profiles used by the node, applied in addition to the ones its group has. Multiple profiles can be supplied comma separated')
         parser.add_argument('-rt', '--routes', help='Static routes coupled to the node (comma separated names, "" to clear)')
         parser.add_argument('-pre', '--prescript', action='store_true', help='Pre Script')
         parser.add_argument('-qpre', '--quick-prescript', dest='prescript',
@@ -162,6 +232,20 @@ class Arguments():
         parser.add_argument('-post', '--postscript', action='store_true', help='Post Script')
         parser.add_argument('-qpost', '--quick-postscript', dest='postscript',
                         metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
+        parser.add_argument('--install-mode', dest='install_mode',
+                        choices=['auto', 'sync', 'full', 'local', 'memboot', 'sanitize', 'legacy'],
+                        help='v1.4 install mode')
+        parser.add_argument('-dl', '--disklayout', action='store_true', help='Disk Layout JSON (v1.4)')
+        parser.add_argument('-qdl', '--quick-disklayout', dest='disklayout',
+                        metavar="File-Path OR In-Line", help='Disk Layout JSON File-Path OR In-Line')
+        parser.add_argument('-of', '--osimage-filter', action='store_true', dest='osimage_filter',
+                        help='OSImage Filter JSON (v1.4)')
+        parser.add_argument('-qof', '--quick-osimage-filter', dest='osimage_filter',
+                        metavar="File-Path OR In-Line", help='OSImage Filter JSON File-Path OR In-Line')
+        parser.add_argument('-mnt', '--mounts', action='store_true',
+                        help='Network mounts document (YAML or JSON)')
+        parser.add_argument('-qmnt', '--quick-mounts', dest='mounts',
+                        metavar="File-Path OR In-Line", help='Network mounts YAML/JSON File-Path OR In-Line')
         parser.add_argument('-i', '--provision_interface', help='Overrides the Cluster or Group provisioning interface')
         parser.add_argument('-p', '--provision_method', help='Overrides Cluster or Group (primary) provisioning method')
         parser.add_argument('-f', '--provision_fallback', help='Overrides Cluster or Group fallback provisioning method')
@@ -230,6 +314,47 @@ class Arguments():
         parser.add_argument('-z', '--zone', help='Internal or external Network Zone')
         parser.add_argument('-n', '--non_authoritative', choices=BOOL_CHOICES,
                                  metavar=BOOL_META, help='Set this network as non-authoritative for its DNS zone definition')
+        parser.add_argument('-c', '--comment', action='store_true', help='Comment')
+        parser.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
+        parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        return parser
+
+
+    def common_biosconfig_args(self, parser):
+        """
+        This method will provide the common biosconfig arguments.
+
+        Only the exclude list and the comment: everything else on a configuration
+        is what a machine reported about itself, and is written by a grab.
+        The -E/-qE pair is the same shape osimage uses for its own grab_exclude,
+        so an administrator who knows one knows the other.
+        """
+        parser.add_argument('-E', '--grab_exclude', action='store_true', help='Attribute name patterns excluded from a grab')
+        parser.add_argument('-qE', '--quick-grab_exclude', dest='grab_exclude',
+                                metavar="File-Path OR In-Line", help='Grab Excludes File-Path OR In-Line')
+        parser.add_argument('-c', '--comment', action='store_true', help='Comment')
+        parser.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
+        parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        return parser
+
+
+    def common_firmwarecatalog_args(self, parser):
+        """
+        This method will provide the common firmware catalogue arguments.
+
+        The three that make an entry addressable - the hardware it is for, the
+        component it updates and the version - are what the daemon requires at
+        creation, and they are not marked required here: change reuses this
+        parser, and an entry that already has them does not want them typed
+        again to alter one field.
+        """
+        parser.add_argument('-m', '--manufacturer', help='Manufacturer, as the board reports it')
+        parser.add_argument('-M', '--model', help='Model, as the board reports it')
+        parser.add_argument('-C', '--component', help='Component this entry updates, e.g. BMC or BIOS')
+        parser.add_argument('-V', '--version', help='Version this hardware should be running')
+        parser.add_argument('-i', '--imagefile', help='Image file carrying that version')
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')

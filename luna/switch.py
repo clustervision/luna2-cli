@@ -24,7 +24,7 @@ Switch Class for the CLI
 __author__      = "Sumit Sharma"
 __copyright__   = "Copyright 2025, Luna2 Project [CLI]"
 __license__     = "GPL"
-__version__     = "2.1"
+__version__     = "2.2"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
@@ -234,7 +234,9 @@ class Switch():
         """
         This method show a specific switch.
         """
-        return Helper().show_data(self.table, self.args)
+        response = Helper().show_data(self.table, self.args)
+        Helper().show_switch_nodes(self.args['name'], self.args.get('raw'))
+        return response
 
 
     def add_switch(self):

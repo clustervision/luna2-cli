@@ -24,7 +24,7 @@ Main Class for the CLI
 __author__      = "Sumit Sharma"
 __copyright__   = "Copyright 2025, Luna2 Project [CLI]"
 __license__     = "GPL"
-__version__     = "2.1"
+__version__     = "2.2"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
@@ -38,6 +38,8 @@ from luna.utils.log import Log
 from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
+from luna.firmwarecatalog import firmware_push
+from luna.biosconfig import bios_push
 
 class Group():
     """
@@ -73,9 +75,30 @@ class Group():
         group_args = group_menu.add_subparsers(dest='action', title='commands', description='Available group operations')
         group_list = group_args.add_parser('list', help='List Groups')
         Arguments().common_list_args(group_list, True)
+        group_list.add_argument('-d', '--deviate', action='store_true', default=None,
+                                help='List only Groups that deviate from their parent (cluster) defaults')
         group_show = group_args.add_parser('show', help='Show Group details')
         group_show.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(group_show)
+        group_showdisklayout = group_args.add_parser('showdisklayout', help="Show a Group's Disk Layout")
+        group_showdisklayout.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        Arguments().common_list_args(group_showdisklayout)
+        group_showmounts = group_args.add_parser('showmounts', help="Show a Group's Network Mounts")
+        group_showmounts.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        Arguments().common_list_args(group_showmounts)
+        group_addmount = group_args.add_parser('addmount', help="Add one Network Mount to a Group's document, or replace the one at its path")
+        group_addmount.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        group_addmount.add_argument('-qmnt', '--quick-mount', dest='mount', required=True, metavar="File-Path OR In-Line",
+                                     help='One mount entry, YAML or JSON, e.g. {path: /trinity/scratch, server: controller}')
+        group_removemount = group_args.add_parser('removemount', help="Remove one Network Mount from a Group's document by its path")
+        group_removemount.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        group_removemount.add_argument('path', help='Mountpoint of the entry to remove')
+        group_assignprofile = group_args.add_parser('assignprofile', help="Assign one Profile to a Group, beside the ones it has")
+        group_assignprofile.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        group_assignprofile.add_argument('profile', help='Name of the Profile')
+        group_unassignprofile = group_args.add_parser('unassignprofile', help="Take one Profile away from a Group")
+        group_unassignprofile.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        group_unassignprofile.add_argument('profile', help='Name of the Profile')
         group_show.add_argument('-f', '--full-scripts', action='store_true', default=None, help='Show the Full Scripts')
         group_member = group_args.add_parser('member', help='Group Used by Nodes')
         group_member.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
@@ -105,6 +128,26 @@ class Group():
         group_ospush.add_argument('--nodry', action='store_true', default=None,
                                   help='No Dry flag to avoid dry run')
         group_ospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        group_biospush = group_args.add_parser('biospush', help="Apply a BIOS Configuration to every node of a Group. "
+                                               'Without a name, each node gets what it is assigned - its own, '
+                                               'else the group\'s - and the request is refused if one has none')
+        group_biospush.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        group_biospush.add_argument('-b', '--biosconfig',
+                                    help='BIOS Configuration Name').completer = Helper().name_completer('biosconfig')
+        group_biospush.add_argument('-m', '--version-match', choices=['strict', 'warn', 'ignore'],
+                                    help='What to do when the configuration was grabbed at a different '
+                                         'BIOS version than a node runs. Defaults to the cluster setting')
+        group_biospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        group_firmwarepush = group_args.add_parser('firmwarepush', help='Update the firmware of all Group member Nodes '
+                                                   'to what the catalogue asks. Use --dry-run first.')
+        group_firmwarepush.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
+        group_firmwarepush.add_argument('-C', '--component',
+                                        help='Only this component, e.g. BMC or BIOS')
+        group_firmwarepush.add_argument('-n', '--dry-run', action='store_true', default=None,
+                                        help='Say what would happen and record nothing')
+        group_firmwarepush.add_argument('-R', '--raw', action='store_true', default=None,
+                                        help='Raw JSON output of a dry run')
+        group_firmwarepush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         group_interfaces = group_args.add_parser('listinterface', help='List Group Interfaces')
         group_interfaces.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(group_interfaces)
@@ -155,8 +198,14 @@ class Group():
         self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config'][self.table]
+            if self.args.get('deviate'):
+                data = Helper().filter_deviated(data)
+                if not data:
+                    return Message().show_error(f'No {self.table} deviates from its parent.')
             if self.args.get('csv'):
                 response = Helper().column_csv(self.table, data, self.args['csv'])
+            elif self.args.get('deviate'):
+                response = Helper().show_deviated(self.table, data, self.args)
             elif 'raw' in self.args and self.args['raw']:
                 json_data = Helper().prepare_json(data)
                 response = Presenter().show_json(json_data)
@@ -171,6 +220,48 @@ class Group():
             response = Message().show_error(f'{self.table} is not found.')
         return response
 
+
+
+    def showdisklayout_group(self):
+        """
+        Method to show a group's disk layout in Luna Configuration.
+        """
+        return Helper().show_disklayout(self.table, self.args)
+
+
+    def showmounts_group(self):
+        """
+        Method to show a group's resolved network mounts in Luna Configuration.
+        """
+        return Helper().show_mounts(self.table, self.args)
+
+
+    def addmount_group(self):
+        """
+        Method to add or replace one entry in a group's network mounts document.
+        """
+        return Helper().add_mount(self.table, self.args)
+
+
+    def removemount_group(self):
+        """
+        Method to remove one entry from a group's network mounts document.
+        """
+        return Helper().remove_mount(self.table, self.args)
+
+
+    def assignprofile_group(self):
+        """
+        Method to assign one profile to a group beside the ones it has.
+        """
+        return Helper().change_profile(self.table, self.args, assign=True)
+
+
+    def unassignprofile_group(self):
+        """
+        Method to take one profile away from a group.
+        """
+        return Helper().change_profile(self.table, self.args, assign=False)
 
 
     def show_group(self):
@@ -275,11 +366,33 @@ class Group():
         return Helper().delete_record(self.table, self.args)
 
 
+    def biospush_group(self):
+        """
+        Method to apply a BIOS configuration to every node of a group - the one
+        named, or each node's assignment. Queued and reported as it goes, as the
+        node form is.
+        """
+        return bios_push(self.table, self.args)
+
+
     def ospush_group(self):
         """
         Method to push an osimage to a group.
         """
         return Helper().push_osimage(self.table, self.args)
+
+
+    def firmwarepush_group(self):
+        """
+        Method to update the firmware of every node of a group.
+
+        Answered per node and not per group. A group is an operational grouping
+        and not a statement about what is in the chassis - it routinely holds more
+        than one platform - so each member's own hardware selects its own
+        catalogue entries, and a member the catalogue does not cover is reported
+        rather than taking the rest of the group down with it.
+        """
+        return firmware_push(self.table, self.args)
 
 
     def clone_group(self):

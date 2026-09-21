@@ -24,7 +24,7 @@ Main Class for the CLI
 __author__      = "Sumit Sharma"
 __copyright__   = "Copyright 2025, Luna2 Project [CLI]"
 __license__     = "GPL"
-__version__     = "2.1"
+__version__     = "2.2"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
@@ -45,10 +45,15 @@ try:
     from luna.cluster import Cluster
     from luna.cloud import Cloud
     from luna.bmcsetup import BMCSetup
+    from luna.redfishsetup import RedfishSetup
+    from luna.biosconfig import BiosConfig
+    from luna.firmwarecatalog import FirmwareCatalog
     from luna.node import Node
     from luna.switch import Switch
     from luna.otherdev import OtherDev
     from luna.secrets import Secrets
+    from luna.profile import Profile
+    from luna.boot import Boot
     from luna.service import Service
     from luna.control import Control
     from luna.monitor import Monitor
@@ -61,11 +66,16 @@ try:
         Network,
         OSImage,
         BMCSetup,
+        RedfishSetup,
+        BiosConfig,
+        FirmwareCatalog,
         Switch,
         OtherDev,
         Group,
         Node,
         Secrets,
+        Profile,
+        Boot,
         Service,
         Control,
         Monitor
@@ -104,7 +114,6 @@ class Cli():
         self.subparsers = self.parser.add_subparsers(dest="command", help='See Details by --help')
         for cls in classes:
             cls(parser=self.parser, subparsers =self.subparsers)
-        print(f"{self.parser}")
         return self.parser
 
     def main(self):
@@ -149,6 +158,12 @@ class Cli():
                     call = globals()["OSImage"]
                 elif self.args["command"] == "bmcsetup":
                     call = globals()["BMCSetup"]
+                elif self.args["command"] == "redfishsetup":
+                    call = globals()["RedfishSetup"]
+                elif self.args["command"] == "biosconfig":
+                    call = globals()["BiosConfig"]
+                elif self.args["command"] == "firmwarecatalog":
+                    call = globals()["FirmwareCatalog"]
                 elif self.args["command"] == "otherdev":
                     call = globals()["OtherDev"]
                 else:

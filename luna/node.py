@@ -24,7 +24,7 @@ Node Class for the CLI
 __author__      = "Sumit Sharma"
 __copyright__   = "Copyright 2025, Luna2 Project [CLI]"
 __license__     = "GPL"
-__version__     = "2.1"
+__version__     = "2.2"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
@@ -39,6 +39,8 @@ from luna.utils.log import Log
 from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
+from luna.firmwarecatalog import firmware_push
+from luna.biosconfig import bios_push
 
 
 class Node():
@@ -75,6 +77,10 @@ class Node():
         node_args = node_menu.add_subparsers(dest='action', title='commands', description='Available node operations')
         node_list = node_args.add_parser('list', help='List All Nodes')
         Arguments().common_list_args(node_list, True)
+        node_list.add_argument('-d', '--deviate', action='store_true', default=None,
+                               help='List only Nodes that deviate from their parent (group) defaults')
+        node_list.add_argument('-p', '--port', action='store_true', default=None,
+                               help='Include switch and switchport columns in the listing')
         node_show = node_args.add_parser('show', help='Show A Node')
         node_show.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_show)
@@ -148,11 +154,70 @@ class Node():
         rename_interface.add_argument('interface', help='Name of the Node Interface').completer = Helper().interface_name_completer(self.table)
         rename_interface.add_argument('newinterfacename', help='New Name of the Node Interface')
         rename_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        node_biosgrab = node_args.add_parser('biosgrab', help="Grab a Node's BIOS settings into a BIOS Configuration. "
+                                             'Only what the node\'s own attribute registry says may be carried '
+                                             'to another machine is stored')
+        node_biosgrab.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_biosgrab.add_argument('-b', '--biosconfig', required=True,
+                                   help='BIOS Configuration Name').completer = Helper().name_completer('biosconfig')
+        node_biosgrab.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        node_biospush = node_args.add_parser('biospush', help="Apply a stored BIOS Configuration to a Node. "
+                                             'The work is queued and reported as it goes, because a BIOS '
+                                             'change can need more than one reboot to land')
+        node_biospush.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_biospush.add_argument('-b', '--biosconfig',
+                                   help='BIOS Configuration Name; without it, what the node is '
+                                        'assigned (node, then group) is pushed').completer = Helper().name_completer('biosconfig')
+        node_biospush.add_argument('-m', '--version-match', choices=['strict', 'warn', 'ignore'],
+                                   help='What to do when the configuration was grabbed at a different '
+                                        'BIOS version than the node runs. Defaults to the cluster setting')
+        node_biospush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        node_firmwarepush = node_args.add_parser('firmwarepush', help="Update a Node's firmware to what the catalogue asks. "
+                                                 "Use --dry-run first to see what it would do.")
+        node_firmwarepush.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_firmwarepush.add_argument('-C', '--component',
+                                       help='Only this component, e.g. BMC or BIOS')
+        node_firmwarepush.add_argument('-n', '--dry-run', action='store_true', default=None,
+                                       help='Say what would happen and record nothing')
+        node_firmwarepush.add_argument('-R', '--raw', action='store_true', default=None,
+                                       help='Raw JSON output of a dry run')
+        node_firmwarepush.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         node_listinventory = node_args.add_parser('listinventory', help='List Hardware Inventory of All Nodes')
         Arguments().common_list_args(node_listinventory)
+        node_showdisklayout = node_args.add_parser('showdisklayout', help="Show a Node's Disk Layout")
+        node_showdisklayout.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        Arguments().common_list_args(node_showdisklayout)
+        node_showmounts = node_args.add_parser('showmounts', help="Show a Node's Network Mounts")
+        node_showmounts.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        Arguments().common_list_args(node_showmounts)
+        node_addmount = node_args.add_parser('addmount', help="Add one Network Mount to a Node's document, or replace the one at its path")
+        node_addmount.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_addmount.add_argument('-qmnt', '--quick-mount', dest='mount', required=True, metavar="File-Path OR In-Line",
+                                     help='One mount entry, YAML or JSON, e.g. {path: /trinity/scratch, server: controller}')
+        node_removemount = node_args.add_parser('removemount', help="Remove one Network Mount from a Node's document by its path")
+        node_removemount.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_removemount.add_argument('path', help='Mountpoint of the entry to remove')
+        node_assignprofile = node_args.add_parser('assignprofile', help="Assign one Profile to a Node, beside the ones it has")
+        node_assignprofile.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_assignprofile.add_argument('profile', help='Name of the Profile')
+        node_unassignprofile = node_args.add_parser('unassignprofile', help="Take one Profile away from a Node")
+        node_unassignprofile.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
+        node_unassignprofile.add_argument('profile', help='Name of the Profile')
         node_showinventory = node_args.add_parser('showinventory', help="Show a Node's Hardware Inventory")
         node_showinventory.add_argument('name', help='Name of the Node').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(node_showinventory)
+        node_refreshinventory = node_args.add_parser('refreshinventory', help="Collect a Node's Inventory over Redfish")
+        node_refreshinventory.add_argument('name', nargs='?',
+                                           help='Node Name or Node Hostlist').completer = Helper().name_completer(self.table)
+        node_refreshinventory.add_argument('-g', '--group',
+                                           help='Every node of this Group').completer = Helper().name_completer('group')
+        node_refreshinventory.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        node_setupredfish = node_args.add_parser('setupredfish', help="Create or correct a Node's Redfish accounts from its redfishsetup")
+        node_setupredfish.add_argument('name', nargs='?',
+                                       help='Node Name or Node Hostlist').completer = Helper().name_completer(self.table)
+        node_setupredfish.add_argument('-g', '--group',
+                                       help='Every node of this Group').completer = Helper().name_completer('group')
+        node_setupredfish.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
 
@@ -170,14 +235,21 @@ class Node():
         self.logger.debug(f'Get List Data from Helper => {get_list}')
         if get_list:
             data = get_list['config'][self.table]
+            if self.args.get('deviate'):
+                data = Helper().filter_deviated(data)
+                if not data:
+                    return Message().show_error(f'No {self.table} deviates from its parent.')
             if self.args.get('csv'):
                 response = Helper().column_csv(self.table, data, self.args['csv'])
+            elif self.args.get('deviate'):
+                response = Helper().show_deviated(self.table, data, self.args)
             elif 'raw' in self.args and self.args['raw']:
                 json_data = Helper().prepare_json(data)
                 response = Presenter().show_json(json_data)
             else:
                 data = Helper().prepare_json(data, True)
-                fields, rows  = Helper().filter_nodelist_col(self.table, data)
+                extra_fields = ['switch', 'switchport'] if self.args.get('port') else None
+                fields, rows  = Helper().filter_nodelist_col(self.table, data, extra_fields)
                 self.logger.debug(f'Fields => {fields}')
                 self.logger.debug(f'Rows => {rows}')
                 title = f' << {self.table.capitalize()} >>'
@@ -185,6 +257,48 @@ class Node():
         else:
             response = Message().show_error(f'{self.table} is not found.')
         return response
+
+
+    def showdisklayout_node(self):
+        """
+        Method to show a node's disk layout in Luna Configuration.
+        """
+        return Helper().show_disklayout(self.table, self.args)
+
+
+    def showmounts_node(self):
+        """
+        Method to show a node's resolved network mounts in Luna Configuration.
+        """
+        return Helper().show_mounts(self.table, self.args)
+
+
+    def addmount_node(self):
+        """
+        Method to add or replace one entry in a node's network mounts document.
+        """
+        return Helper().add_mount(self.table, self.args)
+
+
+    def removemount_node(self):
+        """
+        Method to remove one entry from a node's network mounts document.
+        """
+        return Helper().remove_mount(self.table, self.args)
+
+
+    def assignprofile_node(self):
+        """
+        Method to assign one profile to a node beside the ones it has.
+        """
+        return Helper().change_profile(self.table, self.args, assign=True)
+
+
+    def unassignprofile_node(self):
+        """
+        Method to take one profile away from a node.
+        """
+        return Helper().change_profile(self.table, self.args, assign=False)
 
 
     def show_node(self):
@@ -200,6 +314,7 @@ class Node():
         """
         hostlist = Helper().get_hostlist(self.args['name'])
         hostlist = Helper().luna_hostlist(hostlist)
+        switchports = Helper().expand_switchports(hostlist, self.args.get('switchport'))
         if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
             Message().error_exit("ERROR :: Kindly supply the interface in order to use the network, ipaddress, macaddress or options.")
         interface = {}
@@ -239,9 +354,15 @@ class Node():
                     records = list(record.content['config'][self.table].keys())
                     if any(x in records for x in hostlist) is False:
                         if hostlist:
-                            for each in hostlist:
+                            Helper().check_switchport_conflicts(
+                                self.args.get('switch'),
+                                list(zip(hostlist, switchports)),
+                                record.content['config'][self.table]
+                            )
+                            for index, each in enumerate(hostlist):
                                 if each not in records:
                                     self.args['name'] = each
+                                    self.args['switchport'] = switchports[index]
                                     Helper().add_record(self.table, self.args)
                         else:
                             Message().error_exit(f'Node Hostlist is: {hostlist}')
@@ -257,8 +378,14 @@ class Node():
             else:
                 Message().error_exit('Node are not available at this moment.')
         else:
-            for each in hostlist:
+            Helper().check_switchport_conflicts(
+                self.args.get('switch'),
+                list(zip(hostlist, switchports)),
+                {}
+            )
+            for index, each in enumerate(hostlist):
                 self.args['name'] = each
+                self.args['switchport'] = switchports[index]
                 Helper().add_record(self.table, self.args)
         return True
 
@@ -275,6 +402,7 @@ class Node():
         real_args = deepcopy(self.args)
         hostlist = Helper().get_hostlist(self.args['name'])
         hostlist = Helper().luna_hostlist(hostlist)
+        switchports = Helper().expand_switchports(hostlist, self.args.get('switchport'))
         if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
             Message().error_exit("ERROR :: Kindly supply the interface in order to use the network, ipaddress, macaddress or options.")
         interface = {}
@@ -313,10 +441,17 @@ class Node():
                     records = list(record.content['config'][self.table].keys())
                     if all(x in records for x in hostlist) is True:
                         if hostlist:
-                            for each in hostlist:
+                            Helper().check_switchport_conflicts(
+                                self.args.get('switch'),
+                                list(zip(hostlist, switchports)),
+                                record.content['config'][self.table]
+                            )
+                            for index, each in enumerate(hostlist):
                                 if each in records:
                                     self.args['name'] = each
+                                    self.args['switchport'] = switchports[index]
                                     real_args['name'] = each
+                                    real_args['switchport'] = switchports[index]
                                     change = Helper().compare_data(self.table, real_args)
                                     if change is True:
                                         Helper().update_record(self.table, self.args, local)
@@ -459,6 +594,7 @@ class Node():
         """
         hostlist = Helper().get_hostlist(self.args['newnodename'])
         hostlist = Helper().luna_hostlist(hostlist)
+        switchports = Helper().expand_switchports(hostlist, self.args.get('switchport'))
         if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
             Message().error_exit("ERROR :: Kindly supply the interface in order to use the network, ipaddress, macaddress or options.")
         interface = {}
@@ -497,9 +633,15 @@ class Node():
                     records = list(record.content['config'][self.table].keys())
                     if all(x in records for x in hostlist) is False:
                         if hostlist:
-                            for each in hostlist:
+                            Helper().check_switchport_conflicts(
+                                self.args.get('switch'),
+                                list(zip(hostlist, switchports)),
+                                record.content['config'][self.table]
+                            )
+                            for index, each in enumerate(hostlist):
                                 if each not in records:
                                     self.args['newnodename'] = each
+                                    self.args['switchport'] = switchports[index]
                                     Helper().clone_record(self.table, self.args)
                         else:
                             Message().error_exit(f'Node Hostlist is: {hostlist}')
@@ -653,6 +795,131 @@ class Node():
                              n.get('capabilities')] for n in nics]
                 Presenter().show_table(f' << {name} NICs [{source}] >>', nic_fields, nic_rows)
         return True
+
+
+    def refreshinventory_node(self):
+        """
+        Method to collect a node's hardware inventory over Redfish, out of band.
+
+        In-band collection only runs while a node is being provisioned, so a node
+        that has never been installed - or is simply powered off - has no inventory
+        at all. This asks the BMC instead, which answers either way.
+        """
+        node = self.args.get('name')
+        if self.args.get('group'):
+            payload = {'config': {self.table: {'group': self.args['group']}}}
+            return self.collect_inventory(payload)
+        if not node:
+            return Message().error_exit('Give a node, a hostlist, or -g <group>', 400)
+        hostlist = Helper().get_hostlist(node)
+        if len(hostlist) == 1:
+            response = Rest().get_raw(f'config/{self.table}/{node}/inventory/_redfish')
+            self.logger.debug(f'HTTP Response => {response.content}')
+            content = response.json() if response.content else {}
+            message = content.get('message', response.content)
+            if response.status_code in (200, 201, 204):
+                Message().show_success(f'{self.table_cap} {node} inventory collected: {message}')
+            else:
+                Message().error_exit(message, response.status_code)
+            return response
+        return self.collect_inventory({'config': {self.table: {'hostlist': node}}})
+
+
+    def collect_inventory(self, payload=None):
+        """Schedule a Redfish inventory sweep and stream what comes back."""
+        response = Rest().post_raw(f'config/{self.table}/inventory/_redfish', payload)
+        self.logger.debug(f'HTTP Response => {response.content}')
+        if response.status_code != 200:
+            content = response.json() if response.content else {}
+            return Message().error_exit(content.get('message', response.content),
+                                        response.status_code)
+        content = response.json()
+        request_id = content.get('request_id')
+        queued = content.get('config', {}).get(self.table, {}).get('inventory', {}).get('queued')
+        Message().show_success(f'Collecting inventory for {queued} nodes...')
+        if request_id:
+            Helper().dig_status(request_id, 1, 'inventory')
+        return response
+
+
+    def setupredfish_node(self):
+        """
+        Method to make a node's BMC carry the Redfish accounts its redfishsetup
+        describes, with their roles. The same work an install queues for a node
+        with setupredfish on, done now for a BMC that already answers.
+        """
+        node = self.args.get('name')
+        if self.args.get('group'):
+            payload = {'config': {self.table: {'group': self.args['group']}}}
+        elif node:
+            payload = {'config': {self.table: {'hostlist': node}}}
+        else:
+            return Message().error_exit('Give a node, a hostlist, or -g <group>', 400)
+        response = Rest().post_raw(f'config/{self.table}/redfishaccounts/_provision', payload)
+        self.logger.debug(f'HTTP Response => {response.content}')
+        if response.status_code != 200:
+            content = response.json() if response.content else {}
+            return Message().error_exit(content.get('message', response.content),
+                                        response.status_code)
+        content = response.json()
+        request_id = content.get('request_id')
+        queued = content.get('config', {}).get(self.table, {}).get('accounts', {}).get('queued')
+        Message().show_success(f'Settling Redfish accounts for {queued} nodes...')
+        if request_id:
+            Helper().dig_status(request_id, 1, 'redfish')
+        return response
+
+    def biosgrab_node(self):
+        """
+        Method to grab a node's BIOS settings into a stored configuration.
+
+        The daemon decides what may be carried, from the node's own attribute
+        registry: anything the machine marks as unique to itself, read-only,
+        immutable or write-only stays behind, as does anything the configuration's
+        exclude list names. The count of what was left behind is in the answer,
+        because a grab that quietly drops half a configuration looks exactly like
+        one that found half a configuration.
+        """
+        node = self.args['name']
+        config = self.args['biosconfig']
+        payload = {'config': {self.table: {node: {'biosconfig': config}}}}
+        response = Rest().post_raw(f'config/{self.table}/{node}/_biosgrab', payload)
+        self.logger.debug(f'HTTP Response => {response.content}')
+        content = response.json() if response.content else {}
+        message = content.get('message', response.content)
+        if response.status_code in (200, 201, 204):
+            Message().show_success(f'{message}')
+        else:
+            Message().error_exit(message, response.status_code)
+        return response
+
+
+    def biospush_node(self):
+        """
+        Method to apply a stored BIOS configuration to a node.
+
+        The daemon queues it and answers at once with a request to watch, because
+        a stage is a write, a reset and a wait for the machine to finish POST - and
+        a configuration whose attributes depend on one another takes more than one
+        of those. The plan is recomputed against the machine on every run rather
+        than remembered, so running this twice is safe and the second run is a
+        no-op when the first one landed.
+        """
+        return bios_push(self.table, self.args)
+
+
+    def firmwarepush_node(self):
+        """
+        Method to update a node's firmware to what the catalogue asks.
+
+        The catalogue decides per node, from the hardware the board reported, so
+        this asks for nothing that is not covered and refuses rather than guessing
+        a version. The daemon records the request and the sweeper carries it out:
+        a component takes minutes and a board can need several, so there is
+        nothing to hold a connection open for. Read the outcome with
+        'luna firmwarecatalog status'.
+        """
+        return firmware_push(self.table, self.args)
 
 
     def changeinterface(self):
