@@ -33,6 +33,10 @@ import types
 
 INI_FILE = '/trinity/local/luna/cli/config/luna.ini'
 TOKEN_FILE = '/trinity/local/luna/cli/config/token.txt'
+# A person's own login, read before the controller's file; luna login writes it.
+USER_INI_FILE = '~/.luna/luna.ini'
+USER_TOKEN_FILE = '~/.luna/token'
+USER_LOG_FILE = '~/.luna/luna2-cli.log'
 VERSION_FILE = 'VERSION.txt'
 LOG_DIR = '/var/log/luna'
 LOG_FILE = '/var/log/luna/luna2-cli.log'
@@ -233,6 +237,28 @@ def parser_doc(table: str) -> types.SimpleNamespace:
             "description":  '''\
                 This relates to monitoring luna status messages and queues.
             '''
+        },
+        "user" : {
+            "help": "Luna users.",
+            "description":  '''\
+                The identities that hold a Luna token: people and service accounts.
+                Not the cluster's OS accounts, which obol manages.
+            '''
+        },
+        "usergroup" : {
+            "help": "Usergroups, memberships and the directory group map.",
+            "description":  '''\
+                Organisations, departments and teams of Luna users; the role each
+                member holds in them; and the map from a directory group onto a
+                usergroup. Not a node group, and not an OS group.
+            '''
+        },
+        "access" : {
+            "help": "Login, whoami, chmod, chgrp, chown.",
+            "description":  '''\
+                Log in as yourself, ask who the daemon takes you for, and change who
+                may do what with an object: its mode, its usergroups, its owners.
+            '''
         }
     }
     response.help = static[table]["help"]
@@ -280,10 +306,20 @@ def actions(table: str) -> list:
         # override back; clear disarms it without a reset. Redfish only: the IPMI
         # boot flags are not reliable
         "nextboot" : ["bios", "status", "clear"],
-        "tag_osimage" : ["change", "remove"]
+        "tag_osimage" : ["change", "remove"],
+        "user": network_actions + ["access"],
+        "usergroup": network_actions + ["member", "addmember", "removemember", "map", "addmap", "removemap", "access"],
+        "access": ["login", "logout", "whoami", "chmod", "chgrp", "chown"]
     }
     response = list(static[table])
     return response
+
+
+# The tables the daemon governs with owners, usergroups and access; the same three fields
+# join every list and show of them, as ls -l shows a file's owner, group and mode.
+GOVERNED_TABLES = ('node', 'group', 'osimage', 'bmcsetup', 'redfishsetup', 'biosconfig', 'firmwarecatalog',
+                   'profile', 'cluster', 'network', 'route', 'cloud', 'switch', 'otherdevices', 'otherdev', 'rack')
+ACCESS_FIELDS = ['owners', 'usergroups', 'access']
 
 
 def filter_columns(table: str) -> list:
@@ -292,6 +328,8 @@ def filter_columns(table: str) -> list:
     """
     response = False
     static = {
+        'user': ['username', 'source', 'enabled', 'admin', 'delegate', 'usergroups', 'lastlogin'],
+        'usergroup': ['name', 'comment', 'hardware', 'members'],
         'cloud': ['name', 'type'],
         'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users', 'cipher'],
         'redfishsetup': ['name', 'scheme', 'port', 'verify', 'accounts'],
@@ -326,7 +364,10 @@ def filter_columns(table: str) -> list:
             'username_initiator', 'queue_id', 'request_id', 'level', 'status', 'subsystem', 'task', 'created'
         ]
     }
-    response = list(static[table])
+    response = list(static.get(table) or [])
+    if table in GOVERNED_TABLES:
+        # ls -l: who owns it and who may do what, on every governed listing
+        response += [field for field in ACCESS_FIELDS if field not in response]
     return response
 
 
@@ -463,9 +504,14 @@ def sortby(table: str) -> list:
         'osimagetag': [
             'osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups'
         ],
-        'route': ['name', 'destination', 'gateway', 'metric', 'device', 'comment', 'assigned']
+        'route': ['name', 'destination', 'gateway', 'metric', 'device', 'comment', 'assigned'],
+        'user': ['username', 'source', 'external_id', 'enabled', 'admin', 'delegate', 'password_set',
+                 'usergroups', 'createdby', 'created', 'lastlogin'],
+        'usergroup': ['name', 'comment', 'hardware', 'members']
     }
-    response = list(static[table])
+    response = list(static.get(table) or [])
+    if table in GOVERNED_TABLES:
+        response += [field for field in ACCESS_FIELDS if field not in response]
     return response
 
 

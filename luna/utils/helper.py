@@ -410,6 +410,11 @@ class Helper():
         Method to show a switch in Luna Configuration. Detail True will return the full details.
         """
         response = {'controllers': []} if detail is True else []
+        ini_file, _ = Rest.credential_files()
+        if not (os.path.isfile(ini_file) and os.access(ini_file, os.R_OK)):
+            # the parser is being built for someone who has not logged in yet: no daemon
+            # to ask, and the only verb they can run is the login that creates the file
+            return response
         urllib3.disable_warnings()
         check = Rest().daemon_validation(parser=True)
         if check is not True:
@@ -1449,6 +1454,9 @@ class Helper():
                         new_list = self.nested_lines(data[ele][field_key], filter_nested(table))
                         new_list = new_list if num == len(data) else f'{new_list}\n'
                         val_row.append(new_list)
+                    elif isinstance(data[ele][field_key], dict):
+                        # a map such as usergroups {name: role} reads as 'name (role), ...'
+                        val_row.append(', '.join(f'{k} ({v})' for k, v in data[ele][field_key].items()))
                     elif field_key == 'tpm_uuid':
                         if data[ele][field_key]:
                             val_row.append(True)
@@ -1920,6 +1928,8 @@ class Helper():
                 new_list = '\n'.join(new_list)
                 rows.append(new_list)
                 new_list = []
+            elif key[0] == 'access':
+                rows.append(self.access_in_words(key[1]))
             else:
                 rows.append(key[1])
             if space and key[0] in space:
@@ -1927,6 +1937,34 @@ class Helper():
                 rows.append('')
         fields = ['source' if item.startswith('_') else item for item in fields]
         return fields, rows
+
+
+    def access_triplet_in_words(self, triplet=None):
+        """
+        Three characters as a person holds them, with their meaning: 'r-x (read, operate)'.
+        """
+        text = str(triplet or '')
+        if len(text) != 3 or any(c not in 'rwx-' for c in text):
+            return triplet
+        names = {'r': 'read', 'w': 'change', 'x': 'operate'}
+        words = [names[c] for c in text if c != '-']
+        return f"{text} ({', '.join(words) if words else 'nothing'})"
+
+    def access_in_words(self, mode=None):
+        """
+        The mode as the daemon renders it, followed by what each class may do, in words:
+        'rwxr-x--- (owner: read, change, operate · team: read, operate · others: nothing)'.
+        The letters stay because chmod takes them; the words say what they mean.
+        """
+        text = str(mode or '')
+        if len(text) != 9 or any(c not in 'rwx-' for c in text):
+            return mode
+        names = {'r': 'read', 'w': 'change', 'x': 'operate'}
+        classes = []
+        for label, triplet in (('owner', text[0:3]), ('team', text[3:6]), ('others', text[6:9])):
+            words = [names[c] for c in triplet if c != '-']
+            classes.append(f"{label}: {', '.join(words) if words else 'nothing'}")
+        return f"{text} ({' · '.join(classes)})"
 
 
     def merge_source(self, table=None, data=None, exception=None):
