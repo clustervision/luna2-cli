@@ -41,7 +41,7 @@ from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
-from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
+from luna.utils.constant import actions, ACCESS_FIELDS, BOOL_CHOICES, BOOL_META
 
 ACTION_CHOICES = ['restart', 'stop', 'reload', 'start', 'none']
 SCOPE_CHOICES = ['static', 'dynamic']
@@ -233,14 +233,14 @@ class Profile():
         data = get_list['config']['profiles']
         if self.args['raw']:
             return Presenter().show_json(Helper().prepare_json(data))
-        rows, fields = [], ['#', 'name', 'scope', 'service', 'action', 'files']
+        rows, fields = [], ['#', 'name', 'scope', 'service', 'action', 'files'] + ACCESS_FIELDS
         num = 1
         for name, detail in data.items():
             rows.append([
                 num, name, detail.get('scope'), detail.get('service'),
                 detail.get('action'),
                 ', '.join(entry['name'] for entry in detail.get('files') or []),
-            ])
+            ] + [detail.get(field, '') for field in ACCESS_FIELDS])
             num = num + 1
         return Presenter().show_table(' << Profiles >>', fields, rows)
 
@@ -261,9 +261,9 @@ class Profile():
         detail = get_list['config']['profiles'][self.args['name']]
         if self.args['raw']:
             return Presenter().show_json(Helper().prepare_json(detail))
-        fields = ['name', 'scope', 'service', 'action']
+        fields = ['name', 'scope', 'service', 'action'] + ACCESS_FIELDS
         rows = [self.args['name'], detail.get('scope'), detail.get('service'),
-                detail.get('action')]
+                detail.get('action')] + [detail.get(field, '') for field in ACCESS_FIELDS]
         for entry in detail.get('files') or []:
             content = Helper().base64_decode(entry.get('content'))
             if content is not None and len(content) > 60:
