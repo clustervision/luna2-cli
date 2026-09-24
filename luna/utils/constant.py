@@ -254,7 +254,7 @@ def parser_doc(table: str) -> types.SimpleNamespace:
             '''
         },
         "access" : {
-            "help": "Login, whoami, chmod, chgrp, chown.",
+            "help": "Login, whoami, chmod, chgrp, chown, add or remove a usergroup or an owner.",
             "description":  '''\
                 Log in as yourself, ask who the daemon takes you for, and change who
                 may do what with an object: its mode, its usergroups, its owners.
@@ -309,7 +309,8 @@ def actions(table: str) -> list:
         "tag_osimage" : ["change", "remove"],
         "user": network_actions + ["access"],
         "usergroup": network_actions + ["member", "addmember", "removemember", "map", "addmap", "removemap", "access"],
-        "access": ["login", "logout", "whoami", "chmod", "chgrp", "chown"]
+        "access": ["login", "logout", "whoami", "chmod", "chgrp", "chown", "addusergroup", "removeusergroup",
+                   "addowner", "removeowner"]
     }
     response = list(static[table])
     return response
