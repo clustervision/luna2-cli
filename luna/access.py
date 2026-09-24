@@ -63,7 +63,8 @@ def _message(response):
 
 class Access():
     """
-    Access Class responsible for login, logout, whoami, chmod, chgrp and chown.
+    Access Class responsible for login, logout, whoami, chmod, chgrp and chown, and adding or
+    removing one usergroup or owner.
     """
 
     def __init__(self, args=None, parser=None, subparsers=None):
@@ -103,6 +104,16 @@ class Access():
             sub.add_argument('entity', choices=sorted(GOVERNED), help='What kind of object')
             sub.add_argument('name', help='Its name (cluster for the cluster)')
             sub.add_argument(field, help=text)
+            sub.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
+        # one name added or taken away, so a name to remove needs no -- before it
+        for verb, field, text in (('addusergroup', 'usergroup', 'List a usergroup on an object'),
+                                  ('removeusergroup', 'usergroup', 'Take a usergroup off an object'),
+                                  ('addowner', 'user', 'Add an owner to an object'),
+                                  ('removeowner', 'user', 'Take an owner off an object')):
+            sub = args.add_parser(verb, help=text)
+            sub.add_argument('entity', choices=sorted(GOVERNED), help='What kind of object')
+            sub.add_argument('name', help='Its name (cluster for the cluster)')
+            sub.add_argument(field, help=f'The {field} name').completer = Helper().name_completer(field)
             sub.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
@@ -206,3 +217,30 @@ class Access():
 
     def chown_access(self):
         return self._change('chown', 'owners')
+
+    def _edit(self, verb, field, sign):
+        """
+        One name added to or taken off the list chgrp or chown keeps, as +name or -name.
+        """
+        entity = GOVERNED[self.args['entity']]
+        name, member = self.args['name'], self.args[field]
+        column = 'usergroups' if field == 'usergroup' else 'owners'
+        body = {'config': {entity: {name: {column: f'{sign}{member}'}}}}
+        response = Rest().post_raw(f'config/{entity}/{name}/_{verb}', body)
+        if response.status_code in (201, 204):
+            done = 'added to' if sign == '+' else 'removed from'
+            Message().show_success(f'{self.args["entity"]} {name}: {field} {member} {done} its {column}.')
+        else:
+            Message().error_exit(_message(response), response.status_code)
+
+    def addusergroup_access(self):
+        return self._edit('chgrp', 'usergroup', '+')
+
+    def removeusergroup_access(self):
+        return self._edit('chgrp', 'usergroup', '-')
+
+    def addowner_access(self):
+        return self._edit('chown', 'user', '+')
+
+    def removeowner_access(self):
+        return self._edit('chown', 'user', '-')

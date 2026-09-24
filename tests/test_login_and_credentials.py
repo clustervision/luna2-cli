@@ -263,6 +263,31 @@ def test_the_three_verbs_post_to_the_generic_routes(home, monkeypatch, capsys):
     ]
 
 
+def test_one_usergroup_or_owner_is_added_or_removed_without_a_leading_dash(home, monkeypatch, capsys):
+    """-name on chgrp is read by argparse as an option; these verbs take the bare name and sign it."""
+    from luna.access import Access
+    from luna.cli import Cli
+    import luna.access as access
+    posted = []
+    monkeypatch.setattr(access.Rest, 'post_raw',
+                        lambda self, route, payload: posted.append((route, payload)) or types.SimpleNamespace(status_code=204, content=b''))
+    parsed = vars(Cli().get_parser().parse_args(['access', 'removeusergroup', 'node', 'node001', 'amd']))
+    assert parsed['usergroup'] == 'amd'
+    Access(args={'action': 'addusergroup', 'entity': 'node', 'name': 'node001', 'usergroup': 'intel'})
+    Access(args={'action': 'removeusergroup', 'entity': 'node', 'name': 'node001', 'usergroup': 'amd'})
+    Access(args={'action': 'addowner', 'entity': 'otherdev', 'name': 'pdu1', 'user': 'alice'})
+    Access(args={'action': 'removeowner', 'entity': 'cluster', 'name': 'cluster', 'user': 'bob'})
+    out = capsys.readouterr().out
+    assert 'node node001: usergroup amd removed from its usergroups' in out
+    assert 'otherdev pdu1: user alice added to its owners' in out
+    assert posted == [
+        ('config/node/node001/_chgrp', {'config': {'node': {'node001': {'usergroups': '+intel'}}}}),
+        ('config/node/node001/_chgrp', {'config': {'node': {'node001': {'usergroups': '-amd'}}}}),
+        ('config/otherdevices/pdu1/_chown', {'config': {'otherdevices': {'pdu1': {'owners': '+alice'}}}}),
+        ('config/cluster/cluster/_chown', {'config': {'cluster': {'cluster': {'owners': '-bob'}}}}),
+    ]
+
+
 def test_every_governed_listing_shows_owners_usergroups_and_access():
     """ls -l: the three fields join every governed list and show, and no ungoverned one."""
     from luna.utils.constant import ACCESS_FIELDS, GOVERNED_TABLES, filter_columns, sortby
