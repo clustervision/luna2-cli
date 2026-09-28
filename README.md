@@ -103,12 +103,15 @@ Luna2 CLI's Prime location is Cluster, but also can be installed on the nodes.<b
 
 ## Installation
 
-pip install luna
+pip install luna2-cli
+
+The package is not on PyPI. Build it from this repository with
+`pip wheel --no-build-isolation .`, or take it from the TrinityX package repository. On a
+TrinityX controller the TrinityX installer installs it.
 
 ## Usage
 * -h or --help can be run anywhere to see the required parameters.
 * -R or --raw will be useful to see the data in json while using list or show arguments.
-* -V or --version will be useful to see the current version of Luna.
 * -V or --version will be useful to see the current version of Luna.
 * -v or --verbose will be useful for debugging purpose.
 * Log File location -> /var/log/luna/luna2-cli.log
