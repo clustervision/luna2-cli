@@ -551,7 +551,7 @@ class OSImage():
                 Message().error_exit(message["message"], response.status_code)
             else:
                 Message().error_exit(
-                    f'Tag {self.args["tag"]} is deleted for {self.args["name"]}.',
+                    f'Tag {self.args["tag"]} could not be removed from {self.args["name"]}.',
                     response.status_code
                 )
         return True
