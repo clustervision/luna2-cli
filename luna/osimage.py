@@ -235,7 +235,7 @@ class OSImage():
                         elif task_status != 200:
                             return task_status
                     else:
-                        Message().show_error(f'{result.content}', result.status_code)
+                        Message().show_error(Helper().answer_message(result), result.status_code)
                     return result.status_code
             response = True
             status = 200
@@ -301,7 +301,7 @@ class OSImage():
                         elif task_status != 200:
                             return task_status
                     else:
-                        Message().show_error(f'{result.content}', result.status_code)
+                        Message().show_error(Helper().answer_message(result), result.status_code)
                         return 500
                     return result.status_code
             response = True
@@ -315,7 +315,7 @@ class OSImage():
         if response:
             Message().show_success(f'[========] Image {self.args["name"]} Packed.')
         elif response is None:
-            Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} not Packed: {result.content}.')
+            Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} not Packed: {Helper().answer_message(result)}.')
         else:
             Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} not Packed.')
         return response
@@ -332,12 +332,7 @@ class OSImage():
             http_response = result.json()
             Message().show_success(f'{http_response["message"]}')
             return True
-        message = result.content
-        try:
-            message = result.json().get('message', result.content)
-        except Exception:
-            pass
-        Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} pack not cancelled: {message}.')
+        Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} pack not cancelled: {Helper().answer_message(result)}.')
         return False
 
 
@@ -391,7 +386,7 @@ class OSImage():
                         elif task_status != 200:
                             return task_status
                     else:
-                        Message().show_error(f'{result.content}', result.status_code)
+                        Message().show_error(Helper().answer_message(result), result.status_code)
                         return 500
                     return result.status_code
             response = True
@@ -405,7 +400,7 @@ class OSImage():
         if response:
             Message().show_success(f'[========] Image {self.args["name"]} certificates updated.')
         elif response is None:
-            Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} certificates not updated: {result.content}.')
+            Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} certificates not updated: {Helper().answer_message(result)}.')
         else:
             Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} certificates not updated.')
         return response
@@ -462,7 +457,7 @@ class OSImage():
                         elif task_status != 200:
                             return task_status
                     else:
-                        Message().show_error(f'{result.content}', result.status_code)
+                        Message().show_error(Helper().answer_message(result), result.status_code)
                     return result.status_code
             response = True
             status = 200

@@ -137,7 +137,7 @@ class Service():
                                 else:
                                     Message().show_success(f'[========] {msg}')
                     else:
-                        Message().error_exit(result.content, result.status_code)
+                        Message().error_exit(Helper().answer_message(result), result.status_code)
                     return result.status_code
                 status = 200
                 response = True
@@ -155,5 +155,5 @@ class Service():
                     Message().show_failed_exit(f'[ FAILED ] Service {service} {action} is finished unsuccesfully.')
             else:
                 process1.terminate()
-                Message().error_exit(result.content, result.status_code)
+                Message().error_exit(Helper().answer_message(result), result.status_code)
         return response
