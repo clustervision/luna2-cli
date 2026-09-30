@@ -989,14 +989,7 @@ class Helper():
         if response:
             Message().show_success(f'[========] OSImage Grabbed for node {data["name"]}.')
         else:
-            message = result.content
-            try:
-                http_response = result.json()
-                if 'message' in http_response:
-                    message = http_response['message']
-            except:
-                pass
-            Message().show_failed_exit(f'[ FAILED ] OSImage not grabbed for node {data["name"]}: {message}.')
+            Message().show_failed_exit(f'[ FAILED ] OSImage not grabbed for node {data["name"]}: {self.answer_message(result)}.')
         return True
 
 
@@ -1057,14 +1050,7 @@ class Helper():
         if response:
             Message().show_success(f'[========] OSImage Pushed for {table} {data["name"]}.')
         else:
-            message = result.content
-            try:
-                http_response = result.json()
-                if 'message' in http_response:
-                    message = http_response['message']
-            except:
-                pass
-            Message().show_failed_exit(f'[ FAILED ] OSImage not pushed for {table} {data["name"]}: {message}.')
+            Message().show_failed_exit(f'[ FAILED ] OSImage not pushed for {table} {data["name"]}: {self.answer_message(result)}.')
         return True
 
 
@@ -1164,6 +1150,19 @@ class Helper():
             parser.add_argument('--csv', metavar='<column>', default=None,
                                 help='Output a single column as comma-separated values')
         return parser
+
+
+    def answer_message(self, answer=None):
+        """
+        The message in an answer of the daemon, for a command that reads the raw answer
+        itself. A refusal carries its message in JSON; an answer that does not is shown
+        as the text it is.
+        """
+        try:
+            return answer.json()['message']
+        except (ValueError, KeyError, TypeError, AttributeError):
+            content = getattr(answer, 'content', answer)
+            return content.decode(errors='replace') if isinstance(content, bytes) else content
 
 
     def loader(self, message=None):
