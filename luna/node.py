@@ -594,6 +594,9 @@ class Node():
         """
         hostlist = Helper().get_hostlist(self.args['newnodename'])
         hostlist = Helper().luna_hostlist(hostlist)
+        if not hostlist:
+            # an expression the hostlist cannot expand comes back empty, and would clone nothing in silence
+            Message().error_exit(f"{self.args['newnodename']} is not a node name or a hostlist")
         switchports = Helper().expand_switchports(hostlist, self.args.get('switchport'))
         if self.args['interface'] is None and (self.args['network'] or self.args['ipaddress'] or self.args['macaddress'] or self.args['options']):
             Message().error_exit("ERROR :: Kindly supply the interface in order to use the network, ipaddress, macaddress or options.")
@@ -627,37 +630,30 @@ class Node():
             if len(hostlist) > 1 and ('ipaddress' in interface or 'macaddress' in interface):
                 Message().error_exit('Interface IP Address or MAC Address can not be use with the hostlist, Kindly provide the single node or remove the IP Address and MAC Address.')
         record = Rest().get_data(self.table)
-        if record.status_code == 200:
-            if 'config' in record.content:
-                if self.table in record.content['config']:
-                    records = list(record.content['config'][self.table].keys())
-                    if all(x in records for x in hostlist) is False:
-                        if hostlist:
-                            Helper().check_switchport_conflicts(
-                                self.args.get('switch'),
-                                list(zip(hostlist, switchports)),
-                                record.content['config'][self.table]
-                            )
-                            for index, each in enumerate(hostlist):
-                                if each not in records:
-                                    self.args['newnodename'] = each
-                                    self.args['switchport'] = switchports[index]
-                                    Helper().clone_record(self.table, self.args)
-                        else:
-                            Message().error_exit(f'Node Hostlist is: {hostlist}')
-                    else:
-                        for each in hostlist:
-                            if each in records:
-                                Message().show_error(f'Node already present in database: {each}')
-
-                else:
-                    Message().error_exit('Node are not available at this moment.')
-            elif 'message' in record.content:
-                Message().error_exit(record.content['message'])
-            else:
-                Message().error_exit('Node are not available at this moment.')
+        if record.status_code == 404:
+            # a person who may read no node gets 404 for the list: nothing to skip, so the
+            # clone goes to the daemon, which answers for the source node itself
+            existing = {}
+        elif record.status_code == 200 and isinstance(record.content, dict) and self.table in record.content.get('config', {}):
+            existing = record.content['config'][self.table]
         else:
-            Message().error_exit('Node are not available at this moment.')
+            Message().error_exit(record.content, record.status_code)
+        records = list(existing.keys())
+        if all(x in records for x in hostlist) is False:
+            Helper().check_switchport_conflicts(
+                self.args.get('switch'),
+                list(zip(hostlist, switchports)),
+                existing
+            )
+            for index, each in enumerate(hostlist):
+                if each not in records:
+                    self.args['newnodename'] = each
+                    self.args['switchport'] = switchports[index]
+                    Helper().clone_record(self.table, self.args)
+        else:
+            for each in hostlist:
+                if each in records:
+                    Message().show_error(f'Node already present in database: {each}')
         # return Helper().clone_record(self.table, self.args)
 
 
