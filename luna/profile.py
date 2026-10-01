@@ -264,6 +264,8 @@ class Profile():
         fields = ['name', 'scope', 'service', 'action'] + ACCESS_FIELDS
         rows = [self.args['name'], detail.get('scope'), detail.get('service'),
                 detail.get('action')] + [detail.get(field, '') for field in ACCESS_FIELDS]
+        # every other show explains the mode in words; this table is built by hand
+        rows[fields.index('access')] = Helper().access_in_words(rows[fields.index('access')])
         for entry in detail.get('files') or []:
             content = Helper().base64_decode(entry.get('content'))
             if content is not None and len(content) > 60:

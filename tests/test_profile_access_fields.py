@@ -72,4 +72,5 @@ def test_the_show_carries_the_same_three(wire):
     fields, rows = wire['tables'][0]
     shown = dict(zip(fields, rows))
     assert {field: shown[field] for field in ACCESS_FIELDS} == {
-        'owners': 'alice', 'usergroups': 'physics', 'access': 'rwxrwx---'}
+        'owners': 'alice', 'usergroups': 'physics',
+        'access': 'rwxrwx--- (owner: read, change, operate · team: read, change, operate · others: nothing)'}
