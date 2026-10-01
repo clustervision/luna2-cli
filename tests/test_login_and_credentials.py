@@ -219,6 +219,27 @@ def test_login_writes_the_own_files_readable_by_the_owner_only(home, monkeypatch
     assert fetched == [str(home.user_ini)], 'the token was fetched through the own file'
 
 
+@pytest.mark.parametrize('logged_in_before', [False, True])
+def test_a_refused_login_leaves_the_own_file_as_it_was(home, monkeypatch, logged_in_before):
+    """The own file is read before the controller's by every command, logout included."""
+    from luna.access import Access
+    from luna.utils.message import Message
+    import luna.access as access
+    if logged_in_before:
+        _own_login(home, 'alice')
+    before = home.user_ini.read_text() if logged_in_before else None
+    monkeypatch.setattr(access, 'getpass', lambda prompt='': 'wrong')
+    monkeypatch.setattr(os, 'geteuid', lambda: 1000)
+    monkeypatch.setattr(access.Rest, 'token',
+                        lambda self: Message().error_exit('User bob is not known to any authentication source', 401))
+    with pytest.raises(SystemExit):
+        Access(args={'action': 'login', 'username': 'bob'})
+    if logged_in_before:
+        assert home.user_ini.read_text() == before, 'alice is still logged in'
+    else:
+        assert not home.user_ini.exists(), 'no file with the refused password is left behind'
+
+
 def test_root_without_a_username_keeps_the_controller_account(home, monkeypatch, capsys):
     from luna.access import Access
     monkeypatch.setattr(os, 'geteuid', lambda: 0)

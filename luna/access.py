@@ -132,6 +132,10 @@ class Access():
         endpoint, protocol, verify = self._controller_endpoint()
         ini_path = os.path.expanduser(USER_INI_FILE)
         os.makedirs(os.path.dirname(ini_path), mode=0o700, exist_ok=True)
+        previous = None
+        if os.path.isfile(ini_path):
+            with open(ini_path, 'r', encoding='utf-8') as handle:
+                previous = handle.read()
         parser = RawConfigParser()
         parser['API'] = {'USERNAME': username, 'PASSWORD': password, 'ENDPOINT': endpoint,
                          'PROTOCOL': protocol, 'VERIFY_CERTIFICATE': verify}
@@ -141,10 +145,20 @@ class Access():
         token_path = os.path.expanduser(USER_TOKEN_FILE)
         if os.path.exists(token_path):
             os.remove(token_path)
-        rest = Rest()
-        if rest.ini_file != ini_path:
-            Message().error_exit(f'{ini_path} was written but is not the file in use')
-        rest.token()
+        try:
+            rest = Rest()
+            if rest.ini_file != ini_path:
+                Message().error_exit(f'{ini_path} was written but is not the file in use')
+            rest.token()
+        except SystemExit:
+            # a refused login leaves the file as it was: every later command reads it first,
+            # logout included, so a wrong password left behind would lock the person out
+            if previous is None:
+                os.remove(ini_path)
+            else:
+                with open(ini_path, 'w', encoding='utf-8') as handle:
+                    handle.write(previous)
+            raise
         Message().show_success(f'Logged in as {username}; credentials in {ini_path}, token in {token_path}.')
 
 
