@@ -240,6 +240,21 @@ def test_a_refused_login_leaves_the_own_file_as_it_was(home, monkeypatch, logged
         assert not home.user_ini.exists(), 'no file with the refused password is left behind'
 
 
+def test_logout_runs_when_the_own_credentials_have_gone_stale(home, monkeypatch):
+    """The parser asks the daemon for the controllers while it is built; a password changed
+    since the login is refused there, and logout must still remove the file."""
+    from luna.cli import Cli
+    from luna.utils.message import Message
+    import luna.utils.rest as rest
+    _own_login(home, 'alice')
+    monkeypatch.setattr(rest.Rest, 'daemon_validation', lambda self, parser=None: False)
+    monkeypatch.setattr(rest.Rest, 'token',
+                        lambda self: Message().error_exit('Incorrect password for alice', 401))
+    monkeypatch.setattr('sys.argv', ['luna', 'access', 'logout'])
+    Cli().main()
+    assert not home.user_ini.exists(), 'logout removed the stale file'
+
+
 def test_root_without_a_username_keeps_the_controller_account(home, monkeypatch, capsys):
     from luna.access import Access
     monkeypatch.setattr(os, 'geteuid', lambda: 0)

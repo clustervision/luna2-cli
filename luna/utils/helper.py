@@ -30,6 +30,7 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 import os
+import sys
 import json
 from time import time, sleep
 import base64
@@ -414,6 +415,9 @@ class Helper():
         if not (os.path.isfile(ini_file) and os.access(ini_file, os.R_OK)):
             # the parser is being built for someone who has not logged in yet: no daemon
             # to ask, and the only verb they can run is the login that creates the file
+            return response
+        if sys.argv[1:3] in (['access', 'login'], ['access', 'logout']):
+            # these two replace or remove the credentials, which may be the ones the daemon refuses
             return response
         urllib3.disable_warnings()
         check = Rest().daemon_validation(parser=True)
