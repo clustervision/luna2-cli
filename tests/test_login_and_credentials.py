@@ -84,7 +84,17 @@ def test_neither_file_is_a_clear_refusal_naming_the_login_verb(home, capsys):
     with pytest.raises(SystemExit):
         Rest()
     err = capsys.readouterr().err
-    assert 'luna login' in err and str(home.controller_ini) in err
+    assert 'run luna access login' in err and str(home.controller_ini) in err and 'is not found' in err
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason='root reads a file whatever its mode')
+def test_a_controller_file_that_is_there_but_unreadable_is_called_unreadable(home, capsys):
+    from luna.utils.rest import Rest
+    os.chmod(home.controller_ini, 0o000)
+    with pytest.raises(SystemExit):
+        Rest()
+    err = capsys.readouterr().err
+    assert 'is not readable by you' in err and 'is not found' not in err and 'run luna access login' in err
 
 
 def test_login_and_logout_are_dispatched_without_credentials(home, monkeypatch):
