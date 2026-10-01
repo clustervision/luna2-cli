@@ -251,14 +251,14 @@ def test_the_three_verbs_post_to_the_generic_routes(home, monkeypatch, capsys):
     monkeypatch.setattr(access.Rest, 'post_raw',
                         lambda self, route, payload: posted.append((route, payload)) or types.SimpleNamespace(status_code=204, content=b''))
     Access(args={'action': 'chmod', 'entity': 'otherdev', 'name': 'pdu1', 'access': '750'})
-    Access(args={'action': 'chgrp', 'entity': 'node', 'name': 'node001', 'usergroups': '+intel,-amd'})
+    Access(args={'action': 'chgrp', 'entity': 'node', 'name': 'node001', 'usergroups': 'intel,amd'})
     Access(args={'action': 'chown', 'entity': 'cluster', 'name': 'cluster', 'owners': 'alice'})
     out = capsys.readouterr().out
     assert 'otherdev pdu1: access set to 750' in out and 'cluster cluster: owners set to alice' in out, \
         'a 204 carries no body: the verb says what it did'
     assert posted == [
         ('config/otherdevices/pdu1/_chmod', {'config': {'otherdevices': {'pdu1': {'access': '750'}}}}),
-        ('config/node/node001/_chgrp', {'config': {'node': {'node001': {'usergroups': ['+intel', '-amd']}}}}),
+        ('config/node/node001/_chgrp', {'config': {'node': {'node001': {'usergroups': ['intel', 'amd']}}}}),
         ('config/cluster/cluster/_chown', {'config': {'cluster': {'cluster': {'owners': 'alice'}}}}),
     ]
 
@@ -286,6 +286,18 @@ def test_one_usergroup_or_owner_is_added_or_removed_without_a_leading_dash(home,
         ('config/otherdevices/pdu1/_chown', {'config': {'otherdevices': {'pdu1': {'owners': '+alice'}}}}),
         ('config/cluster/cluster/_chown', {'config': {'cluster': {'cluster': {'owners': '-bob'}}}}),
     ]
+
+
+@pytest.mark.parametrize('action, field, value', [('chgrp', 'usergroups', ''), ('chgrp', 'usergroups', '+intel'),
+                                                  ('chgrp', 'usergroups', 'intel,-amd'), ('chown', 'owners', ' , ')])
+def test_chgrp_and_chown_take_the_whole_list_only(home, monkeypatch, capsys, action, field, value):
+    """An empty list or a signed name is refused before it is sent; one name goes through the add and remove verbs."""
+    from luna.access import Access
+    import luna.access as access
+    monkeypatch.setattr(access.Rest, 'post_raw', lambda self, route, payload: pytest.fail('nothing is sent'))
+    with pytest.raises(SystemExit):
+        Access(args={'action': action, 'entity': 'node', 'name': 'node001', field: value})
+    assert 'luna access add' in capsys.readouterr().err
 
 
 def test_every_governed_listing_shows_owners_usergroups_and_access():
