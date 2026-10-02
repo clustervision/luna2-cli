@@ -81,6 +81,8 @@ class Boot():
         boot_show.add_argument('-g', '--group', help='Only this group').completer = Helper().name_completer("group")
         boot_show.add_argument('-a', '--all', action='store_true', default=None,
                                help='Every node in scope, not only the ones in this boot')
+        boot_show.add_argument('-l', '--list', action='store_true', default=None,
+                               help='List the nodes that have not booted, by name')
         boot_show.add_argument('-R', '--raw', action='store_true', default=None,
                                help='Raw JSON output')
         boot_show.add_argument('-v', '--verbose', action='store_true', default=None,
@@ -251,6 +253,8 @@ class Boot():
             # cannot collide with them and anything already reading this output keeps
             # finding exactly what it found before
             data['progress'] = self.boot_progress(scope)
+            if self.args.get('list') and data['progress']:
+                data['progress']['notbooted'] = self.not_booted(nodes, scope)
             return Presenter().show_json(Helper().prepare_json(data))
 
         fields = ['#', 'group', 'osimage'] + phases + ['total', 'progress']
@@ -264,7 +268,10 @@ class Boot():
                         + [sum(counts.values()), f'{bar} {percent}%'])
             num = num + 1
         Presenter().show_table(' << Boot Overview >>', fields, rows)
-        return self.show_progress(scope)
+        self.show_progress(scope)
+        if self.args.get('list'):
+            return self.show_not_booted(nodes, scope)
+        return True
 
 
     def node_states(self):
@@ -289,7 +296,8 @@ class Boot():
             state = str(entry.get('state') or '')
             if state.startswith(f'{name} '):
                 state = state[len(name) + 1:]
-            states[name] = {'state': state, 'updated': entry.get('updated')}
+            states[name] = {'state': state, 'status': entry.get('status'),
+                            'updated': entry.get('updated')}
         return states
 
 
@@ -347,17 +355,73 @@ class Boot():
         for name in scope:
             entry = states.get(name) or {}
             stage = self.node_stage(entry.get('state'))
-            if stage is None or stage == last or not entry.get('updated'):
+            if stage is None or stage == last:
                 continue
-            try:
-                since = datetime.strptime(str(entry['updated']), '%Y-%m-%d %H:%M:%S')
-            except ValueError:
-                continue
-            minutes = int((now - since).total_seconds() // 60)
-            if minutes >= self.STUCK_MINUTES:
+            minutes = self.silent_minutes(entry, now)
+            if minutes is not None and minutes >= self.STUCK_MINUTES:
                 stuck.append({'node': name, 'minutes': minutes,
                               'stage': self.BOOT_STAGES[stage][0]})
         return sorted(stuck, key=lambda node: -node['minutes'])
+
+
+    def silent_minutes(self, entry=None, now=None):
+        """Minutes since a node last reported, or None when it carries no usable stamp."""
+        if not entry.get('updated'):
+            return None
+        try:
+            since = datetime.strptime(str(entry['updated']), '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            return None
+        return int((now - since).total_seconds() // 60)
+
+
+    def not_booted(self, nodes=None, scope=None):
+        """
+        Every node of this boot that has not booted, by name, with the stage it is in and
+        how long ago it last reported. That is the time in its current step, not in the
+        stage: the monitor row holds one stamp, rewritten on every report.
+
+        Failed is what the daemon itself classes as a failure. Stuck is the same rule as
+        the summary line above it, so the two can never disagree about a node.
+        """
+        states = self.node_states()
+        cohort, _ = self.boot_cohort(states, scope)
+        last = len(self.BOOT_STAGES) - 1
+        now = datetime.utcnow()
+        rows = []
+        for name in sorted(cohort):
+            entry = states[name]
+            stage = self.node_stage(entry['state'])
+            if stage == last:
+                continue
+            minutes = self.silent_minutes(entry, now)
+            condition = ''
+            if str(entry.get('status')) == '500':
+                condition = 'failed'
+            elif stage is not None and minutes is not None and minutes >= self.STUCK_MINUTES:
+                condition = 'stuck'
+            rows.append({
+                'node': name,
+                'group': (nodes.get(name) or {}).get('group') or '-',
+                'stage': self.BOOT_STAGES[stage][0] if stage is not None else '-',
+                'step': entry['state'].replace('install.', '', 1),
+                'minutes': minutes,
+                'condition': condition})
+        return rows
+
+
+    def show_not_booted(self, nodes=None, scope=None):
+        """The nodes behind the bars, one line each, for when the count is not enough."""
+        rows = self.not_booted(nodes, scope)
+        if not rows:
+            return Message().show_success('Every node in this boot has booted.')
+        fields = ['#', 'node', 'group', 'stage', 'step', 'since', 'condition']
+        table = []
+        for num, row in enumerate(rows, start=1):
+            since = self.age(row['minutes']) if row['minutes'] is not None else '-'
+            table.append([num, row['node'], row['group'], row['stage'], row['step'],
+                          since, row['condition']])
+        return Presenter().show_table(' << Not Booted >>', fields, table)
 
 
     def boot_progress(self, scope=None):

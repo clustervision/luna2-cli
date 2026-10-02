@@ -84,7 +84,17 @@ def test_neither_file_is_a_clear_refusal_naming_the_login_verb(home, capsys):
     with pytest.raises(SystemExit):
         Rest()
     err = capsys.readouterr().err
-    assert 'luna login' in err and str(home.controller_ini) in err
+    assert 'run luna access login' in err and str(home.controller_ini) in err and 'is not found' in err
+
+
+@pytest.mark.skipif(os.geteuid() == 0, reason='root reads a file whatever its mode')
+def test_a_controller_file_that_is_there_but_unreadable_is_called_unreadable(home, capsys):
+    from luna.utils.rest import Rest
+    os.chmod(home.controller_ini, 0o000)
+    with pytest.raises(SystemExit):
+        Rest()
+    err = capsys.readouterr().err
+    assert 'is not readable by you' in err and 'is not found' not in err and 'run luna access login' in err
 
 
 def test_login_and_logout_are_dispatched_without_credentials(home, monkeypatch):
@@ -209,6 +219,42 @@ def test_login_writes_the_own_files_readable_by_the_owner_only(home, monkeypatch
     assert fetched == [str(home.user_ini)], 'the token was fetched through the own file'
 
 
+@pytest.mark.parametrize('logged_in_before', [False, True])
+def test_a_refused_login_leaves_the_own_file_as_it_was(home, monkeypatch, logged_in_before):
+    """The own file is read before the controller's by every command, logout included."""
+    from luna.access import Access
+    from luna.utils.message import Message
+    import luna.access as access
+    if logged_in_before:
+        _own_login(home, 'alice')
+    before = home.user_ini.read_text() if logged_in_before else None
+    monkeypatch.setattr(access, 'getpass', lambda prompt='': 'wrong')
+    monkeypatch.setattr(os, 'geteuid', lambda: 1000)
+    monkeypatch.setattr(access.Rest, 'token',
+                        lambda self: Message().error_exit('User bob is not known to any authentication source', 401))
+    with pytest.raises(SystemExit):
+        Access(args={'action': 'login', 'username': 'bob'})
+    if logged_in_before:
+        assert home.user_ini.read_text() == before, 'alice is still logged in'
+    else:
+        assert not home.user_ini.exists(), 'no file with the refused password is left behind'
+
+
+def test_logout_runs_when_the_own_credentials_have_gone_stale(home, monkeypatch):
+    """The parser asks the daemon for the controllers while it is built; a password changed
+    since the login is refused there, and logout must still remove the file."""
+    from luna.cli import Cli
+    from luna.utils.message import Message
+    import luna.utils.rest as rest
+    _own_login(home, 'alice')
+    monkeypatch.setattr(rest.Rest, 'daemon_validation', lambda self, parser=None: False)
+    monkeypatch.setattr(rest.Rest, 'token',
+                        lambda self: Message().error_exit('Incorrect password for alice', 401))
+    monkeypatch.setattr('sys.argv', ['luna', 'access', 'logout'])
+    Cli().main()
+    assert not home.user_ini.exists(), 'logout removed the stale file'
+
+
 def test_root_without_a_username_keeps_the_controller_account(home, monkeypatch, capsys):
     from luna.access import Access
     monkeypatch.setattr(os, 'geteuid', lambda: 0)
@@ -251,14 +297,14 @@ def test_the_three_verbs_post_to_the_generic_routes(home, monkeypatch, capsys):
     monkeypatch.setattr(access.Rest, 'post_raw',
                         lambda self, route, payload: posted.append((route, payload)) or types.SimpleNamespace(status_code=204, content=b''))
     Access(args={'action': 'chmod', 'entity': 'otherdev', 'name': 'pdu1', 'access': '750'})
-    Access(args={'action': 'chgrp', 'entity': 'node', 'name': 'node001', 'usergroups': '+intel,-amd'})
+    Access(args={'action': 'chgrp', 'entity': 'node', 'name': 'node001', 'usergroups': 'intel,amd'})
     Access(args={'action': 'chown', 'entity': 'cluster', 'name': 'cluster', 'owners': 'alice'})
     out = capsys.readouterr().out
     assert 'otherdev pdu1: access set to 750' in out and 'cluster cluster: owners set to alice' in out, \
         'a 204 carries no body: the verb says what it did'
     assert posted == [
         ('config/otherdevices/pdu1/_chmod', {'config': {'otherdevices': {'pdu1': {'access': '750'}}}}),
-        ('config/node/node001/_chgrp', {'config': {'node': {'node001': {'usergroups': ['+intel', '-amd']}}}}),
+        ('config/node/node001/_chgrp', {'config': {'node': {'node001': {'usergroups': ['intel', 'amd']}}}}),
         ('config/cluster/cluster/_chown', {'config': {'cluster': {'cluster': {'owners': 'alice'}}}}),
     ]
 
@@ -286,6 +332,18 @@ def test_one_usergroup_or_owner_is_added_or_removed_without_a_leading_dash(home,
         ('config/otherdevices/pdu1/_chown', {'config': {'otherdevices': {'pdu1': {'owners': '+alice'}}}}),
         ('config/cluster/cluster/_chown', {'config': {'cluster': {'cluster': {'owners': '-bob'}}}}),
     ]
+
+
+@pytest.mark.parametrize('action, field, value', [('chgrp', 'usergroups', ''), ('chgrp', 'usergroups', '+intel'),
+                                                  ('chgrp', 'usergroups', 'intel,-amd'), ('chown', 'owners', ' , ')])
+def test_chgrp_and_chown_take_the_whole_list_only(home, monkeypatch, capsys, action, field, value):
+    """An empty list or a signed name is refused before it is sent; one name goes through the add and remove verbs."""
+    from luna.access import Access
+    import luna.access as access
+    monkeypatch.setattr(access.Rest, 'post_raw', lambda self, route, payload: pytest.fail('nothing is sent'))
+    with pytest.raises(SystemExit):
+        Access(args={'action': action, 'entity': 'node', 'name': 'node001', field: value})
+    assert 'luna access add' in capsys.readouterr().err
 
 
 def test_every_governed_listing_shows_owners_usergroups_and_access():

@@ -98,8 +98,8 @@ class Access():
         whoami.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
         whoami.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         for verb, field, text in (('chmod', 'access', 'The mode as ls shows it (rwxr-x---) or octal (750)'),
-                                  ('chgrp', 'usergroups', 'Usergroups: a list to replace, +name to add, -name to remove'),
-                                  ('chown', 'owners', 'Owners: a list to replace, +name to add, -name to remove')):
+                                  ('chgrp', 'usergroups', 'Usergroups: the whole list, comma separated; addusergroup and removeusergroup change one'),
+                                  ('chown', 'owners', 'Owners: the whole list, comma separated; addowner and removeowner change one')):
             sub = args.add_parser(verb, help=f'Change the {field} of an object')
             sub.add_argument('entity', choices=sorted(GOVERNED), help='What kind of object')
             sub.add_argument('name', help='Its name (cluster for the cluster)')
@@ -132,6 +132,10 @@ class Access():
         endpoint, protocol, verify = self._controller_endpoint()
         ini_path = os.path.expanduser(USER_INI_FILE)
         os.makedirs(os.path.dirname(ini_path), mode=0o700, exist_ok=True)
+        previous = None
+        if os.path.isfile(ini_path):
+            with open(ini_path, 'r', encoding='utf-8') as handle:
+                previous = handle.read()
         parser = RawConfigParser()
         parser['API'] = {'USERNAME': username, 'PASSWORD': password, 'ENDPOINT': endpoint,
                          'PROTOCOL': protocol, 'VERIFY_CERTIFICATE': verify}
@@ -141,10 +145,20 @@ class Access():
         token_path = os.path.expanduser(USER_TOKEN_FILE)
         if os.path.exists(token_path):
             os.remove(token_path)
-        rest = Rest()
-        if rest.ini_file != ini_path:
-            Message().error_exit(f'{ini_path} was written but is not the file in use')
-        rest.token()
+        try:
+            rest = Rest()
+            if rest.ini_file != ini_path:
+                Message().error_exit(f'{ini_path} was written but is not the file in use')
+            rest.token()
+        except SystemExit:
+            # a refused login leaves the file as it was: every later command reads it first,
+            # logout included, so a wrong password left behind would lock the person out
+            if previous is None:
+                os.remove(ini_path)
+            else:
+                with open(ini_path, 'w', encoding='utf-8') as handle:
+                    handle.write(previous)
+            raise
         Message().show_success(f'Logged in as {username}; credentials in {ini_path}, token in {token_path}.')
 
 
@@ -199,8 +213,13 @@ class Access():
         entity = GOVERNED[self.args['entity']]
         name = self.args['name']
         value = self.args[field]
-        if field != 'access' and ',' in value:
-            value = [item.strip() for item in value.split(',')]
+        if field != 'access':
+            items = [item.strip() for item in value.split(',') if item.strip()]
+            if not items or any(item.startswith(('+', '-')) for item in items):
+                single = {'chgrp': 'addusergroup or removeusergroup', 'chown': 'addowner or removeowner'}[verb]
+                Message().error_exit(f'{verb} sets the whole list of {field}; to add or take off one, use luna access {single}')
+            if ',' in value:
+                value = items
         body = {'config': {entity: {name: {field: value}}}}
         response = Rest().post_raw(f'config/{entity}/{name}/_{verb}', body)
         if response.status_code in (201, 204):

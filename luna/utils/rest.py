@@ -111,7 +111,7 @@ class Rest():
         """
         The person's own login first, the controller's file second, and the token cache
         follows the file that was used: root on the controller keeps the shared token as
-        today, a person who ran luna login holds their own.
+        today, a person who ran luna access login holds their own.
         """
         user_ini = os.path.expanduser(USER_INI_FILE)
         if os.path.isfile(user_ini) and os.access(user_ini, os.R_OK):
@@ -141,8 +141,10 @@ class Rest():
                 self.security, errors = self.get_option(parser, errors, 'API', 'VERIFY_CERTIFICATE')
             else:
                 errors.append(f'API section is not found in {ini_file}.')
+        elif file_check:
+            errors.append(f'{ini_file} is not readable by you, and no {USER_INI_FILE}: run luna access login')
         else:
-            errors.append(f'{ini_file} is not found on this machine, and no {USER_INI_FILE}: run luna login')
+            errors.append(f'{ini_file} is not found on this machine, and no {USER_INI_FILE}: run luna access login')
         if errors:
             Message().show_error('You need to fix following errors...')
             num = 1
@@ -254,7 +256,7 @@ class Rest():
             os.chmod(self.token_file, 0o600)
         except PermissionError as exp:
             # somebody else's cache, root's on a controller: say so where a person can act on it
-            raise PermissionError(f'{self.token_file} is not yours to write: run luna login to work as yourself') from exp
+            raise PermissionError(f'{self.token_file} is not yours to write: run luna access login to work as yourself') from exp
 
     def get_token(self):
         """

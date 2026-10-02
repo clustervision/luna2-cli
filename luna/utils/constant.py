@@ -33,7 +33,7 @@ import types
 
 INI_FILE = '/trinity/local/luna/cli/config/luna.ini'
 TOKEN_FILE = '/trinity/local/luna/cli/config/token.txt'
-# A person's own login, read before the controller's file; luna login writes it.
+# A person's own login, read before the controller's file; luna access login writes it.
 USER_INI_FILE = '~/.luna/luna.ini'
 USER_TOKEN_FILE = '~/.luna/token'
 USER_LOG_FILE = '~/.luna/luna2-cli.log'
