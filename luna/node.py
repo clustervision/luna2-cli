@@ -140,7 +140,7 @@ class Node():
                                metavar=BOOL_META, help='toggle dhcp')
         change_interface.add_argument('-O', '--options', action='store_true',
                                       help='Interfaces Options')
-        change_interface.add_argument('-qO', '--quick-options', dest='options',
+        change_interface.add_argument('-qo', '-qO', '--quick-options', dest='options',
                                 metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
         change_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         change_interface.add_argument('--force', action='store_true', default=None,
