@@ -100,7 +100,7 @@ class Group():
         group_unassignprofile.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
         group_unassignprofile.add_argument('profile', help='Name of the Profile')
         group_show.add_argument('-f', '--full-scripts', action='store_true', default=None, help='Show the Full Scripts')
-        group_member = group_args.add_parser('member', help='Group Used by Nodes')
+        group_member = group_args.add_parser('member', help='Nodes in the group')
         group_member.add_argument('name', help='Name of the Group').completer = Helper().name_completer(self.table)
         Arguments().common_list_args(group_member)
         group_add = group_args.add_parser('add', help='Add Group')
@@ -168,7 +168,7 @@ class Group():
                                metavar=BOOL_META, help='toggle dhcp')
         change_interface.add_argument('-O', '--options', action='store_true',
                                       help='Interfaces Options')
-        change_interface.add_argument('-qO', '--quick-options', dest='options',
+        change_interface.add_argument('-qo', '-qO', '--quick-options', dest='options',
                                 metavar="File-Path OR In-Line", help='Options File-Path OR In-Line')
         change_interface.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         remove_interface = group_args.add_parser('removeinterface', help='Remove Group Interface')

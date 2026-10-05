@@ -118,6 +118,8 @@ class Arguments():
         """
         parser.add_argument('-t', '--type', help='Type of Cloud Provider')
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
+        parser.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
@@ -255,7 +257,7 @@ class Arguments():
         parser.add_argument('-m', '--bootmenu', choices=BOOL_CHOICES,
                               metavar=BOOL_META, help='Overrides Group configured setting that enables or disables the displaying of the iPXE boot menu')
         parser.add_argument('-S', '--service', choices=BOOL_CHOICES,
-                              metavar=BOOL_META, help='Enabling or disabling the Service mode during. Enabled drops the booting node into a shell')
+                              metavar=BOOL_META, help='Enable or disable service mode. Enabled drops the booting node into a shell')
         parser.add_argument('--status', help='Status')
         parser.add_argument('--tpm_uuid', help='TPM UUID')
         parser.add_argument('--tpm_pubkey', help='TPM Public Key')

@@ -88,16 +88,19 @@ class Secrets():
         show_parser = show_secrets.add_subparsers(dest='entity')
         show_node = show_parser.add_parser('node', help='Show Node Secrets')
         show_node.add_argument('name', help='Name of the Node').completer = Helper().name_completer("node")
+        show_node.add_argument('secret_positional', nargs='?', metavar='secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "node")
         show_node.add_argument('-s', '--secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "node")
         show_node.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
         show_node.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         show_cluster = show_parser.add_parser('cluster', help='Show Cluster Secrets')
-        show_cluster.add_argument('secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "cluster")
+        show_cluster.add_argument('secret_positional', nargs='?', metavar='secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "cluster")
+        show_cluster.add_argument('-s', '--secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "cluster")
         show_cluster.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
         show_cluster.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         show_group = show_parser.add_parser('group', help='Show Group Secrets')
         show_group.add_argument('name', help='Name of the Group').completer = Helper().name_completer("group")
-        show_group.add_argument('secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "group")
+        show_group.add_argument('secret_positional', nargs='?', metavar='secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "group")
+        show_group.add_argument('-s', '--secret', help='Name of the Secret').completer = Helper().secret_name_completer(self.route, "group")
         show_group.add_argument('-R', '--raw', action='store_true', default=None, help='Raw JSON output')
         show_group.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         ## >>>>>>> Secrets Command >>>>>>> add
@@ -341,13 +344,19 @@ class Secrets():
         or only-one depending on the arguments.
         """
         response = False
+        # one grammar for every scope: the secret may come as the positional or as -s;
+        # they are kept apart because an optional positional overwrites a flag's value
+        # when the flag comes first on the command line
+        secret = self.args.get('secret') or self.args.get('secret_positional')
         if self.args.get('entity') == 'cluster':
-            uri = f'{self.route}/cluster/{self.args["secret"]}'
+            uri = f'{self.route}/cluster'
+            if secret is not None:
+                uri = f'{uri}/{secret}'
             return self.show_secret_table(uri, 'cluster')
         if self.args['entity'] is not None:
             uri = f'{self.route}/{self.args["entity"]}/{self.args["name"]}'
-            if self.args['secret'] is not None:
-                uri = f'{uri}/{self.args["secret"]}'
+            if secret is not None:
+                uri = f'{uri}/{secret}'
             self.logger.debug(f'Secret URI => {uri}')
             get_list = Rest().get_data(uri)
             if get_list.status_code == 200:

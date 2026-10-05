@@ -85,7 +85,7 @@ class Switch():
         switch_add.add_argument('-r', '--read', help='Read community')
         switch_add.add_argument('-w', '--rw', help='Write community')
         switch_add.add_argument('-o', '--oid', help='OID')
-        switch_add.add_argument('-u', '--uplinkports', help='Write community')
+        switch_add.add_argument('-u', '--uplinkports', help='Uplink ports, comma-separated; left out of the switch-port node detection')
         # TRIX-1908: switch zero-touch provisioning (ZTP) fields
         switch_add.add_argument('-nb', '--netboot', choices=BOOL_CHOICES, metavar=BOOL_META,
                                 help='Toggle ZTP netboot DHCP options for the switch')
@@ -123,7 +123,7 @@ class Switch():
         switch_change.add_argument('-r', '--read', help='Read community')
         switch_change.add_argument('-w', '--rw', help='Write community')
         switch_change.add_argument('-o', '--oid', help='OID')
-        switch_change.add_argument('-u', '--uplinkports', help='Write community')
+        switch_change.add_argument('-u', '--uplinkports', help='Uplink ports, comma-separated; left out of the switch-port node detection')
         # TRIX-1908: switch zero-touch provisioning (ZTP) fields
         switch_change.add_argument('-nb', '--netboot', choices=BOOL_CHOICES, metavar=BOOL_META,
                                    help='Toggle ZTP netboot DHCP options for the switch')
@@ -162,7 +162,7 @@ class Switch():
         switch_clone.add_argument('-r', '--read', help='Read community')
         switch_clone.add_argument('-w', '--rw', help='Write community')
         switch_clone.add_argument('-o', '--oid', help='OID')
-        switch_clone.add_argument('-u', '--uplinkports', help='Write community')
+        switch_clone.add_argument('-u', '--uplinkports', help='Uplink ports, comma-separated; left out of the switch-port node detection')
         # TRIX-1908: switch zero-touch provisioning (ZTP) fields
         switch_clone.add_argument('-nb', '--netboot', choices=BOOL_CHOICES, metavar=BOOL_META,
                                   help='Toggle ZTP netboot DHCP options for the switch')

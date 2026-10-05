@@ -298,7 +298,7 @@ def actions(table: str) -> list:
         "otherdev": common_actions,
         "switch" : common_actions + ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"],
         "control" : ["power", "sel", "chassis", "redfish", "nextboot"],
-        "power" : ["on", "off", "status", "reset"],
+        "power" : ["on", "off", "status", "reset", "cycle"],
         "sel" : ["list", "clear"],
         "chassis" : ["identify", "noidentify"],
         "redfish" : ["upload", "setting"],
