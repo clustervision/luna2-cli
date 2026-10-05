@@ -124,6 +124,7 @@ class Network():
         network_dns_change.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         network_dns_remove = network_dns_args.add_parser('remove', help='Remove DNS Entry')
         network_dns_remove.add_argument('host', help='Host Name')
+        network_dns_remove.add_argument('ipaddress', nargs='?', help='One address of the host; without it the whole host goes')
         network_dns_remove.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         network_route = network_args.add_parser('route', help='Manage the static-route catalog')
         Arguments().common_list_args(network_route)
@@ -300,9 +301,9 @@ class Network():
 
     def network_dns_change(self):
         """
-        This method update a DNS entry.
+        This method update a DNS entry: the host keeps this address and no other.
         """
-        request_data = {'config': {'dns': {self.args['name']: [{'host': self.args['host'], 'ipaddress':self.args['ipaddress']}]}}}
+        request_data = {'config': {'dns': {self.args['name']: [{'host': self.args['host'], 'ipaddress':self.args['ipaddress'], 'replace': True}]}}}
         self.logger.debug(f'Payload => {request_data}')
         response = Rest().post_data('dns', self.args['name'], request_data)
         self.logger.debug(f'Response => {response}')
@@ -318,10 +319,14 @@ class Network():
         This method remove a DNS entry.
         """
         name = f"{self.args['name']}/{self.args['host']}"
+        what = f'DNS entry {self.args["host"]}'
+        if self.args.get('ipaddress'):
+            name = f"{name}/{self.args['ipaddress']}"
+            what = f'{what} address {self.args["ipaddress"]}'
         response = Rest().get_delete('dns', name)
         self.logger.debug(f'Response => {response}')
         if response.status_code == 204:
-            Message().show_success(f'Network {self.args["name"]} DNS entry {self.args["host"]} is removed.')
+            Message().show_success(f'Network {self.args["name"]} {what} is removed.')
         else:
             Message().error_exit(response.content, response.status_code)
         return True
