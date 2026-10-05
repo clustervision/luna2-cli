@@ -118,6 +118,8 @@ class Arguments():
         """
         parser.add_argument('-t', '--type', help='Type of Cloud Provider')
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
+        parser.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
