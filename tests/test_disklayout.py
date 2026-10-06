@@ -343,6 +343,39 @@ def test_bool_words(word: str, expected: bool) -> None:
     assert out["sets"][0]["persistent"] is expected
 
 
+@pytest.mark.parametrize("word", ["first", "grub", "yes", "true", "last", "no", "false", "none"])
+def test_bootloader_words_reach_the_daemon_as_words(word: str) -> None:
+    """bootloader is a string-or-bool field, so every accepted spelling travels
+    as the word the operator wrote -- bare or quoted. Bare `yes`/`true` must not
+    become a boolean and `none` must not become null: the node reads the word."""
+    for text in (word, f'"{word}"'):
+        out = json.loads(canonicalize(
+            f"version: 2\nsets:\n- {{role: os, bootloader: {text}, volumes: []}}\n"))
+        assert out["sets"][0]["bootloader"] == word
+
+
+@pytest.mark.parametrize("value,expected", [("true", "true"), ("false", "false")])
+def test_bootloader_json_boolean_becomes_the_word(value: str, expected: str) -> None:
+    """A JSON boolean is one of the accepted spellings; it arrives as the word,
+    which the daemon accepts, so the two input formats agree."""
+    out = json.loads(canonicalize(f'{{"version":2,"sets":[{{"role":"os","bootloader":{value},"volumes":[]}}]}}'))
+    assert out["sets"][0]["bootloader"] == expected
+
+
+@pytest.mark.parametrize("nullword", ["null", "~", ""])
+def test_bootloader_without_a_value_is_refused(nullword: str) -> None:
+    """A key with no value must not travel as JSON null: the daemon would report
+    it as an unsupported spelling, which reads as a typo for `none`."""
+    with pytest.raises(DisklayoutError, match="bootloader has no value"):
+        canonicalize(f"version: 2\nsets:\n- {{role: os, bootloader: {nullword}, volumes: []}}\n")
+
+
+def test_bootloader_is_never_written_when_absent() -> None:
+    """Absent means the node's default (last); the CLI must not materialize it."""
+    out = json.loads(canonicalize("version: 2\nsets:\n- {role: os, volumes: []}\n"))
+    assert "bootloader" not in out["sets"][0]
+
+
 # --------------------------------------------------------------------------- #
 # Bucket 2 -- meaning-changing edits produce different canonical JSON.
 # --------------------------------------------------------------------------- #
@@ -497,6 +530,9 @@ def _layout(draw: st.DrawFn) -> dict:
         a_set["save"] = draw(st.booleans())
     if draw(st.booleans()):
         a_set["persistent"] = draw(st.booleans())
+    if draw(st.booleans()):
+        a_set["bootloader"] = draw(st.sampled_from(
+            ["first", "grub", "yes", "true", "last", "no", "false", "none"]))
     return {"version": draw(st.integers(min_value=0, max_value=9)), "sets": [a_set]}
 
 

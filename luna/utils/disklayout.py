@@ -41,6 +41,8 @@ The schema field types mirror ``internal/config/v2/types.go`` in luna2-client:
 
     ints  : version, count, spares
     bools : save, persistent, clear_uefi_nvram
+    words : bootloader -- first, grub, yes, true, last, no, false or none, kept
+            as authored (the node normalises the spelling); absent means last
     everything else is a string (or a list/map of strings).
 
 This module is a pure front-end (contract C2): its only output is canonical JSON
@@ -72,6 +74,10 @@ SchemaVersion = 2
 # named "count"/"save"/...), so a recursive key-based coercion is safe.
 _INT_FIELDS = frozenset({"version", "count", "spares"})
 _BOOL_FIELDS = frozenset({"save", "persistent", "clear_uefi_nvram"})
+# Fields the v2 schema unmarshals from a string OR a boolean. Most of the words
+# they accept are not boolean words at all, so nothing is coerced: the word the
+# operator wrote travels unchanged and the node normalises the spelling.
+_WORD_FIELDS = frozenset({"bootloader"})
 
 
 
@@ -95,6 +101,17 @@ def _coerce_bool(key: str, value: Any) -> bool:
     return yamldoc.coerce_bool(key, value, DisklayoutError)
 
 
+def _coerce_word(key: str, value: Any) -> str:
+    """Keep a declared string-or-bool field exactly as authored. A shape that is
+    not a word cannot be normalised by the node, so it fails here rather than
+    reaching the daemon as JSON null."""
+    if isinstance(value, str):
+        return value
+    if value is None:
+        raise DisklayoutError(f"{key} has no value")
+    raise DisklayoutError(f"{key} must be one word, got a {type(value).__name__}")
+
+
 def _coerce(node: Any) -> Any:
     """Recursively apply the explicit typed coercion to the parsed structure."""
     if isinstance(node, dict):
@@ -104,6 +121,8 @@ def _coerce(node: Any) -> Any:
                 out[key] = _coerce_int(key, value)
             elif key in _BOOL_FIELDS:
                 out[key] = _coerce_bool(key, value)
+            elif key in _WORD_FIELDS:
+                out[key] = _coerce_word(key, value)
             else:
                 out[key] = _coerce(value)
         return out
@@ -147,8 +166,9 @@ def _parse(text: str) -> Any:
 #   set.raid       <- none               (raid is required)
 #   volume.name    <- from mountpoint    (name is required)
 #   memory volume  <- mountpoint '/', size 80%, options mpol=interleave (safety)
-# role stays MANDATORY (it cannot be guessed); count/spares/save/persistent are
-# left as authored (count 0 = "resolve per raid mode" on the node).
+# role stays MANDATORY (it cannot be guessed); count/spares/save/persistent and
+# bootloader are left as authored (count 0 = "resolve per raid mode" on the node;
+# an absent bootloader is the node's default `last`, never written here).
 
 _MOUNT_VOLUME_NAMES = {"/": "root", "/boot": "boot", "/boot/efi": "uefi"}
 
