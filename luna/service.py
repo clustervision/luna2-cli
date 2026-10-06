@@ -141,12 +141,14 @@ class Service():
                     return result.status_code
                 status = 200
                 response = True
-                while status != 404:
-                    status = dig_service_status(uri)
-                    if status in [500, 501, 503]:
-                        response = False
-                    sleep(1)
-                process1.terminate()
+                try:
+                    while status != 404:
+                        status = dig_service_status(uri)
+                        if status in [500, 501, 503]:
+                            response = False
+                        sleep(1)
+                finally:
+                    process1.terminate()
                 service = self.args['service']
                 action = self.args['action']
                 if response:

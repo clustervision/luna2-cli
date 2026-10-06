@@ -29,6 +29,7 @@ __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
+import json
 import sys
 from luna.utils.log import Log
 
@@ -47,15 +48,73 @@ class Message():
             self.logger = Log.init_log('info')
 
 
+    @staticmethod
+    def answer_message(answer=None, code=None):
+        """
+        Read a daemon answer without letting error reporting raise another error.
+        A 500 with an unusable body still says Server Error; only a JSON detail
+        is added beneath it, never a proxy's HTML page or an arbitrary body.
+        """
+        fallback = 'Server Error'
+        try:
+            # A string already supplied by a command is its message, not a raw body.
+            strict = code == 500 and not isinstance(answer, str)
+            content = getattr(answer, 'content', answer)
+            if isinstance(content, bytes):
+                content = content.decode('utf-8', errors='replace')
+            body = content
+            if isinstance(content, str):
+                try:
+                    body = json.loads(content)
+                except ValueError:
+                    return fallback if strict else content
+            if isinstance(body, dict):
+                message = body.get('message', fallback if code == 500 else content)
+                if not isinstance(message, str):
+                    if code == 500:
+                        message = fallback
+                    else:
+                        return str(message)
+                detail = body.get('detail')
+                if isinstance(detail, str):
+                    detail = ' '.join(''.join(char if char.isprintable() else ' '
+                                              for char in detail).split())
+                    if detail:
+                        return f'{message}\n    {detail}'
+                return message
+            if strict or content is None:
+                return fallback
+            return str(content)
+        except Exception:
+            # A broken response or exception string must not hide the original 500.
+            return fallback
+
+
     def error_exit(self, message=None, code=None):
         """
         This method will print the standard error and exit from program.
         """
-        sys.stderr.write(f'{message}.\n')
-        self.logger.debug(f'Message => {message}')
-        if code:
-            # sys.stderr.write(f'HTTP ERROR :: {code}\n')
-            self.logger.debug(f'HTTP ERROR :: {code}')
+        message = self.answer_message(message, code)
+        if code == 500:
+            message = f'HTTP ERROR :: 500 {message}'
+        suffix = '' if '\n' in message else '.'
+        line = f'{message}{suffix}\n'
+        try:
+            try:
+                sys.stderr.write(line)
+            except UnicodeEncodeError:
+                # Older terminals may not support the characters in an exception.
+                sys.stderr.write(line.encode('ascii', errors='backslashreplace').decode('ascii'))
+        except Exception:
+            # An unavailable stderr still means failure, not a secondary traceback.
+            pass
+        try:
+            self.logger.debug(f'Message => {message}')
+            if code:
+                self.logger.debug(f'HTTP ERROR :: {code}')
+        except Exception:
+            # Logging the failure must not prevent the nonzero exit either.
+            pass
         sys.exit(1)
 
 
@@ -63,6 +122,7 @@ class Message():
         """
         This method will print the standard error.
         """
+        message = self.answer_message(message)
         sys.stderr.write(f'{message}\n')
         self.logger.debug(f'Message => {message}')
         sys.exit(1)
@@ -72,6 +132,9 @@ class Message():
         """
         This method will print the standard error.
         """
+        message = self.answer_message(message, code)
+        if code == 500:
+            message = f'HTTP ERROR :: 500 {message}'
         sys.stderr.write(f'{message}\n')
         self.logger.debug(f'Message => {message}')
         return True

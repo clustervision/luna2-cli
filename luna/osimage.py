@@ -239,12 +239,14 @@ class OSImage():
                     return result.status_code
             response = True
             status = 200
-            while status != 404:
-                status = dig_packing_status(uri)
-                if status in [500, 501, 503]:
-                    response = False
-                sleep(2)
-            process1.terminate()
+            try:
+                while status != 404:
+                    status = dig_packing_status(uri)
+                    if status in [500, 501, 503]:
+                        response = False
+                    sleep(2)
+            finally:
+                process1.terminate()
         if response:
             Message().show_success(f'[========] OSImage {self.args["newosimage"]} Cloned.')
         elif response is None:
@@ -306,12 +308,14 @@ class OSImage():
                     return result.status_code
             response = True
             status = 200
-            while status != 404:
-                sleep(2) # yes, before.
-                status = dig_packing_status(uri)
-                if status in [500, 501, 503]:
-                    response = False
-            process1.terminate()
+            try:
+                while status != 404:
+                    sleep(2) # yes, before.
+                    status = dig_packing_status(uri)
+                    if status in [500, 501, 503]:
+                        response = False
+            finally:
+                process1.terminate()
         if response:
             Message().show_success(f'[========] Image {self.args["name"]} Packed.')
         elif response is None:
@@ -391,12 +395,14 @@ class OSImage():
                     return result.status_code
             response = True
             status = 200
-            while status != 404:
-                sleep(2) # yes, before.
-                status = dig_packing_status(uri)
-                if status in [500, 501, 503]:
-                    response = False
-            process1.terminate()
+            try:
+                while status != 404:
+                    sleep(2) # yes, before.
+                    status = dig_packing_status(uri)
+                    if status in [500, 501, 503]:
+                        response = False
+            finally:
+                process1.terminate()
         if response:
             Message().show_success(f'[========] Image {self.args["name"]} certificates updated.')
         elif response is None:
@@ -461,12 +467,14 @@ class OSImage():
                     return result.status_code
             response = True
             status = 200
-            while status != 404:
-                sleep(2) # yes, before.
-                status = dig_packing_status(uri)
-                if status in [500, 501, 503]:
-                    response = False
-            process1.terminate()
+            try:
+                while status != 404:
+                    sleep(2) # yes, before.
+                    status = dig_packing_status(uri)
+                    if status in [500, 501, 503]:
+                        response = False
+            finally:
+                process1.terminate()
             if response:
                 Message().show_success(f'[========] Image {self.args["name"]} Packed.')
             elif response is None:

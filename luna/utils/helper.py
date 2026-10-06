@@ -990,12 +990,14 @@ class Helper():
                     return result.status_code
             status = 200
             response = True
-            while status != 404:
-                status = dig_grabbing_status(uri)
-                if status in [500, 501, 503]:
-                    response = False
-                sleep(2)
-            process1.terminate()
+            try:
+                while status != 404:
+                    status = dig_grabbing_status(uri)
+                    if status in [500, 501, 503]:
+                        response = False
+                    sleep(2)
+            finally:
+                process1.terminate()
         if response:
             Message().show_success(f'[========] OSImage Grabbed for node {data["name"]}.')
         else:
@@ -1051,12 +1053,14 @@ class Helper():
                     return result.status_code
             status = 200
             response = True
-            while status != 404:
-                status = dig_push_status(uri)
-                if status in [500, 501, 503]:
-                    response = False
-                sleep(2)
-            process1.terminate()
+            try:
+                while status != 404:
+                    status = dig_push_status(uri)
+                    if status in [500, 501, 503]:
+                        response = False
+                    sleep(2)
+            finally:
+                process1.terminate()
         if response:
             Message().show_success(f'[========] OSImage Pushed for {table} {data["name"]}.')
         else:

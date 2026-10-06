@@ -89,7 +89,7 @@ class Rest():
         daemon_url = f'{self.daemon}/version'
         self.logger.debug(f'URL {daemon_url}')
         try:
-            response = requests.get(url=daemon_url, timeout=20, verify=False)
+            response = self.check_response(requests.get(url=daemon_url, timeout=20, verify=False))
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.SSLError as ssl_loop_error:
             check = True
@@ -180,6 +180,18 @@ class Rest():
             self.logger.debug('Token refused by the daemon, logging in again once.')
             kwargs['headers'] = {'x-access-tokens': self.token(), **extra}
             response = getattr(self.session, method)(url, **kwargs)
+        return self.check_response(response)
+
+    @staticmethod
+    def check_response(response):
+        """
+        Stop on a daemon 500 before a command can discard its reason or keep polling.
+        Token and validation requests use this check too, without token recursion.
+        Other HTTP codes retain their command-specific meaning, including the 404
+        that ends a status stream and the 503 used for a stopped service.
+        """
+        if response.status_code == 500:
+            Message().error_exit(response, 500)
         return response
 
     def get_response(self, data=None):
@@ -221,6 +233,7 @@ class Rest():
                 timeout=self.request_timeout,
                 verify=self.security
             )
+            self.check_response(call)
             self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
             if call.content:
                 data = call.json()
