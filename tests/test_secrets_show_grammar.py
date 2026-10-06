@@ -17,7 +17,9 @@ from luna.utils import log as luna_log
 
 @pytest.fixture(autouse=True)
 def _stub_logger():
-    """A logger without Log.init_log()'s root-only file handler."""
+    """
+    A logger without Log.init_log()'s root-only file handler.
+    """
     previous = luna_log.Log._Log__logger  # noqa: SLF001 - name-mangled by design
     luna_log.Log._Log__logger = logging.getLogger('luna2-cli-tests')  # noqa: SLF001
     yield
@@ -51,8 +53,10 @@ def test_every_show_form_accepts_the_secret_either_way_or_not_at_all(argv, expec
 
 
 def test_show_sends_the_secret_whichever_way_it_came(monkeypatch):
-    """The two fields are merged where the request is built, because an optional positional
-    overwrites the flag's value when the flag comes first on the command line."""
+    """
+    The two fields are merged where the request is built, because an optional positional
+    overwrites the flag's value when the flag comes first on the command line.
+    """
     from luna.secrets import Secrets
     seen = []
     class Answer:

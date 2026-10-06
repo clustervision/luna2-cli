@@ -149,28 +149,30 @@ class Control():
         elif len(hostlist) > 1:
             control_process = Process(target=Helper().loader, args=("Fetching Nodes Status...",))
             control_process.start()
-            request_id = None
-            uri = f'{self.route}/action/{self.args["system"]}/_{self.args["action"]}'
-            payload = {
-                'control':{
-                    self.args['system']:{
-                        self.args['action']:{
-                            'hostlist':self.args['node']
+            try:
+                request_id = None
+                uri = f'{self.route}/action/{self.args["system"]}/_{self.args["action"]}'
+                payload = {
+                    'control':{
+                        self.args['system']:{
+                            self.args['action']:{
+                                'hostlist':self.args['node']
+                            }
                         }
                     }
                 }
-            }
-            response = Rest().post_raw(uri, payload)
-            self.logger.debug(f'HTTP STATUS => {response.status_code}')
-            self.logger.debug(f'HTTP Response => {response.content}')
-            if response.status_code == 200:
-                content = response.json()
-                if 'control' in content:
-                    request_id = content['request_id'] if 'request_id' in content else None
-                    count = Helper().control_print(self.args['system'], content ,1)
-                    if request_id:
-                        Helper().dig_status(request_id, count, self.args['system'])
-                        control_process.terminate()
+                response = Rest().post_raw(uri, payload)
+                self.logger.debug(f'HTTP STATUS => {response.status_code}')
+                self.logger.debug(f'HTTP Response => {response.content}')
+                if response.status_code == 200:
+                    content = response.json()
+                    if 'control' in content:
+                        request_id = content['request_id'] if 'request_id' in content else None
+                        count = Helper().control_print(self.args['system'], content ,1)
+                        if request_id:
+                            Helper().dig_status(request_id, count, self.args['system'])
+            finally:
+                control_process.terminate()
         return response
 
 

@@ -32,7 +32,9 @@ def _stub_logger():
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    """A home directory of our own, and a controller ini we control."""
+    """
+    A home directory of our own, and a controller ini we control.
+    """
     monkeypatch.setenv('HOME', str(tmp_path / 'home'))
     os.makedirs(tmp_path / 'home')
     controller_ini = tmp_path / 'controller' / 'luna.ini'
@@ -98,9 +100,11 @@ def test_a_controller_file_that_is_there_but_unreadable_is_called_unreadable(hom
 
 
 def test_login_and_logout_are_dispatched_without_credentials(home, monkeypatch):
-    """A person's first luna login has no ~/.luna yet and cannot read the controller's ini;
+    """
+    A person's first luna login has no ~/.luna yet and cannot read the controller's ini;
     the dispatcher must not demand credentials before the verb that creates them runs.
-    Every other verb still passes the check first."""
+    Every other verb still passes the check first.
+    """
     from luna import cli as luna_cli
     from luna.utils.rest import Rest
     os.remove(home.controller_ini)
@@ -121,9 +125,11 @@ def test_login_and_logout_are_dispatched_without_credentials(home, monkeypatch):
 
 
 def test_the_whole_parser_builds_for_a_person_who_has_not_logged_in(home, monkeypatch):
-    """The cluster and network parsers fetch the controller names from the daemon while the
+    """
+    The cluster and network parsers fetch the controller names from the daemon while the
     arguments are being built; without a readable credential file that fetch must yield
-    nothing rather than refuse, or luna access login can never be parsed."""
+    nothing rather than refuse, or luna access login can never be parsed.
+    """
     from luna import cli as luna_cli
     from luna.utils.helper import Helper
     os.remove(home.controller_ini)
@@ -162,7 +168,9 @@ def test_an_expired_token_is_renewed_by_logging_in(home, monkeypatch):
 
 
 def test_a_token_without_an_expiry_claim_is_replaced(home, monkeypatch):
-    """A token that says nothing about its expiry cannot be trusted to be current."""
+    """
+    A token that says nothing about its expiry cannot be trusted to be current.
+    """
     from luna.utils.rest import Rest
     _own_login(home)
     rest = Rest()
@@ -221,7 +229,9 @@ def test_login_writes_the_own_files_readable_by_the_owner_only(home, monkeypatch
 
 @pytest.mark.parametrize('logged_in_before', [False, True])
 def test_a_refused_login_leaves_the_own_file_as_it_was(home, monkeypatch, logged_in_before):
-    """The own file is read before the controller's by every command, logout included."""
+    """
+    The own file is read before the controller's by every command, logout included.
+    """
     from luna.access import Access
     from luna.utils.message import Message
     import luna.access as access
@@ -241,8 +251,10 @@ def test_a_refused_login_leaves_the_own_file_as_it_was(home, monkeypatch, logged
 
 
 def test_logout_runs_when_the_own_credentials_have_gone_stale(home, monkeypatch):
-    """The parser asks the daemon for the controllers while it is built; a password changed
-    since the login is refused there, and logout must still remove the file."""
+    """
+    The parser asks the daemon for the controllers while it is built; a password changed
+    since the login is refused there, and logout must still remove the file.
+    """
     from luna.cli import Cli
     from luna.utils.message import Message
     import luna.utils.rest as rest
@@ -310,7 +322,9 @@ def test_the_three_verbs_post_to_the_generic_routes(home, monkeypatch, capsys):
 
 
 def test_one_usergroup_or_owner_is_added_or_removed_without_a_leading_dash(home, monkeypatch, capsys):
-    """-name on chgrp is read by argparse as an option; these verbs take the bare name and sign it."""
+    """
+    -name on chgrp is read by argparse as an option; these verbs take the bare name and sign it.
+    """
     from luna.access import Access
     from luna.cli import Cli
     import luna.access as access
@@ -337,7 +351,9 @@ def test_one_usergroup_or_owner_is_added_or_removed_without_a_leading_dash(home,
 @pytest.mark.parametrize('action, field, value', [('chgrp', 'usergroups', ''), ('chgrp', 'usergroups', '+intel'),
                                                   ('chgrp', 'usergroups', 'intel,-amd'), ('chown', 'owners', ' , ')])
 def test_chgrp_and_chown_take_the_whole_list_only(home, monkeypatch, capsys, action, field, value):
-    """An empty list or a signed name is refused before it is sent; one name goes through the add and remove verbs."""
+    """
+    An empty list or a signed name is refused before it is sent; one name goes through the add and remove verbs.
+    """
     from luna.access import Access
     import luna.access as access
     monkeypatch.setattr(access.Rest, 'post_raw', lambda self, route, payload: pytest.fail('nothing is sent'))
@@ -347,7 +363,9 @@ def test_chgrp_and_chown_take_the_whole_list_only(home, monkeypatch, capsys, act
 
 
 def test_every_governed_listing_shows_owners_usergroups_and_access():
-    """ls -l: the three fields join every governed list and show, and no ungoverned one."""
+    """
+    ls -l: the three fields join every governed list and show, and no ungoverned one.
+    """
     from luna.utils.constant import ACCESS_FIELDS, GOVERNED_TABLES, filter_columns, sortby
     for table in GOVERNED_TABLES:
         assert all(field in filter_columns(table) for field in ACCESS_FIELDS), table
@@ -360,8 +378,10 @@ def test_every_governed_listing_shows_owners_usergroups_and_access():
 # ── the log follows the person too ─────────────────────────────────────────
 
 def test_the_log_falls_back_to_the_own_directory_when_the_system_log_is_not_writable(home, monkeypatch):
-    """Logging in as oneself does not need root: a person who may not append to
-    /var/log/luna gets a log beside their login; root keeps the system file."""
+    """
+    Logging in as oneself does not need root: a person who may not append to
+    /var/log/luna gets a log beside their login; root keeps the system file.
+    """
     import luna.utils.log as luna_log
     system_log = home.root / 'var' / 'luna2-cli.log'
     monkeypatch.setattr(luna_log, 'LOG_FILE', str(system_log))
@@ -377,8 +397,10 @@ def test_the_log_falls_back_to_the_own_directory_when_the_system_log_is_not_writ
 
 
 def test_the_mode_is_shown_with_its_meaning_in_words():
-    """The letters stay, because chmod takes them; every show says beside them what each
-    class may do, so nobody has to know that x means operate."""
+    """
+    The letters stay, because chmod takes them; every show says beside them what each
+    class may do, so nobody has to know that x means operate.
+    """
     from luna.utils.helper import Helper
     assert Helper().access_in_words('rwxr-x---') == 'rwxr-x--- (owner: read, change, operate · team: read, operate · others: nothing)'
     assert Helper().access_in_words('rw-r--r--') == 'rw-r--r-- (owner: read, change · team: read · others: read)'
@@ -386,8 +408,10 @@ def test_the_mode_is_shown_with_its_meaning_in_words():
 
 
 def test_a_map_in_a_listing_reads_as_names_with_their_values(home):
-    """luna user list showed usergroups as {} and {'physics': 'admin'}: the raw map. It reads
-    as 'physics (admin)' and stays blank when empty."""
+    """
+    luna user list showed usergroups as {} and {'physics': 'admin'}: the raw map. It reads
+    as 'physics (admin)' and stays blank when empty.
+    """
     from luna.utils.helper import Helper
     data = {'alice': {'name': 'alice', 'usergroups': {'physics': 'admin', 'chemistry': 'reader'}},
             'eve': {'name': 'eve', 'usergroups': {}}}
@@ -397,8 +421,10 @@ def test_a_map_in_a_listing_reads_as_names_with_their_values(home):
 
 
 def test_the_access_verbs_render_what_is_held_in_words(home, monkeypatch, capsys):
-    """luna user access and luna usergroup access: one row per object, the three characters
-    a person holds with their meaning beside them."""
+    """
+    luna user access and luna usergroup access: one row per object, the three characters
+    a person holds with their meaning beside them.
+    """
     import types
     from luna.utils.helper import Helper
     from luna import user as luna_user, usergroup as luna_usergroup

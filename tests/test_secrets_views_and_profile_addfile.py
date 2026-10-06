@@ -69,7 +69,9 @@ NODE_VIEW = {'config': {'secrets': {
 
 
 class Recorder:
-    """A Presenter that remembers the titles it was asked to render, in order."""
+    """
+    A Presenter that remembers the titles it was asked to render, in order.
+    """
     titles = []
 
     def show_table(self, title=None, fields=None, rows=None):
@@ -121,7 +123,9 @@ def test_list_everything_renders_every_scope_the_daemon_answered(monkeypatch):
 
 
 def test_a_nodes_list_heads_the_group_section_with_the_group(monkeypatch):
-    """A node's list carries its group's secrets; they were headed with the node's name."""
+    """
+    A node's list carries its group's secrets; they were headed with the node's name.
+    """
     secrets = _secrets(monkeypatch, {'entity': 'node', 'name': 'node003', 'secret': None,
                                      'raw': None}, NODE_VIEW)
     secrets.list_secrets()
@@ -130,7 +134,9 @@ def test_a_nodes_list_heads_the_group_section_with_the_group(monkeypatch):
 
 
 class Messages:
-    """A Message that records instead of printing, and never exits."""
+    """
+    A Message that records instead of printing, and never exits.
+    """
     said = []
 
     def show_success(self, message=None):

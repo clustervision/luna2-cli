@@ -62,7 +62,9 @@ from luna.utils.constant import overrides, sortby
 
 @pytest.fixture(autouse=True)
 def _stub_logger():
-    """Give Helper a logger without Log.init_log()'s root-only file handler."""
+    """
+    Give Helper a logger without Log.init_log()'s root-only file handler.
+    """
     previous = luna_log.Log._Log__logger  # noqa: SLF001 - name-mangled by design
     luna_log.Log._Log__logger = logging.getLogger('luna2-cli-tests')  # noqa: SLF001
     yield
@@ -92,7 +94,8 @@ def helper():
 
 
 def record(**sources):
-    """Build a record carrying only the fields a case needs.
+    """
+    Build a record carrying only the fields a case needs.
 
     Each keyword is `field=(source, value)` and expands to the field plus its
     `_<field>_source`, which is the whole of what deviated_field_names reads.
@@ -124,7 +127,9 @@ class FakeResponse:
 
 
 class FakeRest:
-    """Stands in for luna.utils.rest.Rest so no daemon is needed."""
+    """
+    Stands in for luna.utils.rest.Rest so no daemon is needed.
+    """
 
     served = {}
     calls = []
@@ -164,12 +169,16 @@ def test_filter_deviated(helper, label, data, expected):
 # ------------------------------------------------------------- (2) the fields
 
 def test_deviated_field_names_reads_the_sources(helper):
-    """Only a field the group supplies itself AND that overrides() knows about."""
+    """
+    Only a field the group supplies itself AND that overrides() knows about.
+    """
     assert helper.deviated_field_names('group', A_GROUP) == ['provision_method']
 
 
 def test_a_field_inherited_from_elsewhere_is_not_deviating(helper):
-    """provision_fallback comes from the cluster here, kerneloptions from the osimage."""
+    """
+    provision_fallback comes from the cluster here, kerneloptions from the osimage.
+    """
     names = helper.deviated_field_names('group', A_GROUP)
     assert 'provision_fallback' not in names
     assert 'kerneloptions' not in names
@@ -177,7 +186,8 @@ def test_a_field_inherited_from_elsewhere_is_not_deviating(helper):
 
 
 def test_a_field_outside_overrides_is_not_deviating(helper):
-    """setupbmc is set on the group and is deliberately not reported.
+    """
+    setupbmc is set on the group and is deliberately not reported.
 
     overrides() is the gate, not the source field: the record carries a source
     for far more fields than the CLI calls overridable, and the extra ones are
@@ -195,7 +205,8 @@ GROUP_ROOT_FIELDS = ['prescript', 'partscript', 'postscript', 'disklayout', 'osi
 
 @pytest.mark.parametrize('field', GROUP_ROOT_FIELDS)
 def test_a_group_never_deviates_on_a_root_field(helper, field):
-    """A group is the root for these -- there is nothing above it to deviate from.
+    """
+    A group is the root for these -- there is nothing above it to deviate from.
 
     The daemon resolves them for a group in a loop of their own with no parent
     lookup at all: the source comes back 'group' when the group holds any content
@@ -213,7 +224,9 @@ def test_a_group_never_deviates_on_a_root_field(helper, field):
 
 @pytest.mark.parametrize('field', GROUP_ROOT_FIELDS)
 def test_a_node_does_deviate_on_a_root_field(helper, field):
-    """All five, symmetrically -- a node genuinely inherits them from its group."""
+    """
+    All five, symmetrically -- a node genuinely inherits them from its group.
+    """
     record = {field: 'ZWNobyBoZWxsbwo=', f'_{field}_source': 'node'}
     assert helper.deviated_field_names('node', record) == [field]
 
@@ -226,7 +239,8 @@ def test_a_node_inheriting_a_root_field_is_not_deviating(helper, field):
 
 @pytest.mark.parametrize('field', GROUP_ROOT_FIELDS)
 def test_the_group_override_list_does_not_carry_a_root_field(field):
-    """Stated against the list itself, not only through a record.
+    """
+    Stated against the list itself, not only through a record.
 
     The record tests above would still pass if the field were re-added and the
     source happened not to say 'group'. This one fails the moment the list grows
@@ -239,7 +253,8 @@ def test_the_group_override_list_does_not_carry_a_root_field(field):
 
 @pytest.mark.parametrize('table', ['node', 'group'])
 def test_a_record_with_no_source_keys_reports_nothing(helper, table):
-    """If the payload ever stops carrying the source keys, report nothing, not nonsense.
+    """
+    If the payload ever stops carrying the source keys, report nothing, not nonsense.
 
     This does not detect such a change -- nothing on this side can. It fixes what
     happens when it arrives: an empty `deviated` cell, which reads as "nothing to
@@ -290,7 +305,9 @@ def test_deviated_value_types(helper, label, field, stored, expected):
 
 
 def test_deviated_values_survive_json(helper):
-    """-R prints through json.dumps, so every value has to be serialisable."""
+    """
+    -R prints through json.dumps, so every value has to be serialisable.
+    """
     json.dumps(helper.deviated_values('group', A_GROUP))
 
 
@@ -317,7 +334,8 @@ def test_the_raw_view_carries_the_values(helper, fake_rest, capsys):
 
 
 def test_one_record_is_read_per_listed_entry(helper, fake_rest):
-    """The list payload does not carry the *_source fields, so each entry is re-read.
+    """
+    The list payload does not carry the *_source fields, so each entry is re-read.
 
     Pinned because it is the cost of the flag: -d is one request per deviating
     entry, not one request. Anything that changes that has changed what the
@@ -332,7 +350,8 @@ def test_one_record_is_read_per_listed_entry(helper, fake_rest):
 
 @pytest.mark.parametrize('table', ['node', 'group'])
 def test_every_overridable_field_is_a_field_the_cli_displays(table):
-    """overrides() and sortby() are two hand-written lists over the same fields.
+    """
+    overrides() and sortby() are two hand-written lists over the same fields.
 
     A name that drifts out of step -- renamed upstream, or typed slightly wrong --
     does not fail: the field simply stops being reported as deviating, and both

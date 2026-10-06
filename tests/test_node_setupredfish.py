@@ -1,4 +1,6 @@
-"""TRIX-2001: luna node setupredfish asks the daemon to settle a node's Redfish accounts."""
+"""
+TRIX-2001: luna node setupredfish asks the daemon to settle a node's Redfish accounts.
+"""
 import json
 import logging
 

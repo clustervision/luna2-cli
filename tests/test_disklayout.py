@@ -175,7 +175,9 @@ SEED_LAYOUTS: dict[str, dict] = {
 
 
 def _canon(obj: dict) -> bytes:
-    """Canonicalize a Python layout via its JSON serialization (the stored form)."""
+    """
+    Canonicalize a Python layout via its JSON serialization (the stored form).
+    """
     return canonicalize(json.dumps(obj))
 
 
@@ -184,7 +186,9 @@ def _canon(obj: dict) -> bytes:
 # --------------------------------------------------------------------------- #
 @pytest.mark.parametrize("name", sorted(SEED_LAYOUTS))
 def test_json_and_yaml_forms_are_identical(name: str) -> None:
-    """The SAME layout as JSON and as YAML must produce identical canonical bytes."""
+    """
+    The SAME layout as JSON and as YAML must produce identical canonical bytes.
+    """
     obj = SEED_LAYOUTS[name]
     from_json = canonicalize(json.dumps(obj))
     from_yaml = canonicalize(yaml.safe_dump(obj))
@@ -193,7 +197,9 @@ def test_json_and_yaml_forms_are_identical(name: str) -> None:
 
 @pytest.mark.parametrize("name", sorted(SEED_LAYOUTS))
 def test_idempotent(name: str) -> None:
-    """canonicalize(canonicalize(x)) == canonicalize(x)."""
+    """
+    canonicalize(canonicalize(x)) == canonicalize(x).
+    """
     once = _canon(SEED_LAYOUTS[name])
     twice = canonicalize(once)
     assert once == twice
@@ -201,7 +207,9 @@ def test_idempotent(name: str) -> None:
 
 @pytest.mark.parametrize("name", sorted(SEED_LAYOUTS))
 def test_editor_round_trip(name: str) -> None:
-    """to_yaml(canonical) re-canonicalizes to the same canonical bytes (BE-R1)."""
+    """
+    to_yaml(canonical) re-canonicalizes to the same canonical bytes (BE-R1).
+    """
     once = _canon(SEED_LAYOUTS[name])
     rendered = to_yaml(once)
     assert canonicalize(rendered) == once
@@ -209,7 +217,9 @@ def test_editor_round_trip(name: str) -> None:
 
 @pytest.mark.parametrize("name", sorted(SEED_LAYOUTS))
 def test_key_order_irrelevant(name: str) -> None:
-    """Reordering keys in the input must not change the canonical output."""
+    """
+    Reordering keys in the input must not change the canonical output.
+    """
     obj = SEED_LAYOUTS[name]
     reordered = json.dumps(obj, sort_keys=True)
     unsorted = json.dumps(obj, sort_keys=False)
@@ -224,7 +234,9 @@ def test_utf8_bom_is_tolerated() -> None:
 
 
 def test_whitespace_and_comments_yaml() -> None:
-    """A YAML doc with blank lines and comments == its compact JSON twin."""
+    """
+    A YAML doc with blank lines and comments == its compact JSON twin.
+    """
     yaml_text = """
 # an OS set on one disk
 version: 2
@@ -262,7 +274,9 @@ NORWAY_STRINGS = ["no", "yes", "on", "off", "true", "false", "10", "0600", "1:30
 
 @pytest.mark.parametrize("value", NORWAY_STRINGS)
 def test_string_field_not_coerced(value: str) -> None:
-    """A Norway-shaped value in a STRING field survives as that exact string."""
+    """
+    A Norway-shaped value in a STRING field survives as that exact string.
+    """
     layout = {
         "version": 2,
         "sets": [
@@ -324,14 +338,18 @@ sets:
 
 @pytest.mark.parametrize("nullword", ["null", "~"])
 def test_unquoted_null_is_json_null(nullword: str) -> None:
-    """Unquoted YAML null in a string field becomes JSON null (faithful), not coerced."""
+    """
+    Unquoted YAML null in a string field becomes JSON null (faithful), not coerced.
+    """
     out = json.loads(canonicalize(f"version: 2\nsets:\n- {{role: os, raid: {nullword}, volumes: []}}\n"))
     assert out["sets"][0]["raid"] is None
 
 
 @pytest.mark.parametrize("nullword", ["null", "~"])
 def test_quoted_null_stays_string(nullword: str) -> None:
-    """Quoting preserves the literal string (the operator's escape hatch)."""
+    """
+    Quoting preserves the literal string (the operator's escape hatch).
+    """
     out = json.loads(canonicalize(f'version: 2\nsets:\n- {{role: os, raid: "{nullword}", volumes: []}}\n'))
     assert out["sets"][0]["raid"] == nullword
 
@@ -348,7 +366,9 @@ def test_bool_words(word: str, expected: bool) -> None:
 # --------------------------------------------------------------------------- #
 @pytest.mark.parametrize("name", sorted(SEED_LAYOUTS))
 def test_value_change_is_visible(name: str) -> None:
-    """Changing one storage-bearing value must change the canonical output."""
+    """
+    Changing one storage-bearing value must change the canonical output.
+    """
     import copy
 
     base = _canon(SEED_LAYOUTS[name])
@@ -402,14 +422,18 @@ def test_oversized_rejected() -> None:
 
 
 def test_billion_laughs_does_not_hang() -> None:
-    """Classic YAML alias bomb: it must raise (aliases forbidden), not expand."""
+    """
+    Classic YAML alias bomb: it must raise (aliases forbidden), not expand.
+    """
     bomb = "a: &a [x,x,x,x,x,x,x,x,x]\nb: &b [*a,*a,*a,*a,*a,*a,*a,*a,*a]\nc: [*b,*b,*b,*b,*b,*b,*b,*b,*b]\n"
     with pytest.raises(DisklayoutError):
         canonicalize(bomb)
 
 
 def test_error_messages_are_operator_facing() -> None:
-    """A simple rejection carries a legible, single-line reason (no traceback)."""
+    """
+    A simple rejection carries a legible, single-line reason (no traceback).
+    """
     with pytest.raises(DisklayoutError) as excinfo:
         canonicalize("version: 2\nversion: 3\nsets: []\n")
     msg = str(excinfo.value)
@@ -417,7 +441,9 @@ def test_error_messages_are_operator_facing() -> None:
 
 
 def test_parse_error_reports_location() -> None:
-    """A syntax error names the line and column so a human can find it."""
+    """
+    A syntax error names the line and column so a human can find it.
+    """
     with pytest.raises(DisklayoutError) as excinfo:
         canonicalize("version: 2\nsets:\n- role: os\n    volumes: []\n")  # bad indent
     msg = str(excinfo.value)
@@ -425,7 +451,9 @@ def test_parse_error_reports_location() -> None:
 
 
 def test_tab_error_is_helpful() -> None:
-    """The cryptic tab error grows a plain-language hint about spaces vs tabs."""
+    """
+    The cryptic tab error grows a plain-language hint about spaces vs tabs.
+    """
     with pytest.raises(DisklayoutError) as excinfo:
         canonicalize("version: 2\nsets:\n-\trole: os\n")
     msg = str(excinfo.value).lower()
@@ -448,7 +476,9 @@ def test_coercion_error_shows_valid_form() -> None:
 
 
 def test_lost_case_shows_a_right_example() -> None:
-    """The most-confused inputs (not an object / empty) print a real skeleton."""
+    """
+    The most-confused inputs (not an object / empty) print a real skeleton.
+    """
     for bad in ("- role: os\n- role: data\n", "", "# just a comment\n"):
         with pytest.raises(DisklayoutError) as excinfo:
             canonicalize(bad)
@@ -503,7 +533,9 @@ def _layout(draw: st.DrawFn) -> dict:
 @settings(max_examples=400)
 @given(_layout())
 def test_property_format_independence(layout: dict) -> None:
-    """JSON-in and YAML-in of the same structure -> identical canonical bytes."""
+    """
+    JSON-in and YAML-in of the same structure -> identical canonical bytes.
+    """
     assert canonicalize(json.dumps(layout)) == canonicalize(yaml.safe_dump(layout))
 
 
@@ -524,7 +556,9 @@ def test_property_editor_round_trip(layout: dict) -> None:
 @settings(max_examples=400)
 @given(_layout())
 def test_property_string_fields_never_coerced(layout: dict) -> None:
-    """No string field value ever surfaces as a bool/int/float in canonical JSON."""
+    """
+    No string field value ever surfaces as a bool/int/float in canonical JSON.
+    """
     out = json.loads(canonicalize(json.dumps(layout)))
     for a_set in out["sets"]:
         assert isinstance(a_set["raid"], str)
@@ -552,7 +586,9 @@ def _dig(obj: object, path: tuple) -> object:
 
 
 def _default_paths(complete: dict) -> list[tuple]:
-    """Every leaf that fill would re-add: the removable-default locations."""
+    """
+    Every leaf that fill would re-add: the removable-default locations.
+    """
     paths: list[tuple] = [("version",)]
     for si, a_set in enumerate(complete.get("sets", [])):
         for key in ("name", "selection", "raid"):
@@ -572,8 +608,10 @@ def _drop(variant: dict, path: tuple) -> object | None:
 
 @pytest.mark.parametrize("fixture", _FIXTURES, ids=_FIXTURE_IDS)
 def test_fixture_fill_preserves_and_round_trips(fixture: Path) -> None:
-    """A real installer layout: fill never changes a present value, and the
-    editor short-form re-fills to the identical canonical bytes."""
+    """
+    A real installer layout: fill never changes a present value, and the
+    editor short-form re-fills to the identical canonical bytes.
+    """
     raw = fixture.read_bytes()
     original = json.loads(raw)
     canon = canonicalize(raw)
@@ -594,8 +632,10 @@ def test_fixture_fill_preserves_and_round_trips(fixture: Path) -> None:
 @pytest.mark.parametrize("fixture", _FIXTURES, ids=_FIXTURE_IDS)
 @given(data=st.data())
 def test_fixture_partial_defaults_converge(fixture: Path, data: st.DataObject) -> None:
-    """Remove/half/add: any random subset of the default fields -- dropped or
-    kept -- canonicalizes to the same complete bytes."""
+    """
+    Remove/half/add: any random subset of the default fields -- dropped or
+    kept -- canonicalizes to the same complete bytes.
+    """
     canon = canonicalize(fixture.read_bytes())
     complete = json.loads(canon)
     variant = copy.deepcopy(complete)
@@ -630,7 +670,9 @@ def test_memboot_squashfs_sugar_fills_ram_root() -> None:
 
 
 def test_explicit_ram_options_not_overridden() -> None:
-    """Fill never clobbers an explicit value (BE-D6)."""
+    """
+    Fill never clobbers an explicit value (BE-D6).
+    """
     out = json.loads(canonicalize("role: os\nvolumes: [{fs: tmpfs, provider: memory, size: 50%}]\n"))
     assert out["sets"][0]["volumes"][0]["size"] == "50%"
 
@@ -646,7 +688,9 @@ def test_volume_name_from_mountpoint() -> None:
 
 
 def test_set_name_collision_aware() -> None:
-    """Two unnamed data sets derive distinct names (data, data2)."""
+    """
+    Two unnamed data sets derive distinct names (data, data2).
+    """
     out = json.loads(canonicalize(
         "version: 2\nsets:\n"
         "- {role: data, devices: [/dev/vdb], volumes: [{mountpoint: /a, fs: xfs, provider: lvm, size: 100%}]}\n"
@@ -655,7 +699,9 @@ def test_set_name_collision_aware() -> None:
 
 
 def test_explicit_name_preserved_and_not_reused() -> None:
-    """A derived name skips an explicit one (no collision)."""
+    """
+    A derived name skips an explicit one (no collision).
+    """
     out = json.loads(canonicalize(
         "version: 2\nsets:\n"
         "- {role: data, name: data, devices: [/dev/vdb], volumes: [{mountpoint: /a, fs: xfs, provider: lvm, size: 100%}]}\n"
@@ -679,7 +725,9 @@ def test_role_is_mandatory_with_help() -> None:
 
 @pytest.mark.parametrize("level", ["layout", "set", "volume"])
 def test_comment_is_meaning_neutral(level: str) -> None:
-    """A comment at any level persists but does not change the storage meaning."""
+    """
+    A comment at any level persists but does not change the storage meaning.
+    """
     base: dict[str, Any] = {"role": "os", "devices": ["/dev/vda"],
                             "volumes": [{"mountpoint": "/", "fs": "xfs", "provider": "lvm", "size": "100%"}]}
     commented = copy.deepcopy(base)
@@ -712,7 +760,9 @@ def _vols(canon: bytes) -> list:
 
 
 def test_bev6_form_equivalence() -> None:
-    """A volume's string / token-list / full-map spellings -> identical canonical."""
+    """
+    A volume's string / token-list / full-map spellings -> identical canonical.
+    """
     forms = [
         "role: os\nvolumes: [/]\n",
         "role: os\nvolumes:\n  - /\n",
@@ -775,7 +825,9 @@ def test_bev4_supplied_token_overrides_default() -> None:
 
 
 def test_bev5_non_convention_size_not_invented() -> None:
-    """A data mount with no size: fs/provider default, size is NOT silently invented."""
+    """
+    A data mount with no size: fs/provider default, size is NOT silently invented.
+    """
     v = _vols(canonicalize("role: data\ndevices: [/dev/vdb]\nvolumes: [/data]\n"))[0]
     assert v["fs"] == "xfs" and v["provider"] == "lvm" and "size" not in v
 
@@ -796,7 +848,9 @@ def test_bev_mixed_forms_in_one_list() -> None:
 
 
 def test_ber_echo_full_hides_nothing() -> None:
-    """Editor echo shows every resolved field -- author terse, see it all (R5)."""
+    """
+    Editor echo shows every resolved field -- author terse, see it all (R5).
+    """
     canon = canonicalize("role: os\ndevices: [/dev/vda]\nvolumes: [[/scratch, 50G, ext4]]\n")
     echoed = to_yaml(canon)
     for token in ("fs:", "provider:", "size:", "name:", "selection:", "raid:", "version:"):
@@ -829,7 +883,9 @@ def test_multiset_different_scheme_per_set() -> None:
 
 
 def test_cross_scheme_equivalence() -> None:
-    """The SAME OS disk authored three unrelated ways -> byte-identical canonical."""
+    """
+    The SAME OS disk authored three unrelated ways -> byte-identical canonical.
+    """
     bare = canonicalize("role: os\ndevices: [/dev/vda]\nvolumes: [/boot/efi, /]\n")
     toks = canonicalize("role: os\ndevices: [/dev/vda]\nvolumes:\n  - [/boot/efi, vfat, partition, 600M]\n  - [100%, /, lvm, xfs]\n")
     jsn = canonicalize('{"role":"os","devices":["/dev/vda"],"volumes":['

@@ -76,7 +76,9 @@ _BOOL_FIELDS = frozenset({"save", "persistent", "clear_uefi_nvram"})
 
 
 class DisklayoutError(DocumentError):
-    """A disklayout document could not be canonicalized. Message is operator-facing."""
+    """
+    A disklayout document could not be canonicalized. Message is operator-facing.
+    """
 
 
 # the shared string-preserving loader, raising this module's error
@@ -96,7 +98,9 @@ def _coerce_bool(key: str, value: Any) -> bool:
 
 
 def _coerce(node: Any) -> Any:
-    """Recursively apply the explicit typed coercion to the parsed structure."""
+    """
+    Recursively apply the explicit typed coercion to the parsed structure.
+    """
     if isinstance(node, dict):
         out: dict[str, Any] = {}
         for key, value in node.items():
@@ -188,10 +192,12 @@ _SIZE_RE = re.compile(r"^\d+(\.\d+)?%$|^\d+(\.\d+)?[KMGTP]?$")
 
 
 def _classify_token(token: str) -> tuple[str, str]:
-    """Classify one shorthand token by SHAPE (order-free). A '/' path or the
+    """
+    Classify one shorthand token by SHAPE (order-free). A '/' path or the
     literal 'swap' is the mountpoint; the rest are fs / provider / size by their
     disjoint value spaces. An unrecognized token FAILS LOUD -- never silently
-    dropped nor coerced to a mountpoint (BE-V1)."""
+    dropped nor coerced to a mountpoint (BE-V1).
+    """
     tok = token.strip()
     if tok.startswith("/") or tok == "swap":
         return "mountpoint", tok
@@ -207,8 +213,10 @@ def _classify_token(token: str) -> tuple[str, str]:
 
 
 def _parse_volume(vol: Any) -> dict[str, Any]:
-    """Type-dispatch a volume to a dict (BE-V6): a bare string is a mountpoint; a
-    list is shape-classified tokens (order-free); a map passes through."""
+    """
+    Type-dispatch a volume to a dict (BE-V6): a bare string is a mountpoint; a
+    list is shape-classified tokens (order-free); a map passes through.
+    """
     if isinstance(vol, dict):
         return vol
     if isinstance(vol, str):
@@ -296,7 +304,8 @@ def _fill_defaults(doc: dict[str, Any]) -> dict[str, Any]:
 
 
 def canonicalize(raw: bytes | str) -> bytes:
-    """Canonicalize a YAML-or-JSON disklayout document to canonical JSON bytes.
+    """
+    Canonicalize a YAML-or-JSON disklayout document to canonical JSON bytes.
 
     Returns compact, key-sorted UTF-8 JSON with defaults filled (the complete
     stored form). Raises :class:`DisklayoutError` with an operator-facing message
@@ -312,7 +321,8 @@ def canonicalize(raw: bytes | str) -> bytes:
 
 
 def to_yaml(raw: bytes | str) -> str:
-    """Render a stored (canonical JSON) disklayout as YAML for the editor.
+    """
+    Render a stored (canonical JSON) disklayout as YAML for the editor.
 
     ECHO-FULL (operator 2026-07-21): the editor shows the FULL resolved layout --
     every default materialized -- so a human sees exactly what the shorthand

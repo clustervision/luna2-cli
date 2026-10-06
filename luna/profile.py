@@ -168,7 +168,9 @@ class Profile():
 
 
     def common_file_args(self, parser):
-        """The arguments shared by addfile and changefile."""
+        """
+        The arguments shared by addfile and changefile.
+        """
         parser.add_argument('-p', '--path', help='Where the file goes on the node')
         parser.add_argument('-c', '--content', action='store_true',
                             help='Content of the file, in an editor')
@@ -201,7 +203,9 @@ class Profile():
 
 
     def profile_payload(self):
-        """The request body for a profile, with the CLI-only arguments stripped out."""
+        """
+        The request body for a profile, with the CLI-only arguments stripped out.
+        """
         payload = {}
         for field in ['scope', 'service']:
             if self.args.get(field) is not None:
@@ -424,7 +428,9 @@ class Profile():
 
 
     def profile_file(self, name=None, filename=None):
-        """One file of a profile as it stands, or None."""
+        """
+        One file of a profile as it stands, or None.
+        """
         get_list = Rest().get_data(f'{self.route}/{name}')
         if get_list.status_code != 200:
             return None
@@ -436,7 +442,9 @@ class Profile():
 
 
     def post_file(self, payload):
-        """Send one file to the profile it belongs to."""
+        """
+        Send one file to the profile it belongs to.
+        """
         name = self.args['name']
         request_data = {'config': {self.route: {name: {'files': [payload]}}}}
         self.logger.debug(f'Payload => {request_data}')
