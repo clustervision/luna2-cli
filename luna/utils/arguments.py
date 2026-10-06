@@ -295,7 +295,7 @@ class Arguments():
             parser.add_argument('-cl', '--clear', metavar=['ipv4', 'ipv6'], help='Clear IPv4 or IPv6 configurations.')
         parser.add_argument('-g', '--gateway', help='Gateway')
         parser.add_argument('-m', '--gateway_metric', type=int, help='Gateway Metric')
-        parser.add_argument('-t', '--type', help='Network Type like ethernet or infiniband')
+        parser.add_argument('-t', '--type', choices=['ethernet', 'infiniband'], help='Network Type')
         parser.add_argument('-S', '--nameserver_ip', help='Comma-separated name server IP(s), IPv4 and/or IPv6; sorted by family')
         parser.add_argument('-T', '--ntp_server', help='NTP Server')
         parser.add_argument('-D', '--dhcp', choices=BOOL_CHOICES,
