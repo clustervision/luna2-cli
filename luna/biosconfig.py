@@ -35,6 +35,7 @@ from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.constant import actions
 from luna.utils.presenter import Presenter
+from luna.utils.display import Display
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
 
@@ -188,6 +189,7 @@ class BiosConfig():
         detail = Helper().prepare_json(detail)
         fields = list(detail.keys())
         rows = [detail[key] for key in fields]
+        fields, rows = Display.filter_fields(self.table, fields, rows, column=True)
         Presenter().show_table_col(f'BIOS Configuration :: {name}', fields, rows)
         if self.args['settings']:
             if not settings:

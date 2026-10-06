@@ -31,7 +31,7 @@ __status__      = "Development"
 
 import json
 import os
-from configparser import RawConfigParser
+from configparser import RawConfigParser, Error
 from getpass import getpass
 from operator import methodcaller
 from luna.utils.helper import Helper
@@ -137,6 +137,12 @@ class Access():
             with open(ini_path, 'r', encoding='utf-8') as handle:
                 previous = handle.read()
         parser = RawConfigParser()
+        # Logging in again keeps the person's display preferences.
+        try:
+            parser.read(ini_path, encoding='utf-8')
+        except (Error, UnicodeError):
+            # An invalid old file must not prevent a fresh login.
+            parser = RawConfigParser()
         parser['API'] = {'USERNAME': username, 'PASSWORD': password, 'ENDPOINT': endpoint,
                          'PROTOCOL': protocol, 'VERIFY_CERTIFICATE': verify}
         with open(ini_path, 'w', encoding='utf-8') as handle:

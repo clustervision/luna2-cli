@@ -322,6 +322,10 @@ GOVERNED_TABLES = ('node', 'group', 'osimage', 'bmcsetup', 'redfishsetup', 'bios
                    'profile', 'cluster', 'network', 'route', 'cloud', 'switch', 'otherdevices', 'otherdev', 'rack')
 ACCESS_FIELDS = ['owners', 'usergroups', 'access']
 
+# Optional [DISPLAY] preferences, enabled by default on governed list and show views.
+# Add a field group here to reuse the same configuration and filtering logic.
+DISPLAY_FIELD_GROUPS = {'SHOW_RBAC': tuple(ACCESS_FIELDS)}
+
 
 def filter_columns(table: str) -> list:
     """

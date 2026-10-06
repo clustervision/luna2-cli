@@ -37,6 +37,7 @@ import os
 from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
+from luna.utils.display import Display
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.message import Message
@@ -242,6 +243,7 @@ class Profile():
                 ', '.join(entry['name'] for entry in detail.get('files') or []),
             ] + [detail.get(field, '') for field in ACCESS_FIELDS])
             num = num + 1
+        fields, rows = Display.filter_fields(self.table, fields, rows)
         return Presenter().show_table(' << Profiles >>', fields, rows)
 
 
@@ -275,6 +277,7 @@ class Profile():
                 f'path: {entry.get("path")}\nowner: {entry.get("owner")}\n'
                 f'mode: {entry.get("mode")}\ncontent: {content}'
             )
+        fields, rows = Display.filter_fields(self.table, fields, rows, column=True)
         return Presenter().show_table_col(f'Profile {self.args["name"]}', fields, rows)
 
 
