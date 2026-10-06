@@ -198,7 +198,9 @@ class Boot():
 
 
     def step_progress(self, status=None):
-        """How far through a boot a node is, as a percentage."""
+        """
+        How far through a boot a node is, as a percentage.
+        """
         stage = self.node_stage(status)
         if stage is None:
             return 0
@@ -206,7 +208,9 @@ class Boot():
 
 
     def progress_bar(self, percent=None):
-        """A percentage as something the eye reads before the number does."""
+        """
+        A percentage as something the eye reads before the number does.
+        """
         filled = int(round(percent * self.BAR_WIDTH / 100))
         return '[' + ('#' * filled) + ('.' * (self.BAR_WIDTH - filled)) + ']'
 
@@ -334,7 +338,9 @@ class Boot():
 
 
     def age(self, minutes=None):
-        """Minutes as something an operator reads without counting zeroes."""
+        """
+        Minutes as something an operator reads without counting zeroes.
+        """
         if minutes < 60:
             return f'{minutes}m'
         return f'{minutes // 60}h{minutes % 60:02d}m'
@@ -365,7 +371,9 @@ class Boot():
 
 
     def silent_minutes(self, entry=None, now=None):
-        """Minutes since a node last reported, or None when it carries no usable stamp."""
+        """
+        Minutes since a node last reported, or None when it carries no usable stamp.
+        """
         if not entry.get('updated'):
             return None
         try:
@@ -411,7 +419,9 @@ class Boot():
 
 
     def show_not_booted(self, nodes=None, scope=None):
-        """The nodes behind the bars, one line each, for when the count is not enough."""
+        """
+        The nodes behind the bars, one line each, for when the count is not enough.
+        """
         rows = self.not_booted(nodes, scope)
         if not rows:
             return Message().show_success('Every node in this boot has booted.')

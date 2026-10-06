@@ -24,7 +24,9 @@ from luna.boot import Boot
 
 @pytest.fixture(autouse=True)
 def _stub_logger():
-    """A logger without Log.init_log()'s root-only file handler."""
+    """
+    A logger without Log.init_log()'s root-only file handler.
+    """
     previous = luna_log.Log._Log__logger  # noqa: SLF001 - name-mangled by design
     luna_log.Log._Log__logger = logging.getLogger('luna2-cli-tests')  # noqa: SLF001
     yield
@@ -36,7 +38,9 @@ def _ago(minutes):
 
 
 def _boot(states, args=None):
-    """The class without its constructor, reading these states instead of the daemon."""
+    """
+    The class without its constructor, reading these states instead of the daemon.
+    """
     instance = Boot.__new__(Boot)
     instance.args = args or {}
     instance.node_states = lambda: states
@@ -103,7 +107,9 @@ def test_a_node_that_has_not_booted_is_listed_however_long_ago_it_reported():
 
 
 def test_all_adds_the_nodes_that_carry_no_timestamp():
-    """Only a node with no stamp falls outside an anchored boot - an older daemon's row."""
+    """
+    Only a node with no stamp falls outside an anchored boot - an older daemon's row.
+    """
     states = {
         'node001': {'state': 'install.prescript', 'status': '200', 'updated': None},
         'node003': {'state': 'install.unpack', 'status': '200', 'updated': _ago(1)},
@@ -116,7 +122,9 @@ def test_all_adds_the_nodes_that_carry_no_timestamp():
 
 
 def test_the_status_the_daemon_classified_the_state_with_is_kept(monkeypatch):
-    """Failed comes from this field; dropped on the way in, no node is ever failed."""
+    """
+    Failed comes from this field; dropped on the way in, no node is ever failed.
+    """
     payload = {'monitor': {'status': {'node': {
         'node001': {'state': 'node001 install.error', 'status': '500',
                     'updated': '2026-09-04 10:00:00'}}}}}

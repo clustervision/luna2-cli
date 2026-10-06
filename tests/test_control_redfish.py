@@ -24,7 +24,9 @@ import luna.utils.log as luna_log
 
 @pytest.fixture(autouse=True)
 def _stub_logger():
-    """A logger without Log.init_log()'s root-only file handler."""
+    """
+    A logger without Log.init_log()'s root-only file handler.
+    """
     previous = luna_log.Log._Log__logger  # noqa: SLF001 - name-mangled by design
     luna_log.Log._Log__logger = logging.getLogger('luna2-cli-tests')  # noqa: SLF001
     yield
@@ -43,7 +45,9 @@ class FakeResponse():
 
 @pytest.fixture
 def sent(monkeypatch):
-    """Captures what the CLI posts, without a daemon behind it."""
+    """
+    Captures what the CLI posts, without a daemon behind it.
+    """
     posted = []
 
     import luna.control as control
@@ -62,7 +66,9 @@ def sent(monkeypatch):
 
 
 def control_with(args):
-    """A Control instance driven straight at action_status, as the CLI does."""
+    """
+    A Control instance driven straight at action_status, as the CLI does.
+    """
     from luna.control import Control
     instance = Control.__new__(Control)
     instance.logger = luna_log.Log.get_logger()
@@ -121,7 +127,9 @@ def test_a_single_node_still_uses_the_hostlist_form(sent):
 
 
 def test_a_hostlist_goes_through_unexpanded(sent):
-    """The daemon expands it; sending it expanded would put 4000 names in a URL body."""
+    """
+    The daemon expands it; sending it expanded would put 4000 names in a URL body.
+    """
     control_with(redfish_args(node='node[001-010]')).action_status()
     assert sent[0]['payload']['control']['redfish']['setting']['hostlist'] == 'node[001-010]'
 
@@ -234,7 +242,9 @@ def test_a_redfish_success_reports_what_it_did(capsys):
 
 
 def test_a_power_success_still_reports_ok(capsys):
-    """The other half of the same change: power output is byte-identical to before."""
+    """
+    The other half of the same change: power output is byte-identical to before.
+    """
     from luna.utils.helper import Helper
 
     Helper().control_print('power', response_with(system='power', ok={'node001': 'power on'}), 1)

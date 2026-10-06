@@ -20,7 +20,9 @@ import luna.utils.log as luna_log
 
 @pytest.fixture(autouse=True)
 def _stub_logger():
-    """A logger without Log.init_log()'s root-only file handler."""
+    """
+    A logger without Log.init_log()'s root-only file handler.
+    """
     previous = luna_log.Log._Log__logger  # noqa: SLF001 - name-mangled by design
     luna_log.Log._Log__logger = logging.getLogger('luna2-cli-tests')  # noqa: SLF001
     yield
@@ -45,7 +47,9 @@ def record(labels=None):
 
 @pytest.fixture
 def wire(monkeypatch):
-    """Serves one configuration and captures what the terminal was shown."""
+    """
+    Serves one configuration and captures what the terminal was shown.
+    """
     seen = {'tables': [], 'json': [], 'payload': None}
     import luna.biosconfig as bios
     monkeypatch.setattr(bios.Rest, 'get_data',

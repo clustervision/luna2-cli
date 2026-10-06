@@ -377,7 +377,9 @@ class Helper():
         Only meant for the list context; empty values are skipped.
         """
         def collect(value, into):
-            """Append scalar value(s) to `into`, skipping composite (dict) values."""
+            """
+            Append scalar value(s) to `into`, skipping composite (dict) values.
+            """
             if isinstance(value, list):
                 for element in value:
                     if not isinstance(element, dict):
@@ -565,12 +567,16 @@ class Helper():
 
 
     def _envelope(self, table=None, name=None, inner=None):
-        """The config envelope every POST carries: config.<table>.<name> or, for the
-        cluster, config.cluster."""
+        """
+        The config envelope every POST carries: config.<table>.<name> or, for the
+        cluster, config.cluster.
+        """
         return {'config': {table: {name: inner} if name else inner}}
 
     def _post_and_tell(self, table=None, uri=None, payload=None, name=None):
-        """Post one change to a sub-route of a record and show the daemon's answer."""
+        """
+        Post one change to a sub-route of a record and show the daemon's answer.
+        """
         response = Rest().post_data(table, uri, payload)
         if response and response.status_code in [200, 201, 204]:
             # a creation answers 201 with its message, an update or removal 204 with none
@@ -1298,18 +1304,24 @@ class Helper():
 
 
     def filter_deviated(self, data=None):
-        """Filter a group/node list dict down to the entries whose _override flag is set."""
+        """
+        Filter a group/node list dict down to the entries whose _override flag is set.
+        """
         return {name: item for name, item in data.items() if item.get('_override')}
 
 
     def deviated_field_names(self, table=None, record=None):
-        """Sorted field names set locally at this level, via merge_source()'s _..._source comparison."""
+        """
+        Sorted field names set locally at this level, via merge_source()'s _..._source comparison.
+        """
         _, resp_overrides = self.merge_source(table, record)
         return sorted(resp_overrides)
 
 
     def deviated_fields(self, table=None, record=None):
-        """Comma-separated field names that deviate, for the list -d table view."""
+        """
+        Comma-separated field names that deviate, for the list -d table view.
+        """
         return ', '.join(self.deviated_field_names(table, record))
 
 

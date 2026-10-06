@@ -27,7 +27,9 @@ from luna.utils.constant import divider, sortby
 
 
 def test_every_divider_is_a_field_that_exists_in_the_order():
-    """A rule after a field that is not in the list never draws."""
+    """
+    A rule after a field that is not in the list never draws.
+    """
     for table in ('node', 'group'):
         fields = set(sortby(table))
         missing = [d for d in divider(table)

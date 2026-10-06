@@ -822,7 +822,9 @@ class Node():
 
 
     def collect_inventory(self, payload=None):
-        """Schedule a Redfish inventory sweep and stream what comes back."""
+        """
+        Schedule a Redfish inventory sweep and stream what comes back.
+        """
         response = Rest().post_raw(f'config/{self.table}/inventory/_redfish', payload)
         self.logger.debug(f'HTTP Response => {response.content}')
         if response.status_code != 200:

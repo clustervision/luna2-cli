@@ -29,7 +29,9 @@ import luna.utils.log as luna_log
 
 @pytest.fixture(autouse=True)
 def _stub_logger():
-    """A logger without Log.init_log()'s root-only file handler."""
+    """
+    A logger without Log.init_log()'s root-only file handler.
+    """
     previous = luna_log.Log._Log__logger  # noqa: SLF001 - name-mangled by design
     luna_log.Log._Log__logger = logging.getLogger('luna2-cli-tests')  # noqa: SLF001
     yield
@@ -37,7 +39,9 @@ def _stub_logger():
 
 
 def policy(monkeypatch):
-    """The retry policy Rest() actually mounts, without needing a daemon."""
+    """
+    The retry policy Rest() actually mounts, without needing a daemon.
+    """
     from luna.utils.rest import Rest
     monkeypatch.setattr(Rest, 'get_ini_info',
                         lambda self: ('u', 'p', 'https://daemon:7050', 'k', 'no'))
@@ -45,7 +49,9 @@ def policy(monkeypatch):
 
 
 def test_a_read_timeout_is_not_retried(monkeypatch):
-    """The defect: total=6 alone retried a slow daemon up to six more times."""
+    """
+    The defect: total=6 alone retried a slow daemon up to six more times.
+    """
     retries = policy(monkeypatch)
     assert retries.read == 0
     with pytest.raises(MaxRetryError):
@@ -54,14 +60,18 @@ def test_a_read_timeout_is_not_retried(monkeypatch):
 
 
 def test_a_failed_connection_is_still_retried(monkeypatch):
-    """The other half: nothing was delivered, so retrying is right."""
+    """
+    The other half: nothing was delivered, so retrying is right.
+    """
     retries = policy(monkeypatch)
     nxt = retries.increment(method='GET', url='/x', error=ConnectTimeoutError(None, '/x'))
     assert nxt.connect == retries.connect - 1
 
 
 def test_a_502_is_still_retried(monkeypatch):
-    """A daemon that answered with a gateway error has not done the work."""
+    """
+    A daemon that answered with a gateway error has not done the work.
+    """
     retries = policy(monkeypatch)
     assert 502 in retries.status_forcelist
     assert retries.status and retries.status > 0

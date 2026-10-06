@@ -37,7 +37,9 @@ def _parsed(filename):
 
 
 def _parser_verbs(tree):
-    """The verbs registered with add_parser(), which is what an operator can type."""
+    """
+    The verbs registered with add_parser(), which is what an operator can type.
+    """
     verbs = set()
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Attribute):
@@ -51,7 +53,9 @@ def _parser_verbs(tree):
 
 
 def _table(tree):
-    """The entity name the module dispatches under, from self.table."""
+    """
+    The entity name the module dispatches under, from self.table.
+    """
     for node in ast.walk(tree):
         if not isinstance(node, ast.Assign):
             continue
@@ -63,8 +67,10 @@ def _table(tree):
 
 
 def _dispatch_actions(tree):
-    """What the dispatcher will accept. The central table in constant.py is the
-    convention; a module carrying its own copy is the divergence this catches."""
+    """
+    What the dispatcher will accept. The central table in constant.py is the
+    convention; a module carrying its own copy is the divergence this catches.
+    """
     from luna.utils.constant import actions
     table = _table(tree)
     if not table:
@@ -96,7 +102,8 @@ def test_every_offered_verb_can_be_dispatched(filename):
 
 @pytest.mark.parametrize('filename', list(_entity_modules()))
 def test_the_parser_actually_builds(filename):
-    """Reading the source is not enough. A verb whose parser line references something
+    """
+    Reading the source is not enough. A verb whose parser line references something
     the module never imported passes every static check and then takes the whole CLI
     down at startup - `luna` builds every entity's parser before it looks at argv, so
     one NameError in one module breaks every command.
@@ -145,7 +152,9 @@ def test_the_parser_actually_builds(filename):
 
 
 def _explicit_dispatch():
-    """The command -> class-name branches spelled out in cli.py's dispatcher."""
+    """
+    The command -> class-name branches spelled out in cli.py's dispatcher.
+    """
     import re
     path = os.path.join(MODULES, 'cli.py')
     with open(path, 'r', encoding='utf-8') as handle:
@@ -214,8 +223,10 @@ def test_every_entity_module_is_in_the_classes_list(filename):
 
 
 def _registered_classes():
-    """The names in cli.py's hardcoded `classes` list, read as code rather than text -
-    the last entry carries no trailing comma, and a text match misses it."""
+    """
+    The names in cli.py's hardcoded `classes` list, read as code rather than text -
+    the last entry carries no trailing comma, and a text match misses it.
+    """
     with open(os.path.join(MODULES, 'cli.py'), 'r', encoding='utf-8') as handle:
         tree = ast.parse(handle.read())
     for node in ast.walk(tree):

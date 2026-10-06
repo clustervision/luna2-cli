@@ -280,7 +280,9 @@ class Switch():
 
 
     def listinterface_switch(self):
-        """List the interfaces of a switch (table by default, JSON with -R/--raw)."""
+        """
+        List the interfaces of a switch (table by default, JSON with -R/--raw).
+        """
         response = Rest().get_data(self.table, self.args['name'] + '/interfaces')
         if response.status_code != 200:
             Message().error_exit(response.content, response.status_code)
@@ -296,7 +298,9 @@ class Switch():
 
 
     def showinterface_switch(self):
-        """Show one interface of a switch (columns by default, JSON with -R/--raw)."""
+        """
+        Show one interface of a switch (columns by default, JSON with -R/--raw).
+        """
         uri = self.args['name'] + '/interfaces/' + self.args['interface']
         response = Rest().get_data(self.table, uri)
         if response.status_code != 200:
@@ -313,7 +317,9 @@ class Switch():
 
 
     def changeinterface_switch(self):
-        """Add or change one interface of a switch."""
+        """
+        Add or change one interface of a switch.
+        """
         name = self.args['name']
         interface = {'interface': self.args['interface']}
         for key in ('network', 'ipaddress', 'macaddress'):
@@ -331,7 +337,9 @@ class Switch():
 
 
     def renameinterface_switch(self):
-        """Rename one interface of a switch (the name is a label; mgmt-ness is the mgmt flag)."""
+        """
+        Rename one interface of a switch (the name is a label; mgmt-ness is the mgmt flag).
+        """
         name = self.args['name']
         interface = {'interface': self.args['interface'],
                      'newinterfacename': self.args['newinterfacename']}
@@ -346,7 +354,9 @@ class Switch():
 
 
     def removeinterface_switch(self):
-        """Remove one interface of a switch."""
+        """
+        Remove one interface of a switch.
+        """
         name, interface = self.args['name'], self.args['interface']
         response = Rest().get_delete(self.table, name + '/interfaces/' + interface)
         if response.status_code == 204:

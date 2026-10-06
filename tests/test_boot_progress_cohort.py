@@ -27,7 +27,9 @@ from luna.boot import Boot
 
 @pytest.fixture(autouse=True)
 def _stub_logger():
-    """A logger without Log.init_log()'s root-only file handler."""
+    """
+    A logger without Log.init_log()'s root-only file handler.
+    """
     previous = luna_log.Log._Log__logger  # noqa: SLF001 - name-mangled by design
     luna_log.Log._Log__logger = logging.getLogger('luna2-cli-tests')  # noqa: SLF001
     yield
@@ -36,7 +38,9 @@ def _stub_logger():
 
 @pytest.fixture(name='boot')
 def boot_fixture():
-    """The class without its constructor, which builds an argument parser."""
+    """
+    The class without its constructor, which builds an argument parser.
+    """
     instance = Boot.__new__(Boot)
     instance.args = {}
     return instance
@@ -48,7 +52,9 @@ class FakeResponse():
 
 
 def _states(nodes):
-    """The shape /monitor/node returns: the state carries the node's name in front."""
+    """
+    The shape /monitor/node returns: the state carries the node's name in front.
+    """
     return {'monitor': {'status': {'node': {
         name: {'state': f'{name} {state}', 'updated': updated}
         for name, (state, updated) in nodes.items()}}}}
@@ -84,7 +90,9 @@ def test_nodes_from_an_earlier_boot_are_not_counted(boot):
 
 
 def test_a_finished_cluster_falls_back_to_every_node(boot):
-    """Nothing in flight is not a boot: the answer is the cluster, and it says so."""
+    """
+    Nothing in flight is not a boot: the answer is the cluster, and it says so.
+    """
     states = {f'node{n}': {'state': 'install.booted', 'updated': '2026-09-04 10:00:00'}
               for n in range(3)}
     cohort, anchored = boot.boot_cohort(states, sorted(states))
@@ -119,7 +127,9 @@ def test_a_straggler_widens_the_cohort_and_is_named(boot):
 
 
 def test_a_booted_node_is_never_stuck(boot):
-    """It reported long ago because it finished, not because it stopped."""
+    """
+    It reported long ago because it finished, not because it stopped.
+    """
     states = {
         'done01': {'state': 'install.booted', 'updated': '2026-08-01 08:00:00'},
         'new01': {'state': 'install.download', 'updated': '2026-09-04 10:00:00'},
@@ -143,7 +153,9 @@ def test_a_node_reporting_recently_is_not_stuck(boot):
 
 
 def test_the_worst_node_is_the_one_reported_first(boot):
-    """The row names one node, so it has to be the one furthest gone."""
+    """
+    The row names one node, so it has to be the one furthest gone.
+    """
     now = datetime.utcnow()
     states = {
         f'node0{n}': {'state': 'install.unpack',
@@ -178,7 +190,9 @@ def test_five_hundred_stuck_nodes_do_not_flood_the_view(boot, monkeypatch, capsy
 
 
 def test_verbose_names_a_readable_number_of_them(boot, monkeypatch, capsys):
-    """Detail is capped: the rest is a count, not another four hundred names."""
+    """
+    Detail is capped: the rest is a count, not another four hundred names.
+    """
     now = datetime.utcnow()
     old = (now - timedelta(hours=3)).strftime('%Y-%m-%d %H:%M:%S')
     nodes = {f'node{n:04d}': ('install.unpack', old) for n in range(500)}

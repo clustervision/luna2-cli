@@ -26,7 +26,9 @@ def _stub_logger():
 
 
 class RawAnswer:
-    """What Rest().get_raw hands back: the answer as it came."""
+    """
+    What Rest().get_raw hands back: the answer as it came.
+    """
 
     def __init__(self, status_code, content=b''):
         self.status_code = status_code
