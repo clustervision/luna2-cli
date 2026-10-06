@@ -50,6 +50,7 @@ from nested_lookup import nested_lookup, nested_update, nested_delete, nested_al
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
+from luna.utils.display import Display
 from luna.utils.constant import (EDITOR_KEYS, BOOL_KEYS, ASCII_ONLY_KEYS,
     filter_columns, filter_nested, sortby, divider, spacer, overrides, parser_doc)
 from luna.utils.disklayout import canonicalize as disklayout_canonicalize, to_yaml as disklayout_to_yaml
@@ -1526,7 +1527,7 @@ class Helper():
             outer.insert(0, num)
             num = num + 1
         # Adding Serial Numbers to the dataset
-        return fields, rows
+        return Display.filter_fields(table, fields, rows)
 
 
     def base64_encode(self, content=None):
@@ -1939,7 +1940,7 @@ class Helper():
                 fields.append('')
                 rows.append('')
         fields = ['source' if item.startswith('_') else item for item in fields]
-        return fields, rows
+        return Display.filter_fields(table, fields, rows, column=True)
 
 
     def access_triplet_in_words(self, triplet=None):
@@ -2171,4 +2172,4 @@ class Helper():
             outer.insert(0, num)
             num = num + 1
         # Adding Serial Numbers to the dataset
-        return fields, rows
+        return Display.filter_fields(table, fields, rows)

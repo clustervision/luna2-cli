@@ -93,6 +93,33 @@ the installer.
 The log is written to `/var/log/luna/luna2-cli.log`, or to `~/.luna/luna2-cli.log` when that
 file is not writable.
 
+### Access columns in list and show output
+
+To hide `owners`, `usergroups` and `access` in governed list and show tables, add
+this section to your existing CLI `luna.ini`:
+
+```ini
+[DISPLAY]
+SHOW_RBAC = no
+```
+
+Use `yes` to show them. The setting is optional and defaults to `yes`, so existing
+output is unchanged. Standard INI boolean values (`yes/no`, `true/false`, `on/off`
+and `1/0`) are accepted. An invalid value warns on stderr and uses `yes`.
+
+Display preferences are read once per command, independently of credentials: a value
+in `~/.luna/luna.ini` wins over the readable controller file; when the personal file
+does not set it, the controller value applies. Logging in again preserves the setting.
+The TrinityX installer leaves the personal file alone but replaces the controller
+file on an installation run, as described above.
+
+The TrinityX Luna role defaults `luna2_cli_show_rbac` to `true`, rendering
+`SHOW_RBAC = yes` without an inventory setting. An Ansible override of `false`
+renders `no`; a personal INI preference still wins.
+
+This only changes table presentation. API data, `-R` raw output, explicit CSV column
+selection, access commands, user memberships and permission enforcement are unchanged.
+
 ---
 
 
