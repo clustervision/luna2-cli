@@ -31,6 +31,7 @@ __status__      = "Development"
 
 
 import types
+from typing import Callable
 from configparser import RawConfigParser
 import os
 import sys
@@ -43,6 +44,7 @@ from urllib3.util import Retry
 from luna.utils.log import Log
 from luna.utils.constant import INI_FILE, TOKEN_FILE, USER_INI_FILE, USER_TOKEN_FILE
 from luna.utils.message import Message
+from luna.utils.daemonlog import DaemonLog
 
 
 class Rest():
@@ -89,7 +91,7 @@ class Rest():
         daemon_url = f'{self.daemon}/version'
         self.logger.debug(f'URL {daemon_url}')
         try:
-            response = self.check_response(requests.get(url=daemon_url, timeout=20, verify=False))
+            response = self.request(requests.get, 'get', daemon_url, timeout=20, verify=False)
             self.logger.debug(f'Response {response.content} & HTTP Code {response.status_code}')
         except requests.exceptions.SSLError as ssl_loop_error:
             check = True
@@ -175,15 +177,39 @@ class Rest():
         """
         extra = {'Content-Type': 'application/json'} if 'json' in kwargs else {}
         kwargs['headers'] = {'x-access-tokens': self.get_token(), **extra}
-        response = getattr(self.session, method)(url, **kwargs)
+        response = self.request(getattr(self.session, method), method, url, **kwargs)
         if response.status_code == 401:
             self.logger.debug('Token refused by the daemon, logging in again once.')
             kwargs['headers'] = {'x-access-tokens': self.token(), **extra}
-            response = getattr(self.session, method)(url, **kwargs)
-        return self.check_response(response)
+            response = self.request(getattr(self.session, method), method, url, **kwargs)
+        return response
 
     @staticmethod
-    def check_response(response):
+    def request(transport: Callable[..., requests.Response], method: str, url: str, **kwargs) -> requests.Response:
+        """
+        Capture local logs around the actual call, including login and 401 retries.
+        No SSH, privilege escalation, daemon changes or extra HTTP calls are needed.
+        """
+        snapshot = None
+        try:
+            proxies = kwargs.get('proxies') or getattr(getattr(transport, '__self__', None), 'proxies', None)
+            if not proxies:
+                snapshot = DaemonLog.capture(url, method)
+        except Exception:
+            pass
+        response = transport(url, **kwargs)
+        if response.status_code == 500:
+            detail = None
+            try:
+                detail = DaemonLog.detail(snapshot, response)
+            except Exception:
+                pass
+            detail = detail or 'Daemon traceback unavailable; check the controller daemon log.'
+            Rest.check_response(response, detail)
+        return response
+
+    @staticmethod
+    def check_response(response: requests.Response, detail: str | None = None) -> requests.Response:
         """
         Stop on a daemon 500 before a command can discard its reason or keep polling.
         Token and validation requests use this check too, without token recursion.
@@ -191,7 +217,8 @@ class Rest():
         that ends a status stream and the 503 used for a stopped service.
         """
         if response.status_code == 500:
-            Message().error_exit(response, 500)
+            answer = {'message': 'Server Error', 'detail': detail} if detail else response
+            Message().error_exit(answer, 500)
         return response
 
     def get_response(self, data=None):
@@ -226,14 +253,14 @@ class Rest():
         daemon_url = f'{self.daemon}/token'
         self.logger.debug(f'Token URL => {daemon_url}')
         try:
-            call = self.session.post(
+            call = self.request(
+                self.session.post, 'post',
                 daemon_url,
                 json=data,
                 stream=True,
                 timeout=self.request_timeout,
                 verify=self.security
             )
-            self.check_response(call)
             self.logger.debug(f'Response {call.content} & HTTP Code {call.status_code}')
             if call.content:
                 data = call.json()

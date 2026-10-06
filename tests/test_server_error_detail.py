@@ -6,7 +6,7 @@
 
 """
 TRIX-2212: handle a daemon 500 at the shared REST boundary, before a command can
-discard its reason. Message renders the compact reason on its own indented line.
+discard its reason. Read the reason from the local log, not an enriched API body.
 
 Real request methods use a fake HTTP session. Raw calls, decoded calls, login,
 validation and followers all stop on the same error. Malformed bodies fall back
@@ -40,13 +40,13 @@ def logger(monkeypatch):
     monkeypatch.setattr(Log, '_Log__logger', logging.getLogger('luna2-cli-tests'))
 
 
-def answer(body=BODY, code=500):
+def answer(body=None, code=500):
     """
     A real requests.Response, including the falsy truth value of an HTTP 500.
     """
     response = requests.Response()
     response.status_code = code
-    response._content = json.dumps(body).encode()
+    response._content = json.dumps({'message': 'Server Error'} if body is None else body).encode()
     return response
 
 
@@ -63,6 +63,8 @@ def install_session(monkeypatch, request):
 
     monkeypatch.setattr(Rest, '__init__', initialize)
     monkeypatch.setattr(Rest, 'get_token', lambda self: 'cached-token')
+    monkeypatch.setattr('luna.utils.rest.DaemonLog.capture', lambda *args: 'snapshot')
+    monkeypatch.setattr('luna.utils.rest.DaemonLog.detail', lambda *args: DETAIL)
 
 
 # --------------------------------------------------------- request paths ----
@@ -214,7 +216,22 @@ def test_a_logging_failure_does_not_replace_the_daemon_error(monkeypatch, capsys
     writer = Message()
     monkeypatch.setattr(writer, 'logger', types.SimpleNamespace(debug=broken))
     with pytest.raises(SystemExit) as exited:
-        writer.error_exit(answer(), 500)
+        writer.error_exit(answer(BODY), 500)
+    assert exited.value.code == 1
+    assert capsys.readouterr().err == RENDERED
+
+
+def test_logger_initialization_failure_cannot_break_500_reporting(monkeypatch, capsys):
+    """
+    A missing logger or an unwritable log must not prevent the HTTP error exit.
+    """
+    def broken(*args, **kwargs):
+        raise OSError('logger unavailable')
+
+    monkeypatch.setattr(Log, 'get_logger', broken)
+    monkeypatch.setattr(Log, 'init_log', broken)
+    with pytest.raises(SystemExit) as exited:
+        Message().error_exit(BODY, 500)
     assert exited.value.code == 1
     assert capsys.readouterr().err == RENDERED
 
@@ -252,7 +269,7 @@ def test_existing_error_writers_share_the_formatter(capsys):
     """
     Raw bodies and decoded bodies use the same indented reason.
     """
-    Message().show_error(answer(), 500)
+    Message().show_error(answer(BODY), 500)
     with pytest.raises(SystemExit):
         Message().show_failed_exit(BODY)
     assert capsys.readouterr().err == RENDERED + f'Server Error\n    {DETAIL}\n'

@@ -43,9 +43,16 @@ class Message():
         """
         Constructor - As of now, nothing have to initialize.
         """
-        self.logger = Log.get_logger()
+        try:
+            self.logger = Log.get_logger()
+        except Exception:
+            self.logger = None
         if self.logger is None:
-            self.logger = Log.init_log('info')
+            try:
+                self.logger = Log.init_log('info')
+            except Exception:
+                # Error output must still work when the log cannot be initialized.
+                self.logger = None
 
 
     @staticmethod
