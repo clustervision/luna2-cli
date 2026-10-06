@@ -33,7 +33,7 @@ import sys
 from configparser import RawConfigParser, Error
 from functools import lru_cache
 
-from luna.utils.constant import DISPLAY_FIELD_GROUPS, GOVERNED_TABLES, INI_FILE, USER_INI_FILE
+from luna.utils.constant import FILTER_FIELDS, GOVERNED_TABLES, INI_FILE, USER_INI_FILE
 
 
 class Display():
@@ -58,7 +58,7 @@ class Display():
         Read once per CLI process: personal values override controller values.
         Missing values default to enabled, independently of credential selection.
         """
-        preferences = dict.fromkeys(DISPLAY_FIELD_GROUPS, True)
+        preferences = dict.fromkeys(FILTER_FIELDS, True)
         pending = set(preferences)
         for filename in (os.path.expanduser(USER_INI_FILE), INI_FILE):
             if not pending:
@@ -90,7 +90,7 @@ class Display():
         if table not in GOVERNED_TABLES:
             return fields, rows
         preferences = Display.preferences()
-        hidden = {field for option, group in DISPLAY_FIELD_GROUPS.items()
+        hidden = {field for option, group in FILTER_FIELDS.items()
                   if not preferences[option] for field in group}
         if not hidden:
             return fields, rows

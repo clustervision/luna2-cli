@@ -295,7 +295,7 @@ def test_another_field_group_reuses_the_same_filter(config, monkeypatch):
     A future preference needs a field group, without another command-specific branch.
     """
     import luna.utils.display as display
-    monkeypatch.setitem(display.DISPLAY_FIELD_GROUPS, 'SHOW_COMMENT', ('comment',))
+    monkeypatch.setitem(display.FILTER_FIELDS, 'SHOW_COMMENT', ('comment',))
     setting(config.personal, 'yes')
     config.controller.write_text('[DISPLAY]\nSHOW_RBAC = no\nSHOW_COMMENT = no\n', encoding='utf-8')
     fields, rows = Display.filter_fields('node', ['name', 'comment', 'access'], [['item', 'hidden', 'rwx------']])

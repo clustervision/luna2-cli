@@ -324,7 +324,7 @@ ACCESS_FIELDS = ['owners', 'usergroups', 'access']
 
 # Optional [DISPLAY] preferences, enabled by default on governed list and show views.
 # Add a field group here to reuse the same configuration and filtering logic.
-DISPLAY_FIELD_GROUPS = {'SHOW_RBAC': tuple(ACCESS_FIELDS)}
+FILTER_FIELDS = {'SHOW_RBAC': tuple(ACCESS_FIELDS)}
 
 
 def filter_columns(table: str) -> list:
