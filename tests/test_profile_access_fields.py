@@ -76,3 +76,27 @@ def test_the_show_carries_the_same_three(wire):
     assert {field: shown[field] for field in ACCESS_FIELDS} == {
         'owners': 'alice', 'usergroups': 'physics',
         'access': 'rwxrwx--- (owner: read, change, operate · team: read, change, operate · others: nothing)'}
+
+
+@pytest.mark.parametrize('enabled', [True, False])
+def test_the_list_says_whether_each_profile_is_enabled(wire, monkeypatch, enabled):
+    """TRIX-2226: the daemon returns enabled, and the list must show it."""
+    import luna.profile as profile
+    monkeypatch.setattr(profile.Rest, 'get_data',
+                        lambda self, uri, *a, **k: FakeResponse(payload={'config': {'profiles': {
+                            'ntp': dict(PROFILE, enabled=enabled)}}}), raising=False)
+    command().list_profile()
+    fields, rows = wire['tables'][0]
+    assert rows[0][fields.index('enabled')] is enabled
+
+
+@pytest.mark.parametrize('enabled', [True, False])
+def test_the_show_says_whether_the_profile_is_enabled(wire, monkeypatch, enabled):
+    """TRIX-2226: the same for show."""
+    import luna.profile as profile
+    monkeypatch.setattr(profile.Rest, 'get_data',
+                        lambda self, uri, *a, **k: FakeResponse(payload={'config': {'profiles': {
+                            'ntp': dict(PROFILE, enabled=enabled)}}}), raising=False)
+    command().show_profile()
+    fields, rows = wire['tables'][0]
+    assert dict(zip(fields, rows))['enabled'] is enabled

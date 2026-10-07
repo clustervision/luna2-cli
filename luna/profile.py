@@ -238,12 +238,12 @@ class Profile():
         data = get_list['config']['profiles']
         if self.args['raw']:
             return Presenter().show_json(Helper().prepare_json(data))
-        rows, fields = [], ['#', 'name', 'scope', 'service', 'action', 'files'] + ACCESS_FIELDS
+        rows, fields = [], ['#', 'name', 'scope', 'service', 'action', 'enabled', 'files'] + ACCESS_FIELDS
         num = 1
         for name, detail in data.items():
             rows.append([
                 num, name, detail.get('scope'), detail.get('service'),
-                detail.get('action'),
+                detail.get('action'), detail.get('enabled'),
                 ', '.join(entry['name'] for entry in detail.get('files') or []),
             ] + [detail.get(field, '') for field in ACCESS_FIELDS])
             num = num + 1
@@ -267,9 +267,9 @@ class Profile():
         detail = get_list['config']['profiles'][self.args['name']]
         if self.args['raw']:
             return Presenter().show_json(Helper().prepare_json(detail))
-        fields = ['name', 'scope', 'service', 'action'] + ACCESS_FIELDS
+        fields = ['name', 'scope', 'service', 'action', 'enabled'] + ACCESS_FIELDS
         rows = [self.args['name'], detail.get('scope'), detail.get('service'),
-                detail.get('action')] + [detail.get(field, '') for field in ACCESS_FIELDS]
+                detail.get('action'), detail.get('enabled')] + [detail.get(field, '') for field in ACCESS_FIELDS]
         # every other show explains the mode in words; this table is built by hand
         rows[fields.index('access')] = Helper().access_in_words(rows[fields.index('access')])
         for entry in detail.get('files') or []:
