@@ -138,6 +138,9 @@ class Control():
                     message = 'NO message received'
             else:
                 message = self.args['action']
+            if message is None:
+                # a daemon that got nothing back from the BMC answers null here
+                message = 'NO message received'
             if len(message) >= 50:
                 message = '\n'.join(wrap(message, width=50))
 
