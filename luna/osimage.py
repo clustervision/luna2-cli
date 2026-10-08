@@ -207,7 +207,10 @@ class OSImage():
         request_data = {'config':{self.table:{payload['name']: payload}}}
         self.logger.debug(f'Payload => {request_data}')
         result = Rest().post_clone(self.table, payload['name'], request_data)
-        if result.status_code == 200:
+        if result.status_code == 201:
+            # a clone that copies nothing is created on the spot, like any other add
+            response = True
+        elif result.status_code == 200:
             http_response = result.content
             if 'request_id' in http_response.keys():
                 process1 = Process(target=Helper().loader, args=("OSImage Cloning...",))
