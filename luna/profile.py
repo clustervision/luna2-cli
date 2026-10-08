@@ -122,7 +122,7 @@ class Profile():
                                     help='Verbose Mode')
         ## >>>>>>> Profile Command >>>>>>> status
         profile_status = profile_args.add_parser('status', help='Where every node stands')
-        profile_status.add_argument('name', nargs='?', help='Name of a single Node').completer = Helper().name_completer("node")
+        profile_status.add_argument('name', nargs='?', metavar='node', help='Name of a single node').completer = Helper().name_completer("node")
         profile_status.add_argument('-a', '--all', action='store_true', default=None,
                                     help='List every node, not only the ones needing attention')
         profile_status.add_argument('-R', '--raw', action='store_true', default=None,
