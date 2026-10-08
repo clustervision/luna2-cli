@@ -156,8 +156,9 @@ class Arguments():
         parser.add_argument('-qpost', '--quick-postscript', dest='postscript',
                         metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
         parser.add_argument('--install-mode', dest='install_mode',
-                        choices=['auto', 'sync', 'full', 'local', 'memboot', 'sanitize', 'legacy'],
-                        help='v1.4 install mode')
+                        choices=['auto', 'sync', 'full', 'local', 'memboot', 'sanitize', 'legacy', ''],
+                        metavar="{auto,sync,full,local,memboot,sanitize,legacy,''}",
+                        help="v1.4 install mode; '' clears the override, so the node or group inherits again")
         parser.add_argument('-dl', '--disklayout', action='store_true', help='Disk Layout JSON (v1.4)')
         parser.add_argument('-qdl', '--quick-disklayout', dest='disklayout',
                         metavar="File-Path OR In-Line", help='Disk Layout JSON File-Path OR In-Line')
@@ -235,8 +236,9 @@ class Arguments():
         parser.add_argument('-qpost', '--quick-postscript', dest='postscript',
                         metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
         parser.add_argument('--install-mode', dest='install_mode',
-                        choices=['auto', 'sync', 'full', 'local', 'memboot', 'sanitize', 'legacy'],
-                        help='v1.4 install mode')
+                        choices=['auto', 'sync', 'full', 'local', 'memboot', 'sanitize', 'legacy', ''],
+                        metavar="{auto,sync,full,local,memboot,sanitize,legacy,''}",
+                        help="v1.4 install mode; '' clears the override, so the node or group inherits again")
         parser.add_argument('-dl', '--disklayout', action='store_true', help='Disk Layout JSON (v1.4)')
         parser.add_argument('-qdl', '--quick-disklayout', dest='disklayout',
                         metavar="File-Path OR In-Line", help='Disk Layout JSON File-Path OR In-Line')
