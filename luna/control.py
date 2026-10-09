@@ -138,6 +138,9 @@ class Control():
                     message = 'NO message received'
             else:
                 message = self.args['action']
+            if message is None:
+                # a daemon that got nothing back from the BMC answers null here
+                message = 'NO message received'
             if len(message) >= 50:
                 message = '\n'.join(wrap(message, width=50))
 
@@ -171,6 +174,10 @@ class Control():
                         count = Helper().control_print(self.args['system'], content ,1)
                         if request_id:
                             Helper().dig_status(request_id, count, self.args['system'])
+                else:
+                    # the whole request was refused, a 403 for a node outside the
+                    # caller's scope for instance: say so, do not sit on the spinner
+                    Message().error_exit(Helper().answer_message(response), response.status_code)
             finally:
                 control_process.terminate()
         return response
