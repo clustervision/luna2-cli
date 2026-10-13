@@ -267,6 +267,9 @@ class Helper():
                         else:
                             Message().error_exit(f'ERROR :: {content[0]} is a Invalid filepath.')
                     else:
+                        if self.looks_like_missing_file(key, content[0]):
+                            Message().error_exit(f'ERROR :: {key} :: file {content[0]} does not exist. '
+                                                 f'Give an existing file, or the {key} itself in-line')
                         if key in self.DOCUMENT_KEYS:
                             content = self.document_b64(key, content[0])
                         else:
@@ -325,6 +328,27 @@ class Helper():
         'disklayout': (disklayout_canonicalize, disklayout_to_yaml),
         'mounts': (mounts_canonicalize, mounts_to_yaml),
     }
+
+    # Keys whose quick option (-qdl, -qmnt, -qof) takes a file path OR the
+    # document in-line. A value that does not exist as a file is used in-line;
+    # for these keys a value that plainly is a path then failed later as
+    # "disklayout must be an object, got a str" -- and the whole change,
+    # including any other option on the same command line, was not applied.
+    PATH_OR_INLINE_KEYS = ('disklayout', 'mounts', 'osimage_filter')
+
+    def looks_like_missing_file(self, key=None, value=None):
+        """
+        True when value for a document key is clearly meant as a file path
+        (no newline, not starting with '{' or '[', and starting with '/', './',
+        '../' or '~', or ending in .json/.yaml/.yml) but no such file exists.
+        """
+        if key not in self.PATH_OR_INLINE_KEYS or not isinstance(value, str):
+            return False
+        text = value.strip()
+        if not text or '\n' in text or text[0] in '{[':
+            return False
+        pathlike = text.startswith(('/', './', '../', '~')) or text.lower().endswith(('.json', '.yaml', '.yml'))
+        return pathlike and not os.path.exists(os.path.expanduser(text))
 
     def document_b64(self, key=None, raw=None):
         """
