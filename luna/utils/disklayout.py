@@ -256,8 +256,14 @@ def _parse_volume(vol: Any) -> dict[str, Any]:
     raise DisklayoutError(f"volume must be a string, list, or map, got {type(vol).__name__}")
 
 
-def _fill_volume(vol: dict[str, Any], taken: set[str]) -> dict[str, Any]:
+def _fill_volume(vol: dict[str, Any], taken: set[str], raid: Any = "none") -> dict[str, Any]:
     vol = dict(vol)
+    # swap on a raid set must be an lvm volume: the node mirrors only the lvm
+    # storage partition, and refuses a direct partition volume on raid
+    # ("direct partition volumes require raid=none"). A raid os set + swap was
+    # stored fine and then parked at install time.
+    if vol.get("mountpoint") == "swap" and "provider" not in vol and str(raid) not in ("none", "None", ""):
+        vol["provider"] = "lvm"
     if vol.get("provider") == "memory":  # RAM-root safety defaults
         vol.setdefault("mountpoint", "/")
         vol.setdefault("size", "80%")
@@ -294,7 +300,7 @@ def _fill_set(a_set: dict[str, Any]) -> dict[str, Any]:
             name = vol.get("name")
             if isinstance(name, str):
                 taken.add(name)
-        a_set["volumes"] = [_fill_volume(v, taken) for v in parsed]
+        a_set["volumes"] = [_fill_volume(v, taken, a_set.get("raid", "none")) for v in parsed]
     return a_set
 
 
