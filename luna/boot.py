@@ -248,7 +248,7 @@ class Boot():
         nodes = get_list['config']['node']
 
         phases = [phase for phase, _ in self.BOOT_PHASES if phase not in ('parked', 'done')]
-        phases = phases + ['config', 'done', 'parked', 'unknown']
+        phases = ['unknown'] + phases + ['config', 'parked', 'done']
         buckets, progress, scope = {}, {}, []
         for name in sorted(nodes):
             node = nodes[name]
