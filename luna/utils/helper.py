@@ -69,6 +69,8 @@ class Helper():
         Constructor - As of now, nothing have to initialize.
         """
         self.logger = Log.get_logger()
+        # editor files of a change in progress, by key; None when edits are not kept
+        self.kept_edits = None
 
 
     def get_help_message(self, subparsers, table):
@@ -285,9 +287,6 @@ class Helper():
         This Method will open a default text editor to write the multiline text for keys such as
         comment, prescript, postscript, partscript, content etc. but not limited to them only.
         """
-        response = ''
-        editor = str(os.path.abspath(__file__)).replace('helper.py', 'editor.sh')
-        os.chmod(editor, 0o0755)
         random_path = str(time())+str(randint(1001,9999))+str(getpid())
         tmp_folder = f'/tmp/lunatmp-{random_path}'
         os.mkdir(tmp_folder)
@@ -295,30 +294,95 @@ class Helper():
             filename = f'/tmp/lunatmp-{random_path}/{payload["name"]}{key}'
         else:
             filename = f'/tmp/lunatmp-{random_path}/{key}'
-        temp_file = open(filename, "x", encoding='utf-8')
-        if value:
-            value = self.base64_decode(value)
-            if key in self.DOCUMENT_KEYS:
-                try:
-                    value = self.DOCUMENT_KEYS[key][1](value)
-                except DocumentError as error:
-                    Message().error_exit(f'ERROR :: stored {key} is invalid :: {error}')
-            temp_file.write(value)
-            temp_file.close()
-        subprocess.check_output(f"sed -i 's/\r$//' {editor}", shell=True)
-        subprocess.call([editor, filename])
-        subprocess.check_output(f"sed -i 's/\r$//' {filename}", shell=True)
-        with open(filename, 'rb') as file_data:
-            edited = file_data.read()
-        if key in self.DOCUMENT_KEYS:
-            response = self.document_b64(key, edited)
+        with open(filename, "x", encoding='utf-8') as temp_file:
+            if value:
+                value = self.base64_decode(value)
+                if key in self.DOCUMENT_KEYS:
+                    try:
+                        value = self.DOCUMENT_KEYS[key][1](value)
+                    except DocumentError as error:
+                        Message().error_exit(f'ERROR :: stored {key} is invalid :: {error}')
+                temp_file.write(value)
+        response = self.edit_file(key, filename)
+        if self.kept_edits is None:
+            os.remove(filename)
+            os.rmdir(tmp_folder)
         else:
-            if key in ASCII_ONLY_KEYS:
-                self.check_ascii_only(key, edited)
-            response = self.base64_encode(edited)
-        os.remove(filename)
-        os.rmdir(tmp_folder)
+            self.kept_edits[key] = filename
         return response
+
+
+    # Marks the reason a refused edit came back; these lines never reach the daemon.
+    REFUSAL_MARK = '# luna: refused: '
+
+    def edit_file(self, key=None, filename=None, reason=None):
+        """
+        Run the editor on a field's file and return the value to send. A document that
+        does not parse goes back to the editor with the reason on top.
+        """
+        editor = str(os.path.abspath(__file__)).replace('helper.py', 'editor.sh')
+        os.chmod(editor, 0o0755)
+        while True:
+            self.mark_refusal(filename, reason)
+            subprocess.check_output(f"sed -i 's/\r$//' {editor}", shell=True)
+            subprocess.call([editor, filename])
+            subprocess.check_output(f"sed -i 's/\r$//' {filename}", shell=True)
+            with open(filename, 'rb') as file_data:
+                edited = self.strip_refusal(file_data.read())
+            if key not in self.DOCUMENT_KEYS:
+                if key in ASCII_ONLY_KEYS:
+                    self.check_ascii_only(key, edited)
+                return self.base64_encode(edited)
+            try:
+                return self.base64_encode(self.DOCUMENT_KEYS[key][0](edited))
+            except DocumentError as error:
+                reason = f'invalid {key} :: {error}'
+                self.edit_again(reason, [filename])
+
+
+    def mark_refusal(self, filename=None, reason=None):
+        """
+        Put the reason an edit was refused on top of its file, replacing an earlier one.
+        """
+        if not reason:
+            return
+        with open(filename, 'rb') as file_data:
+            text = self.strip_refusal(file_data.read())
+        mark = ''.join(f'{self.REFUSAL_MARK}{line}\n' for line in str(reason).splitlines())
+        with open(filename, 'wb') as file_data:
+            file_data.write(mark.encode('utf-8') + text)
+
+
+    def strip_refusal(self, data=None):
+        """
+        The edited bytes without the refusal lines mark_refusal put on top.
+        """
+        mark = self.REFUSAL_MARK.encode('utf-8')
+        if mark not in data:
+            return data
+        return b''.join(line for line in data.splitlines(keepends=True) if not line.startswith(mark))
+
+
+    def edit_again(self, reason=None, files=None):
+        """
+        Offer a refused edit back to the editor. Returns when the operator wants that;
+        otherwise exits non-zero with the edit kept, so nothing typed is lost.
+        """
+        sys.stderr.write(f'ERROR :: {reason}\n')
+        if sys.stdin.isatty():
+            if input('Edit again? [Y/n] ').strip().lower() in ('', 'y', 'yes'):
+                return
+        Message().error_exit(f'Your edit is kept in {", ".join(files)}')
+
+
+    def forget_edits(self):
+        """
+        Remove the editor files kept for a change once it is stored.
+        """
+        for filename in (self.kept_edits or {}).values():
+            os.remove(filename)
+            os.rmdir(os.path.dirname(filename))
+        self.kept_edits = None
 
 
     # The fields authored as a YAML/JSON document: (canonicalize, to_yaml) per key.
@@ -812,27 +876,19 @@ class Helper():
             data.pop(remove, None)
         if 'raw' in data:
             data.pop('raw', None)
+        self.kept_edits = {}
         payload = self.prepare_payload(table, data, local)
-        name = None
-        if 'name' in payload:
-            name = payload['name']
-            request_data = {'config':{table:{name: payload}}}
-        else:
-            request_data = {'config':{table: payload}}
-        if 'cluster' in table:
-            request_data = {'config':{table: payload}}
-        self.logger.debug(f'Payload => {request_data}')
-        if 'cluster' in table:
-            response = Rest().post_data(table, None, request_data)
-        else:
-            record = Rest().get_data(table, payload['name'])
-            if record.status_code == 200:
-                if len(payload) == 1:
-                    Message().error_exit('Kindly choose something to update.')
-                else:
-                    response = Rest().post_data(table, name, request_data)
-            else:
-                Message().error_exit(f'Kindly add the {payload["name"]} first', record.status_code)
+        name = payload.get('name')
+        response = self.post_record(table, payload)
+        # a refused change goes back to the editor with the daemon's reason, for every
+        # field that was edited in it, until it is stored or the operator stops
+        while response and response.status_code not in [201, 204] and self.kept_edits:
+            reason = Message().answer_message(response.content, response.status_code)
+            self.edit_again(reason, list(self.kept_edits.values()))
+            for key, filename in self.kept_edits.items():
+                payload = nested_update(payload, key=key, value=self.edit_file(key, filename, reason))
+            response = self.post_record(table, payload)
+        self.forget_edits()
         self.logger.debug(f'Response => {response}')
         if response:
             if response.status_code in [201, 204]:
@@ -846,6 +902,31 @@ class Helper():
             else:
                 Message().error_exit(response.content, response.status_code)
         return True
+
+
+    def post_record(self, table=None, payload=None):
+        """
+        Send an update_record payload; the daemon's response, or None for nothing sent.
+        """
+        response = None
+        name = payload.get('name')
+        if 'name' in payload and 'cluster' not in table:
+            request_data = {'config':{table:{name: payload}}}
+        else:
+            request_data = {'config':{table: payload}}
+        self.logger.debug(f'Payload => {request_data}')
+        if 'cluster' in table:
+            response = Rest().post_data(table, None, request_data)
+        else:
+            record = Rest().get_data(table, payload['name'])
+            if record.status_code == 200:
+                if len(payload) == 1:
+                    Message().error_exit('Kindly choose something to update.')
+                else:
+                    response = Rest().post_data(table, name, request_data)
+            else:
+                Message().error_exit(f'Kindly add the {payload["name"]} first', record.status_code)
+        return response
 
 
     def compare_data(self, table=None, data=None):
