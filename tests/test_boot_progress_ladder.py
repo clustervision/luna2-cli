@@ -52,6 +52,10 @@ DAEMON_STATES = (
 # the classic path and reports download and unpack from there
 NOT_A_STAGE = ('install.error', 'install.lpart_unavailable')
 
+# where an install stops for good: off the ladder too, and not in flight
+STOPPED_STATES = {'install.degraded': 'parked', 'install.refused': 'parked',
+                  'install.fatal': 'parked', 'install.sanitized': 'sanitized'}
+
 
 @pytest.fixture(name='boot')
 def boot_fixture():
@@ -131,3 +135,20 @@ def test_the_milestones_descend_and_name_a_real_stage(boot):
     assert thresholds == sorted(thresholds)
     assert max(thresholds) == len(boot.BOOT_STAGES) - 1
     assert min(thresholds) == 0
+
+
+def test_a_stopped_install_is_off_the_ladder_and_named(boot):
+    """
+    A parked or sanitized node is not somewhere along a boot, and says which it is.
+    """
+    for state, condition in STOPPED_STATES.items():
+        assert boot.node_stage(state) is None, f'{state} unexpectedly has a stage'
+        assert boot.stopped(state) == condition, state
+    for state in DAEMON_STATES + NOT_A_STAGE:
+        assert boot.stopped(state) is None, f'{state} reads as stopped'
+
+
+def test_the_overview_counts_parked_apart_and_sanitized_as_done(boot):
+    for state, condition in STOPPED_STATES.items():
+        expected = 'parked' if condition == 'parked' else 'done'
+        assert boot.boot_phase(f'Luna installer: {state[len("install."):]}') == expected, state

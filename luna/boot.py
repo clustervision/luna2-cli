@@ -98,8 +98,14 @@ class Boot():
         ('ipxe', ('rendered',)),
         ('download', ('download',)),
         ('unpack', ('unpack', 'lpart.part')),
-        ('done', ('success', 'booted')),
+        ('parked', ('degraded', 'refused', 'fatal')),
+        ('done', ('success', 'booted', 'sanitized')),
     ]
+
+    # Where an install stops for good: nothing follows until someone acts (parked) or
+    # there is nothing left to do (sanitized). Such a node is not in flight.
+    STOPPED = {'degraded': 'parked', 'refused': 'parked', 'fatal': 'parked',
+               'sanitized': 'sanitized'}
 
     # The steps a node reports, in the order the installer runs them, folded into the
     # stretches somebody watching a cluster come up actually distinguishes between.
@@ -182,6 +188,17 @@ class Boot():
         return 'unknown'
 
 
+    def stopped(self, status=None):
+        """
+        'parked' or 'sanitized' for an install that has stopped for good, else None.
+        """
+        lowered = str(status or '').lower()
+        for step, condition in self.STOPPED.items():
+            if step in lowered:
+                return condition
+        return None
+
+
     def node_stage(self, status=None):
         """
         Which stage of the ladder a reported state belongs to, as an index, or None for
@@ -230,8 +247,8 @@ class Boot():
             return Message().show_error('No nodes are available.')
         nodes = get_list['config']['node']
 
-        phases = [phase for phase, _ in self.BOOT_PHASES if phase != 'done']
-        phases = phases + ['config', 'done', 'unknown']
+        phases = [phase for phase, _ in self.BOOT_PHASES if phase not in ('parked', 'done')]
+        phases = phases + ['config', 'done', 'parked', 'unknown']
         buckets, progress, scope = {}, {}, []
         for name in sorted(nodes):
             node = nodes[name]
@@ -326,7 +343,8 @@ class Boot():
         """
         known = [name for name in scope if states.get(name, {}).get('state')]
         last = len(self.BOOT_STAGES) - 1
-        inflight = [name for name in known if self.node_stage(states[name]['state']) != last]
+        inflight = [name for name in known if self.node_stage(states[name]['state']) != last
+                    and not self.stopped(states[name]['state'])]
         if self.args.get('all') or not inflight:
             return known, False
         stamps = [states[name]['updated'] for name in inflight if states[name].get('updated')]
@@ -403,10 +421,10 @@ class Boot():
             if stage == last:
                 continue
             minutes = self.silent_minutes(entry, now)
-            condition = ''
-            if str(entry.get('status')) == '500':
+            condition = self.stopped(entry['state']) or ''
+            if not condition and str(entry.get('status')) == '500':
                 condition = 'failed'
-            elif stage is not None and minutes is not None and minutes >= self.STUCK_MINUTES:
+            elif not condition and stage is not None and minutes is not None and minutes >= self.STUCK_MINUTES:
                 condition = 'stuck'
             rows.append({
                 'node': name,
