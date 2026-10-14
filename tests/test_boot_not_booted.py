@@ -75,6 +75,22 @@ def test_a_state_the_daemon_classes_as_failed_is_marked_failed():
                                                                'node002': ''}
 
 
+def test_a_stopped_install_says_parked_or_sanitized_not_failed():
+    """
+    A park is failed too, but nothing follows it until someone acts, so it says so;
+    and a sanitized node is listed because it did not boot, without reading as failed.
+    """
+    states = {
+        'node001': {'state': 'install.fatal', 'status': '500', 'updated': _ago(90)},
+        'node002': {'state': 'install.degraded', 'status': '500', 'updated': _ago(2)},
+        'node003': {'state': 'install.sanitized', 'status': '200', 'updated': _ago(90)},
+        'node004': {'state': 'install.error', 'status': '500', 'updated': _ago(2)},
+    }
+    rows = _boot(states, {'all': True}).not_booted(NODES, sorted(NODES))
+    assert {row['node']: row['condition'] for row in rows} == {
+        'node001': 'parked', 'node002': 'parked', 'node003': 'sanitized', 'node004': 'failed'}
+
+
 def test_stuck_uses_the_same_threshold_as_the_summary_line():
     limit = Boot.STUCK_MINUTES
     states = {

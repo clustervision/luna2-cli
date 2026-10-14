@@ -224,3 +224,21 @@ def test_real_node_names_do_not_widen_the_view(boot, monkeypatch, capsys):
     assert max(len(line) for line in printed.splitlines()) < 120, 'the view got wide'
     # the wrap can put 'and' on the line above, which is the point of wrapping
     assert '488 more' in printed
+
+
+def test_a_parked_node_does_not_hold_the_cohort_back(boot):
+    """
+    A park stays until someone acts, often for days. Counted as in flight, it would
+    anchor every later boot to the day it parked.
+    """
+    now = datetime.utcnow()
+
+    def stamp(minutes):
+        return (now - timedelta(minutes=minutes)).strftime('%Y-%m-%d %H:%M:%S')
+
+    states = {'old': {'state': 'install.fatal', 'updated': stamp(3000)},
+              'wiped': {'state': 'install.sanitized', 'updated': stamp(2000)},
+              'new1': {'state': 'install.unpack', 'updated': stamp(10)},
+              'new2': {'state': 'install.booted', 'updated': stamp(5)}}
+    cohort, anchored = boot.boot_cohort(states, sorted(states))
+    assert anchored and sorted(cohort) == ['new1', 'new2']
