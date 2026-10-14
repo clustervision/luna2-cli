@@ -329,11 +329,8 @@ class Helper():
         'mounts': (mounts_canonicalize, mounts_to_yaml),
     }
 
-    # Keys whose quick option (-qdl, -qmnt, -qof) takes a file path OR the
-    # document in-line. A value that does not exist as a file is used in-line;
-    # for these keys a value that plainly is a path then failed later as
-    # "disklayout must be an object, got a str" -- and the whole change,
-    # including any other option on the same command line, was not applied.
+    # Keys whose quick option (-qdl, -qmnt, -qof) takes a file path OR the document
+    # in-line: a value that plainly is a path must not be read as in-line JSON.
     PATH_OR_INLINE_KEYS = ('disklayout', 'mounts', 'osimage_filter')
 
     def looks_like_missing_file(self, key=None, value=None):
