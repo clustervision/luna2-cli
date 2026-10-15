@@ -40,7 +40,7 @@ loud on anything that will not coerce. No parser magic, no silent fallback.
 The schema field types mirror ``internal/config/v2/types.go`` in luna2-client:
 
     ints  : version, count, spares
-    bools : save, persistent, allow_degraded, clear_uefi_nvram
+    bools : save, include_san, persistent, allow_degraded, clear_uefi_nvram
     words : bootloader -- first, grub, yes, true, last, no, false or none, kept
             as authored (the node normalises the spelling); absent means last
     everything else is a string (or a list/map of strings).
@@ -73,7 +73,7 @@ SchemaVersion = 2
 # string after parse. Key names are globally unambiguous (no string field is
 # named "count"/"save"/...), so a recursive key-based coercion is safe.
 _INT_FIELDS = frozenset({"version", "count", "spares"})
-_BOOL_FIELDS = frozenset({"save", "persistent", "allow_degraded", "clear_uefi_nvram"})
+_BOOL_FIELDS = frozenset({"save", "include_san", "persistent", "allow_degraded", "clear_uefi_nvram"})
 # Fields the v2 schema unmarshals from a string OR a boolean. Most of the words
 # they accept are not boolean words at all, so nothing is coerced: the word the
 # operator wrote travels unchanged and the node normalises the spelling.

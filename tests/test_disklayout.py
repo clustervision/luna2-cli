@@ -322,6 +322,7 @@ sets:
   save: "yes"
   persistent: "no"
   allow_degraded: "yes"
+  include_san: "no"
   volumes:
   - {mountpoint: /, fs: xfs, provider: lvm, size: 100%, clear_uefi_nvram: "true"}
 """
@@ -333,6 +334,7 @@ sets:
     assert s["save"] is True
     assert s["persistent"] is False
     assert s["allow_degraded"] is True
+    assert s["include_san"] is False
     assert s["volumes"][0]["clear_uefi_nvram"] is True
     # raid stays the STRING "1" (it is a string field, not an int one).
     assert s["raid"] == "1" and isinstance(s["raid"], str)
