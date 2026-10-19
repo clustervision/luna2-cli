@@ -6,7 +6,7 @@
 
 """
 TRIX-2212: handle a daemon 500 at the shared REST boundary, before a command can
-discard its reason. Read the reason from the local log, not an enriched API body.
+discard its reason. The reason is faked here; where it comes from is tested beside.
 
 Real request methods use a fake HTTP session. Raw calls, decoded calls, login,
 validation and followers all stop on the same error. Malformed bodies fall back

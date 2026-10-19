@@ -5,7 +5,8 @@
 # Copyright (C) 2026  ClusterVision Solutions b.v.
 
 """
-Read a compact exception from the local daemon log after an HTTP 500.
+Reduce a daemon traceback to a compact exception after an HTTP 500. The daemon
+sends it whole in the 500 body; for an older daemon it is read from the local log.
 Existing logs have no request ID, so matching by time, path and method is best
 effort. Never select an old entry or guess between multiple matching entries.
 """
@@ -148,20 +149,42 @@ class DaemonLog:
         return matches[0]
 
     @classmethod
+    def response_detail(cls, response: Response) -> str | None:
+        """
+        Summarise the traceback a daemon sends in the 500 body itself.
+        An older daemon sends none; the local log lookup then remains the source.
+        """
+        try:
+            detail = response.json().get('detail')
+            return cls.summary(detail) if isinstance(detail, str) else None
+        except Exception:
+            return None
+
+    @classmethod
     def parse(cls, content: str, path: str, method: str) -> str | None:
         """
-        Show the innermost location and exception only, never source or payloads.
+        Select this request's exception record from log content and summarise it.
         """
         record = cls.exception_record(content, path, method)
-        if record is None or '\nTraceback (most recent call last):\n' not in record:
+        if record is None:
             return None
-        frames = list(cls.FRAME.finditer(record))
+        return cls.summary(record)
+
+    @classmethod
+    def summary(cls, trace: str) -> str | None:
+        """
+        Show the innermost location and exception only, never source or payloads.
+        In a chain of exceptions only the last one counts; it is the one answered.
+        """
+        if 'Traceback (most recent call last):\n' not in trace:
+            return None
+        frames = list(cls.FRAME.finditer(trace))
         if not frames:
             return None
         # Unrecognized multiline endings or interleaved records are not a usable trace.
-        exceptions = [exception for exception in cls.EXCEPTION.finditer(record)
+        exceptions = [exception for exception in cls.EXCEPTION.finditer(trace)
                       if exception.start() > frames[-1].end()]
-        if len(exceptions) != 1 or record[exceptions[-1].end():].strip():
+        if len(exceptions) != 1 or trace[exceptions[-1].end():].strip():
             return None
         filename, line, function = frames[-1].groups()
         filename = filename.replace('\\', '/')

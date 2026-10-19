@@ -497,18 +497,24 @@ luna control power reset {NodeName OR NodeList}
 ## Daemon HTTP 500 errors
 
 Every HTTP request, including login and status followers, stops with exit status 1
-on a daemon 500. When run on the controller with permission to read its daemon
-log, the CLI shows a compact exception and the innermost file, line and function:
+on a daemon 500. The CLI shows a compact exception and the innermost file, line
+and function:
 
 ```text
 HTTP ERROR :: 500 Server Error
     TypeError: unsupported operand type(s) for +: 'NoneType' and 'list' (routes/config_cluster.py:60, in config_cluster)
 ```
 
-The CLI reads the daemon's LOGGER/LOGFILE setting from
+The daemon sends the full traceback of an uncaught exception in the body of its
+500 answer, and the CLI reduces it to that one line, wherever the CLI runs. A
+daemon that sends no traceback, such as an older release, leaves the CLI to read
+the controller's daemon log instead, when run on the controller with permission
+to read it.
+
+For that log the CLI reads the daemon's LOGGER/LOGFILE setting from
 `/trinity/local/luna/daemon/config/luna.ini`, falling back to
 `/var/log/luna/luna2-daemon.log` when that setting cannot be read. It does not
-modify daemon configuration or require changes to the daemon API.
+modify daemon configuration.
 
 Only bytes written during the HTTP call are inspected, with a limit of 128 KiB.
 Matching uses Flask's logged path and HTTP method. Existing logs have no unique
