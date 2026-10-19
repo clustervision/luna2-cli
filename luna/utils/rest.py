@@ -201,7 +201,7 @@ class Rest():
         if response.status_code == 500:
             detail = None
             try:
-                detail = DaemonLog.detail(snapshot, response)
+                detail = DaemonLog.response_detail(response) or DaemonLog.detail(snapshot, response)
             except Exception:
                 pass
             detail = detail or 'Daemon traceback unavailable; check the controller daemon log.'
