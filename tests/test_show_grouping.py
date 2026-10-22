@@ -90,11 +90,13 @@ def test_cluster_show_is_grouped():
     """
     luna cluster show: identity, provisioning (with the boot pause next to the
     install mode), network services, node creation, security with the user, the access
-    block, then debug on its own.
+    block, then debug on its own. A rule under debug as well: on an HA pair the
+    other controllers follow it, keyed by hostname, and get their own box.
     """
     fields, rules = sortby('cluster'), divider('cluster')
     assert fields.index('packing_bootpause') == fields.index('install_mode') + 1
     ends = [f for f in fields if f in rules]
-    assert ends == ['technical_contacts', 'mounts', 'ntp_server', 'createnode_macashost', 'user', 'access']
+    assert ends == ['technical_contacts', 'mounts', 'ntp_server', 'createnode_macashost', 'user', 'access',
+                    'debug']
     assert fields[fields.index('createnode_macashost') + 1:] == [
         'security', 'user', 'owners', 'usergroups', 'access', 'debug']

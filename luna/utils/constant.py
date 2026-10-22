@@ -539,7 +539,8 @@ def divider(table=None):
                     'comment']
     static = {
         # a cluster has no parent, so its fields never render with the ' *' marker
-        'cluster': ['technical_contacts', 'mounts', 'ntp_server', 'createnode_macashost', 'user', 'access'],
+        'cluster': ['technical_contacts', 'mounts', 'ntp_server', 'createnode_macashost', 'user', 'access',
+                    'debug'],
         'node': node_blocks + [f'{field} *' for field in node_blocks],
         'group': group_blocks + [f'{field} *' for field in group_blocks]
     }
