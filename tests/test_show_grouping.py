@@ -30,7 +30,7 @@ def test_every_divider_is_a_field_that_exists_in_the_order():
     """
     A rule after a field that is not in the list never draws.
     """
-    for table in ('node', 'group'):
+    for table in ('cluster', 'node', 'group'):
         fields = set(sortby(table))
         missing = [d for d in divider(table)
                    if d.removesuffix(' *') not in fields]
@@ -72,3 +72,31 @@ def test_the_order_has_no_duplicates(table):
     fields = sortby(table)
     dupes = sorted({f for f in fields if fields.count(f) > 1})
     assert not dupes, f'{table}: field listed twice, so it renders twice: {dupes}'
+
+
+@pytest.mark.parametrize('table', ['node', 'group'])
+def test_mounts_closes_the_install_block(table):
+    """
+    The mounts belong with the other install settings, not in the scripts box:
+    the install block runs from install_mode to mounts, and the rule sits under it.
+    """
+    fields, rules = sortby(table), divider(table)
+    install = fields[fields.index('install_mode'):fields.index('mounts') + 1]
+    assert 'mounts' in rules
+    assert not [f for f in install[:-1] if f in rules], f'{table}: a rule inside the install block'
+
+
+def test_cluster_show_is_grouped():
+    """
+    luna cluster show: identity, provisioning (with the boot pause next to the
+    install mode), network services, node creation, security with the user, the access
+    block, then debug on its own. A rule under debug as well: on an HA pair the
+    other controllers follow it, keyed by hostname, and get their own box.
+    """
+    fields, rules = sortby('cluster'), divider('cluster')
+    assert fields.index('packing_bootpause') == fields.index('install_mode') + 1
+    ends = [f for f in fields if f in rules]
+    assert ends == ['technical_contacts', 'mounts', 'ntp_server', 'createnode_macashost', 'user', 'access',
+                    'debug']
+    assert fields[fields.index('createnode_macashost') + 1:] == [
+        'security', 'user', 'owners', 'usergroups', 'access', 'debug']
