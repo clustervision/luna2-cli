@@ -426,11 +426,11 @@ def sortby(table: str) -> list:
     static = {
         'cluster': [
             'name', 'controller', 'technical_contacts', 'provision_method', 'provision_fallback',
-            'install_mode', 'mounts',
+            'install_mode', 'packing_bootpause', 'mounts',
             'nameserver_ip', 'forwardserver_ip', 'domain_search', 'bind_legacy', 'dnssec_enable',
-            'dnssec_validation', 'ntp_server', 'security',
-            'nextnode_discover', 'createnode_ondemand', 'createnode_macashost', 'packing_bootpause',
-            'user', 'debug'
+            'dnssec_validation', 'ntp_server',
+            'nextnode_discover', 'createnode_ondemand', 'createnode_macashost', 'security',
+            'user', 'owners', 'usergroups', 'access', 'debug'
         ],
         'cloud': ['name', 'type'],
         # grouped, and the groups are what the dividers below draw a rule between:
@@ -532,12 +532,14 @@ def divider(table=None):
     # the marker), and the rule is matched on what is rendered - so listing only
     # the bare name loses the divider exactly when a node overrides that field.
     node_blocks = ['info', 'osimagetag', 'cloud', 'unmanaged_bmc_users', 'service',
-                   'profiles_digest', 'osimage_filter', 'prescript', 'partscript',
+                   'profiles_digest', 'mounts', 'prescript', 'partscript',
                    'postscript', 'comment']
     group_blocks = ['info', 'osimagetag', 'routes', 'unmanaged_bmc_users', 'bootmenu',
-                    'profiles', 'osimage_filter', 'prescript', 'partscript', 'postscript',
+                    'profiles', 'mounts', 'prescript', 'partscript', 'postscript',
                     'comment']
     static = {
+        # a cluster has no parent, so its fields never render with the ' *' marker
+        'cluster': ['technical_contacts', 'mounts', 'ntp_server', 'createnode_macashost', 'user', 'access'],
         'node': node_blocks + [f'{field} *' for field in node_blocks],
         'group': group_blocks + [f'{field} *' for field in group_blocks]
     }
