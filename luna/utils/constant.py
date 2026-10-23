@@ -524,8 +524,11 @@ def sortby(table: str) -> list:
             'bond_mode', 'bond_slaves'
         ],
         'switchinterface': ['interface', 'mgmt', 'ipaddress', 'ipaddress_ipv6', 'macaddress', 'network'],
+        # 'interface' is what the daemon returns; 'interfacename' matched nothing, so the
+        # interface's own name fell out of the append and rendered below network.
         'groupinterface': [
-            'interfacename', 'network', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves'
+            'interface', 'network', 'mtu', 'options',
+            'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves'
         ],
         'groupsecrets': ['Group', 'name', 'path', 'owner', 'mode', 'content'],
         'nodesecrets': ['Node', 'name', 'path', 'owner', 'mode', 'content'],
