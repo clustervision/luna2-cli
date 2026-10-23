@@ -404,13 +404,15 @@ class Helper():
     def looks_like_missing_file(self, key=None, value=None):
         """
         True when value for a document key is clearly meant as a file path
-        (no newline, not starting with '{' or '[', and starting with '/', './',
-        '../' or '~', or ending in .json/.yaml/.yml) but no such file exists.
+        (no newline, not starting with '{' or '[', no '=' in it, and starting with
+        '/', './', '../' or '~', or ending in .json/.yaml/.yml) but no such file
+        exists. A value carrying '=' is an assignment, not a path: an interface
+        option naming a certificate the node will have is content, not a typo.
         """
         if key not in self.PATH_OR_INLINE_KEYS or not isinstance(value, str):
             return False
         text = value.strip()
-        if not text or '\n' in text or text[0] in '{[':
+        if not text or '\n' in text or text[0] in '{[' or '=' in text:
             return False
         pathlike = text.startswith(('/', './', '../', '~')) or text.lower().endswith(('.json', '.yaml', '.yml'))
         return pathlike and not os.path.exists(os.path.expanduser(text))

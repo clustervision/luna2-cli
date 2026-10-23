@@ -68,6 +68,26 @@ def test_other_keys_are_left_alone(helper):
     assert not helper.looks_like_missing_file("prescript", "/root/missing.sh")
 
 
+@pytest.mark.parametrize("value", [
+    "802-1x.ca-cert=/etc/pki/nope.yaml",        # the cert lives on the node, not here
+    "802-1x.client-cert=/etc/pki/nope.json",
+    "ipv4.routes=/var/lib/routes.yml",
+])
+def test_an_assignment_is_content_not_a_path(helper, value):
+    """An interface option naming a file the node will have is not a typo.
+
+    The path in it is deliberately one that does not exist on the controller, which
+    is the normal case for a certificate the node holds. Without the '=' arm these
+    were refused for ending in .yaml/.json/.yml while the same line ending .pem was
+    accepted, so the outcome turned on the certificate's extension.
+    """
+    assert not helper.looks_like_missing_file("options", value)
+
+
+def test_a_real_path_is_still_caught_despite_the_assignment_rule(helper):
+    assert helper.looks_like_missing_file("options", "/tmp/no-such-options-file.json")
+
+
 # Deliberately free text: a path-like value is legitimate content for these, so a
 # missing file cannot be told from the text itself. The reason per key is the
 # judgement this test pins -- a new editor key fails here until it is classified.
