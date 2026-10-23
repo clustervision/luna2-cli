@@ -361,7 +361,7 @@ def filter_columns(table: str) -> list:
                           'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp'],
         'switchinterface': ['interface', 'mgmt', 'ipaddress', 'ipaddress_ipv6', 'macaddress', 'network'],
         'nodesecrets': ['Node', 'name', 'path', 'owner', 'mode', 'content'],
-        'osimage': ['name', 'kernelversion', 'path', 'distribution', 'osrelease'],
+        'osimage': ['name', 'path', 'kernelversion', 'distribution', 'osrelease'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'switch': ['name', 'network', 'oid', 'read', 'ipaddress', 'netboot'],
         'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes',
@@ -479,10 +479,17 @@ def sortby(table: str) -> list:
                        'grab_exclude', 'updated', 'comment'],
         'firmwarecatalog': ['name', 'manufacturer', 'model', 'component', 'version', 'imagefile',
                             'updated', 'comment'],
+        # grouped like 'node' above: what the image is, then what it grabs, then the
+        # files a node boots and unpacks, then who may touch it. owners/usergroups/
+        # access are listed rather than left to the GOVERNED_TABLES append, so they
+        # sit above the comment instead of after it.
         'osimage': [
-            'name', 'grab_filesystems', 'grab_exclude', 'initrdfile',
-            'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions', 'path', 'imagefile',
-            'distribution', 'osrelease', 'comment'
+            'name', 'path', 'kernelversion', 'distribution', 'osrelease', 'tag',
+            'kerneloptions', 'kernelmodules',
+            'grab_filesystems', 'grab_exclude',
+            'kernelfile', 'initrdfile', 'imagefile',
+            'owners', 'usergroups', 'access',
+            'comment'
         ],
         'switch': ['name', 'vendor', 'ostype', 'mgmt_interface', 'network', 'ipaddress', 'ipaddress_ipv6', 'macaddress',
                    'oid', 'read', 'rw', 'uplinkports',
@@ -542,7 +549,9 @@ def divider(table=None):
         'cluster': ['technical_contacts', 'mounts', 'ntp_server', 'createnode_macashost', 'user', 'access',
                     'debug'],
         'node': node_blocks + [f'{field} *' for field in node_blocks],
-        'group': group_blocks + [f'{field} *' for field in group_blocks]
+        'group': group_blocks + [f'{field} *' for field in group_blocks],
+        # an osimage has no parent either, so bare names are enough
+        'osimage': ['tag', 'kernelmodules', 'grab_exclude', 'imagefile', 'access']
     }
     if table in static:
         response = list(static[table])
