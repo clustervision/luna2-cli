@@ -471,14 +471,30 @@ def sortby(table: str) -> list:
             'provision_interface', 'provision_method', 'provision_fallback', 'comment'
         ],
         'bmcsetup': [
-            'name', 'userid', 'username', 'password', 'netchannel', 'mgmtchannel',
-            'unmanaged_bmc_users', 'comment'
+            'name', 'userid', 'username', 'password', 'unmanaged_bmc_users',
+            'netchannel', 'mgmtchannel', 'cipher',
+            'owners', 'usergroups', 'access',
+            'comment'
         ],
-        'redfishsetup': ['name', 'scheme', 'port', 'verify', 'accounts', 'comment'],
-        'biosconfig': ['name', 'manufacturer', 'model', 'biosversion', 'grabbedfrom', 'settings',
-                       'grab_exclude', 'updated', 'comment'],
-        'firmwarecatalog': ['name', 'manufacturer', 'model', 'component', 'version', 'imagefile',
-                            'updated', 'comment'],
+        'redfishsetup': [
+            'name', 'scheme', 'port', 'verify',
+            'accounts',
+            'owners', 'usergroups', 'access',
+            'comment'
+        ],
+        'biosconfig': [
+            'name', 'manufacturer', 'model', 'biosversion',
+            'grabbedfrom', 'updated',
+            'settings', 'grab_exclude',
+            'owners', 'usergroups', 'access',
+            'comment'
+        ],
+        'firmwarecatalog': [
+            'name', 'manufacturer', 'model', 'component',
+            'version', 'imagefile', 'updated',
+            'owners', 'usergroups', 'access',
+            'comment'
+        ],
         # grouped like 'node' above: what the image is, then what it grabs, then the
         # files a node boots and unpacks, then who may touch it. owners/usergroups/
         # access are listed rather than left to the GOVERNED_TABLES append, so they
@@ -491,13 +507,22 @@ def sortby(table: str) -> list:
             'owners', 'usergroups', 'access',
             'comment'
         ],
-        'switch': ['name', 'vendor', 'ostype', 'mgmt_interface', 'network', 'ipaddress', 'ipaddress_ipv6', 'macaddress',
-                   'oid', 'read', 'rw', 'uplinkports',
-                   'netboot', 'default_url', 'bootfile', 'ztpformat', 'ztpconfig',
-                   'url_protocol', 'url_server', 'tftp_enable', 'comment'],
+        'switch': [
+            'name', 'vendor', 'ostype',
+            'mgmt_interface', 'uplinkports', 'network',
+            'ipaddress', 'ipaddress_ipv6', 'macaddress',
+            'oid', 'read', 'rw',
+            'netboot', 'default_url', 'bootfile', 'ztpformat', 'ztpconfig',
+            'url_protocol', 'url_server', 'tftp_enable',
+            'owners', 'usergroups', 'access',
+            'comment'
+        ],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
-        'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'mtu', 'vlanid',
-                          'vlan_parent', 'bond_mode', 'bond_slaves'],
+        'nodeinterface': [
+            'interface', 'ipaddress', 'macaddress', 'network', 'mtu', 'options',
+            'vlanid', 'vlan_parent',
+            'bond_mode', 'bond_slaves'
+        ],
         'switchinterface': ['interface', 'mgmt', 'ipaddress', 'ipaddress_ipv6', 'macaddress', 'network'],
         'groupinterface': [
             'interfacename', 'network', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves'
@@ -511,16 +536,22 @@ def sortby(table: str) -> list:
             'name', 'type', 'zone', 'non_authoritative', 'dhcp',
             'network', 'gateway', 'nameserver_ip', 'dhcp_range_begin', 'dhcp_range_end',
             'network_ipv6', 'gateway_ipv6', 'nameserver_ip_ipv6',
-            'dhcp_range_begin_ipv6', 'dhcp_range_end_ipv6', 'ntp_server',
-            'gateway_metric', 'routes', 'dhcp_nodes_in_pool', 'dhcp_nodes_only', 'shared', 'dhcp_relay',
-            'dhcp_link_subnet', 'comment'
+            'dhcp_range_begin_ipv6', 'dhcp_range_end_ipv6',
+            'ntp_server', 'gateway_metric', 'routes',
+            'dhcp_nodes_in_pool', 'dhcp_nodes_only', 'shared',
+            'dhcp_relay', 'dhcp_link_subnet', 'dhcp_link_subnet_ipv6',
+            'owners', 'usergroups', 'access',
+            'comment'
         ],
         'osimagetag': [
             'osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups'
         ],
         'route': ['name', 'destination', 'gateway', 'metric', 'device', 'comment', 'assigned'],
-        'user': ['username', 'source', 'external_id', 'enabled', 'admin', 'delegate', 'password_set',
-                 'usergroups', 'createdby', 'created', 'lastlogin'],
+        'user': [
+            'name', 'username', 'source', 'external_id',
+            'enabled', 'admin', 'delegate', 'password_set', 'usergroups',
+            'createdby', 'created', 'lastlogin'
+        ],
         'usergroup': ['name', 'comment', 'hardware', 'members']
     }
     response = list(static.get(table) or [])
@@ -551,7 +582,16 @@ def divider(table=None):
         'node': node_blocks + [f'{field} *' for field in node_blocks],
         'group': group_blocks + [f'{field} *' for field in group_blocks],
         # an osimage has no parent either, so bare names are enough
-        'osimage': ['tag', 'kernelmodules', 'grab_exclude', 'imagefile', 'access']
+        'osimage': ['tag', 'kernelmodules', 'grab_exclude', 'imagefile', 'access'],
+        # the same three points spacer() grouped on, drawn as rules instead of air
+        'network': ['dhcp', 'dhcp_range_end', 'dhcp_range_end_ipv6', 'routes',
+                    'dhcp_nodes_only', 'dhcp_link_subnet_ipv6', 'access'],
+        'switch': ['ostype', 'macaddress', 'rw', 'ztpconfig', 'tftp_enable', 'access'],
+        'bmcsetup': ['unmanaged_bmc_users', 'cipher', 'access'],
+        'redfishsetup': ['verify', 'accounts', 'access'],
+        'biosconfig': ['biosversion', 'updated', 'grab_exclude', 'access'],
+        'firmwarecatalog': ['component', 'updated', 'access'],
+        'user': ['external_id', 'usergroups']
     }
     if table in static:
         response = list(static[table])
@@ -564,9 +604,7 @@ def spacer(table=None):
     """
     response = False
     static = {
-        'network': [
-            'dhcp', 'dhcp_range_end', 'dhcp_range_end_ipv6', 'prescript', 'partscript', 'postscript'
-        ]
+        'network': ['prescript', 'partscript', 'postscript']
     }
     if table in static:
         response = list(static[table])

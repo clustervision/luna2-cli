@@ -30,7 +30,8 @@ def test_every_divider_is_a_field_that_exists_in_the_order():
     """
     A rule after a field that is not in the list never draws.
     """
-    for table in ('cluster', 'node', 'group', 'osimage'):
+    for table in ('cluster', 'node', 'group', 'osimage', 'network', 'switch',
+                  'bmcsetup', 'redfishsetup', 'biosconfig', 'firmwarecatalog'):
         fields = set(sortby(table))
         missing = [d for d in divider(table)
                    if d.removesuffix(' *') not in fields]
@@ -67,7 +68,9 @@ def test_node_and_group_agree_on_the_order_of_what_they_share():
         f'  node order : {in_node_order}')
 
 
-@pytest.mark.parametrize('table', ['node', 'group', 'osimage'])
+@pytest.mark.parametrize('table', ['node', 'group', 'osimage', 'network', 'switch',
+                                   'bmcsetup', 'redfishsetup', 'biosconfig',
+                                   'firmwarecatalog', 'user', 'nodeinterface'])
 def test_the_order_has_no_duplicates(table):
     fields = sortby(table)
     dupes = sorted({f for f in fields if fields.count(f) > 1})
