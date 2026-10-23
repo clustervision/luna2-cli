@@ -393,9 +393,13 @@ class Helper():
         'mounts': (mounts_canonicalize, mounts_to_yaml),
     }
 
-    # Keys whose quick option (-qdl, -qmnt, -qof) takes a file path OR the document
-    # in-line: a value that plainly is a path must not be read as in-line JSON.
-    PATH_OR_INLINE_KEYS = ('disklayout', 'mounts', 'osimage_filter')
+    # Quick options whose legitimate value can never look like a path: a document
+    # (disklayout, mounts, osimage_filter, mount) or NetworkManager ini (options).
+    # For these a path-like value that does not exist is a typo, not content. Every
+    # other editor key legitimately holds path-like text -- grab_filesystems is
+    # '/ /boot' -- and is taken in-line; the classification of all of them is pinned
+    # in tests/test_quick_option_missing_file.py.
+    PATH_OR_INLINE_KEYS = ('disklayout', 'mounts', 'osimage_filter', 'options', 'mount')
 
     def looks_like_missing_file(self, key=None, value=None):
         """
@@ -684,6 +688,9 @@ class Helper():
         if raw and os.path.isfile(raw):
             with open(raw, 'rb') as handle:
                 raw = handle.read()
+        elif self.looks_like_missing_file('mount', raw):
+            Message().error_exit(f'ERROR :: mount :: file {raw} does not exist. '
+                                 f'Give an existing file, or the mount entry itself in-line')
         try:
             entry = mounts_entry(raw)
         except MountsError as exp:
