@@ -95,11 +95,11 @@ class Boot():
     # know how many are still fetching and how many are configuring, not which of the
     # dozen post-install steps node417 is on.
     BOOT_PHASES = [
-        ('ipxe', ('rendered',)),
+        ('ipxe', ('discovered', 'rendered')),
         ('download', ('download',)),
         ('unpack', ('unpack', 'lpart.part')),
         ('parked', ('degraded', 'refused', 'fatal')),
-        ('done', ('success', 'booted', 'sanitized')),
+        ('done', ('booted', 'sanitized')),
     ]
 
     # Where an install stops for good: nothing follows until someone acts (parked) or
@@ -129,8 +129,8 @@ class Boot():
                      'started'), 20),
         ('download', ('download', 'downloaded'), 45),
         ('unpack', ('unpack', 'lpart.part'), 70),
-        ('configure', ('setnet', 'secrets', 'postscript', 'lpart.post', 'roles',
-                       'profiles', 'image', 'finalizing'), 85),
+        ('configure', ('setnet', 'secrets', 'postscript', 'lpart.post', 'mounts',
+                       'roles', 'profiles', 'image', 'finalizing'), 85),
         ('success', ('success', 'completed'), 95),
         ('booted', ('booted',), 100),
     ]
@@ -372,6 +372,10 @@ class Boot():
         A boot has always had these and never shown them. They are also what drags the
         cohort anchor back - a node stuck since last week is still in flight - so the
         same line explains the stragglers and why the cohort is the size it is.
+
+        A state the ladder does not place is still a node that is not coming: a power
+        command nothing answered, or an install retrying an error. Its own step names
+        it, because such a node has no stage to be named by.
         """
         last = len(self.BOOT_STAGES) - 1
         now = datetime.utcnow()
@@ -379,12 +383,13 @@ class Boot():
         for name in scope:
             entry = states.get(name) or {}
             stage = self.node_stage(entry.get('state'))
-            if stage is None or stage == last:
+            if stage == last or self.stopped(entry.get('state')):
                 continue
             minutes = self.silent_minutes(entry, now)
             if minutes is not None and minutes >= self.STUCK_MINUTES:
                 stuck.append({'node': name, 'minutes': minutes,
-                              'stage': self.BOOT_STAGES[stage][0]})
+                              'stage': self.BOOT_STAGES[stage][0] if stage is not None
+                              else str(entry.get('state')).replace('install.', '', 1)})
         return sorted(stuck, key=lambda node: -node['minutes'])
 
 
@@ -424,7 +429,7 @@ class Boot():
             condition = self.stopped(entry['state']) or ''
             if not condition and str(entry.get('status')) == '500':
                 condition = 'failed'
-            elif not condition and stage is not None and minutes is not None and minutes >= self.STUCK_MINUTES:
+            elif not condition and minutes is not None and minutes >= self.STUCK_MINUTES:
                 condition = 'stuck'
             rows.append({
                 'node': name,

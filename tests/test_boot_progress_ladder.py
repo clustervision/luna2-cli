@@ -43,7 +43,7 @@ DAEMON_STATES = (
     'install.completed', 'install.scripts', 'install.prescript', 'install.setupbmc',
     'install.partscript', 'install.lpart.pre', 'install.lpart.part', 'install.lpart.post',
     'install.download', 'install.unpack', 'install.setnet', 'install.secrets',
-    'install.postscript', 'install.roles', 'install.profiles', 'install.image',
+    'install.postscript', 'install.mounts', 'install.roles', 'install.profiles', 'install.image',
     'install.finalizing', 'install.success', 'install.booted',
 )
 
