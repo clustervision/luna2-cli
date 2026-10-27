@@ -27,7 +27,9 @@ from luna.boot import Boot
 
 @pytest.fixture(autouse=True)
 def _stub_logger():
-    """A logger without Log.init_log()'s root-only file handler."""
+    """
+    A logger without Log.init_log()'s root-only file handler.
+    """
     previous = luna_log.Log._Log__logger  # noqa: SLF001 - name-mangled by design
     luna_log.Log._Log__logger = logging.getLogger('luna2-cli-tests')  # noqa: SLF001
     yield
@@ -41,7 +43,7 @@ DAEMON_STATES = (
     'install.completed', 'install.scripts', 'install.prescript', 'install.setupbmc',
     'install.partscript', 'install.lpart.pre', 'install.lpart.part', 'install.lpart.post',
     'install.download', 'install.unpack', 'install.setnet', 'install.secrets',
-    'install.postscript', 'install.roles', 'install.profiles', 'install.image',
+    'install.postscript', 'install.mounts', 'install.roles', 'install.profiles', 'install.image',
     'install.finalizing', 'install.success', 'install.booted',
 )
 
@@ -50,15 +52,23 @@ DAEMON_STATES = (
 # the classic path and reports download and unpack from there
 NOT_A_STAGE = ('install.error', 'install.lpart_unavailable')
 
+# where an install stops for good: off the ladder too, and not in flight
+STOPPED_STATES = {'install.degraded': 'parked', 'install.refused': 'parked',
+                  'install.fatal': 'parked', 'install.sanitized': 'sanitized'}
+
 
 @pytest.fixture(name='boot')
 def boot_fixture():
-    """The class without its constructor, which builds an argument parser."""
+    """
+    The class without its constructor, which builds an argument parser.
+    """
     return Boot.__new__(Boot)
 
 
 def test_every_state_the_daemon_can_send_lands_on_the_ladder(boot):
-    """A state nobody placed makes a node vanish from every bar."""
+    """
+    A state nobody placed makes a node vanish from every bar.
+    """
     missing = [state for state in DAEMON_STATES if boot.node_stage(state) is None]
     assert not missing, f'no stage for: {missing}'
 
@@ -77,7 +87,9 @@ def test_a_state_matches_one_stage_and_not_two(boot):
 
 
 def test_the_states_left_off_the_ladder_are_the_ones_we_meant(boot):
-    """Off the ladder is a decision, so it is pinned rather than assumed."""
+    """
+    Off the ladder is a decision, so it is pinned rather than assumed.
+    """
     for state in NOT_A_STAGE:
         assert boot.node_stage(state) is None, f'{state} unexpectedly has a stage'
 
@@ -96,7 +108,9 @@ def test_the_lpart_phases_sit_where_the_classic_steps_sit(boot):
 
 
 def test_progress_never_goes_backwards_along_the_ladder(boot):
-    """The total bar is a mean of these, so a dip makes a boot look like it reversed."""
+    """
+    The total bar is a mean of these, so a dip makes a boot look like it reversed.
+    """
     weights = [weight for _, _, weight in boot.BOOT_STAGES]
     assert weights == sorted(weights), weights
     assert weights[-1] == 100
@@ -121,3 +135,20 @@ def test_the_milestones_descend_and_name_a_real_stage(boot):
     assert thresholds == sorted(thresholds)
     assert max(thresholds) == len(boot.BOOT_STAGES) - 1
     assert min(thresholds) == 0
+
+
+def test_a_stopped_install_is_off_the_ladder_and_named(boot):
+    """
+    A parked or sanitized node is not somewhere along a boot, and says which it is.
+    """
+    for state, condition in STOPPED_STATES.items():
+        assert boot.node_stage(state) is None, f'{state} unexpectedly has a stage'
+        assert boot.stopped(state) == condition, state
+    for state in DAEMON_STATES + NOT_A_STAGE:
+        assert boot.stopped(state) is None, f'{state} reads as stopped'
+
+
+def test_the_overview_counts_parked_apart_and_sanitized_as_done(boot):
+    for state, condition in STOPPED_STATES.items():
+        expected = 'parked' if condition == 'parked' else 'done'
+        assert boot.boot_phase(f'Luna installer: {state[len("install."):]}') == expected, state

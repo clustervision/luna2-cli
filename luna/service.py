@@ -137,16 +137,18 @@ class Service():
                                 else:
                                     Message().show_success(f'[========] {msg}')
                     else:
-                        Message().error_exit(result.content, result.status_code)
+                        Message().error_exit(Helper().answer_message(result), result.status_code)
                     return result.status_code
                 status = 200
                 response = True
-                while status != 404:
-                    status = dig_service_status(uri)
-                    if status in [500, 501, 503]:
-                        response = False
-                    sleep(1)
-                process1.terminate()
+                try:
+                    while status != 404:
+                        status = dig_service_status(uri)
+                        if status in [500, 501, 503]:
+                            response = False
+                        sleep(1)
+                finally:
+                    process1.terminate()
                 service = self.args['service']
                 action = self.args['action']
                 if response:
@@ -155,5 +157,5 @@ class Service():
                     Message().show_failed_exit(f'[ FAILED ] Service {service} {action} is finished unsuccesfully.')
             else:
                 process1.terminate()
-                Message().error_exit(result.content, result.status_code)
+                Message().error_exit(Helper().answer_message(result), result.status_code)
         return response

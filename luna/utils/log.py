@@ -37,7 +37,8 @@ __status__      = 'Development'
 from typing import Optional
 import sys
 import logging
-from luna.utils.constant import LOG_FILE
+import os
+from luna.utils.constant import LOG_FILE, USER_LOG_FILE
 
 
 class Log:
@@ -46,6 +47,22 @@ class Log:
     """
     __logger: Optional[logging.Logger] = None
 
+
+    @classmethod
+    def log_file(cls):
+        """
+        The system log when this user may append to it, which root can; else a log of the
+        person's own beside their login, so logging in as oneself does not need root.
+        """
+        if os.access(LOG_FILE, os.W_OK) or (not os.path.exists(LOG_FILE) and os.access(os.path.dirname(LOG_FILE), os.W_OK)):
+            return LOG_FILE
+        own = os.path.expanduser(USER_LOG_FILE)
+        os.makedirs(os.path.dirname(own), mode=0o700, exist_ok=True)
+        # the log carries object names and refusals: the owner's to read, nobody else's
+        with open(own, 'a', encoding='utf-8'):
+            pass
+        os.chmod(own, 0o600)
+        return own
 
     @classmethod
     def init_log(cls, log_level='INFO'):
@@ -60,7 +77,7 @@ class Log:
         message = '[%(filename)s:%(funcName)s@%(lineno)d] - %(message)s'
         log_format = f'{thread_level}{message}'
         try:
-            logging.basicConfig(filename=LOG_FILE, format=log_format, filemode='a', level=log_level)
+            logging.basicConfig(filename=cls.log_file(), format=log_format, filemode='a', level=log_level)
             cls.__logger = logging.getLogger('luna2-cli')
             cls.__logger.setLevel(log_level)
             if log_level == 10:

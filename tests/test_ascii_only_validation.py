@@ -22,7 +22,9 @@ from luna.utils.helper import Helper
 
 @pytest.fixture(autouse=True)
 def _stub_logger():
-    """Give Helper a logger without Log.init_log()'s root-only file handler."""
+    """
+    Give Helper a logger without Log.init_log()'s root-only file handler.
+    """
     previous = luna_log.Log._Log__logger  # noqa: SLF001 - name-mangled by design
     luna_log.Log._Log__logger = logging.getLogger('luna2-cli-tests')  # noqa: SLF001
     yield
@@ -68,7 +70,9 @@ def test_invalid_utf8_bytes_are_rejected_with_their_own_message():
 
 
 def test_prepare_payload_rejects_an_inline_quick_partscript_argument():
-    """The exact reproduction from the ticket, via --quick-partscript."""
+    """
+    The exact reproduction from the ticket, via --quick-partscript.
+    """
     text = "# Now it’s safe to re‑create everything"
     with patch('luna.utils.helper.Message') as message:
         Helper().prepare_payload(None, {'name': 'n1', 'partscript': text})
@@ -76,7 +80,9 @@ def test_prepare_payload_rejects_an_inline_quick_partscript_argument():
 
 
 def test_prepare_payload_leaves_content_untouched_even_with_special_chars():
-    """content is excluded: it is the byte-preserving path for binary secrets/profile files."""
+    """
+    content is excluded: it is the byte-preserving path for binary secrets/profile files.
+    """
     with patch('luna.utils.helper.Message') as message:
         payload = Helper().prepare_payload(None, {'name': 'n1', 'content': "it’s fine"})
     message.return_value.error_exit.assert_not_called()

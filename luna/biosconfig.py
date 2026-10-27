@@ -35,6 +35,7 @@ from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.constant import actions
 from luna.utils.presenter import Presenter
+from luna.utils.display import Display
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
 
@@ -126,8 +127,9 @@ class BiosConfig():
         Arguments().common_biosconfig_args(biosconfig_change)
         biosconfig_change.add_argument('-S', '--set', action='append', metavar='ENTRY=VALUE',
                                        help='Change one entry: a concept (hyperthreading=off, '
-                                            'sriov=on, boot_mode=uefi) or an attribute name as the '
-                                            'board publishes it. Repeatable. Refused by name for '
+                                            'sriov=on, boot_mode=uefi), an attribute name as the '
+                                            'board publishes it, or the setting name show -s lists '
+                                            '("Ac Loss Control=Last State"). Repeatable. Refused by name for '
                                             'anything the board type cannot express')
         biosconfig_clone = biosconfig_args.add_parser('clone', help='Clone a BIOS Configuration, '
                                                       'to change entries on the copy')
@@ -177,8 +179,9 @@ class BiosConfig():
             Message().error_exit(get_list.content, get_list.status_code)
         detail = get_list.content['config'][self.table][name]
         settings = detail.pop('attributes', {}) or {}
+        labels = detail.pop('labels', {}) or {}
         if self.args['raw']:
-            Presenter().show_json(Helper().prepare_json(dict(detail, attributes=settings)))
+            Presenter().show_json(Helper().prepare_json(dict(detail, attributes=settings, labels=labels)))
             return True
         # the same decode every other show does: grab_exclude and comment are
         # editor keys, so they travel base64 and are read back for display here.
@@ -186,13 +189,16 @@ class BiosConfig():
         detail = Helper().prepare_json(detail)
         fields = list(detail.keys())
         rows = [detail[key] for key in fields]
+        fields, rows = Display.filter_fields(self.table, fields, rows, column=True)
         Presenter().show_table_col(f'BIOS Configuration :: {name}', fields, rows)
         if self.args['settings']:
             if not settings:
                 Message().show_warning(f'BIOS configuration {name} carries no settings.')
                 return True
-            rows = [[key, settings[key]] for key in sorted(settings)]
-            Presenter().show_table(f' << {name} Settings >>', ['Attribute', 'Value'], rows)
+            # the attribute stays first: it is what --set, a push and -R all use,
+            # and a board need not give every setting a name
+            rows = [[key, labels.get(key, ''), settings[key]] for key in sorted(settings)]
+            Presenter().show_table(f' << {name} Settings >>', ['Attribute', 'Name', 'Value'], rows)
         return True
 
 

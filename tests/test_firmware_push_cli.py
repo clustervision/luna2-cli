@@ -24,7 +24,9 @@ import luna.utils.log as luna_log
 
 @pytest.fixture(autouse=True)
 def _stub_logger():
-    """A logger without Log.init_log()'s root-only file handler."""
+    """
+    A logger without Log.init_log()'s root-only file handler.
+    """
     previous = luna_log.Log._Log__logger  # noqa: SLF001 - name-mangled by design
     luna_log.Log._Log__logger = logging.getLogger('luna2-cli-tests')  # noqa: SLF001
     yield
@@ -59,7 +61,9 @@ PREVIEW = {'config': {'firmware': {'preview': {
 
 @pytest.fixture
 def wire(monkeypatch):
-    """Captures what reaches the daemon, and what the terminal was shown."""
+    """
+    Captures what reaches the daemon, and what the terminal was shown.
+    """
     seen = {'posted': [], 'fetched': [], 'tables': [], 'messages': []}
 
     import luna.firmwarecatalog as firmware
@@ -109,7 +113,9 @@ def test_a_group_push_posts_to_the_group_route(wire):
 
 
 def test_a_dry_run_records_nothing(wire):
-    """The command an operator runs before deciding must not be the decision."""
+    """
+    The command an operator runs before deciding must not be the decision.
+    """
     push('node', dry_run=True)
     assert wire['posted'] == []
     assert wire['fetched'] == ['node/target/firmware/_preview']
@@ -125,7 +131,9 @@ def test_a_dry_run_shows_a_row_per_component_that_would_change(wire):
 
 
 def test_a_dry_run_groups_the_skips_by_cause_rather_than_listing_nodes(wire):
-    """At four thousand nodes a line each buries what would actually change."""
+    """
+    At four thousand nodes a line each buries what would actually change.
+    """
     push('group', dry_run=True)
     warnings = [message for kind, message in wire['messages'] if kind == 'show_warning']
     assert warnings == ['1 node(s) skipped: no catalogue entry for this hardware',

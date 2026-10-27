@@ -57,6 +57,9 @@ try:
     from luna.service import Service
     from luna.control import Control
     from luna.monitor import Monitor
+    from luna.user import User
+    from luna.usergroup import UserGroup
+    from luna.access import Access
     from luna.utils.message import Message
     from luna.utils.rest import Rest
     from luna.utils.message import Message
@@ -78,7 +81,10 @@ try:
         Boot,
         Service,
         Control,
-        Monitor
+        Monitor,
+        User,
+        UserGroup,
+        Access
     ]
 
 except KeyboardInterrupt:
@@ -166,10 +172,14 @@ class Cli():
                     call = globals()["FirmwareCatalog"]
                 elif self.args["command"] == "otherdev":
                     call = globals()["OtherDev"]
+                elif self.args["command"] == "usergroup":
+                    call = globals()["UserGroup"]
                 else:
                     call = globals()[self.args["command"].capitalize()]
                 urllib3.disable_warnings()
-                Rest().daemon_validation()
+                if not (self.args["command"] == "access" and self.args.get("action") in ("login", "logout")):
+                    # these two create or remove the person's credentials: nothing to validate yet
+                    Rest().daemon_validation()
                 call(self.args, self.parser, self.subparsers)
             else:
                 self.parser.print_help(sys.stdout)
@@ -197,7 +207,7 @@ class Cli():
         This method will check if the log file is in place or not.
         If not then will create it.
         """
-        if os.path.exists(LOG_DIR) is False:
+        if os.path.exists(LOG_DIR) is False and os.geteuid() == 0:
             try:
                 os.makedirs(LOG_DIR)
                 Message().show_success(f'PASS :: {LOG_DIR} is created.')

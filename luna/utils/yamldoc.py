@@ -56,11 +56,14 @@ _FALSE_WORDS = frozenset({"false", "no", "off", "n"})
 
 
 class DocumentError(ValueError):
-    """A document could not be canonicalized. Message is operator-facing."""
+    """
+    A document could not be canonicalized. Message is operator-facing.
+    """
 
 
 def make_loader(error: type[DocumentError]) -> type[yaml.SafeLoader]:
-    """A SafeLoader that keeps every plain scalar a string and refuses YAML sugar.
+    """
+    A SafeLoader that keeps every plain scalar a string and refuses YAML sugar.
 
     Typed scalar tags (bool/int/float/timestamp) are neutralized to ``str`` so
     the Norway problem cannot bite; explicit ``null`` is preserved as ``None``
@@ -107,7 +110,9 @@ def make_loader(error: type[DocumentError]) -> type[yaml.SafeLoader]:
 
 
 def decode(raw: bytes | str, label: str, error: type[DocumentError]) -> str:
-    """Decode input bytes to a UTF-8 string, tolerating a UTF-8 BOM only."""
+    """
+    Decode input bytes to a UTF-8 string, tolerating a UTF-8 BOM only.
+    """
     if isinstance(raw, str):
         return raw
     if len(raw) > MAX_INPUT_BYTES:
@@ -185,7 +190,9 @@ def parse(text: str, loader: type[yaml.SafeLoader], error: type[DocumentError]) 
 
 
 def dump(obj: Any) -> str:
-    """Render a parsed document as YAML for the editor: leaf collections inline
+    """
+    Render a parsed document as YAML for the editor: leaf collections inline
     on one line for readability while the structure stays block. No sort_keys
-    kwarg -> works across PyYAML 3.x-6.x (the CLI runs on 3.10 and 6.0.2)."""
+    kwarg -> works across PyYAML 3.x-6.x (the CLI runs on 3.10 and 6.0.2).
+    """
     return yaml.safe_dump(obj, default_flow_style=None, allow_unicode=True)

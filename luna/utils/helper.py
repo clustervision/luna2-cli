@@ -30,6 +30,7 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 import os
+import sys
 import json
 from time import time, sleep
 import base64
@@ -49,6 +50,7 @@ from nested_lookup import nested_lookup, nested_update, nested_delete, nested_al
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.presenter import Presenter
+from luna.utils.display import Display
 from luna.utils.constant import (EDITOR_KEYS, BOOL_KEYS, ASCII_ONLY_KEYS,
     filter_columns, filter_nested, sortby, divider, spacer, overrides, parser_doc)
 from luna.utils.disklayout import canonicalize as disklayout_canonicalize, to_yaml as disklayout_to_yaml
@@ -67,6 +69,8 @@ class Helper():
         Constructor - As of now, nothing have to initialize.
         """
         self.logger = Log.get_logger()
+        # editor files of a change in progress, by key; None when edits are not kept
+        self.kept_edits = None
 
 
     def get_help_message(self, subparsers, table):
@@ -265,6 +269,9 @@ class Helper():
                         else:
                             Message().error_exit(f'ERROR :: {content[0]} is a Invalid filepath.')
                     else:
+                        if self.looks_like_missing_file(key, content[0]):
+                            Message().error_exit(f'ERROR :: {key} :: file {content[0]} does not exist. '
+                                                 f'Give an existing file, or the {key} itself in-line')
                         if key in self.DOCUMENT_KEYS:
                             content = self.document_b64(key, content[0])
                         else:
@@ -280,9 +287,6 @@ class Helper():
         This Method will open a default text editor to write the multiline text for keys such as
         comment, prescript, postscript, partscript, content etc. but not limited to them only.
         """
-        response = ''
-        editor = str(os.path.abspath(__file__)).replace('helper.py', 'editor.sh')
-        os.chmod(editor, 0o0755)
         random_path = str(time())+str(randint(1001,9999))+str(getpid())
         tmp_folder = f'/tmp/lunatmp-{random_path}'
         os.mkdir(tmp_folder)
@@ -290,30 +294,95 @@ class Helper():
             filename = f'/tmp/lunatmp-{random_path}/{payload["name"]}{key}'
         else:
             filename = f'/tmp/lunatmp-{random_path}/{key}'
-        temp_file = open(filename, "x", encoding='utf-8')
-        if value:
-            value = self.base64_decode(value)
-            if key in self.DOCUMENT_KEYS:
-                try:
-                    value = self.DOCUMENT_KEYS[key][1](value)
-                except DocumentError as error:
-                    Message().error_exit(f'ERROR :: stored {key} is invalid :: {error}')
-            temp_file.write(value)
-            temp_file.close()
-        subprocess.check_output(f"sed -i 's/\r$//' {editor}", shell=True)
-        subprocess.call([editor, filename])
-        subprocess.check_output(f"sed -i 's/\r$//' {filename}", shell=True)
-        with open(filename, 'rb') as file_data:
-            edited = file_data.read()
-        if key in self.DOCUMENT_KEYS:
-            response = self.document_b64(key, edited)
+        with open(filename, "x", encoding='utf-8') as temp_file:
+            if value:
+                value = self.base64_decode(value)
+                if key in self.DOCUMENT_KEYS:
+                    try:
+                        value = self.DOCUMENT_KEYS[key][1](value)
+                    except DocumentError as error:
+                        Message().error_exit(f'ERROR :: stored {key} is invalid :: {error}')
+                temp_file.write(value)
+        response = self.edit_file(key, filename)
+        if self.kept_edits is None:
+            os.remove(filename)
+            os.rmdir(tmp_folder)
         else:
-            if key in ASCII_ONLY_KEYS:
-                self.check_ascii_only(key, edited)
-            response = self.base64_encode(edited)
-        os.remove(filename)
-        os.rmdir(tmp_folder)
+            self.kept_edits[key] = filename
         return response
+
+
+    # Marks the reason a refused edit came back; these lines never reach the daemon.
+    REFUSAL_MARK = '# luna: refused: '
+
+    def edit_file(self, key=None, filename=None, reason=None):
+        """
+        Run the editor on a field's file and return the value to send. A document that
+        does not parse goes back to the editor with the reason on top.
+        """
+        editor = str(os.path.abspath(__file__)).replace('helper.py', 'editor.sh')
+        os.chmod(editor, 0o0755)
+        while True:
+            self.mark_refusal(filename, reason)
+            subprocess.check_output(f"sed -i 's/\r$//' {editor}", shell=True)
+            subprocess.call([editor, filename])
+            subprocess.check_output(f"sed -i 's/\r$//' {filename}", shell=True)
+            with open(filename, 'rb') as file_data:
+                edited = self.strip_refusal(file_data.read())
+            if key not in self.DOCUMENT_KEYS:
+                if key in ASCII_ONLY_KEYS:
+                    self.check_ascii_only(key, edited)
+                return self.base64_encode(edited)
+            try:
+                return self.base64_encode(self.DOCUMENT_KEYS[key][0](edited))
+            except DocumentError as error:
+                reason = f'invalid {key} :: {error}'
+                self.edit_again(reason, [filename])
+
+
+    def mark_refusal(self, filename=None, reason=None):
+        """
+        Put the reason an edit was refused on top of its file, replacing an earlier one.
+        """
+        if not reason:
+            return
+        with open(filename, 'rb') as file_data:
+            text = self.strip_refusal(file_data.read())
+        mark = ''.join(f'{self.REFUSAL_MARK}{line}\n' for line in str(reason).splitlines())
+        with open(filename, 'wb') as file_data:
+            file_data.write(mark.encode('utf-8') + text)
+
+
+    def strip_refusal(self, data=None):
+        """
+        The edited bytes without the refusal lines mark_refusal put on top.
+        """
+        mark = self.REFUSAL_MARK.encode('utf-8')
+        if mark not in data:
+            return data
+        return b''.join(line for line in data.splitlines(keepends=True) if not line.startswith(mark))
+
+
+    def edit_again(self, reason=None, files=None):
+        """
+        Offer a refused edit back to the editor. Returns when the operator wants that;
+        otherwise exits non-zero with the edit kept, so nothing typed is lost.
+        """
+        sys.stderr.write(f'ERROR :: {reason}\n')
+        if sys.stdin.isatty():
+            if input('Edit again? [Y/n] ').strip().lower() in ('', 'y', 'yes'):
+                return
+        Message().error_exit(f'Your edit is kept in {", ".join(files)}')
+
+
+    def forget_edits(self):
+        """
+        Remove the editor files kept for a change once it is stored.
+        """
+        for filename in (self.kept_edits or {}).values():
+            os.remove(filename)
+            os.rmdir(os.path.dirname(filename))
+        self.kept_edits = None
 
 
     # The fields authored as a YAML/JSON document: (canonicalize, to_yaml) per key.
@@ -323,6 +392,30 @@ class Helper():
         'disklayout': (disklayout_canonicalize, disklayout_to_yaml),
         'mounts': (mounts_canonicalize, mounts_to_yaml),
     }
+
+    # Quick options whose legitimate value can never look like a path: a document
+    # (disklayout, mounts, osimage_filter, mount) or NetworkManager ini (options).
+    # For these a path-like value that does not exist is a typo, not content. Every
+    # other editor key legitimately holds path-like text -- grab_filesystems is
+    # '/ /boot' -- and is taken in-line; the classification of all of them is pinned
+    # in tests/test_quick_option_missing_file.py.
+    PATH_OR_INLINE_KEYS = ('disklayout', 'mounts', 'osimage_filter', 'options', 'mount')
+
+    def looks_like_missing_file(self, key=None, value=None):
+        """
+        True when value for a document key is clearly meant as a file path
+        (no newline, not starting with '{' or '[', no '=' in it, and starting with
+        '/', './', '../' or '~', or ending in .json/.yaml/.yml) but no such file
+        exists. A value carrying '=' is an assignment, not a path: an interface
+        option naming a certificate the node will have is content, not a typo.
+        """
+        if key not in self.PATH_OR_INLINE_KEYS or not isinstance(value, str):
+            return False
+        text = value.strip()
+        if not text or '\n' in text or text[0] in '{[' or '=' in text:
+            return False
+        pathlike = text.startswith(('/', './', '../', '~')) or text.lower().endswith(('.json', '.yaml', '.yml'))
+        return pathlike and not os.path.exists(os.path.expanduser(text))
 
     def document_b64(self, key=None, raw=None):
         """
@@ -376,7 +469,9 @@ class Helper():
         Only meant for the list context; empty values are skipped.
         """
         def collect(value, into):
-            """Append scalar value(s) to `into`, skipping composite (dict) values."""
+            """
+            Append scalar value(s) to `into`, skipping composite (dict) values.
+            """
             if isinstance(value, list):
                 for element in value:
                     if not isinstance(element, dict):
@@ -410,6 +505,14 @@ class Helper():
         Method to show a switch in Luna Configuration. Detail True will return the full details.
         """
         response = {'controllers': []} if detail is True else []
+        ini_file, _ = Rest.credential_files()
+        if not (os.path.isfile(ini_file) and os.access(ini_file, os.R_OK)):
+            # the parser is being built for someone who has not logged in yet: no daemon
+            # to ask, and the only verb they can run is the login that creates the file
+            return response
+        if sys.argv[1:3] in (['access', 'login'], ['access', 'logout']):
+            # these two replace or remove the credentials, which may be the ones the daemon refuses
+            return response
         urllib3.disable_warnings()
         check = Rest().daemon_validation(parser=True)
         if check is not True:
@@ -556,12 +659,16 @@ class Helper():
 
 
     def _envelope(self, table=None, name=None, inner=None):
-        """The config envelope every POST carries: config.<table>.<name> or, for the
-        cluster, config.cluster."""
+        """
+        The config envelope every POST carries: config.<table>.<name> or, for the
+        cluster, config.cluster.
+        """
         return {'config': {table: {name: inner} if name else inner}}
 
     def _post_and_tell(self, table=None, uri=None, payload=None, name=None):
-        """Post one change to a sub-route of a record and show the daemon's answer."""
+        """
+        Post one change to a sub-route of a record and show the daemon's answer.
+        """
         response = Rest().post_data(table, uri, payload)
         if response and response.status_code in [200, 201, 204]:
             # a creation answers 201 with its message, an update or removal 204 with none
@@ -583,6 +690,9 @@ class Helper():
         if raw and os.path.isfile(raw):
             with open(raw, 'rb') as handle:
                 raw = handle.read()
+        elif self.looks_like_missing_file('mount', raw):
+            Message().error_exit(f'ERROR :: mount :: file {raw} does not exist. '
+                                 f'Give an existing file, or the mount entry itself in-line')
         try:
             entry = mounts_entry(raw)
         except MountsError as exp:
@@ -775,27 +885,19 @@ class Helper():
             data.pop(remove, None)
         if 'raw' in data:
             data.pop('raw', None)
+        self.kept_edits = {}
         payload = self.prepare_payload(table, data, local)
-        name = None
-        if 'name' in payload:
-            name = payload['name']
-            request_data = {'config':{table:{name: payload}}}
-        else:
-            request_data = {'config':{table: payload}}
-        if 'cluster' in table:
-            request_data = {'config':{table: payload}}
-        self.logger.debug(f'Payload => {request_data}')
-        if 'cluster' in table:
-            response = Rest().post_data(table, None, request_data)
-        else:
-            record = Rest().get_data(table, payload['name'])
-            if record.status_code == 200:
-                if len(payload) == 1:
-                    Message().error_exit('Kindly choose something to update.')
-                else:
-                    response = Rest().post_data(table, name, request_data)
-            else:
-                Message().error_exit(f'Kindly add the {payload["name"]} first', record.status_code)
+        name = payload.get('name')
+        response = self.post_record(table, payload)
+        # a refused change goes back to the editor with the daemon's reason, for every
+        # field that was edited in it, until it is stored or the operator stops
+        while response and response.status_code not in [201, 204] and self.kept_edits:
+            reason = Message().answer_message(response.content, response.status_code)
+            self.edit_again(reason, list(self.kept_edits.values()))
+            for key, filename in self.kept_edits.items():
+                payload = nested_update(payload, key=key, value=self.edit_file(key, filename, reason))
+            response = self.post_record(table, payload)
+        self.forget_edits()
         self.logger.debug(f'Response => {response}')
         if response:
             if response.status_code in [201, 204]:
@@ -809,6 +911,31 @@ class Helper():
             else:
                 Message().error_exit(response.content, response.status_code)
         return True
+
+
+    def post_record(self, table=None, payload=None):
+        """
+        Send an update_record payload; the daemon's response, or None for nothing sent.
+        """
+        response = None
+        name = payload.get('name')
+        if 'name' in payload and 'cluster' not in table:
+            request_data = {'config':{table:{name: payload}}}
+        else:
+            request_data = {'config':{table: payload}}
+        self.logger.debug(f'Payload => {request_data}')
+        if 'cluster' in table:
+            response = Rest().post_data(table, None, request_data)
+        else:
+            record = Rest().get_data(table, payload['name'])
+            if record.status_code == 200:
+                if len(payload) == 1:
+                    Message().error_exit('Kindly choose something to update.')
+                else:
+                    response = Rest().post_data(table, name, request_data)
+            else:
+                Message().error_exit(f'Kindly add the {payload["name"]} first', record.status_code)
+        return response
 
 
     def compare_data(self, table=None, data=None):
@@ -975,23 +1102,18 @@ class Helper():
                     return result.status_code
             status = 200
             response = True
-            while status != 404:
-                status = dig_grabbing_status(uri)
-                if status in [500, 501, 503]:
-                    response = False
-                sleep(2)
-            process1.terminate()
+            try:
+                while status != 404:
+                    status = dig_grabbing_status(uri)
+                    if status in [500, 501, 503]:
+                        response = False
+                    sleep(2)
+            finally:
+                process1.terminate()
         if response:
             Message().show_success(f'[========] OSImage Grabbed for node {data["name"]}.')
         else:
-            message = result.content
-            try:
-                http_response = result.json()
-                if 'message' in http_response:
-                    message = http_response['message']
-            except:
-                pass
-            Message().show_failed_exit(f'[ FAILED ] OSImage not grabbed for node {data["name"]}: {message}.')
+            Message().show_failed_exit(f'[ FAILED ] OSImage not grabbed for node {data["name"]}: {self.answer_message(result)}.')
         return True
 
 
@@ -1043,23 +1165,18 @@ class Helper():
                     return result.status_code
             status = 200
             response = True
-            while status != 404:
-                status = dig_push_status(uri)
-                if status in [500, 501, 503]:
-                    response = False
-                sleep(2)
-            process1.terminate()
+            try:
+                while status != 404:
+                    status = dig_push_status(uri)
+                    if status in [500, 501, 503]:
+                        response = False
+                    sleep(2)
+            finally:
+                process1.terminate()
         if response:
             Message().show_success(f'[========] OSImage Pushed for {table} {data["name"]}.')
         else:
-            message = result.content
-            try:
-                http_response = result.json()
-                if 'message' in http_response:
-                    message = http_response['message']
-            except:
-                pass
-            Message().show_failed_exit(f'[ FAILED ] OSImage not pushed for {table} {data["name"]}: {message}.')
+            Message().show_failed_exit(f'[ FAILED ] OSImage not pushed for {table} {data["name"]}: {self.answer_message(result)}.')
         return True
 
 
@@ -1159,6 +1276,19 @@ class Helper():
             parser.add_argument('--csv', metavar='<column>', default=None,
                                 help='Output a single column as comma-separated values')
         return parser
+
+
+    def answer_message(self, answer=None):
+        """
+        The message in an answer of the daemon, for a command that reads the raw answer
+        itself. A refusal carries its message in JSON; an answer that does not is shown
+        as the text it is.
+        """
+        try:
+            return answer.json()['message']
+        except (ValueError, KeyError, TypeError, AttributeError):
+            content = getattr(answer, 'content', answer)
+            return content.decode(errors='replace') if isinstance(content, bytes) else content
 
 
     def loader(self, message=None):
@@ -1290,18 +1420,24 @@ class Helper():
 
 
     def filter_deviated(self, data=None):
-        """Filter a group/node list dict down to the entries whose _override flag is set."""
+        """
+        Filter a group/node list dict down to the entries whose _override flag is set.
+        """
         return {name: item for name, item in data.items() if item.get('_override')}
 
 
     def deviated_field_names(self, table=None, record=None):
-        """Sorted field names set locally at this level, via merge_source()'s _..._source comparison."""
+        """
+        Sorted field names set locally at this level, via merge_source()'s _..._source comparison.
+        """
         _, resp_overrides = self.merge_source(table, record)
         return sorted(resp_overrides)
 
 
     def deviated_fields(self, table=None, record=None):
-        """Comma-separated field names that deviate, for the list -d table view."""
+        """
+        Comma-separated field names that deviate, for the list -d table view.
+        """
         return ', '.join(self.deviated_field_names(table, record))
 
 
@@ -1449,6 +1585,9 @@ class Helper():
                         new_list = self.nested_lines(data[ele][field_key], filter_nested(table))
                         new_list = new_list if num == len(data) else f'{new_list}\n'
                         val_row.append(new_list)
+                    elif isinstance(data[ele][field_key], dict):
+                        # a map such as usergroups {name: role} reads as 'name (role), ...'
+                        val_row.append(', '.join(f'{k} ({v})' for k, v in data[ele][field_key].items()))
                     elif field_key == 'tpm_uuid':
                         if data[ele][field_key]:
                             val_row.append(True)
@@ -1515,7 +1654,7 @@ class Helper():
             outer.insert(0, num)
             num = num + 1
         # Adding Serial Numbers to the dataset
-        return fields, rows
+        return Display.filter_fields(table, fields, rows)
 
 
     def base64_encode(self, content=None):
@@ -1920,13 +2059,43 @@ class Helper():
                 new_list = '\n'.join(new_list)
                 rows.append(new_list)
                 new_list = []
+            elif key[0] == 'access':
+                rows.append(self.access_in_words(key[1]))
             else:
                 rows.append(key[1])
             if space and key[0] in space:
                 fields.append('')
                 rows.append('')
         fields = ['source' if item.startswith('_') else item for item in fields]
-        return fields, rows
+        return Display.filter_fields(table, fields, rows, column=True)
+
+
+    def access_triplet_in_words(self, triplet=None):
+        """
+        Three characters as a person holds them, with their meaning: 'r-x (read, operate)'.
+        """
+        text = str(triplet or '')
+        if len(text) != 3 or any(c not in 'rwx-' for c in text):
+            return triplet
+        names = {'r': 'read', 'w': 'change', 'x': 'operate'}
+        words = [names[c] for c in text if c != '-']
+        return f"{text} ({', '.join(words) if words else 'nothing'})"
+
+    def access_in_words(self, mode=None):
+        """
+        The mode as the daemon renders it, followed by what each class may do, in words:
+        'rwxr-x--- (owner: read, change, operate · team: read, operate · others: nothing)'.
+        The letters stay because chmod takes them; the words say what they mean.
+        """
+        text = str(mode or '')
+        if len(text) != 9 or any(c not in 'rwx-' for c in text):
+            return mode
+        names = {'r': 'read', 'w': 'change', 'x': 'operate'}
+        classes = []
+        for label, triplet in (('owner', text[0:3]), ('team', text[3:6]), ('others', text[6:9])):
+            words = [names[c] for c in triplet if c != '-']
+            classes.append(f"{label}: {', '.join(words) if words else 'nothing'}")
+        return f"{text} ({' · '.join(classes)})"
 
 
     def merge_source(self, table=None, data=None, exception=None):
@@ -2130,4 +2299,4 @@ class Helper():
             outer.insert(0, num)
             num = num + 1
         # Adding Serial Numbers to the dataset
-        return fields, rows
+        return Display.filter_fields(table, fields, rows)

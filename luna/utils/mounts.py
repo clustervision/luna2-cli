@@ -61,14 +61,17 @@ _SKELETON = (
 
 
 class MountsError(DocumentError):
-    """A mounts document could not be canonicalized. Message is operator-facing."""
+    """
+    A mounts document could not be canonicalized. Message is operator-facing.
+    """
 
 
 _StrLoader = yamldoc.make_loader(MountsError)
 
 
 def canonicalize(raw: bytes | str) -> bytes:
-    """Canonicalize a YAML-or-JSON mounts document to canonical JSON bytes.
+    """
+    Canonicalize a YAML-or-JSON mounts document to canonical JSON bytes.
 
     Returns compact, key-sorted UTF-8 JSON with the version filled. Raises
     :class:`MountsError` with an operator-facing message on any malformed,
@@ -85,8 +88,10 @@ def canonicalize(raw: bytes | str) -> bytes:
 
 
 def entry(raw: bytes | str) -> dict[str, Any]:
-    """Parse one mount entry, YAML or JSON, for addmount: an object with a path,
-    every scalar kept a string as in the document. The daemon checks the rest."""
+    """
+    Parse one mount entry, YAML or JSON, for addmount: an object with a path,
+    every scalar kept a string as in the document. The daemon checks the rest.
+    """
     parsed = yamldoc.parse(yamldoc.decode(raw, "mount entry", MountsError), _StrLoader, MountsError)
     if not isinstance(parsed, dict) or not isinstance(parsed.get("path"), str) or not parsed["path"]:
         raise MountsError("a mount entry must be an object with a path, e.g. {path: /trinity/scratch, server: controller}")
@@ -94,8 +99,10 @@ def entry(raw: bytes | str) -> dict[str, Any]:
 
 
 def to_yaml(raw: bytes | str) -> str:
-    """Render a stored (canonical JSON) mounts document as YAML for the editor.
-    Re-parsing the echoed YAML canonicalizes back to identical bytes."""
+    """
+    Render a stored (canonical JSON) mounts document as YAML for the editor.
+    Re-parsing the echoed YAML canonicalizes back to identical bytes.
+    """
     try:
         obj = json.loads(yamldoc.decode(raw, "mounts", MountsError))
     except json.JSONDecodeError as err:

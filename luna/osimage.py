@@ -207,7 +207,10 @@ class OSImage():
         request_data = {'config':{self.table:{payload['name']: payload}}}
         self.logger.debug(f'Payload => {request_data}')
         result = Rest().post_clone(self.table, payload['name'], request_data)
-        if result.status_code == 200:
+        if result.status_code == 201:
+            # a clone that copies nothing is created on the spot, like any other add
+            response = True
+        elif result.status_code == 200:
             http_response = result.content
             if 'request_id' in http_response.keys():
                 process1 = Process(target=Helper().loader, args=("OSImage Cloning...",))
@@ -235,16 +238,18 @@ class OSImage():
                         elif task_status != 200:
                             return task_status
                     else:
-                        Message().show_error(f'{result.content}', result.status_code)
+                        Message().show_error(Helper().answer_message(result), result.status_code)
                     return result.status_code
             response = True
             status = 200
-            while status != 404:
-                status = dig_packing_status(uri)
-                if status in [500, 501, 503]:
-                    response = False
-                sleep(2)
-            process1.terminate()
+            try:
+                while status != 404:
+                    status = dig_packing_status(uri)
+                    if status in [500, 501, 503]:
+                        response = False
+                    sleep(2)
+            finally:
+                process1.terminate()
         if response:
             Message().show_success(f'[========] OSImage {self.args["newosimage"]} Cloned.')
         elif response is None:
@@ -301,21 +306,23 @@ class OSImage():
                         elif task_status != 200:
                             return task_status
                     else:
-                        Message().show_error(f'{result.content}', result.status_code)
+                        Message().show_error(Helper().answer_message(result), result.status_code)
                         return 500
                     return result.status_code
             response = True
             status = 200
-            while status != 404:
-                sleep(2) # yes, before.
-                status = dig_packing_status(uri)
-                if status in [500, 501, 503]:
-                    response = False
-            process1.terminate()
+            try:
+                while status != 404:
+                    sleep(2) # yes, before.
+                    status = dig_packing_status(uri)
+                    if status in [500, 501, 503]:
+                        response = False
+            finally:
+                process1.terminate()
         if response:
             Message().show_success(f'[========] Image {self.args["name"]} Packed.')
         elif response is None:
-            Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} not Packed: {result.content}.')
+            Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} not Packed: {Helper().answer_message(result)}.')
         else:
             Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} not Packed.')
         return response
@@ -332,12 +339,7 @@ class OSImage():
             http_response = result.json()
             Message().show_success(f'{http_response["message"]}')
             return True
-        message = result.content
-        try:
-            message = result.json().get('message', result.content)
-        except Exception:
-            pass
-        Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} pack not cancelled: {message}.')
+        Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} pack not cancelled: {Helper().answer_message(result)}.')
         return False
 
 
@@ -391,21 +393,23 @@ class OSImage():
                         elif task_status != 200:
                             return task_status
                     else:
-                        Message().show_error(f'{result.content}', result.status_code)
+                        Message().show_error(Helper().answer_message(result), result.status_code)
                         return 500
                     return result.status_code
             response = True
             status = 200
-            while status != 404:
-                sleep(2) # yes, before.
-                status = dig_packing_status(uri)
-                if status in [500, 501, 503]:
-                    response = False
-            process1.terminate()
+            try:
+                while status != 404:
+                    sleep(2) # yes, before.
+                    status = dig_packing_status(uri)
+                    if status in [500, 501, 503]:
+                        response = False
+            finally:
+                process1.terminate()
         if response:
             Message().show_success(f'[========] Image {self.args["name"]} certificates updated.')
         elif response is None:
-            Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} certificates not updated: {result.content}.')
+            Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} certificates not updated: {Helper().answer_message(result)}.')
         else:
             Message().show_failed_exit(f'[ FAILED ] Image {self.args["name"]} certificates not updated.')
         return response
@@ -462,16 +466,18 @@ class OSImage():
                         elif task_status != 200:
                             return task_status
                     else:
-                        Message().show_error(f'{result.content}', result.status_code)
+                        Message().show_error(Helper().answer_message(result), result.status_code)
                     return result.status_code
             response = True
             status = 200
-            while status != 404:
-                sleep(2) # yes, before.
-                status = dig_packing_status(uri)
-                if status in [500, 501, 503]:
-                    response = False
-            process1.terminate()
+            try:
+                while status != 404:
+                    sleep(2) # yes, before.
+                    status = dig_packing_status(uri)
+                    if status in [500, 501, 503]:
+                        response = False
+            finally:
+                process1.terminate()
             if response:
                 Message().show_success(f'[========] Image {self.args["name"]} Packed.')
             elif response is None:
@@ -551,7 +557,7 @@ class OSImage():
                 Message().error_exit(message["message"], response.status_code)
             else:
                 Message().error_exit(
-                    f'Tag {self.args["tag"]} is deleted for {self.args["name"]}.',
+                    f'Tag {self.args["tag"]} could not be removed from {self.args["name"]}.',
                     response.status_code
                 )
         return True

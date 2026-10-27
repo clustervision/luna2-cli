@@ -33,9 +33,15 @@ import types
 
 INI_FILE = '/trinity/local/luna/cli/config/luna.ini'
 TOKEN_FILE = '/trinity/local/luna/cli/config/token.txt'
+# A person's own login, read before the controller's file; luna access login writes it.
+USER_INI_FILE = '~/.luna/luna.ini'
+USER_TOKEN_FILE = '~/.luna/token'
+USER_LOG_FILE = '~/.luna/luna2-cli.log'
 VERSION_FILE = 'VERSION.txt'
 LOG_DIR = '/var/log/luna'
 LOG_FILE = '/var/log/luna/luna2-cli.log'
+DAEMON_INI_FILE = '/trinity/local/luna/daemon/config/luna.ini'
+DAEMON_LOG_FILE = '/var/log/luna/luna2-daemon.log'
 BOOL_CHOICES = ['y', 'yes', 'n', 'no', '']
 BOOL_META = "{y,yes,n,no,''}"
 BOOL_KEYS = [
@@ -233,6 +239,28 @@ def parser_doc(table: str) -> types.SimpleNamespace:
             "description":  '''\
                 This relates to monitoring luna status messages and queues.
             '''
+        },
+        "user" : {
+            "help": "Luna users.",
+            "description":  '''\
+                The identities that hold a Luna token: people and service accounts.
+                Not the cluster's OS accounts, which obol manages.
+            '''
+        },
+        "usergroup" : {
+            "help": "Usergroups, memberships and the directory group map.",
+            "description":  '''\
+                Organisations, departments and teams of Luna users; the role each
+                member holds in them; and the map from a directory group onto a
+                usergroup. Not a node group, and not an OS group.
+            '''
+        },
+        "access" : {
+            "help": "Login, whoami, chmod, chgrp, chown, add or remove a usergroup or an owner.",
+            "description":  '''\
+                Log in as yourself, ask who the daemon takes you for, and change who
+                may do what with an object: its mode, its usergroups, its owners.
+            '''
         }
     }
     response.help = static[table]["help"]
@@ -272,7 +300,7 @@ def actions(table: str) -> list:
         "otherdev": common_actions,
         "switch" : common_actions + ["listinterface", "showinterface", "changeinterface", "removeinterface", "renameinterface"],
         "control" : ["power", "sel", "chassis", "redfish", "nextboot"],
-        "power" : ["on", "off", "status", "reset"],
+        "power" : ["on", "off", "status", "reset", "cycle"],
         "sel" : ["list", "clear"],
         "chassis" : ["identify", "noidentify"],
         "redfish" : ["upload", "setting"],
@@ -280,10 +308,25 @@ def actions(table: str) -> list:
         # override back; clear disarms it without a reset. Redfish only: the IPMI
         # boot flags are not reliable
         "nextboot" : ["bios", "status", "clear"],
-        "tag_osimage" : ["change", "remove"]
+        "tag_osimage" : ["change", "remove"],
+        "user": network_actions + ["access"],
+        "usergroup": network_actions + ["member", "addmember", "removemember", "map", "addmap", "removemap", "access"],
+        "access": ["login", "logout", "whoami", "chmod", "chgrp", "chown", "addusergroup", "removeusergroup",
+                   "addowner", "removeowner"]
     }
     response = list(static[table])
     return response
+
+
+# The tables the daemon governs with owners, usergroups and access; the same three fields
+# join every list and show of them, as ls -l shows a file's owner, group and mode.
+GOVERNED_TABLES = ('node', 'group', 'osimage', 'bmcsetup', 'redfishsetup', 'biosconfig', 'firmwarecatalog',
+                   'profile', 'cluster', 'network', 'route', 'cloud', 'switch', 'otherdevices', 'otherdev', 'rack')
+ACCESS_FIELDS = ['owners', 'usergroups', 'access']
+
+# Optional [DISPLAY] preferences, enabled by default on governed list and show views.
+# Add a field group here to reuse the same configuration and filtering logic.
+FILTER_FIELDS = {'SHOW_RBAC': tuple(ACCESS_FIELDS)}
 
 
 def filter_columns(table: str) -> list:
@@ -292,6 +335,8 @@ def filter_columns(table: str) -> list:
     """
     response = False
     static = {
+        'user': ['username', 'source', 'enabled', 'admin', 'delegate', 'usergroups', 'lastlogin'],
+        'usergroup': ['name', 'comment', 'hardware', 'members'],
         'cloud': ['name', 'type'],
         'bmcsetup': ['name', 'userid', 'netchannel', 'mgmtchannel', 'unmanaged_bmc_users', 'cipher'],
         'redfishsetup': ['name', 'scheme', 'port', 'verify', 'accounts'],
@@ -316,7 +361,7 @@ def filter_columns(table: str) -> list:
                           'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp'],
         'switchinterface': ['interface', 'mgmt', 'ipaddress', 'ipaddress_ipv6', 'macaddress', 'network'],
         'nodesecrets': ['Node', 'name', 'path', 'owner', 'mode', 'content'],
-        'osimage': ['name', 'kernelversion', 'path', 'distribution', 'osrelease'],
+        'osimage': ['name', 'path', 'kernelversion', 'distribution', 'osrelease'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'switch': ['name', 'network', 'oid', 'read', 'ipaddress', 'netboot'],
         'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes',
@@ -326,7 +371,10 @@ def filter_columns(table: str) -> list:
             'username_initiator', 'queue_id', 'request_id', 'level', 'status', 'subsystem', 'task', 'created'
         ]
     }
-    response = list(static[table])
+    response = list(static.get(table) or [])
+    if table in GOVERNED_TABLES:
+        # ls -l: who owns it and who may do what, on every governed listing
+        response += [field for field in ACCESS_FIELDS if field not in response]
     return response
 
 
@@ -378,11 +426,11 @@ def sortby(table: str) -> list:
     static = {
         'cluster': [
             'name', 'controller', 'technical_contacts', 'provision_method', 'provision_fallback',
-            'install_mode', 'mounts',
+            'install_mode', 'packing_bootpause', 'mounts',
             'nameserver_ip', 'forwardserver_ip', 'domain_search', 'bind_legacy', 'dnssec_enable',
-            'dnssec_validation', 'ntp_server', 'security',
-            'nextnode_discover', 'createnode_ondemand', 'createnode_macashost', 'packing_bootpause',
-            'user', 'debug'
+            'dnssec_validation', 'ntp_server',
+            'nextnode_discover', 'createnode_ondemand', 'createnode_macashost', 'security',
+            'user', 'owners', 'usergroups', 'access', 'debug'
         ],
         'cloud': ['name', 'type'],
         # grouped, and the groups are what the dividers below draw a rule between:
@@ -423,29 +471,64 @@ def sortby(table: str) -> list:
             'provision_interface', 'provision_method', 'provision_fallback', 'comment'
         ],
         'bmcsetup': [
-            'name', 'userid', 'username', 'password', 'netchannel', 'mgmtchannel',
-            'unmanaged_bmc_users', 'comment'
+            'name', 'userid', 'username', 'password', 'unmanaged_bmc_users',
+            'netchannel', 'mgmtchannel', 'cipher',
+            'owners', 'usergroups', 'access',
+            'comment'
         ],
-        'redfishsetup': ['name', 'scheme', 'port', 'verify', 'accounts', 'comment'],
-        'biosconfig': ['name', 'manufacturer', 'model', 'biosversion', 'grabbedfrom', 'settings',
-                       'grab_exclude', 'updated', 'comment'],
-        'firmwarecatalog': ['name', 'manufacturer', 'model', 'component', 'version', 'imagefile',
-                            'updated', 'comment'],
+        'redfishsetup': [
+            'name', 'scheme', 'port', 'verify',
+            'accounts',
+            'owners', 'usergroups', 'access',
+            'comment'
+        ],
+        'biosconfig': [
+            'name', 'manufacturer', 'model', 'biosversion',
+            'grabbedfrom', 'updated',
+            'settings', 'grab_exclude',
+            'owners', 'usergroups', 'access',
+            'comment'
+        ],
+        'firmwarecatalog': [
+            'name', 'manufacturer', 'model', 'component',
+            'version', 'imagefile', 'updated',
+            'owners', 'usergroups', 'access',
+            'comment'
+        ],
+        # grouped like 'node' above: what the image is, then what it grabs, then the
+        # files a node boots and unpacks, then who may touch it. owners/usergroups/
+        # access are listed rather than left to the GOVERNED_TABLES append, so they
+        # sit above the comment instead of after it.
         'osimage': [
-            'name', 'grab_filesystems', 'grab_exclude', 'initrdfile',
-            'kernelversion', 'kernelfile', 'kernelmodules', 'kerneloptions', 'path', 'imagefile',
-            'distribution', 'osrelease', 'comment'
+            'name', 'path', 'kernelversion', 'distribution', 'osrelease', 'tag',
+            'kerneloptions', 'kernelmodules',
+            'grab_filesystems', 'grab_exclude',
+            'kernelfile', 'initrdfile', 'imagefile',
+            'owners', 'usergroups', 'access',
+            'comment'
         ],
-        'switch': ['name', 'vendor', 'ostype', 'mgmt_interface', 'network', 'ipaddress', 'ipaddress_ipv6', 'macaddress',
-                   'oid', 'read', 'rw', 'uplinkports',
-                   'netboot', 'default_url', 'bootfile', 'ztpformat', 'ztpconfig',
-                   'url_protocol', 'url_server', 'tftp_enable', 'comment'],
+        'switch': [
+            'name', 'vendor', 'ostype',
+            'mgmt_interface', 'uplinkports', 'network',
+            'ipaddress', 'ipaddress_ipv6', 'macaddress',
+            'oid', 'read', 'rw',
+            'netboot', 'default_url', 'bootfile', 'ztpformat', 'ztpconfig',
+            'url_protocol', 'url_server', 'tftp_enable',
+            'owners', 'usergroups', 'access',
+            'comment'
+        ],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
-        'nodeinterface': ['interface', 'ipaddress', 'macaddress', 'network', 'mtu', 'vlanid',
-                          'vlan_parent', 'bond_mode', 'bond_slaves'],
+        'nodeinterface': [
+            'interface', 'ipaddress', 'macaddress', 'network', 'mtu', 'options',
+            'vlanid', 'vlan_parent',
+            'bond_mode', 'bond_slaves'
+        ],
         'switchinterface': ['interface', 'mgmt', 'ipaddress', 'ipaddress_ipv6', 'macaddress', 'network'],
+        # 'interface' is what the daemon returns; 'interfacename' matched nothing, so the
+        # interface's own name fell out of the append and rendered below network.
         'groupinterface': [
-            'interfacename', 'network', 'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves'
+            'interface', 'network', 'mtu', 'options',
+            'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves'
         ],
         'groupsecrets': ['Group', 'name', 'path', 'owner', 'mode', 'content'],
         'nodesecrets': ['Node', 'name', 'path', 'owner', 'mode', 'content'],
@@ -456,16 +539,27 @@ def sortby(table: str) -> list:
             'name', 'type', 'zone', 'non_authoritative', 'dhcp',
             'network', 'gateway', 'nameserver_ip', 'dhcp_range_begin', 'dhcp_range_end',
             'network_ipv6', 'gateway_ipv6', 'nameserver_ip_ipv6',
-            'dhcp_range_begin_ipv6', 'dhcp_range_end_ipv6', 'ntp_server',
-            'gateway_metric', 'routes', 'dhcp_nodes_in_pool', 'dhcp_nodes_only', 'shared', 'dhcp_relay',
-            'dhcp_link_subnet', 'comment'
+            'dhcp_range_begin_ipv6', 'dhcp_range_end_ipv6',
+            'ntp_server', 'gateway_metric', 'routes',
+            'dhcp_nodes_in_pool', 'dhcp_nodes_only', 'shared',
+            'dhcp_relay', 'dhcp_link_subnet', 'dhcp_link_subnet_ipv6',
+            'owners', 'usergroups', 'access',
+            'comment'
         ],
         'osimagetag': [
             'osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes', 'groups'
         ],
-        'route': ['name', 'destination', 'gateway', 'metric', 'device', 'comment', 'assigned']
+        'route': ['name', 'destination', 'gateway', 'metric', 'device', 'comment', 'assigned'],
+        'user': [
+            'name', 'username', 'source', 'external_id',
+            'enabled', 'admin', 'delegate', 'password_set', 'usergroups',
+            'createdby', 'created', 'lastlogin'
+        ],
+        'usergroup': ['name', 'comment', 'hardware', 'members']
     }
-    response = list(static[table])
+    response = list(static.get(table) or [])
+    if table in GOVERNED_TABLES:
+        response += [field for field in ACCESS_FIELDS if field not in response]
     return response
 
 
@@ -479,14 +573,28 @@ def divider(table=None):
     # the marker), and the rule is matched on what is rendered - so listing only
     # the bare name loses the divider exactly when a node overrides that field.
     node_blocks = ['info', 'osimagetag', 'cloud', 'unmanaged_bmc_users', 'service',
-                   'profiles_digest', 'osimage_filter', 'prescript', 'partscript',
+                   'profiles_digest', 'mounts', 'prescript', 'partscript',
                    'postscript', 'comment']
     group_blocks = ['info', 'osimagetag', 'routes', 'unmanaged_bmc_users', 'bootmenu',
-                    'profiles', 'osimage_filter', 'prescript', 'partscript', 'postscript',
+                    'profiles', 'mounts', 'prescript', 'partscript', 'postscript',
                     'comment']
     static = {
+        # a cluster has no parent, so its fields never render with the ' *' marker
+        'cluster': ['technical_contacts', 'mounts', 'ntp_server', 'createnode_macashost', 'user', 'access',
+                    'debug'],
         'node': node_blocks + [f'{field} *' for field in node_blocks],
-        'group': group_blocks + [f'{field} *' for field in group_blocks]
+        'group': group_blocks + [f'{field} *' for field in group_blocks],
+        # an osimage has no parent either, so bare names are enough
+        'osimage': ['tag', 'kernelmodules', 'grab_exclude', 'imagefile', 'access'],
+        # the same three points spacer() grouped on, drawn as rules instead of air
+        'network': ['dhcp', 'dhcp_range_end', 'dhcp_range_end_ipv6', 'routes',
+                    'dhcp_nodes_only', 'dhcp_link_subnet_ipv6', 'access'],
+        'switch': ['ostype', 'macaddress', 'rw', 'ztpconfig', 'tftp_enable', 'access'],
+        'bmcsetup': ['unmanaged_bmc_users', 'cipher', 'access'],
+        'redfishsetup': ['verify', 'accounts', 'access'],
+        'biosconfig': ['biosversion', 'updated', 'grab_exclude', 'access'],
+        'firmwarecatalog': ['component', 'updated', 'access'],
+        'user': ['external_id', 'usergroups']
     }
     if table in static:
         response = list(static[table])
@@ -499,9 +607,7 @@ def spacer(table=None):
     """
     response = False
     static = {
-        'network': [
-            'dhcp', 'dhcp_range_end', 'dhcp_range_end_ipv6', 'prescript', 'partscript', 'postscript'
-        ]
+        'network': ['prescript', 'partscript', 'postscript']
     }
     if table in static:
         response = list(static[table])

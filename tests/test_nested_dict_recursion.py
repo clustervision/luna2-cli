@@ -30,7 +30,9 @@ from luna.utils.helper import Helper
 
 @pytest.fixture(autouse=True)
 def _stub_logger():
-    """Give Helper a logger without Log.init_log()'s root-only file handler."""
+    """
+    Give Helper a logger without Log.init_log()'s root-only file handler.
+    """
     previous = luna_log.Log._Log__logger  # noqa: SLF001 - name-mangled by design
     luna_log.Log._Log__logger = logging.getLogger('luna2-cli-tests')  # noqa: SLF001
     yield
@@ -38,7 +40,9 @@ def _stub_logger():
 
 
 def test_a_dictionary_inside_a_dictionary_terminates():
-    """The crash itself. Two levels is all it took."""
+    """
+    The crash itself. Two levels is all it took.
+    """
     assert Helper().nested_dict({'status': {'node001': {'state': 'matched'}}}) == {
         'status': {'node001': {'state': 'matched'}}}
 
@@ -69,7 +73,9 @@ def test_it_goes_as_deep_as_it_is_given(depth):
 
 
 def test_a_flat_dictionary_is_unchanged():
-    """The path most of the CLI takes, which was never broken and must stay that way."""
+    """
+    The path most of the CLI takes, which was never broken and must stay that way.
+    """
     flat = {'name': 'node001', 'state': 'matched', 'count': 3, 'nothing': None}
     assert Helper().nested_dict(dict(flat)) == flat
 

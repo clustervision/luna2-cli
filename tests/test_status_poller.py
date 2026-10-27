@@ -28,7 +28,9 @@ from luna.utils.helper import Helper
 
 @pytest.fixture(autouse=True)
 def _stub_logger():
-    """A logger without Log.init_log()'s root-only file handler."""
+    """
+    A logger without Log.init_log()'s root-only file handler.
+    """
     previous = luna_log.Log._Log__logger  # noqa: SLF001 - name-mangled by design
     luna_log.Log._Log__logger = logging.getLogger('luna2-cli-tests')  # noqa: SLF001
     yield
@@ -52,7 +54,9 @@ class FakeResponse():
 
 @pytest.fixture
 def polled(monkeypatch):
-    """Serves a scripted list of replies and records every route asked for."""
+    """
+    Serves a scripted list of replies and records every route asked for.
+    """
     import luna.utils.helper as helper_module
     asked = []
     replies = []
@@ -86,7 +90,9 @@ def test_a_plain_line_channel_is_read_from_config_not_control(polled, capsys):
 
 
 def test_the_control_callers_still_read_the_control_channel(polled):
-    """The three existing callers must not have moved channel."""
+    """
+    The three existing callers must not have moved channel.
+    """
     polled['replies'].append(FakeResponse(200, {'control': {'power': {'ok': {}, 'on': {}, 'off': {}},
                                                             'failed': {}}}))
     Helper().dig_status('req-2', 1, 'power')
@@ -200,7 +206,9 @@ def test_a_failed_push_exits_non_zero(monkeypatch, capsys):
 
 
 def test_a_clean_push_does_not_exit(monkeypatch):
-    """The other half: success must not become an exit."""
+    """
+    The other half: success must not become an exit.
+    """
     import luna.biosconfig as biosconfig
     monkeypatch.setattr(biosconfig.Rest, 'post_raw',
                         lambda self, route, payload: FakeResponse(200, {'message': 'queued',

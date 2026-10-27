@@ -37,14 +37,17 @@ import os
 from operator import methodcaller
 from luna.utils.helper import Helper
 from luna.utils.presenter import Presenter
+from luna.utils.display import Display
 from luna.utils.rest import Rest
 from luna.utils.log import Log
 from luna.utils.message import Message
 from luna.utils.arguments import Arguments
-from luna.utils.constant import actions, BOOL_CHOICES, BOOL_META
+from luna.utils.constant import actions, ACCESS_FIELDS
 
 ACTION_CHOICES = ['restart', 'stop', 'reload', 'start', 'none']
 SCOPE_CHOICES = ['static', 'dynamic']
+ENABLED_CHOICES = ['y', 'yes', 'n', 'no']
+ENABLED_META = '{y,yes,n,no}'
 
 
 class Profile():
@@ -119,7 +122,7 @@ class Profile():
                                     help='Verbose Mode')
         ## >>>>>>> Profile Command >>>>>>> status
         profile_status = profile_args.add_parser('status', help='Where every node stands')
-        profile_status.add_argument('name', nargs='?', help='Name of a single Node').completer = Helper().name_completer("node")
+        profile_status.add_argument('name', nargs='?', metavar='node', help='Name of a single node').completer = Helper().name_completer("node")
         profile_status.add_argument('-a', '--all', action='store_true', default=None,
                                     help='List every node, not only the ones needing attention')
         profile_status.add_argument('-R', '--raw', action='store_true', default=None,
@@ -159,7 +162,7 @@ class Profile():
         # the service action instead
         parser.add_argument('-a', '--action', choices=ACTION_CHOICES, dest='service_action',
                             help='What to do with the service on the node')
-        parser.add_argument('-e', '--enabled', choices=BOOL_CHOICES, metavar=BOOL_META,
+        parser.add_argument('-e', '--enabled', choices=ENABLED_CHOICES, metavar=ENABLED_META,
                             help='A disabled Profile is left alone on the nodes that have '
                                  'it; only removing it from them puts anything back')
         parser.add_argument('-v', '--verbose', action='store_true', default=None,
@@ -167,7 +170,9 @@ class Profile():
 
 
     def common_file_args(self, parser):
-        """The arguments shared by addfile and changefile."""
+        """
+        The arguments shared by addfile and changefile.
+        """
         parser.add_argument('-p', '--path', help='Where the file goes on the node')
         parser.add_argument('-c', '--content', action='store_true',
                             help='Content of the file, in an editor')
@@ -200,7 +205,9 @@ class Profile():
 
 
     def profile_payload(self):
-        """The request body for a profile, with the CLI-only arguments stripped out."""
+        """
+        The request body for a profile, with the CLI-only arguments stripped out.
+        """
         payload = {}
         for field in ['scope', 'service']:
             if self.args.get(field) is not None:
@@ -213,8 +220,7 @@ class Profile():
         # False, and it did
         enabled = self.args.get('enabled')
         if enabled is not None:
-            payload['enabled'] = '' if enabled == '' else \
-                str(enabled).lower() in ['y', 'yes', 'true']
+            payload['enabled'] = str(enabled).lower() in ['y', 'yes']
         return payload
 
 
@@ -233,15 +239,16 @@ class Profile():
         data = get_list['config']['profiles']
         if self.args['raw']:
             return Presenter().show_json(Helper().prepare_json(data))
-        rows, fields = [], ['#', 'name', 'scope', 'service', 'action', 'files']
+        rows, fields = [], ['#', 'name', 'scope', 'service', 'action', 'enabled', 'files'] + ACCESS_FIELDS
         num = 1
         for name, detail in data.items():
             rows.append([
                 num, name, detail.get('scope'), detail.get('service'),
-                detail.get('action'),
+                detail.get('action'), detail.get('enabled'),
                 ', '.join(entry['name'] for entry in detail.get('files') or []),
-            ])
+            ] + [detail.get(field, '') for field in ACCESS_FIELDS])
             num = num + 1
+        fields, rows = Display.filter_fields(self.table, fields, rows)
         return Presenter().show_table(' << Profiles >>', fields, rows)
 
 
@@ -261,9 +268,11 @@ class Profile():
         detail = get_list['config']['profiles'][self.args['name']]
         if self.args['raw']:
             return Presenter().show_json(Helper().prepare_json(detail))
-        fields = ['name', 'scope', 'service', 'action']
+        fields = ['name', 'scope', 'service', 'action', 'enabled'] + ACCESS_FIELDS
         rows = [self.args['name'], detail.get('scope'), detail.get('service'),
-                detail.get('action')]
+                detail.get('action'), detail.get('enabled')] + [detail.get(field, '') for field in ACCESS_FIELDS]
+        # every other show explains the mode in words; this table is built by hand
+        rows[fields.index('access')] = Helper().access_in_words(rows[fields.index('access')])
         for entry in detail.get('files') or []:
             content = Helper().base64_decode(entry.get('content'))
             if content is not None and len(content) > 60:
@@ -273,6 +282,7 @@ class Profile():
                 f'path: {entry.get("path")}\nowner: {entry.get("owner")}\n'
                 f'mode: {entry.get("mode")}\ncontent: {content}'
             )
+        fields, rows = Display.filter_fields(self.table, fields, rows, column=True)
         return Presenter().show_table_col(f'Profile {self.args["name"]}', fields, rows)
 
 
@@ -419,7 +429,9 @@ class Profile():
 
 
     def profile_file(self, name=None, filename=None):
-        """One file of a profile as it stands, or None."""
+        """
+        One file of a profile as it stands, or None.
+        """
         get_list = Rest().get_data(f'{self.route}/{name}')
         if get_list.status_code != 200:
             return None
@@ -431,7 +443,9 @@ class Profile():
 
 
     def post_file(self, payload):
-        """Send one file to the profile it belongs to."""
+        """
+        Send one file to the profile it belongs to.
+        """
         name = self.args['name']
         request_data = {'config': {self.route: {name: {'files': [payload]}}}}
         self.logger.debug(f'Payload => {request_data}')

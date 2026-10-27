@@ -118,6 +118,8 @@ class Arguments():
         """
         parser.add_argument('-t', '--type', help='Type of Cloud Provider')
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
+        parser.add_argument('-qc', '--quick-comment', dest='comment',
+                                metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')
         parser.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
         return parser
 
@@ -154,8 +156,9 @@ class Arguments():
         parser.add_argument('-qpost', '--quick-postscript', dest='postscript',
                         metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
         parser.add_argument('--install-mode', dest='install_mode',
-                        choices=['auto', 'sync', 'full', 'local', 'memboot', 'sanitize', 'legacy'],
-                        help='v1.4 install mode')
+                        choices=['auto', 'sync', 'full', 'local', 'memboot', 'sanitize', 'legacy', ''],
+                        metavar="{auto,sync,full,local,memboot,sanitize,legacy,''}",
+                        help="v1.4 install mode; '' clears the override, so the node or group inherits again")
         parser.add_argument('-dl', '--disklayout', action='store_true', help='Disk Layout JSON (v1.4)')
         parser.add_argument('-qdl', '--quick-disklayout', dest='disklayout',
                         metavar="File-Path OR In-Line", help='Disk Layout JSON File-Path OR In-Line')
@@ -233,8 +236,9 @@ class Arguments():
         parser.add_argument('-qpost', '--quick-postscript', dest='postscript',
                         metavar="File-Path OR In-Line", help='Post Script File-Path OR In-Line')
         parser.add_argument('--install-mode', dest='install_mode',
-                        choices=['auto', 'sync', 'full', 'local', 'memboot', 'sanitize', 'legacy'],
-                        help='v1.4 install mode')
+                        choices=['auto', 'sync', 'full', 'local', 'memboot', 'sanitize', 'legacy', ''],
+                        metavar="{auto,sync,full,local,memboot,sanitize,legacy,''}",
+                        help="v1.4 install mode; '' clears the override, so the node or group inherits again")
         parser.add_argument('-dl', '--disklayout', action='store_true', help='Disk Layout JSON (v1.4)')
         parser.add_argument('-qdl', '--quick-disklayout', dest='disklayout',
                         metavar="File-Path OR In-Line", help='Disk Layout JSON File-Path OR In-Line')
@@ -255,7 +259,7 @@ class Arguments():
         parser.add_argument('-m', '--bootmenu', choices=BOOL_CHOICES,
                               metavar=BOOL_META, help='Overrides Group configured setting that enables or disables the displaying of the iPXE boot menu')
         parser.add_argument('-S', '--service', choices=BOOL_CHOICES,
-                              metavar=BOOL_META, help='Enabling or disabling the Service mode during. Enabled drops the booting node into a shell')
+                              metavar=BOOL_META, help='Enable or disable service mode. Enabled drops the booting node into a shell')
         parser.add_argument('--status', help='Status')
         parser.add_argument('--tpm_uuid', help='TPM UUID')
         parser.add_argument('--tpm_pubkey', help='TPM Public Key')
@@ -293,7 +297,7 @@ class Arguments():
             parser.add_argument('-cl', '--clear', metavar=['ipv4', 'ipv6'], help='Clear IPv4 or IPv6 configurations.')
         parser.add_argument('-g', '--gateway', help='Gateway')
         parser.add_argument('-m', '--gateway_metric', type=int, help='Gateway Metric')
-        parser.add_argument('-t', '--type', help='Network Type like ethernet or infiniband')
+        parser.add_argument('-t', '--type', choices=['ethernet', 'infiniband'], help='Network Type')
         parser.add_argument('-S', '--nameserver_ip', help='Comma-separated name server IP(s), IPv4 and/or IPv6; sorted by family')
         parser.add_argument('-T', '--ntp_server', help='NTP Server')
         parser.add_argument('-D', '--dhcp', choices=BOOL_CHOICES,

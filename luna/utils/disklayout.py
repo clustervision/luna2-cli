@@ -40,7 +40,9 @@ loud on anything that will not coerce. No parser magic, no silent fallback.
 The schema field types mirror ``internal/config/v2/types.go`` in luna2-client:
 
     ints  : version, count, spares
-    bools : save, persistent, clear_uefi_nvram
+    bools : save, include_san, persistent, allow_degraded, clear_uefi_nvram
+    words : bootloader -- first, grub, yes, true, last, no, false or none, kept
+            as authored (the node normalises the spelling); absent means last
     everything else is a string (or a list/map of strings).
 
 This module is a pure front-end (contract C2): its only output is canonical JSON
@@ -71,12 +73,18 @@ SchemaVersion = 2
 # string after parse. Key names are globally unambiguous (no string field is
 # named "count"/"save"/...), so a recursive key-based coercion is safe.
 _INT_FIELDS = frozenset({"version", "count", "spares"})
-_BOOL_FIELDS = frozenset({"save", "persistent", "clear_uefi_nvram"})
+_BOOL_FIELDS = frozenset({"save", "include_san", "persistent", "allow_degraded", "clear_uefi_nvram"})
+# Fields the v2 schema unmarshals from a string OR a boolean. Most of the words
+# they accept are not boolean words at all, so nothing is coerced: the word the
+# operator wrote travels unchanged and the node normalises the spelling.
+_WORD_FIELDS = frozenset({"bootloader"})
 
 
 
 class DisklayoutError(DocumentError):
-    """A disklayout document could not be canonicalized. Message is operator-facing."""
+    """
+    A disklayout document could not be canonicalized. Message is operator-facing.
+    """
 
 
 # the shared string-preserving loader, raising this module's error
@@ -95,8 +103,21 @@ def _coerce_bool(key: str, value: Any) -> bool:
     return yamldoc.coerce_bool(key, value, DisklayoutError)
 
 
+def _coerce_word(key: str, value: Any) -> str:
+    """Keep a declared string-or-bool field exactly as authored. A shape that is
+    not a word cannot be normalised by the node, so it fails here rather than
+    reaching the daemon as JSON null."""
+    if isinstance(value, str):
+        return value
+    if value is None:
+        raise DisklayoutError(f"{key} has no value")
+    raise DisklayoutError(f"{key} must be one word, got a {type(value).__name__}")
+
+
 def _coerce(node: Any) -> Any:
-    """Recursively apply the explicit typed coercion to the parsed structure."""
+    """
+    Recursively apply the explicit typed coercion to the parsed structure.
+    """
     if isinstance(node, dict):
         out: dict[str, Any] = {}
         for key, value in node.items():
@@ -104,6 +125,8 @@ def _coerce(node: Any) -> Any:
                 out[key] = _coerce_int(key, value)
             elif key in _BOOL_FIELDS:
                 out[key] = _coerce_bool(key, value)
+            elif key in _WORD_FIELDS:
+                out[key] = _coerce_word(key, value)
             else:
                 out[key] = _coerce(value)
         return out
@@ -147,8 +170,9 @@ def _parse(text: str) -> Any:
 #   set.raid       <- none               (raid is required)
 #   volume.name    <- from mountpoint    (name is required)
 #   memory volume  <- mountpoint '/', size 80%, options mpol=interleave (safety)
-# role stays MANDATORY (it cannot be guessed); count/spares/save/persistent are
-# left as authored (count 0 = "resolve per raid mode" on the node).
+# role stays MANDATORY (it cannot be guessed); count/spares/save/persistent and
+# bootloader are left as authored (count 0 = "resolve per raid mode" on the node;
+# an absent bootloader is the node's default `last`, never written here).
 
 _MOUNT_VOLUME_NAMES = {"/": "root", "/boot": "boot", "/boot/efi": "uefi"}
 
@@ -188,10 +212,12 @@ _SIZE_RE = re.compile(r"^\d+(\.\d+)?%$|^\d+(\.\d+)?[KMGTP]?$")
 
 
 def _classify_token(token: str) -> tuple[str, str]:
-    """Classify one shorthand token by SHAPE (order-free). A '/' path or the
+    """
+    Classify one shorthand token by SHAPE (order-free). A '/' path or the
     literal 'swap' is the mountpoint; the rest are fs / provider / size by their
     disjoint value spaces. An unrecognized token FAILS LOUD -- never silently
-    dropped nor coerced to a mountpoint (BE-V1)."""
+    dropped nor coerced to a mountpoint (BE-V1).
+    """
     tok = token.strip()
     if tok.startswith("/") or tok == "swap":
         return "mountpoint", tok
@@ -207,8 +233,10 @@ def _classify_token(token: str) -> tuple[str, str]:
 
 
 def _parse_volume(vol: Any) -> dict[str, Any]:
-    """Type-dispatch a volume to a dict (BE-V6): a bare string is a mountpoint; a
-    list is shape-classified tokens (order-free); a map passes through."""
+    """
+    Type-dispatch a volume to a dict (BE-V6): a bare string is a mountpoint; a
+    list is shape-classified tokens (order-free); a map passes through.
+    """
     if isinstance(vol, dict):
         return vol
     if isinstance(vol, str):
@@ -296,7 +324,8 @@ def _fill_defaults(doc: dict[str, Any]) -> dict[str, Any]:
 
 
 def canonicalize(raw: bytes | str) -> bytes:
-    """Canonicalize a YAML-or-JSON disklayout document to canonical JSON bytes.
+    """
+    Canonicalize a YAML-or-JSON disklayout document to canonical JSON bytes.
 
     Returns compact, key-sorted UTF-8 JSON with defaults filled (the complete
     stored form). Raises :class:`DisklayoutError` with an operator-facing message
@@ -312,7 +341,8 @@ def canonicalize(raw: bytes | str) -> bytes:
 
 
 def to_yaml(raw: bytes | str) -> str:
-    """Render a stored (canonical JSON) disklayout as YAML for the editor.
+    """
+    Render a stored (canonical JSON) disklayout as YAML for the editor.
 
     ECHO-FULL (operator 2026-07-21): the editor shows the FULL resolved layout --
     every default materialized -- so a human sees exactly what the shorthand

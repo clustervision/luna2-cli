@@ -47,7 +47,9 @@ import luna.utils.log as luna_log
 
 @pytest.fixture(autouse=True)
 def _stub_logger():
-    """Give Helper a logger without Log.init_log()'s root-only file handler."""
+    """
+    Give Helper a logger without Log.init_log()'s root-only file handler.
+    """
     previous = luna_log.Log._Log__logger  # noqa: SLF001 - name-mangled by design
     luna_log.Log._Log__logger = logging.getLogger('luna2-cli-tests')  # noqa: SLF001
     yield
@@ -137,7 +139,9 @@ def test_no_layout_is_passed_through_untouched(helper, empty) -> None:
     '{"sets": [{"name": "os", "volumes": ["not-an-object"]}]}',
 ])
 def test_unusable_layouts_degrade_instead_of_raising(helper, bad: str) -> None:
-    """`show` must survive whatever is stored; a bad layout costs one field."""
+    """
+    `show` must survive whatever is stored; a bad layout costs one field.
+    """
     assert helper.brief_disklayout(bad) == MARKER
 
 

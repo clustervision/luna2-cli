@@ -21,7 +21,9 @@ import luna.utils.log as luna_log
 
 @pytest.fixture(autouse=True)
 def _stub_logger():
-    """Give Helper a logger without Log.init_log()'s root-only file handler."""
+    """
+    Give Helper a logger without Log.init_log()'s root-only file handler.
+    """
     previous = luna_log.Log._Log__logger  # noqa: SLF001 - name-mangled by design
     luna_log.Log._Log__logger = logging.getLogger('luna2-cli-tests')  # noqa: SLF001
     yield
@@ -35,7 +37,9 @@ def _node_response(partscript_plain):
 
 
 def test_a_pasted_curly_quote_does_not_crash_show():
-    """The exact reproduction from the ticket: must print, not raise."""
+    """
+    The exact reproduction from the ticket: must print, not raise.
+    """
     from luna.utils.helper import Helper
     text = "# Now it’s safe to wipe and re‑create everything"
     with patch('luna.utils.helper.Rest') as rest, \
@@ -48,7 +52,9 @@ def test_a_pasted_curly_quote_does_not_crash_show():
 
 
 def test_plain_text_that_is_also_valid_base64_is_not_decoded_twice():
-    """'aGVsbG8=' must come back unchanged, not silently decoded again into 'hello'."""
+    """
+    'aGVsbG8=' must come back unchanged, not silently decoded again into 'hello'.
+    """
     from luna.utils.helper import Helper
     lookalike = "aGVsbG8="
     with patch('luna.utils.helper.Rest') as rest, \
@@ -62,7 +68,9 @@ def test_plain_text_that_is_also_valid_base64_is_not_decoded_twice():
 
 
 def test_a_long_script_is_still_length_limited():
-    """limit_content() must still trim a long script for the default (non -f) view."""
+    """
+    limit_content() must still trim a long script for the default (non -f) view.
+    """
     from luna.utils.helper import Helper
     text = '\n'.join(f'line {i}' for i in range(10))
     with patch('luna.utils.helper.Rest') as rest, \

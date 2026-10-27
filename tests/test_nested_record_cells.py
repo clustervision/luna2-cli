@@ -31,7 +31,9 @@ from luna.utils.helper import Helper
 
 @pytest.fixture(autouse=True)
 def _stub_logger():
-    """Give Helper a logger without Log.init_log()'s root-only file handler."""
+    """
+    Give Helper a logger without Log.init_log()'s root-only file handler.
+    """
     previous = luna_log.Log._Log__logger  # noqa: SLF001 - name-mangled by design
     luna_log.Log._Log__logger = logging.getLogger('luna2-cli-tests')  # noqa: SLF001
     yield
@@ -88,6 +90,8 @@ def test_show_view_has_the_whole_account_with_its_name_flush_left():
 
 
 def test_show_view_still_opens_an_interface_record_on_its_interface_line():
-    """Group and node show relied on 'interface' being the heading before; still true."""
+    """
+    Group and node show relied on 'interface' being the heading before; still true.
+    """
     lines = Helper().nested_lines([{'interface': 'BOOTIF', 'network': 'cluster'}])
     assert lines == 'interface = BOOTIF\n  network = cluster'
