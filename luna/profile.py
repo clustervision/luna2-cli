@@ -121,7 +121,7 @@ class Profile():
         profile_remove.add_argument('-v', '--verbose', action='store_true', default=None,
                                     help='Verbose Mode')
         ## >>>>>>> Profile Command >>>>>>> status
-        profile_status = profile_args.add_parser('status', help='Where every node stands')
+        profile_status = profile_args.add_parser('status', help='Where every node stands on its Profiles; filter by node')
         profile_status.add_argument('name', nargs='?', metavar='node', help='Name of a single node').completer = Helper().name_completer("node")
         profile_status.add_argument('-a', '--all', action='store_true', default=None,
                                     help='List every node, not only the ones needing attention')
