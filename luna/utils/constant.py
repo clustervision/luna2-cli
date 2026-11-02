@@ -289,7 +289,7 @@ def actions(table: str) -> list:
         "boot": ["status"],
         "profile": common_actions + member_action + ["status", "addfile", "changefile", "removefile"],
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],
-        "osimage": common_actions + member_action + ["pack", "cancel", "kernel", "tag", "updatecerts"],
+        "osimage": common_actions + member_action + ["create", "pack", "cancel", "kernel", "tag", "updatecerts"],
         "bmcsetup": common_actions + member_action,
         "redfishsetup": common_actions + member_action + ["addaccount", "changeaccount", "removeaccount"],
         # no add: a configuration comes into existence by being grabbed off a

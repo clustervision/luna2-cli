@@ -88,6 +88,9 @@ class OSImage():
         osimage_add = osimage_args.add_parser('add', help='Add an OSImage')
         osimage_add.add_argument('name', help='OSImage Name')
         Arguments().common_osimage_args(osimage_add)
+        osimage_create = osimage_args.add_parser('create', help='Create an OSImage and build its content')
+        osimage_create.add_argument('name', help='OSImage Name')
+        Arguments().common_osimage_args(osimage_create)
         osimage_change = osimage_args.add_parser('change', help='Change OSImage setting and parameters')
         osimage_change.add_argument('name', help='OSImage Name').completer = Helper().name_completer(self.table)
         Arguments().common_osimage_args(osimage_change)
@@ -173,6 +176,36 @@ class OSImage():
         This method add a osimage.
         """
         return Helper().add_record(self.table, self.args)
+
+
+    def create_osimage(self):
+        """
+        This method adds a osimage and has its content built and packed.
+
+        The record is made through the same path add uses, and the build is then
+        followed on the generic status channel: what a build reports is free-text
+        progress per stage, which the control channel's parser cannot read.
+        """
+        name = self.args['name']
+        Helper().add_record(self.table, self.args)
+        result = Rest().get_raw(f'config/{self.table}/{name}/_create')
+        if result.status_code != 200:
+            Message().show_failed_exit(f'[ FAILED ] Image {name} not created: '
+                                       f'{Helper().answer_message(result)}.')
+        http_response = result.json() if result.content else {}
+        if http_response.get('message'):
+            Message().show_success(f'{http_response["message"]}')
+        request_id = http_response.get('request_id')
+        if not request_id:
+            # the record is made, so this is not a refusal to report as one: there is
+            # simply no stream to follow, and the build's outcome lives only there
+            Message().show_failed_exit(f'[ FAILED ] Image {name}: no build was queued.')
+        # a create the daemon deduplicated answers with the earlier one's id, and
+        # following that stream is the point: both operators watch the one build
+        if not Helper().dig_status(request_id, 1, route='config'):
+            Message().show_failed_exit(f'[ FAILED ] Image {name} not created.')
+        Message().show_success(f'[========] Image {name} created.')
+        return True
 
 
     def change_osimage(self):
