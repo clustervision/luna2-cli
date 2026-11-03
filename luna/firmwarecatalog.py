@@ -90,8 +90,8 @@ class FirmwareCatalog():
         firmware_rename.add_argument('name', help='Firmware Catalogue Entry Name').completer = Helper().name_completer(self.table)
         firmware_rename.add_argument('newfirmwarename', help='New Firmware Catalogue Entry Name')
         firmware_rename.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
-        firmware_status = firmware_args.add_parser('status', help='What became of the firmware updates that were asked for')
-        firmware_status.add_argument('name', nargs='?',
+        firmware_status = firmware_args.add_parser('status', help='What became of the firmware updates asked for, per node; filter by node or group')
+        firmware_status.add_argument('name', nargs='?', metavar='node',
                                      help='Name of a single Node').completer = Helper().name_completer('node')
         firmware_status.add_argument('-g', '--group',
                                      help='Only the nodes of this Group').completer = Helper().name_completer('group')

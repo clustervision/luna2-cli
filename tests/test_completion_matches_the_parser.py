@@ -126,6 +126,46 @@ def test_the_positional_choices_agree_with_the_subparser_list(filename, completi
     )
 
 
+@pytest.mark.parametrize('filename', list(_entity_modules()))
+def test_every_command_is_offered_as_a_top_level_choice(filename, completion):
+    """
+    The top-level command list also appears twice: once as the subparser list and
+    once as the positional choices, and a command spliced into only the first of
+    them still does not complete. The entity check above has no top-level twin.
+    """
+    entity = filename[:-3]
+    choices = _array(completion, '_shtab_luna_pos_0_choices')
+    assert choices is not None, 'the completion has no top-level positional choices'
+    assert entity in choices, (
+        f'`luna {entity}` exists but is not in the top-level pos_0_choices. '
+        f'Splice it in next to the subparser list; do not regenerate the file.'
+    )
+
+
+def test_every_level_offers_its_subparsers_as_choices(completion):
+    """
+    The paired lists exist at every level the parser nests - `luna control power`,
+    `luna service dhcp`, `luna secrets list` - and the AST helpers above cannot see
+    the verbs built in a loop from a constant, which is how control spells its power
+    actions. The subparser list shtab emitted is the nearest source for those, so each
+    one is held to its pos_0_choices twin. Only the missing direction, as always.
+    """
+    problems = []
+    for prefix in re.findall(r'^(_shtab_luna\w*?)_subparsers=\(', completion, re.M):
+        offered = _array(completion, f'{prefix}_subparsers')
+        choices = _array(completion, f'{prefix}_pos_0_choices')
+        if choices is None:
+            continue          # network dns takes the network first; its verbs sit at pos_1
+        missing = sorted(offered - choices)
+        if missing:
+            problems.append(f'{prefix}: {missing}')
+    assert not problems, (
+        'these subcommands are in the subparser list but not in the pos_0_choices '
+        'beside it, so they can be typed but will not complete:\n  '
+        + '\n  '.join(problems)
+    )
+
+
 # --- the tail, which is the one that fails silently -------------------------
 
 def test_the_dynamic_completion_tail_is_still_there(completion):

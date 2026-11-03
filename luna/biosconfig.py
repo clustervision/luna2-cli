@@ -140,8 +140,8 @@ class BiosConfig():
         biosconfig_rename.add_argument('name', help='BIOS Configuration Name').completer = Helper().name_completer(self.table)
         biosconfig_rename.add_argument('newbiosname', help='New BIOS Configuration Name')
         biosconfig_rename.add_argument('-v', '--verbose', action='store_true', default=None, help='Verbose Mode')
-        biosconfig_status = biosconfig_args.add_parser('status', help='What every node was last seen holding')
-        biosconfig_status.add_argument('name', nargs='?',
+        biosconfig_status = biosconfig_args.add_parser('status', help='What every node was last seen holding; filter by node or group')
+        biosconfig_status.add_argument('name', nargs='?', metavar='node',
                                        help='Name of a single Node').completer = Helper().name_completer('node')
         biosconfig_status.add_argument('-g', '--group',
                                        help='Only the nodes of this Group').completer = Helper().name_completer('group')

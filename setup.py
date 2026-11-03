@@ -23,7 +23,7 @@ Setup file, will build the pip package for the project.
 """
 __author__      = "Sumit Sharma"
 __copyright__   = "Copyright 2025, Luna2 Project [CLI]"
-__license__     = "GPL"
+__license__     = "GPLv3"
 __version__     = "2.2"
 __maintainer__  = "Sumit Sharma"
 __email__       = "sumit.sharma@clustervision.com"
@@ -69,7 +69,7 @@ setup(
 	url = "https://gitlab.taurusgroup.one/clustervision/luna2-cli.git",
 	download_url = f"https://{PRE}@gitlab.taurusgroup.one/api/v4/projects/20/packages/pypi/simple",
 	packages = find_packages(),
-	license = "MIT",
+	license = "GPLv3",
 	keywords = ["luna", "cli", "Trinity", "ClusterVision", "Sumit", "Sumit Sharma"],
 	entry_points = {
 		'console_scripts': [
@@ -86,7 +86,7 @@ setup(
 		'Development Status :: Beta',
 		'Environment :: Console',
 		'Intended Audience :: System Administrators',
-		'License :: GPL',
+		'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
 		'Operating System :: RockyLinux :: CentOS :: RedHat',
 		'Programming Language :: Python',
 		'Topic :: Trinity :: Luna'
