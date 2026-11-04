@@ -30,7 +30,7 @@ __email__       = "sumit.sharma@clustervision.com"
 __status__      = "Development"
 
 
-from luna.utils.constant import BOOL_CHOICES, BOOL_META
+from luna.utils.constant import ARCHITECTURE_CHOICES, ARCHITECTURE_META, BOOL_CHOICES, BOOL_META
 from luna.utils.helper import Helper
 
 
@@ -387,6 +387,8 @@ class Arguments():
         parser.add_argument('-i', '--imagefile', help='The file name of the packed image file')
         parser.add_argument('-d', '--distribution', help='The distribution e.g. redhat, ubuntu or opensuse')
         parser.add_argument('-l', '--osrelease', help='Distribution release or version')
+        parser.add_argument('-a', '--architecture', choices=ARCHITECTURE_CHOICES,
+                               metavar=ARCHITECTURE_META, help='The architecture the image boots on')
         parser.add_argument('-c', '--comment', action='store_true', help='Comment')
         parser.add_argument('-qc', '--quick-comment', dest='comment',
                                 metavar="File-Path OR In-Line", help='Comment File-Path OR In-Line')

@@ -42,6 +42,8 @@ LOG_DIR = '/var/log/luna'
 LOG_FILE = '/var/log/luna/luna2-cli.log'
 DAEMON_INI_FILE = '/trinity/local/luna/daemon/config/luna.ini'
 DAEMON_LOG_FILE = '/var/log/luna/luna2-daemon.log'
+ARCHITECTURE_CHOICES = ['x86', 'arm64', 'openpower']
+ARCHITECTURE_META = '{' + ','.join(ARCHITECTURE_CHOICES) + '}'
 BOOL_CHOICES = ['y', 'yes', 'n', 'no', '']
 BOOL_META = "{y,yes,n,no,''}"
 BOOL_KEYS = [
@@ -287,7 +289,7 @@ def actions(table: str) -> list:
         "boot": ["status"],
         "profile": common_actions + member_action + ["status", "addfile", "changefile", "removefile"],
         "network": network_actions + ["reserve", "ipinfo", "nextip", "dns", "route"],
-        "osimage": common_actions + member_action + ["pack", "cancel", "kernel", "tag", "updatecerts"],
+        "osimage": common_actions + member_action + ["create", "pack", "cancel", "kernel", "tag", "updatecerts"],
         "bmcsetup": common_actions + member_action,
         "redfishsetup": common_actions + member_action + ["addaccount", "changeaccount", "removeaccount"],
         # no add: a configuration comes into existence by being grabbed off a
@@ -361,7 +363,7 @@ def filter_columns(table: str) -> list:
                           'vlanid', 'vlan_parent', 'bond_mode', 'bond_slaves', 'dhcp'],
         'switchinterface': ['interface', 'mgmt', 'ipaddress', 'ipaddress_ipv6', 'macaddress', 'network'],
         'nodesecrets': ['Node', 'name', 'path', 'owner', 'mode', 'content'],
-        'osimage': ['name', 'path', 'kernelversion', 'distribution', 'osrelease'],
+        'osimage': ['name', 'path', 'kernelversion', 'distribution', 'osrelease', 'architecture'],
         'otherdev': ['name', 'network', 'ipaddress', 'macaddress', 'comment'],
         'switch': ['name', 'network', 'oid', 'read', 'ipaddress', 'netboot'],
         'osimagetag': ['osimage', 'name', 'kernelfile', 'initrdfile', 'imagefile', 'path', 'nodes',
@@ -500,7 +502,7 @@ def sortby(table: str) -> list:
         # access are listed rather than left to the GOVERNED_TABLES append, so they
         # sit above the comment instead of after it.
         'osimage': [
-            'name', 'path', 'kernelversion', 'distribution', 'osrelease', 'tag',
+            'name', 'path', 'kernelversion', 'distribution', 'osrelease', 'architecture', 'tag',
             'kerneloptions', 'kernelmodules',
             'grab_filesystems', 'grab_exclude',
             'kernelfile', 'initrdfile', 'imagefile',
